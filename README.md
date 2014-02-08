@@ -1,7 +1,7 @@
 textabyss
 =========
 
-A pannable writing plane for working on massive amounts of prose, organized by column. Navigate with the mouse, keyboard, or via a map. 
+A pannable writing plane for VIM for working on massive amounts of prose, organized by column. Navigate with the mouse, keyboard, or via a map. 
 
 Check out the youtube video: http://www.youtube.com/watch?v=QTIaI_kI_X8 
 
