@@ -1,8 +1,8 @@
-"just need to restore original window position (must do in Panleft / Panright)
-"optimize normal zl so there is no constant zeroing
-"PanLeft1, Panright1
-
-
+"simply need to pause when mouse switches windows instead of stay at the same window?
+"...and activiate the current window
+"append(file, width, [position])
+"account for when an additional column is gained N->N+1
+"/ later 
 "try to get absolute coordinates for mouse
 "map arrow keys to navigation for now?
 "small pan
@@ -19,27 +19,38 @@
 "optimizations: exe wrapcmd
 "helpful fail messages for InitPlane
 "SwitchNavMode
+"PanLeft1, Panright1
 
 
 fun! MouseNav()
-	"need to account for special case of &wrap && winline=1
-	"only need to account for resizings of origwin
+	exe v:mouse_win."wincmd w"
 	let winorig=v:mouse_win
-	let offset=&wrap? (virtcol('.')%winwidth(0)-wincol()) : (virtcol('.')-wincol())
-	let [x,y]=[(&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset)*(v:mouse_win==winorig),v:mouse_lnum]
-	let nx=x
+	let offset=virtcol('.')-wincol()
+	let [x,y]=[&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset,v:mouse_lnum]
+	"let winoffset=winorig==1? 0 : eval(join(map(range(1,winorig-1),'winwidth(v:val)'),'+'))
 	while getchar()=="\<leftdrag>"
-		let [nx,ny]=[(&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset)*(v:mouse_win==winorig),v:mouse_lnum]
-		if x&&nx
-			let [dx,dy]=[nx-x,ny-y]
-			if dx>0
-				call PanLeft(dx)
-				"account for when an additional column is gained N->N+1
-			elseif dx<0
-				call PanRight(-dx)
+		if v:mouse_win!=winorig
+			exe v:mouse_win."wincmd w"
+			let winorig=v:mouse_win
+			let offset=virtcol('.')-wincol()
+			let [x,y]=[&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset,v:mouse_lnum]
+			"let winoffset=winorig==1? 0 : eval(join(map(range(1,winorig-1),'winwidth(v:val)'),'+'))
+		else
+			let [nx,ny]=[&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset,v:mouse_lnum]
+			if !x
+				let [x,y]=[nx,ny]
+			elseif x && nx
+				let [dx,dy]=[nx-x,ny-y]
+				if dx>0
+					call PanLeft(dx)
+				elseif dx<0
+					call PanRight(-dx)
+				en
+				if winorig==1
+                	let [x,y]=[nx,ny]
+				en
+				redr | ec [x,y,nx,ny,dx,dy]
 			en
-			redr | ec [dx,dy]
-			"let [x,y]=[nx,ny]
 		en
 	endwhile
 endfun
@@ -55,14 +66,6 @@ fun! GetPlanePos()
 	let g:LCol=g:NavDic[bufname(winbufnr(1))]
 	let g:RCol=g:NavDic[bufname(winbufnr('$'))]
 	let g:LOff=winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)
-endfun
-
-fun! IndexDic(list)
-   let [index,i]=[{},0]
-   for e in a:list
-		let [index[e],i]=[i,i+1]
-   endfor
-   return index
 endfun
 
 fun! InitPlane(...)
@@ -81,6 +84,10 @@ fun! InitPlane(...)
 		en
 	en
   	let g:NavDic=IndexDic(g:NavNames)
+	let [g:NavDic,i]=[{},0]
+	for e in g:NavNames
+		let [g:NavDic[e],i]=[i,i+1]
+	endfor
 	se wiw=1
 	se wmw=0
 	se ve=all
@@ -117,8 +124,7 @@ fun! PanLeft(N)
 			let g:RCol-=1
 		en
 	en
-	let w0=winwidth(winnr('$'))
-	let g:LOff-=N
+	let [w0,g:LOff]=[winwidth(0),g:LOff-N]
 	if w0!=&columns
 		wincmd t
 		exe N.'wincmd >'
@@ -131,18 +137,17 @@ fun! PanLeft(N)
 			let NextWindow=(g:LCol-1)%len(g:NavNames)
 			se nowfw
 			exe 'lefta '.(winwidth(0)-g:NavSizes[g:LCol]-1).'vsp '.g:NavNames[NextWindow]
-			norm 0
 			wincmd l
 			se wfw
 			wincmd t
 			se wfw
+			norm 0
 			let g:LCol=NextWindow
 		endwhile
 		if winwidth(0)<g:NavSizes[g:LCol]
 			exe 'norm! 0'.(g:NavSizes[g:LCol]-winwidth(0)).'zl'
 		en
-		let g:LOff=g:NavSizes[g:LCol]-winwidth(0)
-		let g:LOff=g:LOff<0? 0 : g:LOff
+		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(0)])
 	elseif g:LOff>=-1
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 	else
@@ -161,13 +166,10 @@ fun! PanLeft(N)
 				se nowfw
 				exe 'bot '.(spaceremaining-1).'vsp '.(g:NavNames[NextCol])
 				norm! 0
-				wincmd h
-				se wfw
-				wincmd b
-				se wfw
 				let spaceremaining-=g:NavSizes[NextCol]+1
 				let NextCol=(NextCol+1)%len(g:NavNames)
 			endwhile
+			windo se wfw
 			let g:RCol=(NextCol-1)%len(g:NavNames)
 		en
 	en
@@ -264,12 +266,9 @@ fun! PanRight(N)
 			se nowfw
 			exe 'bot '.(spaceremaining-1).'vsp '.(g:NavNames[g:RCol])
 			norm! 0
-			wincmd h
-			se wfw
-			wincmd b
-			se wfw   "probably can optimize, since next loop undos this
 			let spaceremaining-=g:NavSizes[g:RCol]+1
 		endwhile
+		windo se wfw
 	en
 endfun
 nno <c-k> :<c-u>call PanRight(v:count1)<cr>
