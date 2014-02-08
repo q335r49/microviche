@@ -149,8 +149,8 @@ let keypdict.98 ='let y=Pan(-1,y+1)'
 let keypdict.66 ='let y=Pan(-3,y+3)'
 let keypdict.110='let y=Pan(1,y+1)'
 let keypdict.78 ='let y=Pan(3,y+3)'
-let keypdict[len(eval('"\'.txpHotkey.'"'))>1? eval('"\'.txpHotkey.'"') : char2nr(eval('"\'.txpHotkey.'"'))]="call LoadPlane()|redr|ec ' (redrawn)'|let continue=0"
-let keypdict["\<f5>"]="call LoadPlane()|let msg='redrawn'"
+let keypdict[len(eval('"\'.txpHotkey.'"'))>1? eval('"\'.txpHotkey.'"') : char2nr(eval('"\'.txpHotkey.'"'))]="call LoadPlane(t:txP)|redr|ec ' (redrawn)'|let continue=0"
+let keypdict["\<f5>"]="call LoadPlane(t:txP)|let msg='redrawn'"
 let keypdict["\<leftmouse>"]="call MousePanCol()|let y=line('w0')|redr"
 let keypdict.83='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? [" Scrollbind off","jump"] : [" Scrollbind on","ver,jump"] | call LoadPlane() | echon msg'
 let keypdict["\<f1>"]='call TxpPrompt(0)'
@@ -161,9 +161,17 @@ fun! TXPEditSettings()
 	if ix==-1
 		ec " Error: Current buffer not in plane"
 	else
-    	let t:txP.size[ix]=input(' Column width: ',t:txP.size[ix])
-    	let t:txP.exe[ix]=input(' Autoexecute on load: ',t:txP.exe[ix])
-    	let newix=input(' Column position (0-'.(t:txP.len-1).'): ',ix)
+		redr
+		let input=input(' < Column width: ',t:txP.size[ix])
+    	let t:txP.size[ix]=empty(input)? t:txP.size[ix] : input
+		redr
+    	let input=input(" < Autoexecute on load:
+			\\n * scb should always be set so that one can toggle global scrollbind via <hotkey>S
+			\\n * wrap defaults to 'wrap' if not set\n",t:txP.exe[ix])
+		let t:txP.exe[ix]=empty(input)? t:txP.exe[ix] : input
+		redr
+    	let input=input(' < Column position (0-'.(t:txP.len-1).'): ',ix)
+		let newix=empty(input)? ix : input
 		if newix>=0 && newix<t:txP.len && newix!=ix
 			let item=remove(t:txP.name,ix)
 			call insert(t:txP.name,item,newix)
@@ -176,7 +184,7 @@ fun! TXPEditSettings()
 				let [t:txP.ix[e],i]=[i,i+1]
 			endfor
 		en
-		call LoadPlane()
+		call LoadPlane(t:txP)
 	en
 endfun
 
@@ -495,23 +503,21 @@ fun! MousePanCol()
 	let [c,b0]=[100,-1]
 	while c!="\<leftrelease>"
 		if winbufnr(v:mouse_win)!=b0
-			let b0=winbufnr(v:mouse_win)
-			exe v:mouse_win."wincmd w"
-			if &wrap
-				call setpos('.',[b0,v:mouse_lnum,0,v:mouse_col])
-			en
-			let wrap=&wrap
-			let [x,y]=&wrap? [wincol(),line('w0')+winline()] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum]
-			let nxy_expr=&wrap? "call setpos('.',[0,v:mouse_lnum,0,v:mouse_col])|let [nx,l0]=[wincol(),y-winline()]" : "let [nx,l0]=[v:mouse_col-".(virtcol('.')-wincol()).",line('w0')+y-v:mouse_lnum]"
-			let ix=get(t:txP.ix,bufname(b0),-1)
-			let ecstr=ix==-1? ' < '.bufname(b0).' not registered >' : &ls? ' '.v:mouse_lnum.' , '.v:mouse_col : (' '.(t:txP.name[(ix-2)%t:txP.len]).' < '.(t:txP.name[(ix-1)%t:txP.len]).' << '.(t:txP.name[ix]).' >> '.(t:txP.name[(ix+1)%t:txP.len]).' > '.(t:txP.name[(ix+2)%t:txP.len]))[:&columns-2]
+			exe "norm! \<leftmouse>"
+			let [b0,wrap,ix]=[winbufnr(0),&wrap,get(t:txP.ix,bufname(b0),-1)]
+			let [x,y,offset]=wrap? [wincol(),line('w0')+winline(),0] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol()]
+			let ecstr=&ls? ' '.v:mouse_lnum.' , '.v:mouse_col : (' '.(t:txP.name[(ix-2)%t:txP.len]).' < '.(t:txP.name[(ix-1)%t:txP.len]).' << '.(t:txP.name[ix]).' >> '.(t:txP.name[(ix+1)%t:txP.len]).' > '.(t:txP.name[(ix+2)%t:txP.len]))[:&columns-2]
 		else
-			exe nxy_expr
-			exe x && nx && x!=nx? nx>x? 'call PanLeft(nx-x)' : 'call PanRight(x-nx)' : 'let x=x? x : nx'
+			if wrap
+				exe "norm! \<leftmouse>"
+				let [nx,l0]=[wincol(),y-winline()]
+			else
+				let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+			en
+			let [x,xs]=x && nx? [x,nx>x? -PanLeft(nx-x) : PanRight(x-nx)] : [x? x : nx,0]
 			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
-			let [x,y]=[wrap? nx : x, l0>0? y : y-l0+1]
+			let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 			redr
-			let ecstr=x.', '.nx
 			ec ecstr
 		en
 		let c=getchar()
@@ -575,12 +581,13 @@ fun! PanLeft(N,...)
 		let offset=t:txP.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 	else
-		let loff=winwidth(1)==&columns? (&wrap? 0 : virtcol('.')-wincol()) : (t:txP.size[tcol]>winwidth(1)? t:txP.size[tcol]-winwidth(1) : 0)-a:N-extrashift
-		if loff>=-1
+		let loff=&wrap? -a:N-extrashift : virtcol('.')-wincol()-a:N-extrashift
+		if loff>=0
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
 		else
+			let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 			while loff<=-2
-				let tcol=(tcol-1)%t.txP.len
+				let tcol=(tcol-1)%t:txP.len
 				let loff+=t:txP.size[tcol]+1
 			endwhile
 			se scrollopt=jump
@@ -612,7 +619,7 @@ endfun
 fun! PanRight(N,...)
 	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
 	let tcol=get(t:txP.ix,bufname(winbufnr(1)),-1)
-	let [bcol,loff,extrashift,N]=[get(t:txP.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? 0 : virtcol('.')-wincol()) : (t:txP.size[tcol]>winwidth(1)? t:txP.size[tcol]-winwidth(1) : 0),0,a:N]
+	let [bcol,loff,extrashift,N]=[get(t:txP.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txP.size[tcol]>&columns? t:txP.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txP.size[tcol]>winwidth(1)? t:txP.size[tcol]-winwidth(1) : 0),0,a:N]
 	if tcol<0 || bcol<0
 		throw (tcol<0? bufname(winbufnr(1)) : '').(bcol<0? ' '.bufname(winbufnr(winnr('$'))) : '')." not contained in current plane: ".string(t:txP.name)
 	elseif N>=&columns
@@ -710,6 +717,9 @@ fun! PanRight(N,...)
 		endwhile
 		let &scrollopt=t:txP.scrollopt
 		windo se wfw
+	else
+		let offset=loff-virtcol('.')+wincol()
+		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 	en
 	return extrashift
 endfun
