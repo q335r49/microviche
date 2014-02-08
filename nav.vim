@@ -1,59 +1,59 @@
-"     ---- User Settings ----
-"Panning mode hotkey, as name rather than raw characters (ie, '<f3>' and not "\<f3>" or ^V<f3>):
-	let txb_key=exists("txb_key")? txb_key : '<f3>'
+"Textabyss hotkey
+let txb_key=exists("txb_key")? txb_key : "\<f3>"
 
 let txbOnLoadCol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.g:txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
+fun! FormatPar(str,w,pad)
+	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	for line in split(a:str,"\n",1)
+		let [center,seg]=[line[0:1]==#'\C',[0]]
+		if center
+			let line=line[2:]
+		en
+		while seg[-1]<len(line)-a:w
+			let ix=(a:w+strridx(tr(line[seg[-1]:seg[-1]+a:w-1],&brk,spc),' '))%a:w
+			call add(seg,seg[-1]+ix-(line[seg[-1]+ix=~'\s']))
+			let ix=seg[-2]+ix+1
+			while line[ix]==" "
+				let ix+=1
+			endwhile
+			call add(seg,ix)
+		endw
+		call add(seg,len(line)-1)
+		let output.=center? pad.join(map(range(len(seg)/2),'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].line[seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad)."\n" : pad.join(map(range(len(seg)/2),'line[seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad)."\n"
+	endfor
+	return output
+endfun
 fun! TXBstart(...)                                          
 	let filepattern=a:0? a:1 : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
 	if a:0 && a:1 is 0
-		redr|ec "
-		\\n      ------------ Textabyss (Updated Dec 27 '13) -----------
-		\\n Welcome to Textabyss, a panning workspace for vim! To begin, press
-		\\n     ".printf("%-10s",g:txb_key)."- Textabyss initialize hotkey"."
-		\\n and enter a file pattern with a wildcard character to bring up 
-		\\n a list of files, eg:
-		\\n     file*     - file0, file1, file-new etc in current directory
-		\\n     *         - all files in current directory
-		\\n
-		\\n If the current buffer is a part of the plane, the plane will load
-		\\n at the current buffer position. Otherwise, it will load in a new
-		\\n tab. Once loaded:
-		\\n     f1        - show this message
-		\\n     leftmouse - Pan with mouse
-		\\n     ".printf("%-10s",g:txb_key)."- Panning mode hotkey
-		\\n In panning mode:
-		\\n     R         - Redraw
-		\\n     r         - Redraw and go back to normal mode
-		\\n     hjklyubn  - pan
-		\\n     HJKLYUBN  - pan faster
-		\\n     <tab>     - Go back in changelist
-		\\n     <space>   - go foward in changelist
-		\\n     D         - Delete this column
-		\\n     A         - Append column here
-		\\n     g         - follow text link of the form file@line
-		\\n     p[X]      - put a link to bookmark X here
-		\\n     S         - Scrollbind toggle
-		\\n     s         - 'slide' to bookmark
-		\\n     E         - Edit current buffer settings
-		\\n
-		\\n                        Additional Comments:
-		\\n - Assumes no horizontal splits
-		\\n - For now, Textplane assumes the files are in the current directory
-		\\n   (ie, :cd ~/SomeDir). Adding files from another directory shouldn't
-		\\n   be a big issue but hasn't been thoroughly tested.
-		\\n - Scroll binding may desync if you are scrolling a column much
-		\\n   longer than the others. Press ".g:txb_key." twice to redraw.
-		\\n - Turning off or simplifying statusbar may improve speed
-		\\n - Vim can't detect cursor mouseclicks beyond column 253
-		\\n - Set g:txb_key either in the source file or before sourcing
-		\\n   Textabyss to set the the global hotkey. Use the name rather than
-		\\n   the raw key, ie, '<f3>' and not \"\\<f3>\" or ^V<F3>. For example:
-		\\n     :let g:txb_key='<f1>'  
-		\\n     :source textabyss.vim
-		\\n - Pass on any bugs or suggestions to q335r49@gmail.com"
+		let helpmsg="\n\\CWelcome to the textabyss, updated Jan 3 '14, mwahahaha!\n
+		\\nTo begin, press ".strtrans(g:txb_key)." and enter a file pattern to bring up a list of files. Perhaps you can start by typing \"*\" to match all files in the current directory, or \"plane*\" to match files like plane1, planeb, planetary.
+		\\n    Assuming everything loaded correctly, you can now navigate by dragging the mouse. Or you can press ".strtrans(g:txb_key)." to enter some commands:
+		\\n    f1        - show this message
+		\\n    R r       - Redraw / redraw and return to normal mode
+		\\n    hjklyubn  - pan (hold shift to pan faster)
+		\\n    tab space - Back / foward in changelist
+		\\n    D A       - Delete / append column
+		\\n    g         - goto textlink (of the form file@line)
+		\\n    p[X]      - paste a textlink to bookmark X here
+		\\n    S         - Scrollbind toggle
+		\\n    s         - 'slide' to bookmark
+		\\n    E         - Edit column settings\n
+		\\n- Assumes no horizontal splits!
+		\\n- If the current buffer is part of the plane, the plane will load at the current position and not the beginning of the plane. You can restore your previous position this way. To save column settings you can simply save and restore the t:txb variable.
+		\\n- For now, files are assumed to be in the current directory (ie, :cd ~/SomeDir beforehand). Adding files from other directories should work but hasn't been thoroughly tested.
+		\\n- Scrollbinding may desync if you are scrolling a column much longer than its neighbors. Press ".strtrans(g:txb_key)."r to redraw.
+		\\n- Vim can't detect cursor mouseclicks beyond column 253
+		\\n- Set g:txb_key before sourcing to set the hotkey. Eg:
+		\\n    :let g:txb_key=\"\\<f1>\"
+		\\n    :source textabyss.vim
+		\\n- Pass on any bugs or suggestions to q335r49@gmail.com\n"
+        let width=&columns>80? min([&columns-10,80]) : &columns-2
+		let pad=(&columns-width)/2
+		redr|ec FormatPar(helpmsg,width,pad)
 		let [filepattern,plane]=['',{'name':''}]
 	else
 		let plane=s:CreateAbyss(filepattern)
