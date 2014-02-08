@@ -1,10 +1,32 @@
-"Textabyss hotkey
-let txb_key=exists("txb_key")? txb_key : "\<f3>"
+"Global hotkey: press <f3> to begin
+let txb_key='<f10>'
 
 let txbOnLoadCol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
-exe 'nn <silent> '.g:txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
+exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
+let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
+
+fun! s:PrintHelp()
+	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 4, 2013 q335r49@gmail.com\n
+	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
+	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
+	\\n    f1        - show this message
+	\\n    R r       - Redraw / redraw and go to normal mode
+	\\n    hjklyubn  - pan (hold shift to pan faster)
+	\\n    tab space - Back / foward in changelist
+	\\n    D A       - Delete / append column
+	\\n    g         - goto textlink (of the form file@line)
+	\\n    p[X]      - paste a textlink to bookmark X here
+	\\n    S         - Scrollbind toggle
+	\\n    s         - 'slide' to bookmark
+	\\n    E         - Edit column settings\n
+	\\n    If the file list includes the current buffer loading is the same as redrawing. So you can restore your previous position by pressing ".g:txb_key." in that case. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed) between sessions.
+	\\n\n    There are a few known limitations: scrollbind desyncs if scrolling in a much longer column (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue)"
+	let width=&columns>80? min([&columns-10,80]) : &columns-2
+	redr|ec input(FormatPar(helpmsg,width,(&columns-width)/2))
+endfun
+
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
 	for line in split(a:str,"\n",1)
@@ -26,61 +48,38 @@ fun! FormatPar(str,w,pad)
 	endfor
 	return output
 endfun
+
 fun! TXBstart(...)                                          
-	let filepattern=a:0? a:1 : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
-	if a:0 && a:1 is 0
-		let helpmsg="\n\\CWelcome to the textabyss, updated Jan 3 '14, mwahahaha!\n
-		\\nTo begin, press ".strtrans(g:txb_key)." and enter a file pattern to bring up a list of files. Perhaps you can start by typing \"*\" to match all files in the current directory, or \"plane*\" to match files like plane1, planeb, planetary.
-		\\n    Assuming everything loaded correctly, you can now navigate by dragging the mouse. Or you can press ".strtrans(g:txb_key)." to enter some commands:
-		\\n    f1        - show this message
-		\\n    R r       - Redraw / redraw and return to normal mode
-		\\n    hjklyubn  - pan (hold shift to pan faster)
-		\\n    tab space - Back / foward in changelist
-		\\n    D A       - Delete / append column
-		\\n    g         - goto textlink (of the form file@line)
-		\\n    p[X]      - paste a textlink to bookmark X here
-		\\n    S         - Scrollbind toggle
-		\\n    s         - 'slide' to bookmark
-		\\n    E         - Edit column settings\n
-		\\n- Assumes no horizontal splits!
-		\\n- If the current buffer is part of the plane, the plane will load at the current position and not the beginning of the plane. You can restore your previous position this way. To save column settings you can simply save and restore the t:txb variable.
-		\\n- For now, files are assumed to be in the current directory (ie, :cd ~/SomeDir beforehand). Adding files from other directories should work but hasn't been thoroughly tested.
-		\\n- Scrollbinding may desync if you are scrolling a column much longer than its neighbors. Press ".strtrans(g:txb_key)."r to redraw.
-		\\n- Vim can't detect cursor mouseclicks beyond column 253
-		\\n- Set g:txb_key before sourcing to set the hotkey. Eg:
-		\\n    :let g:txb_key=\"\\<f1>\"
-		\\n    :source textabyss.vim
-		\\n- Pass on any bugs or suggestions to q335r49@gmail.com\n"
-        let width=&columns>80? min([&columns-10,80]) : &columns-2
-		let pad=(&columns-width)/2
-		redr|ec FormatPar(helpmsg,width,pad)
-		let [filepattern,plane]=['',{'name':''}]
+	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
+	let plane=type(preventry)==1? s:CreatePlane(preventry) : type(preventry)==4? preventry : {'name':''}
+	if !empty(plane.name)
+		ec "\n" (a:0 && a:1 isnot 0? "This" : "Previous") (type(preventry)==4? "plane has:" : "pattern matches:")
+		let curbufix=index(plane.name,expand('%'))
+		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
+		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
+		ec "(Press ENTER to load, ESC to try something else, or F1 for help)"
+		let c=getchar()
 	else
-		let plane=s:CreateAbyss(filepattern)
-		if !empty(plane.name)
-			let g:TXB_PREVPAT=filepattern
-			let curbufix=index(plane.name,expand('%'))
-			ec (a:0? "\n> Pattern \"" : "\n> Last used pattern \"").filepattern.'" matches:'
-			ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
-			ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
-		else
-			ec a:0? "\n(No matches found)" : ''
-		en
+		let c=0
 	en
-	let input=input(empty(plane.name)? "> Enter file pattern for new plane (or type 'help' for help): " : "> Press ENTER to load plane or try another pattern (type 'help' for help): ", filepattern)
-	if empty(input)
-		redr|ec "(aborted)"
-	elseif input==?'help'
-		call TXBstart(0)
-	elseif !empty(plane.name) && input==#filepattern
+	if c==13 || c==10
 		if curbufix==-1 | tabe | en
-		call s:LoadAbyss(plane)
+		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
+		call s:LoadPlane(plane)
+	elseif c=="\<f1>"
+		call s:PrintHelp() 
 	else
-		call TXBstart(input)
+		let input=input("> Enter file pattern or type HELP: ", g:TXB_PREVPAT)
+		if empty(input)
+			redr|ec "(aborted)"
+		elseif input==?'help'
+			call s:PrintHelp()
+		else
+			call TXBstart(input)
+		en
 	en
 endfun
 
-let keypdict={}
 fun! TXBcmd()
 	let [y,continue]=[line('w0'),1]
 	while continue
@@ -90,30 +89,31 @@ fun! TXBcmd()
 		redr|ec msg
 		let c=getchar()
 		let &cuc=cucsav
-		exe get(g:keypdict,c,'let msg=" < Press f1 for help >"')
+		exe get(s:keydict,c,'let msg=" < Press f1 for help >"')
 	endwhile
 	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
 endfun
-let keypdict.68="redr
+let s:keydict={}
+let s:keydict.68="redr
 \\n	let confirm=input(' < Really delete current column (y/n)? ')
 \\n	if confirm==?'y'
 \\n		let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
 \\n		if ix!=-1
 \\n			call s:DeleteCol(ix)
 \\n			wincmd W
-\\n			call s:LoadAbyss(t:txb)
+\\n			call s:LoadPlane(t:txb)
 \\n			let msg=' < col '.ix.' removed >'
 \\n		else
 \\n			let msg=' < Current buffer not in plane; deletion failed >'
 \\n		en
 \\n	en"
-let keypdict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
+let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
 \\n	if ix!=-1
 \\n	    redr
 \\n		let file=input(' < File to append: ','','file')
 \\n		if !empty(file)
 \\n			call s:AppendCol(ix,file)
-\\n			call s:LoadAbyss(t:txb)
+\\n			call s:LoadPlane(t:txb)
 \\n			let msg=' < col '.(ix+1).' appended >'
 \\n		else
 \\n			let msg=' < aborted >'
@@ -121,7 +121,7 @@ let keypdict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
 \\n	else
 \\n		let msg=' < Current buffer not in plane; append failed >'
 \\n	en"
-let keypdict.103="let marker=split(expand('<cWORD>'),'@')
+let s:keydict.103="let marker=split(expand('<cWORD>'),'@')
 \\n let continue=0
 \\n if len(marker)>=2
 \\n		let [i,l]=[get(t:txb.ix,marker[0],-1),marker[1]==0? 0 : marker[1]]
@@ -135,31 +135,31 @@ let keypdict.103="let marker=split(expand('<cWORD>'),'@')
 \\n else
 \\n		let msg=' < link must be of form file@line >'
 \\n	en"
-let keypdict.112="redr|ec ' < register: '|let [continue,pos]=[0,getpos(\"'\".nr2char(getchar()))]|exe 'norm! i'.bufname(pos[0]).'@'.pos[1]"
-let keypdict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
-let keypdict.27="let continue=0|redr|ec ''"
-let keypdict.104='cal s:Pan(-2,y)'
-let keypdict.72 ='cal s:Pan(-6,y)'
-let keypdict.106='let y=s:Pan(0,y+2)'
-let keypdict.74 ='let y=s:Pan(0,y+6)'
-let keypdict.107='let y=s:Pan(0,y-2)'
-let keypdict.75 ='let y=s:Pan(0,y-6)'
-let keypdict.108='cal s:Pan(2,y)'
-let keypdict.76 ='cal s:Pan(6,y)'
-let keypdict.121='let y=s:Pan(-1,y-1)'
-let keypdict.89 ='let y=s:Pan(-3,y-3)'
-let keypdict.117='let y=s:Pan(1,y-1)'
-let keypdict.85 ='let y=s:Pan(3,y-3)'
-let keypdict.98 ='let y=s:Pan(-1,y+1)'
-let keypdict.66 ='let y=s:Pan(-3,y+3)'
-let keypdict.110='let y=s:Pan(1,y+1)'
-let keypdict.78 ='let y=s:Pan(3,y+3)'
-let keypdict.114="call s:LoadAbyss(t:txb)|redr|ec ' (redrawn)'|let continue=0"
-let keypdict.82="call s:LoadAbyss(t:txb)|let msg=' < redrawn >'"
-let keypdict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
-let keypdict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? [" < Scrollbind off >","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadAbyss()'
-let keypdict["\<f1>"]='call TXBstart(0)'
-let keypdict.69='call s:EditSettings()|let continue=0'
+let s:keydict.112="redr|ec ' < register: '|let [continue,pos]=[0,getpos(\"'\".nr2char(getchar()))]|exe 'norm! i'.bufname(pos[0]).'@'.pos[1]"
+let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
+let s:keydict.27="let continue=0|redr|ec ''"
+let s:keydict.104='cal s:Pan(-2,y)'
+let s:keydict.72 ='cal s:Pan(-6,y)'
+let s:keydict.106='let y=s:Pan(0,y+2)'
+let s:keydict.74 ='let y=s:Pan(0,y+6)'
+let s:keydict.107='let y=s:Pan(0,y-2)'
+let s:keydict.75 ='let y=s:Pan(0,y-6)'
+let s:keydict.108='cal s:Pan(2,y)'
+let s:keydict.76 ='cal s:Pan(6,y)'
+let s:keydict.121='let y=s:Pan(-1,y-1)'
+let s:keydict.89 ='let y=s:Pan(-3,y-3)'
+let s:keydict.117='let y=s:Pan(1,y-1)'
+let s:keydict.85 ='let y=s:Pan(3,y-3)'
+let s:keydict.98 ='let y=s:Pan(-1,y+1)'
+let s:keydict.66 ='let y=s:Pan(-3,y+3)'
+let s:keydict.110='let y=s:Pan(1,y+1)'
+let s:keydict.78 ='let y=s:Pan(3,y+3)'
+let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
+let s:keydict.82="call s:LoadPlane(t:txb)|let msg=' < redrawn >'"
+let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
+let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? [" < Scrollbind off >","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
+let s:keydict["\<f1>"]='call s:PrintHelp()|let continue=0'
+let s:keydict.69='call s:EditSettings()|let continue=0'
 
 fun! s:EditSettings()
    	let ix=get(t:txb.ix,expand('%'),-1)
@@ -168,15 +168,18 @@ fun! s:EditSettings()
 	else
 		redr
 		let input=input(' < Column width: ',t:txb.size[ix])
-    	let t:txb.size[ix]=empty(input)? t:txb.size[ix] : input
+		if empty(input) | return | en
+    	let t:txb.size[ix]=input
 		redr
     	let input=input(" < Autoexecute on load:
 			\\n * scb should always be set so that one can toggle global scrollbind via <hotkey>S
 			\\n * wrap defaults to 'wrap' if not set\n",t:txb.exe[ix])
-		let t:txb.exe[ix]=empty(input)? t:txb.exe[ix] : input
+		if empty(input) | return | en
+		let t:txb.exe[ix]=input
 		redr
     	let input=input(' < Column position (0-'.(t:txb.len-1).'): ',ix)
-		let newix=empty(input)? ix : input
+		if empty(input) | return | en
+		let newix=input
 		if newix>=0 && newix<t:txb.len && newix!=ix
 			let item=remove(t:txb.name,ix)
 			call insert(t:txb.name,item,newix)
@@ -189,7 +192,7 @@ fun! s:EditSettings()
 				let [t:txb.ix[e],i]=[i,i+1]
 			endfor
 		en
-		call s:LoadAbyss(t:txb)
+		call s:LoadPlane(t:txb)
 	en
 endfun
 
@@ -209,7 +212,7 @@ fun! TXBoninsert()
 		let t:txb.changelistmarker=0
 	en
 endfun
-let keypdict.9="if !empty(t:txb.changelist)
+let s:keydict.9="if !empty(t:txb.changelist)
 \\n		let t:txb.changelistmarker=max([t:txb.changelistmarker-1,-len(t:txb.changelist)])
 \\n		let ix=get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
 \\n		while ix==-1
@@ -221,7 +224,7 @@ let keypdict.9="if !empty(t:txb.changelist)
 \\n			call s:CenterPos(ix,t:txb.changelist[t:txb.changelistmarker][1],t:txb.changelist[t:txb.changelistmarker][2])
 \\n		en
 \\n	en"
-let keypdict.32="if !empty(t:txb.changelist)
+let s:keydict.32="if !empty(t:txb.changelist)
 \\n		let t:txb.changelistmarker=min([t:txb.changelistmarker+1,-1])
 \\n		let ix=get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
 \\n		while ix==-1
@@ -270,7 +273,7 @@ fun! s:CenterPos(targcol,...)
 	let targwin=bufwinnr(t:txb.name[a:targcol])
 	if targwin==-1
 		wincmd t
-		call s:LoadAbyss()
+		call s:LoadPlane()
 		let targwin=bufwinnr(t:txb.name[a:targcol])
 	en
 	if targwin==-1
@@ -324,11 +327,11 @@ fun! s:Pan(dx,y)
 	return line('w0')
 endfun
 
-fun! s:CreateAbyss(name,...)
+fun! s:CreatePlane(name,...)
 	let plane={}
 	let plane.name=type(a:name)==1? map(glob(a:name,0,1),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
 	if plane.name is 'INV'
-     	throw 'First argument ('.string(name).') must be string (filepattern) or list (list of files)'
+     	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
 	else
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
@@ -365,7 +368,7 @@ fun! s:DeleteCol(index)
 	endfor
 endfun
 
-fun! s:LoadAbyss(...)
+fun! s:LoadPlane(...)
 	if a:0
 		let t:txb=a:1
 		se sidescroll=1 mouse=a lz noea nosol wiw=1 wmw=0 ve=all
@@ -464,14 +467,6 @@ fun! s:LoadAbyss(...)
 	catch
 	endtry
    	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
-endfun
-
-fun! DeleteHiddenBuffers()
-	let tpbl=[]
-	call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
-	for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
-		silent execute 'bwipeout' buf
-	endfor
 endfun
 
 let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
