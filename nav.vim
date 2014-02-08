@@ -1,12 +1,37 @@
-"account for resizing -- probably need a 'reset' function, or use marks
+"determine LCol and LOff manually every time? (YES)
+"... Or on resize? LOff can be determined manually except where there is one column AND wrap is set to off
+"... so no, that won't take long at all.
+"... but we need to determine the *first visible column* (only for cases of a single open window and no wrap)
+"synergize with mousecursor / Navmode settings
+"... the only problem here is changing windows ... but that shouldn't happen.
 "optimize normal zl so there is no constant zeroing
 "PanLeft1, Panright1
+"bookmarks / goto file-line-column
+"scb issues
+"resize (by setcurrentsize)
+"clean up plane / save
+"account for resizing -- probably need a 'reset' function, or use marks (not necessary now that LCol and LOff are automatically determined)
+"optimizations: exe wrapcmd
 
 
 let g:PlaneCol=[['test-10',10],['test-20',20],['test-40',40],['test-80',80],['test-60',60],['test-150',150]]
 let g:LCol=0
 let g:LOff=0
-fun! InitPlane()
+
+fun! InitDevPlane(name,min,max)
+	call InitPlane(map(range(a:min,a:max),'[a:name."-0".v:val,60]'))
+endfun
+
+fun! InitPlane(...)
+	if exists("a:1")
+		let g:PlaneCol=a:1
+	en
+	if exists("a:2")
+		let g:LCol=a:1
+	en
+	if exists("a:3")
+		let g:LOff=a:1
+	en
 	se wiw=1
 	se wmw=0
 	se ve=all
@@ -22,15 +47,6 @@ fun! InitPlane()
 	endwhile
 	let g:RCol=(NextCol-1)%len(g:PlaneCol)
 	windo se wfw
-endfun
-
-fun! AppendPlane(filename, width)
-endfun
-
-fun! ResetPlane()
-endfun
-
-fun! CleanupPlane()
 endfun
 
 fun! PanLeft(N)
