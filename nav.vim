@@ -54,86 +54,74 @@ let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 if !exists('g:opt_device') "for compatibility
 	let opt_device=''
 en
-fun! MousePan()
-	if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
-		if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
-		return 1 | en
-	exe "norm! \<leftmouse>"
-	let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
-	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(g:opt_device==?'droid4' && veon)? 'redr!':'redr']
-	while getchar()=="\<leftdrag>"
-		let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
-		let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
-		call winrestview(v)
-		exe redrexpr
-	endwhile
-	if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
-		let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
-		let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
-		while !getchar(1) && glv+glh
-			let [y,x,vc,hc]=[vc>get(g:glidestep,glv,1),hc>get(g:glidestep,glh,1),vc+1,hc+1]
-			if y||x
-				let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
-				call winrestview(v)
-				exe redrexpr
-			en
-		endw
-	en
-endfun
-
-fun! MouseNav()
-	let win0=-1
-	let frame=0
-	while getchar()!="\<leftrelease>"
-		let frame+=1
-		if frame%3
-			continue
-		elseif v:mouse_win!=win0
-			exe v:mouse_win."wincmd w"
-			let [offset,win0]=[virtcol('.')-wincol(),v:mouse_win]
-		   	let nx_expr=&wrap? "[(v:mouse_col-1)%winwidth(v:mouse_win),v:mouse_lnum]" : "[v:mouse_col-offset,v:mouse_lnum]"
-			let [x,y]=eval(nx_expr)
-		else
-			let [nx,ny]=eval(nx_expr)
-			if x && nx && x-nx
-				let lcolprev=g:LCol
-				if Pan{nx>x? "Left" : "Right"}(abs(nx-x))
-			   		echoerr "Filename not found in NavNames; switching to pan window mode"
-                   	call ToggleMousePanMode('pan')
-				   	break
-				en
-				let x=g:extrashiftamt+(win0==1 && nx>x && g:LCol==lcolprev? g:LCol==lcolprev? nx : x-winwidth(1)-1 : x)
-			elseif !x
-				let x=nx
-			en
-   			if ny!=y
-   				exe 'norm! '.(winnr()!=win0? win0."\<c-w>w" : "").(ny>y? (ny-y)."\<c-y>" : (y-ny)."\<c-e>")
-			en
-			redr | echo frame
-		en
-	endwhile
-	exe v:mouse_win."wincmd w"
-	call cursor(v:mouse_lnum,1,v:mouse_col)
-endfun
-
+nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
 fun! ToggleMousePanMode(...)
-	if a:0>0
-	 	let panmode=a:1
+	if !exists('t:MousePanMode')
+		let t:MousePanMode=1
 	else
-		redir => panmode
-			silent nn <leftmouse>
-		redir END
-		let panmode=panmode=~?'nav'? 'off' : panmode=~?'pan'? 'nav' : 'pan'
+		let t:MousePanMode=!t:MousePanMode
 	en
-	if panmode=~?'nav'
-  		nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MouseNav()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
-  		echo "Mouse drag navigates columns"
-	elseif panmode=~?'pan'
-	   	nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
-	   	echo "Mouse drag pans window"
-	else
-   		nunmap <leftmouse>
-   		echo "Mouse drag panning disabled"
+	echo t:MousePanMode? "Mouse pans columns" :  "Mouse pans window"
+endfun
+fun! MousePan()
+	if !exists('t:MousePanMode') || !t:MousePanMode
+		if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
+			if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
+			return 1 | en
+		exe "norm! \<leftmouse>"
+		let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
+		let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+		while getchar()=="\<leftdrag>"
+			let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
+			let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+			call winrestview(v)
+			exe redrexpr
+		endwhile
+		if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
+			let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
+			let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
+			while !getchar(1) && glv+glh
+				let [y,x,vc,hc]=[vc>get(g:glidestep,glv,1),hc>get(g:glidestep,glh,1),vc+1,hc+1]
+				if y||x
+					let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
+					call winrestview(v)
+					exe redrexpr
+				en
+			endw
+		en
+	elseif t:MousePanMode==1
+		let win0=-1
+		let frame=0
+		while getchar()!="\<leftrelease>"
+			let frame+=1
+			if frame%3
+				continue
+			elseif v:mouse_win!=win0
+				exe v:mouse_win."wincmd w"
+				let [offset,win0]=[virtcol('.')-wincol(),v:mouse_win]
+				let nx_expr=&wrap? "[(v:mouse_col-1)%winwidth(v:mouse_win),v:mouse_lnum]" : "[v:mouse_col-offset,v:mouse_lnum]"
+				let [x,y]=eval(nx_expr)
+			else
+				let [nx,ny]=eval(nx_expr)
+				if x && nx && x-nx
+					let lcolprev=g:LCol
+					if Pan{nx>x? "Left" : "Right"}(abs(nx-x))
+						echoerr "Filename not found in NavNames; switching to pan window mode"
+						call ToggleMousePanMode('pan')
+						break
+					en
+					let x=g:extrashiftamt+(win0==1 && nx>x && g:LCol==lcolprev? g:LCol==lcolprev? nx : x-winwidth(1)-1 : x)
+				elseif !x
+					let x=nx
+				en
+				if ny!=y
+					exe 'norm! '.(winnr()!=win0? win0."\<c-w>w" : "").(ny>y? (ny-y)."\<c-y>" : (y-ny)."\<c-e>")
+				en
+				redr | echo frame
+			en
+		endwhile
+		exe v:mouse_win."wincmd w"
+		call cursor(v:mouse_lnum,1,v:mouse_col)
 	en
 endfun
 
@@ -183,6 +171,7 @@ fun! InitPlane(...)
 		let NextCol=(NextCol+1)%len(g:NavNames)
 	endwhile
 	windo se wfw
+	let t:MousePanMode=1
 	echo "\n        FILE      SIZE           AUTOEXEC\n".join(map(range(len(g:NavNames)),'printf("%15.15S %5d    %.".(&columns-27)."s",g:NavNames[v:val][-10:],g:NavSizes[v:val],g:NavSettings[v:val])'),"\n")
 endfun
 
@@ -217,7 +206,7 @@ fun! PanLeft(N)
 			exe g:NavSettings[NextWindow]
 			wincmd l
 			se wfw
-			norm 0
+			norm! 0
 			wincmd t
 			let g:LCol=NextWindow
 		endwhile
@@ -326,29 +315,22 @@ fun! PanRight(N)
 	let w0=winwidth(1)
 	if w0!=&columns
 		wincmd b
-		exe N.'wincmd >'
-		wincmd t	
-		if w0-winwidth(1)!=N
-			exe (N-w0+winwidth(0)).'wincmd <'
-		en
-		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
+		se nowfw scrollopt=
+		wincmd t
+		exe N.'wincmd <'
+		exe 'norm! 0'.g:LOff.'zl'
 		wincmd b
-		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(1)])
-		se scrollopt=
 		while winwidth(0)>=g:NavSizes[g:RCol]+2
-			se nowfw
-			let NextWindow=(g:RCol+1)%len(g:NavNames)
-			let screentopline=line('w0')
+			let [NextWindow,screentopline]=[(g:RCol+1)%len(g:NavNames),line('w0')]
 			exe 'rightb vert '.(winwidth(0)-g:NavSizes[g:RCol]-1).'split '.g:NavNames[NextWindow]
 			exe g:NavSettings[NextWindow]
 			wincmd h
 			se wfw
+			norm! 0
 			wincmd b
-			se wfw
-			norm 0
 			let g:RCol=NextWindow
 		endwhile
-		se scrollopt=ver,jump
+		se wfw scrollopt=ver,jump
 	elseif &columns-g:NavSizes[g:LCol]+g:LOff>=2
 		let g:RCol=g:LCol
 		let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
