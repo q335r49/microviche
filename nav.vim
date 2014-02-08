@@ -1,70 +1,55 @@
-"assume ve is on, remove all calls to cursor()
-"move scrollopt outside of while loop
+"move se scrollopt outside of while loop
 "switch mousenav loop back to <leftdrag> test
-"test NavLeft / NavRight for &wrap
+"test: NavLeft / NavRight for &wrap
 "replace norm zl with absolute shifts based on offset
 "fun savenavpos restorenavpos > reset on resize, cleanup
 "* optimization: pan without redrawing (easy)
 "append(file, width, [position])
 "fun SetToCurrent (size, settings)
-"known bug: can't select far right columns when zoomed out
+"known limitation: can't select far right columns when window is very large
 
 nno <silent> <c-j> :<c-u>call NavLeft(v:count? v:count : 5)<cr>
 nno <silent> <c-k> :<c-u>call NavRight(v:count? v:count : 5)<cr>
 
 fun! NavRight(N)
- 	let N=a:N
-	if N<winwidth(0)-wincol()
-		call cursor(line('.'),1,virtcol('.')+N-1)
-  	el
-		let N-=winwidth(0)-wincol()
-		let screenshift=winline()-1
-		while N>=0
-			let curwinnr=winnr()
-			wincmd l
-			if winnr()==curwinnr
-				call PanRight(N)
-				exe "norm! \<c-w>bH".(screenshift? screenshift.'gjg$' : 'g$')
-				break
-			elseif N<winwidth(0)
-				norm! g0
-				call cursor(line('w0'),1,&wrap? virtcol('.')%winwidth(0)+N-1 : virtcol('.')+N-1)
-				if screenshift
-					exe 'norm! '.screenshift.'gj'
-				en
-				break
-			else
-				let N-=winwidth(0)
-			en
-		endwhile
-	en
+	if a:N<=winwidth(0)-wincol()
+		exe 'norm! '.a:N.'l'
+		return
+  	en
+	let [N,winline]=[a:N-winwidth(0)+wincol(),winline()]
+	while N>0
+		let curwinnr=winnr()
+		wincmd l
+		if winnr()==curwinnr
+			call PanRight(N)
+			exe "norm! \<c-w>b".winline.'Hg$'
+			return
+		elseif N<winwidth(0)
+			exe 'norm! '.winline.'Hg0'.N.'l'
+			return
+		en
+		let N-=winwidth(0)
+	endwhile
 endfun
 fun! NavLeft(N)
- 	let N=a:N
-	if N<wincol()
-		call cursor(line('.'),1,virtcol('.')-N-1)
-	el
-		let N-=wincol()
-		let screenshift=winline()-1
-		while N>=0
-			let curwinnr=winnr()
-			wincmd h
-			if winnr()==curwinnr
-				call PanLeft(N) 	
-				exe "norm! \<c-w>tH".(screenshift? screenshift.'gjg0' : 'g0')
-				break
-			elseif N<winwidth(0)
-				norm! g$
-				call cursor(line('w0'),1,&wrap? virtcol('.')%winwidth(0)-N-1 : virtcol('.')-N-1)
-				if screenshift
-					exe 'norm! '.screenshift.'gj'
-				en
-				break
-			else
-				let N-=winwidth(0)
-			en
-		endw	
+	if a:N<wincol()
+		exe 'norm! '.a:N.'h'
+		return
 	en
+	let [N,winline]=[a:N-wincol(),winline()]
+	while N>=0
+		let curwinnr=winnr()
+		wincmd h
+		if winnr()==curwinnr
+			call PanLeft(N) 	
+			exe "norm! \<c-w>t".winline.'Hg0'
+			return
+		elseif N<winwidth(0)
+			exe "norm! ".winline.'Hg$'.N.'h'
+			return
+		en
+		let N-=winwidth(0)
+	endw	
 endfun
 
 fun! MouseNav()
@@ -129,7 +114,7 @@ fun! GetPlanePos()
 endfun
 
 fun! InitPlane(...)
-	se scrollopt=ver,jump
+	se nosol scrollopt=ver,jump
 	if exists("a:1")
 		if type(a:1)==1 	"(string name, [int min, int max, list Sizes, list Settings, LCol, LOff])
 			let g:NavNames=split(glob(a:1),"\n")
