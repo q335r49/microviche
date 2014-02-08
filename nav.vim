@@ -1,54 +1,70 @@
-"known bug: can't select far right columns when zoomed out
-"allow for window changing as difference
-"optimization: pan without redrawing??? (easy)
-"try not having so many long lines
-"Navleft / Navright
-"Reset and cleanup on zoom (winresized flag)
-"fun savenavpos restorenavpos
-"clean up plane / save
+"assume ve is on, remove all calls to cursor()
+"move scrollopt outside of while loop
+"switch mousenav loop back to <leftdrag> test
+"test NavLeft / NavRight for &wrap
+"replace norm zl with absolute shifts based on offset
+"fun savenavpos restorenavpos > reset on resize, cleanup
+"* optimization: pan without redrawing (easy)
 "append(file, width, [position])
-"fun resizetocurrent
-nno <c-j> :<c-u>call PanLeft(v:count? v:count : 5)<cr>
-nno <c-k> :<c-u>call PanRight(v:count? v:count : 5)<cr>
+"fun SetToCurrent (size, settings)
+"known bug: can't select far right columns when zoomed out
 
+nno <silent> <c-j> :<c-u>call NavLeft(v:count? v:count : 5)<cr>
+nno <silent> <c-k> :<c-u>call NavRight(v:count? v:count : 5)<cr>
+
+fun! NavRight(N)
+ 	let N=a:N
+	if N<winwidth(0)-wincol()
+		call cursor(line('.'),1,virtcol('.')+N-1)
+  	el
+		let N-=winwidth(0)-wincol()
+		let screenshift=winline()-1
+		while N>=0
+			let curwinnr=winnr()
+			wincmd l
+			if winnr()==curwinnr
+				call PanRight(N)
+				exe "norm! \<c-w>bH".(screenshift? screenshift.'gjg$' : 'g$')
+				break
+			elseif N<winwidth(0)
+				norm! g0
+				call cursor(line('w0'),1,&wrap? virtcol('.')%winwidth(0)+N-1 : virtcol('.')+N-1)
+				if screenshift
+					exe 'norm! '.screenshift.'gj'
+				en
+				break
+			else
+				let N-=winwidth(0)
+			en
+		endwhile
+	en
+endfun
 fun! NavLeft(N)
  	let N=a:N
-    while N>=0
-		if N<=winwidth(0)
-			let N-=winwidth(0)
-		else
-
-		en
-		let curwinnr=winnr()
-		wincmd h
-		if winnr()==curwinnr
-       		call Panleft(N) 	
-			break
-		en
-		
-		
-
-
-
-
-
-
-
-	if N<=wincol()
-		call cursor(line('.'),1,col('.')-N)
-		return
-	else
+	if N<wincol()
+		call cursor(line('.'),1,virtcol('.')-N-1)
+	el
 		let N-=wincol()
-		let curwinnr=winnr()
-		wincmd h
-		if winnr()!=curwinnr()
-     		let N-=1
-			norm! g$
-		else
-
-		en
+		let screenshift=winline()-1
+		while N>=0
+			let curwinnr=winnr()
+			wincmd h
+			if winnr()==curwinnr
+				call PanLeft(N) 	
+				exe "norm! \<c-w>tH".(screenshift? screenshift.'gjg0' : 'g0')
+				break
+			elseif N<winwidth(0)
+				norm! g$
+				call cursor(line('w0'),1,&wrap? virtcol('.')%winwidth(0)-N-1 : virtcol('.')-N-1)
+				if screenshift
+					exe 'norm! '.screenshift.'gj'
+				en
+				break
+			else
+				let N-=winwidth(0)
+			en
+		endw	
 	en
-
 endfun
 
 fun! MouseNav()
@@ -107,12 +123,6 @@ fun! ToggleMousePanMode(...)
 	en
 endfun
 
-let g:NavNames=['test-10','test-20','test-40','test-80','test-60','test-150']
-let g:NavDic={'test-10':0,'test-20':1,'test-40':2,'test-80':3,'test-60':4,'test-150':5}
-let g:NavSizes=['10','20','40','80','60','150']
-let g:NavSettings=['','','','','','']
-let [g:LCol,g:LOff]=[0,0]
-
 fun! GetPlanePos()
 	let [g:LCol,g:RCol,g:LOff]=[get(g:NavDic,bufname(winbufnr(1)),-99999),get(g:NavDic,bufname(winbufnr(winnr('$'))),-99999),winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)]
 	return g:LCol+g:RCol<0
@@ -164,24 +174,21 @@ fun! InitPlane(...)
 endfun
 
 fun! PanLeft(N)
-	if GetPlanePos()
+	let [g:LCol,g:LOff]=[get(g:NavDic,bufname(winbufnr(1)),-1),winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)]
+	if g:LCol<0
 		return 1
 	en
-   	let g:extrashiftamt=0
-	let N=a:N
+   	let [N,g:extrashiftamt]=[a:N,0]
 	if N>=&columns
 		wincmd t | only
 	el
 		wincmd b
 		while winwidth(0)<N
 			hide
-			let g:RCol=(g:RCol-1)%len(g:NavNames)
 		endw
 		if winwidth(0)==N
 			hide
-			let N+=1
-			let g:extrashiftamt=1
-			let g:RCol-=1
+			let [N,g:extrashiftamt]=[N+1,1]
 		en
 	en
 	let [w0,g:LOff]=[winwidth(0),g:LOff-N]
@@ -202,14 +209,12 @@ fun! PanLeft(N)
 			se scrollopt=ver,jump
 			wincmd l
 			se wfw
+			norm 0
 			wincmd t
 			se wfw
-			norm 0
 			let g:LCol=NextWindow
 		endwhile
-		if winwidth(0)<g:NavSizes[g:LCol]
-			exe 'norm! 0'.(g:NavSizes[g:LCol]-winwidth(0)).'zl'
-		en
+		exe 'norm! 0'.(winwidth(0)<g:NavSizes[g:LCol]? g:NavSizes[g:LCol]-winwidth(0).'zl' : '')
 		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(0)])
 	elseif g:LOff>=-1
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
@@ -224,9 +229,7 @@ fun! PanLeft(N)
    		exe g:NavSettings[g:LCol]
 		se scrollopt=ver,jump
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
-		if g:NavSizes[g:LCol]-g:LOff>=&columns-1
-			let g:RCol=g:LCol
-		else
+		if g:NavSizes[g:LCol]-g:LOff<&columns-1
 			let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
 			let NextCol=(g:LCol+1)%len(g:NavNames)
 			while spaceremaining>=2
@@ -240,13 +243,13 @@ fun! PanLeft(N)
 				let NextCol=(NextCol+1)%len(g:NavNames)
 			endwhile
 			windo se wfw
-			let g:RCol=(NextCol-1)%len(g:NavNames)
 		en
 	en
 endfun
 
 fun! PanRight(N)
-	if GetPlanePos()
+	let [g:LCol,g:RCol,g:LOff]=[get(g:NavDic,bufname(winbufnr(1)),-99999),get(g:NavDic,bufname(winbufnr(winnr('$'))),-99999),winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)]
+	if g:LCol+g:RCol<0
 		return 1
 	en
    	let g:extrashiftamt=0
@@ -322,8 +325,7 @@ fun! PanRight(N)
 		en
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 		wincmd b
-		let g:LOff=g:NavSizes[g:LCol]-winwidth(1)
-		let g:LOff=g:LOff<0? 0 : g:LOff
+		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(1)])
 		while winwidth(0)>=g:NavSizes[g:RCol]+2
 			let NextWindow=(g:RCol+1)%len(g:NavNames)
 			se nowfw scrollopt=
@@ -331,16 +333,14 @@ fun! PanRight(N)
 			exe 'rightb vert '.(winwidth(0)-g:NavSizes[g:RCol]-1).'split '.g:NavNames[NextWindow]
 			exe g:NavSettings[NextWindow]
 			se scrollopt=ver,jump
-			norm 0
 			wincmd h
 			se wfw
 			wincmd b
 			se wfw
+			norm 0
 			let g:RCol=NextWindow
 		endwhile
-	elseif &columns-g:NavSizes[g:LCol]+g:LOff<2
-		let g:RCol=g:LCol
-	else
+	elseif &columns-g:NavSizes[g:LCol]+g:LOff>=2
 		let g:RCol=g:LCol
 		let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
 		while spaceremaining>=2
