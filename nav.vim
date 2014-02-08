@@ -3,39 +3,38 @@
 "                             --- Basic usage ---
 
 " CreatePlane(string filepattern) will create a plane, which can be loaded
-"   with LoadPlane(), eg,
+" with LoadPlane(), eg,
 "    :call LoadPlane(CreatePlane('col-*'))
-"   This will load a files matching 'col-*', eg, col-01, col-02, col-end
+" This will load a files matching 'col-*', eg, col-01, col-02, col-end
 
 " Activate keyboard panning by calling KeyboardPan(), default mapped to
-"   f3, then use the 'roguelike' keys (hjklyubn) to pan the plane. Or you can
-"   pan with the mouse. (The existence of the variable t:mouse_pans_columns
-"   determines whether the mouse pans columns or the current window)
+" f3, then use the 'roguelike' keys (hjklyubn) to pan the plane. Or you can
+" pan with the mouse. (The existence of the variable t:mouse_pans_columns
+" determines whether the mouse pans columns or the current window)
 
 " Restore a plane by opening any valid column (will load to that position) or
-"   any window (such as a blank tab) and evoking
+" any window (such as a blank tab) and evoking
 "    :call LoadPlane(CreatePlane('col-*'))
 
-" Save a plane between sessions by storing it to a global variable
-"    :let MY_PLANE=CreatePlane('col-*')
-"   but keep in mind that MY_PLANE is a nested dictionary that will be
-"   converted to a dictionary of strings when stored in a viminfo file in
-"   between sessions, which will then have to be reinflated.
+" Save a plane between sessions by storing the current plane (t:txP) a global
+" variable in all caps and setting the viminfo to store globals
+"    :let MY_PLANE=t:txP
+"    :se viminfo+=!
 
 " Call LoadPlane() with no arguments to redraw and 'clean up' the
-"   current plane according to the position of the currently active split.
+" current plane according to the position of the currently active split.
+
+" Too fancy statusbars might slow things down
 
 "                               --- Upcoming ---
 
-"Workflow videos +"memory excising, blocks" +jrpgs
 "Line number anchors
-"Insert / delete column (have redraw check file names) / edit settings
+"Insert, delete columns, edit settings
 "OnResize autocommands
 "GetPlanePos(), GoPlanePos()
-"NormalizePlane(len) to make columns equal length / autonormalize
-"or... an actual path, with corners?? or better... with leaps?
-"Jumps: Remap `' / bookmarks <plane-006:111> or <*006:111>
-"Changelist functionality
+"Jumps: Remap `', directing signs
+"Changelists
+"NormalizePlane(len) to make columns equal length
 
 "                           --- Known issues ---
 
@@ -54,35 +53,49 @@ nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keep
 nn <f3> :call KeyboardPan()<cr>
 nn <f5> :call LoadPlane()<cr>
 
-fun! Pan(dx,dy)
-	if a:dx>0
-		call PanRight(a:dx)
-	elseif a:dx<0
-		call PanLeft(-a:dx)
-	en
-	if a:dy>0
-		if line('w0')==line('$')
-
-
-		en
-		exe 'norm!' a:dy."\<c-e>"
-	elseif a:dy<0
-		exe 'norm!' (-a:dy)."\<c-y>"
+fun! Pan(dx,y)
+	call Pan{a:dx>0? 'Right' : 'Left'}(abs(a:dx))
+	if line('$')<a:y
+		for i in range(winnr()+1,winnr('$'))+range(1,winnr()-1)
+			exe i.'wincmd w'
+			if line('$')>=a:y
+				exe 'norm!' a:y.'Gzt'
+				redr
+				return a:y
+			en
+		endfor
+		norm! Gzt
+		redr
+		return line('w0')
+	else
+		exe 'norm!' a:y.'Gzt'
+		redr
+		return a:y
 	en
 endfun
 fun! KeyboardPan()
 	if !exists('t:txP')
-		throw "t:txP doesn't exist, initialize with LoadPlane(CreatePlane(string filepattern))"
+		throw "t:txP doesn't exist, initialize by calling LoadPlane(CreatePlane(string filepattern))"
 	en
-	let c=getchar()
-	while c!=27 && c!="\<f3>"
-		exe get(g:keypdict,c,'')
-		redr
-		let c=getchar()
+	let t=reltime()
+	let y=line('w0')
+	while 1
+		let [tprev,t]=[t,reltime()]
+		exe get(g:keypdict,getchar(),'')
+		ec y
 	endwhile
 endfun
-let keypdict={104:'call Pan(-2,0)',106:'call Pan(0,2)',107:'call Pan(0,-2)',108:'call Pan(2,0)',
-\121:'call Pan(-1,-1)',117:'call Pan(1,-1)',98:'call Pan(-1,1)',110:'call Pan(1,1)'}
+let keypdict.27="return"
+let keypdict["\<f3>"]="return"
+let keypdict.104='call Pan(-2,y)|redr'
+let keypdict.106='let y+=2|let y=Pan(0,y)|redr'
+let keypdict.107='let y-=2|let y=Pan(0,y)|redr'
+let keypdict.108='call Pan(2,y)|redr'
+let keypdict.121='let y-=1|let y=Pan(-1,y)|redr'
+let keypdict.117='let y-=1|let y=Pan(1,y)|redr'
+let keypdict.98='let y+=1|let y=Pan(-1,y)|redr'
+let keypdict.110='let y+=1|let y=Pan(1,y)|redr'
+let keypdict["\<f5>"]="call LoadPlane()"
 
 fun! CreatePlane(name,...)
 	let plane={}
@@ -193,7 +206,7 @@ fun! LoadPlane(...)
 		en
 		wincmd h
 	endw
-	exe bufwinnr(possav[0]).'wincmd w|norm! '.possav[1].'Gzt'.possav[2].'G'.possav[3].'|'
+	exe bufwinnr(possav[0]).'wincmd w|norm! 0'.possav[1].'Gzt'.possav[2].'G'.possav[3].'|'
 	se scrollopt=ver,jump
 	syncbind
 endfun
@@ -281,9 +294,11 @@ fun! PanLeft(N)
 			let extrashift=(winwidth(0)==a:N)
 			hide
 		endw
-	el
+	elseif a:N>0
 		wincmd t
 		only
+	else
+		return
 	en
 	if winwidth(0)!=&columns
 		wincmd t	
@@ -401,7 +416,7 @@ fun! PanRight(N)
 		se scrollopt=ver,jump
 		only
 		exe 'norm! 0'.(loff>0? loff.'zl' : '')
-	else
+	elseif N>0
 		let shifted=0
 		while winwidth(1)<=N
 			let extrashift=winwidth(1)==N
@@ -413,6 +428,8 @@ fun! PanRight(N)
 		endw
    		let N+=extrashift
 		let loff+=N-shifted
+	else
+		return
 	en
 	let wf=winwidth(1)-N
 	if wf+N!=&columns
