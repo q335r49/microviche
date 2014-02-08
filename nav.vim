@@ -6,12 +6,13 @@
 "
 " --- Recent changes:
 "ReinitPlane() restores plane from current file (or saved session) if NAV_NAMES,NAV_SIZE,NAV_IX,NAV_EXE are still valid (such as from storing in viminfo)
-"RedrawPlane() restores plane based on currently active column
+"ReinitPlane(1) redraws plane based on currently active column
 "Major optimizations for mouse panning, frame skip no longer needed
 "InitPlane() loading message
 "
 " --- Upcoming:
 "make NAV_ variables into a dictionary
+"have reinitplane take plane dict argument
 "Modal roguelike navigation: hjklyubnHJKLYUBN, with 'scrolloff'
 "... center cursor / zs
 "... OnResize autocommands
@@ -32,17 +33,72 @@
 "When number of columns > 9 vim's split resizing algorithm changes and panning, more sophisticated algorithm needed
 
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
-nno <f5> :call RedrawPlane()<cr>
+nno <f5> :call ReinitPlane(1)<cr>
 
-fun! RedrawPlane()
-	let possav=[winbufnr(0),line('w0'),line('.'),virtcol('.')]
-	let [col0,win0]=[get(g:NAV_IX,bufname(possav[0]),-1),winnr()]
-	se scrollopt=jump
-   	let screentopline=possav[1]
-	if col0==-1
-		echoer "Current window not registered in NAV_IX"
+"todo: LAST_PLANE global variable
+"InitPlane returns dictionary that can be saved, or optionally save t:textplane
+fun! InitPlane(names,...)
+	let g:opt_disable_syntax_while_panning=1
+	tabe 
+	let t:textplane={}
+	se sidescroll=1 mouse=a lz noea nosol wiw=1 wmw=0 ve=all
+	if type(a:names)==1 	"(string filepattern, [list Sizes, list Settings])
+		let g:NAV_NAMES=split(glob(a:1),"\n")
+	elseif type(a:names1)==3 "(list Names, [list Sizes, list Settings])
+		let g:NAV_NAMES=a:1
+	else
+		echoerr "Argument must be string (file pattern) or list (of file names)"
 		return 1
 	en
+	let tcol=0
+	let g:LOff=0
+	let g:NAV_SIZE=exists("a:1")? a:1 : repeat([60],len(g:NAV_NAMES))
+	let g:NAV_EXE=exists("a:2")? a:2 : repeat(['exe "norm! ".screentopline."Gzt" | se nowrap scb cole=2'],len(g:NAV_NAMES))
+	let [g:NAV_IX,i]=[{},0]
+	for e in g:NAV_NAMES
+		let [g:NAV_IX[e],i]=[i,i+1]
+	endfor
+	exe 'tabe '.g:NAV_NAMES[tcol]
+	let screentopline=1
+	exe g:NAV_EXE[tcol]
+    exe 'norm! 0'.(g:LOff? g:LOff.'zl' : '')
+	let spaceremaining=&columns-g:NAV_SIZE[tcol]-g:LOff
+	let NextCol=(tcol+1)%len(g:NAV_NAMES)
+	se scrollopt=jump
+	while spaceremaining>=2
+		let screentopline=line('w0')
+		exe 'bot '.(spaceremaining-1).'vsp '.(g:NAV_NAMES[NextCol])
+		exe g:NAV_EXE[NextCol]
+		norm! 0
+		let spaceremaining-=g:NAV_SIZE[NextCol]+1
+		let NextCol=(NextCol+1)%len(g:NAV_NAMES)
+	endwhile
+   	se scrollopt=ver,jump
+	windo se wfw
+	let t:mouse_pans_columns=1
+	let namew=min([&columns/2,max(map(range(len(g:NAV_NAMES)),'len(g:NAV_NAMES[v:val])'))])
+	let exew=&columns-namew-7
+	echo "\n W -"." NAME -----------------------------------------------------------------------------------------------------------"[:namew]." AUTOEXE -----------------"[:exew]."\n".join(map(range(len(g:NAV_NAMES)),'printf(" %-3d %-".namew.".".namew."S %.".exew."s",g:NAV_SIZE[v:val],g:NAV_NAMES[v:val],g:NAV_EXE[v:val])'),"\n")
+endfun
+
+fun! ReinitPlane(...)
+	let redraw_only=a:0? a:1 : 0
+	let [col0,win0]=[get(g:NAV_IX,bufname(winbufnr(0)),redraw_only? 'abort' : 'reload'),winnr()]
+	if col0 is 'abort'
+   		echoer "Current window not registered in NAV_IX"
+   		return 1
+	elseif col0 is 'reload'
+   		let col0=0
+   		exe 'e' g:NAV_NAMES[0] 
+	en
+	if !redraw_only
+		se sidescroll=1 mouse=a lz noea nosol wiw=1 wmw=0 ve=all
+	 	let t:mouse_pans_columns=1
+	 	echo "Column panning enabled"
+	en
+	let screentopline=line('w0')
+	let possav=[bufnr('%'),screentopline,line('.'),virtcol('.')]
+	se scrollopt=jump
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0%len(g:NAV_SIZE),0]
 	let remain=split0
 	while remain>=1
@@ -87,7 +143,6 @@ fun! RedrawPlane()
 			exe 'hide'
 		endfor
 	en
-	return
 	windo se nowfw
 	wincmd =
     wincmd b
@@ -95,7 +150,10 @@ fun! RedrawPlane()
 	if expand('%:p')!=#fnamemodify(g:NAV_NAMES[(colt+winnr()-1)%len(g:NAV_SIZE)],":p")
 	   ec 'Reloading file' g:NAV_NAMES[colt+winnr()-1] 'in window number ' winnr()
 	   sleep 1
-       exe 'e' g:NAV_NAMES[colt+winnr()-1] 
+       exe 'e' g:NAV_NAMES[(colt+winnr()-1)%len(g:NAV_SIZE)] 
+	en
+	if !redraw_only
+		exe g:NAV_EXE[(colt+winnr()-1)%len(g:NAV_SIZE)]
 	en
 	let dif=colbw-winwidth(winnr())
 	if dif!=0
@@ -109,7 +167,10 @@ fun! RedrawPlane()
 		if expand('%:p')!=#fnamemodify(g:NAV_NAMES[(colt+winnr()-1)%len(g:NAV_SIZE)],":p")
 		   ec 'Reloading file' g:NAV_NAMES[colt+winnr()-1] 'in window number ' winnr()
 		   sleep 1
-		   exe 'e' g:NAV_NAMES[colt+winnr()-1] 
+		   exe 'e' g:NAV_NAMES[(colt+winnr()-1)%len(g:NAV_SIZE)] 
+		en
+		if !redraw_only
+			exe g:NAV_EXE[(colt+winnr()-1)%len(g:NAV_SIZE)]
 		en
 		if curwinnr==1
 			let offset=g:NAV_SIZE[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -258,79 +319,6 @@ fun! TogglePanMode(...)
 		unlet t:mouse_pans_columns
 		echo "Column panning disabled"
 	en
-endfun
-
-fun! ReinitPlane()
-	let t:mouse_pans_columns=1
-	se sidescroll=1 mouse=a lz noea nosol scrollopt=ver,jump wiw=1 wmw=0 ve=all
-	if RedrawPlane()
-		return
-	en
-	wincmd t
-	let prev_winnr=0
-	let screentopline=line('w0')
-	se scrollopt=jump
-	while winnr()!=prev_winnr
-	   let col=get(g:NAV_IX,bufname(winbufnr(winnr())),-1)
-	   if col==-1
-			echohl WarningMsg
-			ec "ERROR: ".bufname(winbufnr(winnr()))." not registered in NAV_NAMES; column panning disabled"
-			echohl None
-			unlet t:mouse_pans_columns
-			return
-	   en
-	   exe g:NAV_EXE[col]
-	   let prev_winnr=winnr()
-	   wincmd l
-	endwhile
-	se scrollopt=ver,jump
-	echo "Column panning enabled"
-endfun
-fun! InitPlane(...)
-	let g:opt_disable_syntax_while_panning=1
-	se sidescroll=1 mouse=a lz noea nosol scrollopt=ver,jump wiw=1 wmw=0 ve=all
-	if exists("a:1")
-		if type(a:1)==1 	"(string name, [int min, int max, list Sizes, list Settings, LCol, LOff])
-			let g:NAV_NAMES=split(glob(a:1),"\n")
-	   		let min=exists("a:2")? a:2 : 0
-			let max=exists("a:3")? a:3>0 && a:3<=len(g:NAV_NAMES)? a:3 : len(g:NAV_NAMES) : len(g:NAV_NAMES)
-			let g:NAV_NAMES=g:NAV_NAMES[min : max]
-            let g:NAV_SIZE=exists("a:4")? a:4 : repeat([60],len(g:NAV_NAMES))
-			let tcol=exists("a:6")? a:6 : 0
-			let g:LOff=exists("a:7")? a:7 : 0
-		elseif type(a:1)==3 "(list Names, list Sizes,[int leftcol, int offset, list Settings])
-			let g:NAV_NAMES=a:1
-            let g:NAV_SIZE=exists("a:2")? a:2 : repeat([60],len(g:NAV_NAMES))
-			let tcol=exists("a:3")? a:3 : 0
-			let g:LOff=exists("a:4")? a:4 : 0
-		en
-		let g:NAV_EXE=exists("a:5")? a:5 : repeat(['exe "norm! ".screentopline."Gzt" | se nowrap scb cole=2'],len(g:NAV_NAMES))
-	en
-	let [g:NAV_IX,i]=[{},0]
-	for e in g:NAV_NAMES
-		let [g:NAV_IX[e],i]=[i,i+1]
-	endfor
-	exe 'tabe '.g:NAV_NAMES[tcol]
-	let screentopline=1
-	exe g:NAV_EXE[tcol]
-    exe 'norm! 0'.(g:LOff? g:LOff.'zl' : '')
-	let spaceremaining=&columns-g:NAV_SIZE[tcol]-g:LOff
-	let NextCol=(tcol+1)%len(g:NAV_NAMES)
-	while spaceremaining>=2
-		se scrollopt=
-		let screentopline=line('w0')
-		exe 'bot '.(spaceremaining-1).'vsp '.(g:NAV_NAMES[NextCol])
-		exe g:NAV_EXE[NextCol]
-		se scrollopt=ver,jump
-		norm! 0
-		let spaceremaining-=g:NAV_SIZE[NextCol]+1
-		let NextCol=(NextCol+1)%len(g:NAV_NAMES)
-	endwhile
-	windo se wfw
-	let t:mouse_pans_columns=1
-	let namew=min([&columns/2,max(map(range(len(g:NAV_NAMES)),'len(g:NAV_NAMES[v:val])'))])
-	let exew=&columns-namew-7
-	echo "\n W -"." NAME -----------------------------------------------------------------------------------------------------------"[:namew]." AUTOEXE -----------------"[:exew]."\n".join(map(range(len(g:NAV_NAMES)),'printf(" %-3d %-".namew.".".namew."S %.".exew."s",g:NAV_SIZE[v:val],g:NAV_NAMES[v:val],g:NAV_EXE[v:val])'),"\n")
 endfun
 
 fun! PanLeft(N)
