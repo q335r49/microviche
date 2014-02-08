@@ -26,7 +26,7 @@ fun! TxpPrompt(...)
 		\\n     leftmouse - Pan with mouse
 		\\n     ".printf("%-10s",g:txpHotkey)."- Panning mode hotkey
 		\\n In panning mode:
-		\\n     f5        - Redraw
+		\\n     r         - Redraw
 		\\n     ".printf("%-10s",g:txpHotkey)."- Redraw and go back to normal mode
 		\\n     hjklyubn  - pan
 		\\n     HJKLYUBN  - pan faster
@@ -150,7 +150,7 @@ let keypdict.66 ='let y=Pan(-3,y+3)'
 let keypdict.110='let y=Pan(1,y+1)'
 let keypdict.78 ='let y=Pan(3,y+3)'
 let keypdict[len(eval('"\'.txpHotkey.'"'))>1? eval('"\'.txpHotkey.'"') : char2nr(eval('"\'.txpHotkey.'"'))]="call LoadPlane(t:txP)|redr|ec ' (redrawn)'|let continue=0"
-let keypdict["\<f5>"]="call LoadPlane(t:txP)|let msg='redrawn'"
+let keypdict[114]="call LoadPlane(t:txP)|let msg='redrawn'"
 let keypdict["\<leftmouse>"]="call MousePanCol()|let y=line('w0')|redr"
 let keypdict.83='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? [" Scrollbind off","jump"] : [" Scrollbind on","ver,jump"] | call LoadPlane() | echon msg'
 let keypdict["\<f1>"]='call TxpPrompt(0)'
@@ -546,19 +546,21 @@ fun! PanLeft(N,...)
 	en
 	if winwidth(0)!=&columns
 		wincmd t	
-		if winwidth(winnr('$'))<=a:N+3+extrashift
+		if winwidth(winnr('$'))<=a:N+3+extrashift || winnr('$')>=9
 			se nowfw
 			wincmd b
 			exe 'vert res-'.(a:N+extrashift)
 			wincmd t
 			if winwidth(1)==1
-			wincmd l
+				wincmd l
 				se nowfw
 				wincmd t 
 				exe 'vert res+'.(a:N+extrashift)
 				wincmd l
 				se wfw
 				wincmd t
+			else
+				exe 'vert res+'.(a:N+extrashift)
 			en
 			se wfw
 		else
