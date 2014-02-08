@@ -11,14 +11,16 @@
 "PanMode now local to tab
 "No longer flickers when scrolling near the end of document
 "Restore from previous state (eg, mksession) by calling TogglePanMode(1) (if NAV_NAMES,NAV_SIZE,NAV_IX,NAV_EXE are still valid, such as from storing in viminfo)
+"Readjust() to restore plane based on currently active column
 "
 "Bugs:
 "[nav] scrollbinding bug on TogglePanMode() restoration
 "(Perhaps only when buffer is already open?) panning left right after InitPlane will fuck up scb
 "
 "Upcoming:
-"[nav] Readjust() (based on L:col) / realign CURRENT window when panning, or perhaps, auto-realign?
-" ...  'smoother' scrolling: allow for width 0 at edges
+"change lefta rightb to topleft botright?
+" ...  weird scrollbinding bugs
+" ...  use new 'general' method for all offset determination (ie, calculating offset, ve, etc.)
 " ...  test cases: make sure it works with wrap windows longer than winwidth
 " ...  A more robust version of readjust that is ok with horizontal splits
 " ...  adjust current column before panning
@@ -31,76 +33,93 @@
 "[nav] <line number> and autoadjust
 "[nav] painting
 "[nav] Workflow videos
+"[nav] fix panning idiosyncracies when number of columns>9
 "
 "Known issues:
-"when very zoomed out, vim may be unable to detect mouse events near right edge
+"when very zoomed out, vim may be unable to detect mouse events when absolute cursor position is greater than 200ish
 "when columns are of uneven lenght, there may be some graphical jiterring near the end
+"when number of columns > 9, vim's resizing algorithm changes, and panning needs a more sophisticated algorithm
+"when number of columns > 9, vim's resizing algorithm changes, and Readjust() needs a more sophisticated algorthm
+
 
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
 
+nno <c-d> :call Readjust()<cr>
 fun! Readjust()
-"assumes no horizontal splits (for optimized winwidth checking)
-	let [col0ix,win0]=[get(g:NAV_IX,bufname(winbufnr(0)),-1),winnr()]
-	if col0ix==-1
+	let [col0,win0]=[get(g:NAV_IX,bufname(winbufnr(0)),-1),winnr()]
+   	let screentopline=line('w0')
+	if col0==-1
 		echoer "Current window not registered in NAV_IX"
 		return
 	en
-	let [split0,coln,num_left]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,(col0ix-1)%len(g:NAV_SIZE),0]
-	let remaining=split0
-	while remaining>=1
-		let remaining-=g:NAV_SIZE[coln]+1
-		let coln=(coln-1)%len(g:NAV_SIZE)
-		let num_left+=1
+	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,(col0-1)%len(g:NAV_SIZE),0]
+	let remain=split0
+	while remain>=1
+		let remain-=g:NAV_SIZE[colt]+1
+		let colt=(colt-1)%len(g:NAV_SIZE)
+		let colsLeft+=1
 	endwhile
-	let tcoloff=g:NAV_SIZE[coln]+remaining+1
-	let [coln,remaining,num_right]=[(col0ix+1)%len(g:NAV_SIZE),&columns-split0-1-g:NAV_SIZE[col0ix],1]
-	while remaining>=2
-		let remaining-=g:NAV_SIZE[coln]+1
-		let coln=(coln+1)%len(g:NAV_SIZE)
-		let num_right+=1
+	let [colb,remain,colsRight]=[(col0+1)%len(g:NAV_SIZE),&columns-(split0>0? split0+1+g:NAV_SIZE[col0] : min([winwidth(1),g:NAV_SIZE[col0]])),1]
+	while remain>=2
+		let remain-=g:NAV_SIZE[colb]+1
+		let colb=(colb+1)%len(g:NAV_SIZE)
+		let colsRight+=1
 	endwhile
-	let bcoloff=g:NAV_SIZE[coln]+remaining+1
-	echon "\nL:" num_left 'R:' num_right 'toff:; tcoloff 'split0:' split0 'boff:' bcoloff
-	if num_left>win0-1
-		let col1ix=(col0ix-win0)%len(g:NAV_SIZE)
-		for i in range(win0-1-numleft)
-			let col1ix=(col1ix-1)%len(g:NAV_SIZE)
-			ec 'lefta vsp '.g:NAV_NAMES[col1x]
+	let colbw=g:NAV_SIZE[colb]+remain
+	echon "L,R,$:" colsLeft '/' colsRight '/' winnr('$') ' split0:' split0
+	let dif=colsLeft-win0+1
+	if dif>0
+		let colt=(col0-win0)%len(g:NAV_SIZE)
+		for i in range(dif)
+			let colt=(colt-1)%len(g:NAV_SIZE)
+			exe 'topl vsp '.g:NAV_NAMES[colt]
+			exe g:NAV_EXE[colt]
+			se wfw
 		endfor
-	elseif num_left<win0-1
+	elseif dif<0
 		wincmd t
-		for i in range(win0-1-numleft)
-			ec 'hide'
+		for i in range(-dif)
+			exe 'hide'
 		endfor
 	en
-	let dif=num_right+num+left-winnr('$')
+	let dif=colsRight+colsLeft-winnr('$')
+	echon " difL:" dif
 	if dif>0
-		wincmd b
-		let colbix=(col1ix+num_right+num_left)%len(g:NAV_SIZE)
+		let colb=(col0+colsRight-1-dif)%len(g:NAV_SIZE)
 		for i in range(dif)
-			let colbix=(colbix+1)%len(t:NAV_SIZE)
-			ec 'rightb vsp '.g:NAV_NAMES[colbix]
+			let colb=(colb+1)%len(g:NAV_SIZE)
+			exe 'botr vsp '.g:NAV_NAMES[colb]
+			exe g:NAV_EXE[colb]
+			se wfw
 		endfor
 	elseif dif<0
 		wincmd b
 		for i in range(-dif)
-			ec 'hide'
+			exe 'hide'
 		endfor
 	en
-	wincmd t
-	se nowfw
-	wincmd b
-	exe 'vert res' boff
-	let colbix=coln
-	for i in range(winnr('$')-1,1,-1)
-		let coln=(coln-1)%len(g:NAV_SIZE)
-		if g:NAV_SIZE[coln]!=winwidth(i)
-			exe i 'wincmd w'
-			exe 'vert res' g:NAV_SIZE[i]
-		en
-	endfor
-	wincmd t
+	echon " difR:" dif " exp/actual winnr:" colsRight+colsLeft '/' winnr('$')
+	windo se nowfw
+    wincmd b
+	if g:NAV_SIZE[colb]!=colbw
+		exe 'vert res' colbw
+	en
 	se wfw
+	let curwinnr=winnr()
+	wincmd h
+	while winnr()!=curwinnr
+		se wfw
+		let curwinnr=winnr()
+		if curwinnr==1
+			let offset=g:NAV_SIZE[colt]-winwidth(1)-virtcol('.')+wincol()
+			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+		elseif g:NAV_SIZE[(colt+curwinnr-1)%len(g:NAV_SIZE)]!=winwidth(curwinnr)
+			exe curwinnr 'wincmd w'
+			exe 'vert res' g:NAV_SIZE[(colt+curwinnr-1)%len(g:NAV_SIZE)]
+			norm! 0
+		en
+		wincmd h
+	endw
 endfun
 
 fun! DeleteHiddenBuffers()
@@ -211,12 +230,10 @@ fun! MousePan()
 				en
 			en
 			redr
-			ec "Panning columns ..."
 		endwhile
 		exe "norm! \<leftmouse>"
 	en
-	redr
-	"call Readjust()
+	ec "Panning complete"
 endfun
 
 fun! GetPlanePos()
