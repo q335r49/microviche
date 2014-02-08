@@ -1,4 +1,8 @@
-let txpHotkey=exists("txpHotkey")? txpHotkey : '<f3>'
+" ---- User Settings ----
+"Panning mode hotkey, as name rather than raw characters (ie, '<f3>' and not "\<f3>" or ^V<f3>):
+	let txpHotkey=exists("txpHotkey")? txpHotkey : '<f3>'
+"Execute on opening a new column. Edit for a particular file by setting t:txP.exe[t:txP.ix['file']]
+	let txpDefaultExe='se nowrap cole=2'
                       
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txP')? 'call MousePanCol()' : 'call MousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.g:txpHotkey.' :if exists("t:txP") \| call KbdPan() \| else \| call TxpPrompt()\| en<cr>'
@@ -6,7 +10,7 @@ fun! TxpPrompt(...)
 	let filepattern=a:0? a:1 : exists("g:TXPPREVPAT")? g:TXPPREVPAT : ''
 	if a:0 && a:1 is 0
 		redr|ec "
-		\\n      ------------ TextPlane (Updated Dec 19 '13) -----------
+		\\n      ------------ TextPlane (Updated Dec 26 '13) -----------
 		\\n Welcome to TextPlane, a panning workspace for vim! To begin, press
 		\\n     ".printf("%-10s",g:txpHotkey)."- TextPlane initialize hotkey"."
 		\\n and enter a file pattern with a wildcard character to bring up 
@@ -38,9 +42,9 @@ fun! TxpPrompt(...)
 		\\n - Assumes no horizontal splits
 		\\n - Turning off or simplifying statusbar may improve speed
 		\\n - Vim can't detect cursor mouseclicks beyond column 253
-		\\n - Set g:txpHotkey before sourcing TextPlane to set the the global 
-		\\n   hotkey. Use the name rather than the raw key, ie, '<f3>' and not 
-		\\n   \"\\<f3>\" or ^V<F3>. For example:
+		\\n - Set g:txpHotkey either in the source file or before sourcing
+		\\n   TextPlane to set the the global hotkey. Use the name rather than
+		\\n   the raw key, ie, '<f3>' and not \"\\<f3>\" or ^V<F3>. For example:
 		\\n     :let g:txpHotkey='<f1>'  
 		\\n     :source TextPlane.vim
 		\\n - Pass on any bugs or suggestions to q335r49@gmail.com"
@@ -283,7 +287,7 @@ fun! CreatePlane(name,...)
 	else
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-		let plane.exe=exists("a:2")? a:2 : repeat(['se nowrap scb cole=2'],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat([g:txpDefaultExe],plane.len)
 		let plane.scrollopt='ver,jump'
 		let plane.changelist=[[0,0,0,0]]
 		let plane.changelistmarker=0
@@ -462,15 +466,18 @@ fun! MousePanCol()
 		if winbufnr(v:mouse_win)!=b0
 			let b0=winbufnr(v:mouse_win)
 			exe v:mouse_win."wincmd w"
-			let [x,y]=&wrap? [(v:mouse_col-1)%winwidth(v:mouse_win),v:mouse_lnum] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum]
-			let nxy_expr=&wrap? "let [nx,ny]=[(v:mouse_col-1)%".winwidth(v:mouse_win).",line('w0')+y-v:mouse_lnum]" : "let [nx,ny]=[v:mouse_col-".(virtcol('.')-wincol()).",line('w0')+y-v:mouse_lnum]"
+			if &wrap
+				call setpos('.',[b0,v:mouse_lnum,0,v:mouse_col])
+			en
+			let [x,y]=&wrap? [(v:mouse_col-1)%winwidth(v:mouse_win),line('w0')+winline()] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum]
+			let nxy_expr=&wrap? "call setpos('.',[0,v:mouse_lnum,0,v:mouse_col])|let [nx,l0]=[(v:mouse_col-1)%".winwidth(v:mouse_win).",y-winline()]" : "let [nx,l0]=[v:mouse_col-".(virtcol('.')-wincol()).",line('w0')+y-v:mouse_lnum]"
 			let ix=get(t:txP.ix,bufname(b0),-1)
-			let ecstr=ix==-1? ' < '.bufname(b0).' not registered >' : !&ls? (' '.(t:txP.name[(ix-2)%t:txP.len]).' < '.(t:txP.name[(ix-1)%t:txP.len]).' << '.(t:txP.name[ix]).' >> '.(t:txP.name[(ix+1)%t:txP.len]).' > '.(t:txP.name[(ix+2)%t:txP.len]))[:&columns-2] : ''
+			let ecstr=ix==-1? ' < '.bufname(b0).' not registered >' : &ls? ' '.v:mouse_lnum.' , '.v:mouse_col : (' '.(t:txP.name[(ix-2)%t:txP.len]).' < '.(t:txP.name[(ix-1)%t:txP.len]).' << '.(t:txP.name[ix]).' >> '.(t:txP.name[(ix+1)%t:txP.len]).' > '.(t:txP.name[(ix+2)%t:txP.len]))[:&columns-2]
 		else
 			exe nxy_expr
 			exe x && nx && x!=nx? nx>x? 'call PanLeft(nx-x)' : 'call PanRight(x-nx)' : 'let x=x? x : nx'
-			let y=ny<1? y-ny+1 : y
-			exe 'norm!' bufwinnr(b0)."\<c-w>w".ny.'zt'
+			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
+			let y=l0>0? y : y-l0+1
 			redr
 			ec ecstr
 		en
