@@ -1,55 +1,75 @@
-"determine LCol and LOff manually every time? (YES)
-"... Or on resize? LOff can be determined manually except where there is one column AND wrap is set to off
-"... so no, that won't take long at all.
-"... but we need to determine the *first visible column* (only for cases of a single open window and no wrap)
 "synergize with mousecursor / Navmode settings
 "... the only problem here is changing windows ... but that shouldn't happen.
+"/later
 "optimize normal zl so there is no constant zeroing
-"PanLeft1, Panright1
 "bookmarks / goto file-line-column
-"scb issues
+"scb flag
 "resize (by setcurrentsize)
 "clean up plane / save
-"account for resizing -- probably need a 'reset' function, or use marks (not necessary now that LCol and LOff are automatically determined)
 "optimizations: exe wrapcmd
+"PanLeft1, Panright1
+"helpful fail messages for InitPlane
 
 
-let g:PlaneCol=[['test-10',10],['test-20',20],['test-40',40],['test-80',80],['test-60',60],['test-150',150]]
-let g:LCol=0
-let g:LOff=0
 
-fun! InitDevPlane(name,min,max)
-	call InitPlane(map(range(a:min,a:max),'[a:name."-0".v:val,60]'))
+let g:NavNames=['test-10','test-20','test-40','test-80','test-60','test-150']
+let g:NavSizes=['10','20','40','80','60','150']
+let [g:LCol,g:LOff]=[0,0]
+
+fun! GetPlanePos()
+	let [LeftColName,RightColName]=[bufname(winbufnr(1)),bufname(winbufnr('$'))]
+	if g:NavNames[g:LCol]!=LeftColName
+		let found=index(g:NavNames,LeftColName)
+		if found!=-1
+        	let g:LCol=found
+		en
+	en
+	if g:NavNames[g:RCol]!=RightColName
+		let found=index(g:NavNames,RightColName)
+		if found!=-1
+        	let g:RCol=found
+		en
+	en
+	if winwidth(1)==&columns && !&wrap
+		let g:LOff=virtcol('.')-wincol()+1
+	else
+		let g:LOff=g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0
+	en
 endfun
 
 fun! InitPlane(...)
 	if exists("a:1")
-		let g:PlaneCol=a:1
-	en
-	if exists("a:2")
-		let g:LCol=a:1
-	en
-	if exists("a:3")
-		let g:LOff=a:1
+		if type(a:1)==1 	"(string name, [int min, int max, list Sizes])
+			let g:NavNames=split(glob(a:1),"\n")
+	   		let min=exists("a:2")? a:2 : 0
+			let max=exists("a:3")? a:3>0 && a:3<=len(g:NavNames)? a:3 : len(g:NavNames) : len(g:NavNames)
+            let g:NavSizes=exists("a:4")? a:4 : repeat([60],len(g:NavNames))
+		elseif type(a:1)==3 "(list Names, list Sizes,[int leftcol, int offset])
+			let g:NavNames=a:1
+            let g:NavSizes=exists("a:2")? a:2 : repeat([60],len(g:NavNames))
+			let g:LCol=exists("a:3")? a:3 : g:LCol
+			let g:LOff=exists("a:4")? a:4 : g:LOff
+		en
 	en
 	se wiw=1
 	se wmw=0
 	se ve=all
-	exe 'tabe '.g:PlaneCol[g:LCol][0]
+	exe 'tabe '.g:NavNames[g:LCol]
     exe 'norm! 0'.(g:LOff? g:LOff.'zl' : '')
-	let spaceremaining=&columns-g:PlaneCol[g:LCol][1]-g:LOff
-	let NextCol=(g:LCol+1)%len(g:PlaneCol)
+	let spaceremaining=&columns-g:NavSizes[g:LCol]-g:LOff
+	let NextCol=(g:LCol+1)%len(g:NavNames)
 	while spaceremaining>=2
-		exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCol[NextCol][0])
+		exe 'bot '.(spaceremaining-1).'vsp '.(g:NavNames[NextCol])
 		norm! 0
-		let spaceremaining-=g:PlaneCol[NextCol][1]+1
-		let NextCol=(NextCol+1)%len(g:PlaneCol)
+		let spaceremaining-=g:NavSizes[NextCol]+1
+		let NextCol=(NextCol+1)%len(g:NavNames)
 	endwhile
-	let g:RCol=(NextCol-1)%len(g:PlaneCol)
+	let g:RCol=(NextCol-1)%len(g:NavNames)
 	windo se wfw
 endfun
 
 fun! PanLeft(N)
+	call GetPlanePos()
 	let N=a:N
 	if N>=&columns
 		wincmd t | only
@@ -57,7 +77,7 @@ fun! PanLeft(N)
 		wincmd b
 		while winwidth(0)<N
 			hide
-			let g:RCol=(g:RCol-1)%len(g:PlaneCol)
+			let g:RCol=(g:RCol-1)%len(g:NavNames)
 		endw
 		if winwidth(0)==N
 			hide
@@ -75,10 +95,10 @@ fun! PanLeft(N)
 			exe (N-w0+winwidth(0)).'wincmd <'
 			wincmd t
 		en
-		while winwidth(0)>=g:PlaneCol[g:LCol][1]+2
-			let NextWindow=(g:LCol-1)%len(g:PlaneCol)
+		while winwidth(0)>=g:NavSizes[g:LCol]+2
+			let NextWindow=(g:LCol-1)%len(g:NavNames)
 			se nowfw
-			exe 'lefta '.(winwidth(0)-g:PlaneCol[g:LCol][1]-1).'vsp '.g:PlaneCol[NextWindow][0]
+			exe 'lefta '.(winwidth(0)-g:NavSizes[g:LCol]-1).'vsp '.g:NavNames[NextWindow]
 			norm 0
 			wincmd l
 			se wfw
@@ -86,44 +106,45 @@ fun! PanLeft(N)
 			se wfw
 			let g:LCol=NextWindow
 		endwhile
-		if winwidth(0)<g:PlaneCol[g:LCol][1]
-			exe 'norm! 0'.(g:PlaneCol[g:LCol][1]-winwidth(0)).'zl'
+		if winwidth(0)<g:NavSizes[g:LCol]
+			exe 'norm! 0'.(g:NavSizes[g:LCol]-winwidth(0)).'zl'
 		en
-		let g:LOff=g:PlaneCol[g:LCol][1]-winwidth(0)
+		let g:LOff=g:NavSizes[g:LCol]-winwidth(0)
 		let g:LOff=g:LOff<0? 0 : g:LOff
 	elseif g:LOff>=-1
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 	else
 		while g:LOff<=-2
-			let g:LCol=(g:LCol-1)%len(g:PlaneCol)
-			let g:LOff+=g:PlaneCol[g:LCol][1]+1
+			let g:LCol=(g:LCol-1)%len(g:NavNames)
+			let g:LOff+=g:NavSizes[g:LCol]+1
 		endwhile
-		exe 'e '.g:PlaneCol[g:LCol][0]
+		exe 'e '.g:NavNames[g:LCol]
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
-		if g:PlaneCol[g:LCol][1]-g:LOff>=&columns-1
+		if g:NavSizes[g:LCol]-g:LOff>=&columns-1
 			let g:RCol=g:LCol
 		else
-			let spaceremaining=&columns-g:PlaneCol[g:LCol][1]+g:LOff
-			let NextCol=(g:LCol+1)%len(g:PlaneCol)
+			let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
+			let NextCol=(g:LCol+1)%len(g:NavNames)
 			while spaceremaining>=2
 				se nowfw
-				exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCol[NextCol][0])
+				exe 'bot '.(spaceremaining-1).'vsp '.(g:NavNames[NextCol])
 				norm! 0
 				wincmd h
 				se wfw
 				wincmd b
 				se wfw
-				let spaceremaining-=g:PlaneCol[NextCol][1]+1
-				let NextCol=(NextCol+1)%len(g:PlaneCol)
+				let spaceremaining-=g:NavSizes[NextCol]+1
+				let NextCol=(NextCol+1)%len(g:NavNames)
 			endwhile
-			let g:RCol=(NextCol-1)%len(g:PlaneCol)
+			let g:RCol=(NextCol-1)%len(g:NavNames)
 		en
 	en
-	"redr | ec g:LCol g:PlaneCol[g:LCol] g:RCol g:PlaneCol[g:RCol] g:LOff '*' dbm
+	"redr | ec g:LCol g:NavNames[g:LCol] g:RCol g:NavNames[g:RCol] g:LOff '*' dbm
 endfun
 nno <c-j> :<c-u>call PanLeft(v:count1)<cr>
 
 fun! PanRight(N)
+	call GetPlanePos()
 	let N=a:N
 	if N>=&columns
 		if winwidth(1)==&columns
@@ -132,33 +153,33 @@ fun! PanRight(N)
 			let g:LOff=winwidth(winnr('$'))
 			let g:LCol=g:RCol
 		en
-		if g:LOff>=g:PlaneCol[g:LCol][1]
+		if g:LOff>=g:NavSizes[g:LCol]
 			let g:LOff=0
-			let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+			let g:LCol=(g:LCol+1)%len(g:NavNames)
 		en
 		let toshift=N-&columns
-		if toshift>=g:PlaneCol[g:LCol][1]-g:LOff+1
-			let toshift-=g:PlaneCol[g:LCol][1]-g:LOff+1
-			let g:LCol=(g:LCol+1)%len(g:PlaneCol)
-			while toshift>=g:PlaneCol[g:LCol][1]+1
-				let toshift-=g:PlaneCol[g:LCol][1]+1
-				let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+		if toshift>=g:NavSizes[g:LCol]-g:LOff+1
+			let toshift-=g:NavSizes[g:LCol]-g:LOff+1
+			let g:LCol=(g:LCol+1)%len(g:NavNames)
+			while toshift>=g:NavSizes[g:LCol]+1
+				let toshift-=g:NavSizes[g:LCol]+1
+				let g:LCol=(g:LCol+1)%len(g:NavNames)
 			endwhile
-			if toshift==g:PlaneCol[g:LCol][1]
+			if toshift==g:NavSizes[g:LCol]
 				let N+=1
-				let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+				let g:LCol=(g:LCol+1)%len(g:NavNames)
 				let g:LOff=0
 			else
 				let g:LOff=toshift
 			en
-		elseif toshift==g:PlaneCol[g:LCol][1]-g:LOff
+		elseif toshift==g:NavSizes[g:LCol]-g:LOff
 			let N+=1
-			let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+			let g:LCol=(g:LCol+1)%len(g:NavNames)
 			let g:LOff=0
 		else
 			let g:LOff+=toshift	
 		en
-		exe 'e '.g:PlaneCol[g:LCol][0]
+		exe 'e '.g:NavNames[g:LCol]
 		only
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 	else
@@ -167,14 +188,14 @@ fun! PanRight(N)
 		while winwidth(0)<N
 			hide
 			let shifted+=winwidth(0)+1
-			let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+			let g:LCol=(g:LCol+1)%len(g:NavNames)
 			let g:LOff=0
 		endw
 		if winwidth(0)==N
 			hide
 			let N+=1
 			let shifted+=winwidth(0)+1
-			let g:LCol=(g:LCol+1)%len(g:PlaneCol)
+			let g:LCol=(g:LCol+1)%len(g:NavNames)
 			let g:LOff=0
 		en
 		let g:LOff+=N-shifted
@@ -189,12 +210,12 @@ fun! PanRight(N)
 		en
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 		wincmd b
-		let g:LOff=g:PlaneCol[g:LCol][1]-winwidth(1)
+		let g:LOff=g:NavSizes[g:LCol]-winwidth(1)
 		let g:LOff=g:LOff<0? 0 : g:LOff
-		while winwidth(0)>=g:PlaneCol[g:RCol][1]+2
-			let NextWindow=(g:RCol+1)%len(g:PlaneCol)
+		while winwidth(0)>=g:NavSizes[g:RCol]+2
+			let NextWindow=(g:RCol+1)%len(g:NavNames)
 			se nowfw
-			exe 'rightb '.(winwidth(0)-g:PlaneCol[g:RCol][1]-1).'vsp '.g:PlaneCol[NextWindow][0]
+			exe 'rightb '.(winwidth(0)-g:NavSizes[g:RCol]-1).'vsp '.g:NavNames[NextWindow]
 			norm 0
 			wincmd h
 			se wfw
@@ -202,23 +223,23 @@ fun! PanRight(N)
 			se wfw
 			let g:RCol=NextWindow
 		endwhile
-	elseif &columns-g:PlaneCol[g:LCol][1]+g:LOff<2
+	elseif &columns-g:NavSizes[g:LCol]+g:LOff<2
 		let g:RCol=g:LCol
 	else
 		let g:RCol=g:LCol
-		let spaceremaining=&columns-g:PlaneCol[g:LCol][1]+g:LOff
+		let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
 		while spaceremaining>=2
-			let g:RCol=(g:RCol+1)%len(g:PlaneCol)
+			let g:RCol=(g:RCol+1)%len(g:NavNames)
 			se nowfw
-			exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCol[g:RCol][0])
+			exe 'bot '.(spaceremaining-1).'vsp '.(g:NavNames[g:RCol])
 			norm! 0
 			wincmd h
 			se wfw
 			wincmd b
 			se wfw   "probably can optimize, since next loop undos this
-			let spaceremaining-=g:PlaneCol[g:RCol][1]+1
+			let spaceremaining-=g:NavSizes[g:RCol]+1
 		endwhile
 	en
-	"redr | ec g:LCol g:PlaneCol[g:LCol] g:RCol g:PlaneCol[g:RCol] g:LOff '*' dbm
+	"redr | ec g:LCol g:NavNames[g:LCol] g:RCol g:NavNames[g:RCol] g:LOff '*' dbm
 endfun
 nno <c-k> :<c-u>call PanRight(v:count1)<cr>
