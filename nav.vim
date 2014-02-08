@@ -1,22 +1,19 @@
-"                             --- Basic usage ---
-" To begin, evoke:
-"    :call LoadPlane()
-
-"                               --- Upcoming ---
-" Line number anchors
-" Jumps, bookmarks , changelists
-
-"   						--- Tips / Comments ---
+"To begin, evoke:
+" :call LoadPlane()
+"Comments:
+" Todo: Line number anchors
+" Todo: Jumps, bookmarks , changelists
 " Assumes no horizontal splits
 " Turning off statusbar may improve speed
 " There are some inevitable graphical glitches when dealing with columns of greatly
-"      unequal length. Keeping columns mostly the same length will avoid this.
+"   unequal length. Keeping columns mostly the same length will avoid this.
 " Redrawing via LoadPlane() will always position cursor in middle of screen due
-"     to hackish workaround to vim syncbind bug
+"   to hackish workaround to vim syncbind bug
 " Vim can't detect mouse events when absolute x cursor is greater than 253
 " Email q335r49@gmail.com for any suggestions, bugs, etc.
 
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan{exists('t:txP')? 'Col' : 'Win'}()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
+nn <silent> <f1> :if exists('t:txP') \| let TXP_LAST_FILEPATTERN='' \| call HelpfulPlaneWizard() \| else \| exe "norm! \<f1>" \| en<cr>
 nn <silent> <f3> :if exists('t:txP') \| call KeyboardPan() \| en<cr>
 nn <silent> <f5> :if exists('t:txP') \| call LoadPlane() \| en<cr>
 
@@ -24,28 +21,24 @@ let TXP_LAST_FILEPATTERN=exists('TXP_LAST_FILEPATTERN')? TXP_LAST_FILEPATTERN : 
 fun! HelpfulPlaneWizard(...)
 	let filepattern=a:0? a:1 : g:TXP_LAST_FILEPATTERN
 	if !a:0 && empty(g:TXP_LAST_FILEPATTERN)
-		redr
+		redr|ec "  "
+		ec "                      === TextPlane ==="
+		ec "                     Updated on 12/13/13"
 		ec "  "
-		ec "                      === Text Plane ==="
-		ec "                       Updated 12/13/13"
-		ec "  "
-		ec " Welcome to Text Plane, a multi-column panning workspace for "
-		ec " vim! Start by evoking:"
+		ec " Welcome to TextPlane, a panning workspace for vim! To begin,"
 		ec "     :call LoadPlane()"
-		ec " and entering a file pattern containing '*', eg:"
-		ec "     file* (loads file0, file1, filea, filezz, ... )"
-		ec "     *     (loads every file in the current directory.)"
-		ec " The previously used pattern will be suggested if it matches "
-		ec " at least one file. If the current buffer matches, the plane "
-		ec " will open in this tab at the current buffer. Otherwise, it "
-		ec " will load in a new tab."
-		ec "  "
-		ec " Use the following commands once the plane is loaded:"
-		ec "     <leftmouse> - Pan with mouse"
-		ec "     f5          - Redraw plane"
-		ec "     f3          - Activate panning mode"
-		ec "     hjklyubn    - [in panning mode] pan"
-		ec "     HJKLYUBIN   - [in panning mode] pan faster"
+		ec " Enter a file pattern containing '*', eg:"
+		ec "     file*     - file0, file1, file-new etc"
+		ec "     *         - all files in current directory"
+		ec " If the current buffer matches, the plane will open in this "
+		ec " tab centered at the current buffer. Otherwise, it will load "
+		ec " in a new tab. Once loaded:"
+		ec "     leftmouse - Pan with mouse"
+		ec "     f5        - Redraw plane"
+		ec "     f3        - Activate pan mode"
+		ec "     hjklyubn  - [pan mode] pan"
+		ec "     HJKLYUBN  - [pan mode] pan faster"
+		ec "     f1        - Print this message"
 		ec "  "
 		ec " You can also directly load a pattern via:"
 		ec "     :call LoadPlane(CreatePlane('file*'))"
@@ -53,9 +46,8 @@ fun! HelpfulPlaneWizard(...)
 		ec " to a global variable in all caps and setting ! in &viminfo"
 		ec "    :let g:MY_PLANE=t:txP"
 		ec "    :se viminfo+=!"
-		ec " Restore a saved plane by passing it to LoadPlane:"
+		ec " Restore via"
 		ec "    :call LoadPlane(g:MY_PLANE)"
-		ec "  "
 		ec " Pass on any bugs or suggestions to q335r49@gmail.com"
 		ec "  "
 	en
@@ -77,7 +69,7 @@ fun! HelpfulPlaneWizard(...)
 		let g:TXP_LAST_FILEPATTERN=''
 		call HelpfulPlaneWizard()
 	elseif !empty(filelist) && input==#filepattern
-		if curbufix
+		if curbufix==-1
 			tabe
 		en
 		call LoadPlane(CreatePlane(input))
