@@ -1,30 +1,38 @@
 "need cleanup function: quit all non-visible buffers
-"norm zl only for no wrap windows -- no, assume no wrap?
+"norm zl only for no wrap windows -- or, automatically taken care of!
+"account for resizing -- probably need a 'reset' function, or use marks
+"optimize normal zl so there is no constant zeroing
+"PanLeft1, Panright1
 
-fun! NewPlane()
-	tabe
-	e dev-003
-	vsp dev-002
-	vsp dev-001
-	vsp dev-000
-	wincmd =
-	windo se wfw
-	call InitPlane()
-	se ve=all
-endfun
 
+let g:PlaneCol=[['test-10',10],['test-20',20],['test-40',40],['test-80',80],['test-60',60],['test-150',150]]
+let g:LCol=0
+let g:LOff=0
 fun! InitPlane()
 	se wiw=1
 	se wmw=0
-	let g:PlaneCols=[['dev-000',60],['dev-001',60],['dev-002',60],['dev-003',60],['dev-000',60],['dev-001',60],['dev-002',60],['dev-003',60]]
-	let g:RCol=3
-	let g:LCol=0
-	let g:LOff=0
+	se ve=all
+	exe 'tabe '.g:PlaneCol[g:LCol][0]
+    exe 'norm! 0'.(g:LOff? g:LOff.'zl' : '')
+	let spaceremaining=&columns-g:PlaneCol[g:LCol][1]-g:LOff
+	let NextCol=(g:LCol+1)%len(g:PlaneCol)
+	while spaceremaining>=2
+		exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCol[NextCol][0])
+		norm! 0
+		let spaceremaining-=g:PlaneCol[NextCol][1]+1
+		let NextCol=(NextCol+1)%len(g:PlaneCol)
+	endwhile
+	let g:RCol=(NextCol-1)%len(g:PlaneCol)
+	windo se wfw
 endfun
 
-"will RCol, LCol, LOff autocorrect?
+fun! AppendPlane()
+return
+
+fun! ResetPlane()
+return
+
 fun! PanLeft(N)
-	"Verify Postcons: Rightmost, Leftmost, LOff
 	let N=a:N
 	if N>=&columns
 		wincmd t | only
@@ -32,7 +40,7 @@ fun! PanLeft(N)
 		wincmd b
 		while winwidth(0)<N
 			hide
-			let g:RCol-=1
+			let g:RCol=(g:RCol-1)%len(g:PlaneCol)
 		endw
 		if winwidth(0)==N
 			hide
@@ -40,46 +48,62 @@ fun! PanLeft(N)
 			let g:RCol-=1
 		en
 	en
-	let w0=winwidth(0)
+	let w0=winwidth(winnr('$'))
 	let g:LOff-=N
 	if w0!=&columns
 		wincmd t
 		exe N.'wincmd >'
-		wincmd b	
-		if w0-winwidth(0)!=N
+		if w0-winwidth(winnr('$'))!=N
+			wincmd b	
 			exe (N-w0+winwidth(0)).'wincmd <'
+			wincmd t
 		en
-		wincmd t
-		while winwidth(0)>g:PlaneCols[g:LCol][1]
-		"is ther a +1 factor here??????
-			let NextWindow=(g:LCol-1)%len(g:PlaneCols)
-			exe 'lefta '.(winwidth(0)-g:PlaneCols[g:LCol][1]).'vsp '.g:PlaneCols[NextWindow][0]
-			norm! 0
+		while winwidth(0)>=g:PlaneCol[g:LCol][1]+2
+			let NextWindow=(g:LCol-1)%len(g:PlaneCol)
+			se nowfw
+			exe 'lefta '.(winwidth(0)-g:PlaneCol[g:LCol][1]-1).'vsp '.g:PlaneCol[NextWindow][0]
+			norm 0
+			wincmd l
 			se wfw
+			wincmd t
+			se wfw
+			let g:LCol=NextWindow
 		endwhile
-		if winwidth(0)<g:PlaneCols[g:LCol][1]
-			exe 'norm! '.(g:PlaneCols[g:LCol][1]-winwidth(0)).'zl'
+		if winwidth(0)<g:PlaneCol[g:LCol][1]
+			exe 'norm! 0'.(g:PlaneCol[g:LCol][1]-winwidth(0)).'zl'
 		en
-		let g:LCol=NextWindow
-		let g:LOff=PlaneCols[g:LOff][1]-winwidth(0)
+		let g:LOff=g:PlaneCol[g:LCol][1]-winwidth(0)
+		let g:LOff=g:LOff<0? 0 : g:LOff
+	elseif g:LOff>=-1
+		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 	else
-		while g:LOff<0
-			let g:LCol=(g:LCol-1)%len(g:PlaneCols)
-			let g:LOff+=g:PlaneCols[g:LCol][1]+1
+		while g:LOff<=-2
+			let g:LCol=(g:LCol-1)%len(g:PlaneCol)
+			let g:LOff+=g:PlaneCol[g:LCol][1]+1
 		endwhile
-		exe 'norm! 0'.(g:LOff).'zl'
-		if g:PlaneCols[g:LCol][1]-g:LOff>=&columns-1
+		exe 'e '.g:PlaneCol[g:LCol][0]
+		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
+		if g:PlaneCol[g:LCol][1]-g:LOff>=&columns-1
 			let g:RCol=g:LCol
 		else
-			let spaceremaining=&columns-g:PlaneCols[g:LCol][1]-g:LOff
-			let NextCol=(g:LCol+1)%len(g:PlaneCols)
-			while spaceremaining>=1
-				exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCols[NextCol][0])
+			let spaceremaining=&columns-g:PlaneCol[g:LCol][1]+g:LOff
+			let NextCol=(g:LCol+1)%len(g:PlaneCol)
+			while spaceremaining>=2
+				se nowfw
+				exe 'bot '.(spaceremaining-1).'vsp '.(g:PlaneCol[NextCol][0])
 				norm! 0
-				let spaceremaining-=g:PlaneCols[NextCol][1]+1
-				let NextCol=(g:LCol+1)%len(g:PlaneCols)
+				wincmd h
+				se wfw
+				wincmd b
+				se wfw
+				let spaceremaining-=g:PlaneCol[NextCol][1]+1
+				let NextCol=(NextCol+1)%len(g:PlaneCol)
 			endwhile
-			let g:RCol=(NextCol-1)%len(g:PlaneCols)
+			let g:RCol=(NextCol-1)%len(g:PlaneCol)
 		en
 	en
+	"redr | ec g:LCol g:PlaneCol[g:LCol] g:RCol g:PlaneCol[g:RCol] g:LOff '*' dbm
 endfun
+nno <c-j> :<c-u>call PanLeft(v:count1)<cr>
+
+call InitPlane()
