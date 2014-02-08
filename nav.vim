@@ -91,7 +91,19 @@ fun! CenterPos(targcol,...)
 		let tcol=(tcol-1)%t:txP.len
 		let offset-=t:txP.size[tcol]
 	endwhile
-	call ShiftView(tcol<0? tcol+t:txP.len : tcol, max([1,cursor[0]-&lines/2]),-offset)
+	let tcol=tcol<0? tcol+t:txP.len : tcol
+	let cur_tcol=get(t:txP.ix,bufname(winbufnr(1)),-1)
+	if cur_tcol==-1
+		throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txP.name)
+	en
+	if tcol>cur_tcol && cur_tcol+t:txP.len-tcol<tcol-cur_tcol
+		call ShiftView(tcol-t:txP.len, max([1,cursor[0]-&lines/2]),-offset)
+	elseif tcol<cur_tcol && tcol+t:txP.len-cur_tcol<cur_tcol-tcol
+		call ShiftView(tcol+t:txP.len, max([1,cursor[0]-&lines/2]),-offset)
+	else
+		call ShiftView(tcol, max([1,cursor[0]-&lines/2]),-offset)
+	en
+	call ShiftView(tcol, max([1,cursor[0]-&lines/2]),-offset)
 	let targwin=bufwinnr(t:txP.name[a:targcol])
 	if targwin==-1
 		wincmd t
@@ -108,7 +120,7 @@ endfun
 
 fun! ShiftView(targcol,...)
 	let sizes=t:txP.size+t:txP.size
-	let [tcol,targline,offset,speed]=[-1,exists('a:1')? a:1 : line('w0'),exists('a:2')? a:2 : 0,exists('a:3')? a:3 : 3]
+	let [tcol,targline,offset,speed]=[-999,exists('a:1')? a:1 : line('w0'),exists('a:2')? a:2 : 0,exists('a:3')? a:3 : 3]
 	while tcol!=a:targcol
 		let [new_tcol,l0]=[get(t:txP.ix,bufname(winbufnr(1)),-1),line('w0')]
 		if new_tcol==-1
@@ -117,8 +129,10 @@ fun! ShiftView(targcol,...)
 			let tcol=new_tcol+t:txP.len
 		elseif new_tcol>tcol && tcol>a:targcol
 			let tcol=new_tcol-t:txP.len
+		else
+			let tcol=new_tcol
 		en
-   		let x_dist=a:targcol==tcol? (-max([t:txP.size[a:targcol]-winwidth(1),0])+offset) : a:targcol>tcol? winwidth(1)+(a:targcol-tcol>1? eval(join(t:txP.size[(tcol+1):(a:targcol-1)],'+')) : 0)+offset : -(max([0,t:txP.size[tcol]-winwidth(1)])+(tcol-a:targcol>0? eval(join(t:txP.size[(a:targcol):tcol-1],'+')) : 0))+offset
+   		let x_dist=a:targcol==tcol? (-max([sizes[a:targcol]-winwidth(1),0])+offset) : a:targcol>tcol? winwidth(1)+(a:targcol-tcol>1? eval(join(sizes[(tcol+1):(a:targcol-1)],'+')) : 0)+offset : -(max([0,sizes[tcol]-winwidth(1)])+(tcol-a:targcol>0? eval(join(sizes[(a:targcol+t:txP.len) : (tcol-1+t:txP.len)],'+')) : 0))+offset
 		let y_dist=targline-l0
 		let curbuf=winbufnr(1)
 		let scalar_speed=abs(abs(x_dist)+abs(y_dist))
