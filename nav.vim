@@ -24,28 +24,26 @@
 " Call LoadPlane() with no arguments to redraw and 'clean up' the
 " current plane according to the position of the currently active split.
 
-" Too fancy statusbars might slow things down
-
 "                               --- Upcoming ---
 
 "Line number anchors
-"Insert, delete columns, edit settings
+"Insert / deleete columns, edit this column's settings
 "OnResize autocommands
 "GetPlanePos(), GoPlanePos()
-"Jumps: Remap `', directing signs
-"Changelists
-"NormalizePlane(len) to make columns equal length
+"Jumps, bookmark handling, directing signs, changelists
+"NormalizeThislPlane(len) to make columns equal length
 
-"                           --- Known issues ---
+"   						--- Tips / Comments ---
 
+"Turning off statusbar may improve speed
+"There are some inevitable graphical glitches when dealing with columns of greatly
+"     unequal length. Keep columns mostly the same length to avoid this.
+"Redrawing via LoadPlane() will always position cursor in middle of screen due
+"    to hackish workaround to vim syncbind bug
 "Assumes no horizontal splits
 "Vim unable to detect mouse events when absolute x cursor is greater than 253
 "When number of columns > 9 vim's split resizing algorithm changes and a
 "    slightly more sophisticated algorithm is needed
-"When column lengths are unequal (greater than a screen height) the columns
-"    may become misaligned. Use :syncbind or :call LoadPlane() to redraw
-"Redrawing via LoadPlane() will always position cursor in middle of screen due
-"    to hackish workaround to vim syncbind bug
 
 "Email q335r49 at gmail dot com for any suggestions, bugs, etc.
 
@@ -77,25 +75,25 @@ fun! KeyboardPan()
 	if !exists('t:txP')
 		throw "t:txP doesn't exist, initialize by calling LoadPlane(CreatePlane(string filepattern))"
 	en
-	let t=reltime()
 	let y=line('w0')
+	call LoadPlane()
+	let t=reltime()
 	while 1
 		let [tprev,t]=[t,reltime()]
 		exe get(g:keypdict,getchar(),'')
-		ec y
 	endwhile
 endfun
 let keypdict.27="return"
 let keypdict["\<f3>"]="return"
-let keypdict.104='call Pan(-2,y)|redr'
-let keypdict.106='let y+=2|let y=Pan(0,y)|redr'
-let keypdict.107='let y-=2|let y=Pan(0,y)|redr'
-let keypdict.108='call Pan(2,y)|redr'
-let keypdict.121='let y-=1|let y=Pan(-1,y)|redr'
-let keypdict.117='let y-=1|let y=Pan(1,y)|redr'
-let keypdict.98='let y+=1|let y=Pan(-1,y)|redr'
-let keypdict.110='let y+=1|let y=Pan(1,y)|redr'
-let keypdict["\<f5>"]="call LoadPlane()"
+let keypdict.104='call Pan(-2,y)'
+let keypdict.106='let y+=2|let y=Pan(0,y)'
+let keypdict.107='let y-=2|let y=Pan(0,y)'
+let keypdict.108='call Pan(2,y)'
+let keypdict.121='let y-=1|let y=Pan(-1,y)'
+let keypdict.117='let y-=1|let y=Pan(1,y)'
+let keypdict.98='let y+=1|let y=Pan(-1,y)'
+let keypdict.110='let y+=1|let y=Pan(1,y)'
+let keypdict["\<f5>"]="call LoadPlane()|redr"
 
 fun! CreatePlane(name,...)
 	let plane={}
@@ -369,7 +367,8 @@ fun! PanLeft(N)
 	return extrashift
 endfun
 
-fun! PanRight(N)
+fun! PanRight(N,...)
+	let screentopline=a:0? a:1 : line('w0')
 	let tcol=get(t:txP.ix,bufname(winbufnr(1)),-99999)
 	let [bcol,loff,extrashift,N]=[get(t:txP.ix,bufname(winbufnr(winnr('$'))),-99999),winwidth(1)==&columns? (&wrap? 0 : virtcol('.')-wincol()) : (t:txP.size[tcol]>winwidth(1)? t:txP.size[tcol]-winwidth(1) : 0),0,a:N]
 	if tcol+bcol<0
