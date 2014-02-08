@@ -21,58 +21,55 @@ let TXP_LAST_FILEPATTERN=exists('TXP_LAST_FILEPATTERN')? TXP_LAST_FILEPATTERN : 
 fun! HelpfulPlaneWizard(...)
 	let filepattern=a:0? a:1 : g:TXP_LAST_FILEPATTERN
 	if !a:0 && empty(g:TXP_LAST_FILEPATTERN)
-		redr|ec "  "
-		ec "                      === TextPlane ==="
-		ec "                     Updated on 12/13/13"
-		ec "  "
-		ec " Welcome to TextPlane, a panning workspace for vim! To begin,"
-		ec "     :call LoadPlane()"
-		ec " Enter a file pattern containing '*', eg:"
-		ec "     file*     - file0, file1, file-new etc"
-		ec "     *         - all files in current directory"
-		ec " If the current buffer matches, the plane will open in this "
-		ec " tab centered at the current buffer. Otherwise, it will load "
-		ec " in a new tab. Once loaded:"
-		ec "     leftmouse - Pan with mouse"
-		ec "     f5        - Redraw plane"
-		ec "     f3        - Activate pan mode"
-		ec "     hjklyubn  - [pan mode] pan"
-		ec "     HJKLYUBN  - [pan mode] pan faster"
-		ec "     f1        - Print this message"
-		ec "  "
-		ec " You can also directly load a pattern via:"
-		ec "     :call LoadPlane(CreatePlane('file*'))"
-		ec " Once loaded, save a plane between sessions by storing t:txP "
-		ec " to a global variable in all caps and setting ! in &viminfo"
-		ec "    :let g:MY_PLANE=t:txP"
-		ec "    :se viminfo+=!"
-		ec " Restore via"
-		ec "    :call LoadPlane(g:MY_PLANE)"
-		ec " Pass on any bugs or suggestions to q335r49@gmail.com"
-		ec "  "
+		redr|ec "\n
+		\                      === TextPlane ===\n
+		\                     Updated on 12/13/13\n\n
+		\ Welcome to TextPlane, a panning workspace for vim! To begin,\n
+		\     :call LoadPlane()\n
+		\ Enter a file pattern containing '*', eg:\n
+		\     file*     - file0, file1, file-new etc\n
+		\     *         - all files in current directory\n
+		\ If the current buffer matches, the plane will open in this \n
+		\ tab centered at the current buffer. Otherwise, it will load \n
+		\ in a new tab. Once loaded:\n
+		\     leftmouse - Pan with mouse\n
+		\     f1        - Print this message\n
+		\     f3        - Activate pan mode\n
+		\     f5        - Redraw plane\n
+		\     hjklyubn  - [pan mode] pan\n
+		\     HJKLYUBN  - [pan mode] pan faster\n
+		\     s         - Toggle scrollbind\n\n
+		\ You can also directly load a pattern via:\n
+		\     :call LoadPlane(CreatePlane('file*'))\n
+		\ Once loaded, save a plane between sessions by storing t:txP \n
+		\ to a global variable in all caps and setting ! in &viminfo\n
+		\    :let g:MY_PLANE=t:txP\n
+		\    :se viminfo+=!\n
+		\ Restore via\n
+		\    :call LoadPlane(g:MY_PLANE)\n
+		\ Pass on any bugs or suggestions to q335r49@gmail.com\n"
 	en
-	let filelist=map(split(glob(filepattern),"\n"),'fnamemodify(v:val,":p")')
-	if !empty(filelist)
+	let plane=CreatePlane(filepattern)
+	if !empty(plane.name)
 		let g:TXP_LAST_FILEPATTERN=filepattern
-		let curbufix=index(filelist,expand('%:p'))
-		ec (a:0? "> Files matching: \"" : "> Last used pattern: \"").filepattern.'"'
-		ec join(map(copy(filelist),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
-		let curbufix=index(filelist,expand('%:p'))
-		ec "    --- [".len(filelist)."] files will be loaded in" (curbufix!=-1? "[CURRENT TAB] ---" : "[NEW TAB] ---")
+		let curbufix=index(plane.name,expand('%'))
+		ec (a:0? "\n> Pattern \"" : "\n> Last used pattern \"").filepattern.'" matches:'
+		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
+		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
 	else
-		ec a:0? '(No matches found)' : ''
+		ec a:0? "\n(No matches found)" : ''
 	en
-	let input=input(empty(filelist)? "> Enter file pattern for new plane (or type 'help' for help): " : "> Press ENTER to load plane or try another pattern (type 'help' for help): ", empty(filelist)? '' : filepattern)
+	let input=input(empty(plane.name)? "> Enter file pattern for new plane (or type 'help' for help): " : "> Press ENTER to load plane or try another pattern (type 'help' for help): ", filepattern)
 	if empty(input)
-		ec "(aborted)"
+		redr|ec "(aborted)"
 	elseif input==?'help'
 		let g:TXP_LAST_FILEPATTERN=''
 		call HelpfulPlaneWizard()
-	elseif !empty(filelist) && input==#filepattern
+	elseif !empty(plane.name) && input==#filepattern
 		if curbufix==-1
 			tabe
 		en
-		call LoadPlane(CreatePlane(input))
+		call LoadPlane(plane)
 	elseif !empty(input)
 		call HelpfulPlaneWizard(input)
 	en
@@ -103,8 +100,9 @@ fun! KeyboardPan()
 	call LoadPlane()
 	let t=reltime()
 	while 1
+		ec " - PAN MODE - "
 		let [tprev,t]=[t,reltime()]
-		exe get(g:keypdict,getchar(),'ec "hjklyubn:Scroll f5:Refresh f3,esc:Exit"')
+		exe get(g:keypdict,getchar(),'ec "hjklyubn:Scroll f5:Refresh f3,esc:Exit s:ToggleScrollbind"')
 	endwhile
 endfun
 let keypdict={}
@@ -128,29 +126,24 @@ let keypdict.110='let y=Pan(1,y+1)'
 let keypdict.78 ='let y=Pan(3,y+3)'
 let keypdict["\<f5>"]="call LoadPlane()|redr"
 let keypdict["\<leftmouse>"]="call MousePanCol()"
+let keypdict.115='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : ["Scrollbind on","ver,jump"] | call LoadPlane() | ec msg'
 
 fun! CreatePlane(name,...)
 	let plane={}
-	if type(a:name)==1
-		let plane.name=split(glob(a:name),"\n")
-    elseif type(a:name)==3
-   		let plane.name=a:name
-   	else
-     	ec "> Invalid arguments for CreatePlane(string filepattern OR list Names, [list Sizes, list Settings])..."
-		call HelpfulPlaneWizard()
-		return
+	let plane.name=type(a:name)==1? map(glob(a:name,0,1),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	if plane.name is 'INV'
+     	throw 'First argument must be string filepattern or list files'
+	else
+		let plane.len=len(plane.name)
+		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat(['se nowrap scb cole=2'],plane.len)
+		let plane.scrollopt='ver,jump'
+		let [plane.ix,i]=[{},0]
+		for e in plane.name
+			let [plane.ix[e],i]=[i,i+1]
+		endfor
+		return plane
 	en
-   	let plane.len=len(plane.name)
-	let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-	let plane.exe=exists("a:2")? a:2 : repeat(['exe "norm! ".screentopline."Gzt" | se nowrap scb cole=2'],plane.len)
-	let [plane.ix,i]=[{},0]
-	for e in plane.name
-		let [plane.ix[e],i]=[i,i+1]
-	endfor
-	let namew=min([&columns/2,max(map(range(plane.len),'len(plane.name[v:val])'))])
-	let exew=&columns-namew-7
-	echo "\n W -"." NAME -----------------------------------------------------------------------------------------------------------"[:namew]." AUTOEXE -----------------"[:exew]."\n".join(map(range(plane.len),'printf(" %-3d %-".namew.".".namew."S %.".exew."s",plane.size[v:val],plane.name[v:val],plane.exe[v:val])'),"\n")
-	return plane
 endfun
 
 fun! LoadPlane(...)
@@ -173,8 +166,8 @@ fun! LoadPlane(...)
    		exe 'e' t:txP.name[0] 
 	en
 	norm! M
-	let screentopline=line('w0')
-	let possav=[bufnr('%'),screentopline,line('.')]
+	let possav=[bufnr('%'),line('w0'),line('.')]
+	let alignmentcmd="norm! ".possav[1]."Gzt"
 	se scrollopt=jump
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0%t:txP.len,0]
 	let remain=split0
@@ -196,6 +189,7 @@ fun! LoadPlane(...)
 		for i in range(dif)
 			let colt=(colt-1)%len(t:txP.size)
 			exe 'top vsp '.t:txP.name[colt]
+			exe alignmentcmd
 			exe t:txP.exe[colt]
 			se wfw
 		endfor
@@ -211,6 +205,7 @@ fun! LoadPlane(...)
 		for i in range(dif)
 			let colb=(colb+1)%len(t:txP.size)
 			exe 'bot vsp '.t:txP.name[colb]
+			exe alignmentcmd
 			exe t:txP.exe[colb]
 			se wfw
 		endfor
@@ -230,8 +225,10 @@ fun! LoadPlane(...)
 		if expand('%:p')!=#fnamemodify(t:txP.name[ccol],":p")
 	   		call input('Reloading file '.t:txP.name[ccol].' in window number '.winnr())
 			exe 'e' t:txP.name[ccol] 
+			exe alignmentcmd
 			exe t:txP.exe[ccol]
 		elseif a:0
+			exe alignmentcmd
 			exe t:txP.exe[ccol]
 		en
 		if cwin==1
@@ -244,7 +241,7 @@ fun! LoadPlane(...)
 		wincmd h
 	endw
 	exe bufwinnr(possav[0]).'wincmd w|norm! '.possav[1].'Gzt'.possav[2].'G'
-	se scrollopt=ver,jump
+	let &scrollopt=t:txP.scrollopt
 	syncbind
 endfun
 
@@ -317,12 +314,10 @@ fun! MousePanCol()
 endfun
 
 fun! PanLeft(N,...)
-	let screentopline=a:0? a:1 : line('w0')
+	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."Gzt"
 	let [extrashift,tcol]=[0,get(t:txP.ix,bufname(winbufnr(1)),-1)]
 	if tcol<0
-   		ec "> Current plane does not contain" bufname(winbufnr(1)) "..."
-		call HelpfulPlaneWizard()
-		return
+   		throw "Current plane does not contain" bufname(winbufnr(1))
 	elseif a:N<&columns
 		while winwidth(winnr('$'))<=a:N
 	   		wincmd b
@@ -359,6 +354,7 @@ fun! PanLeft(N,...)
 			se nowfw scrollopt=jump
 			let nextcol=(tcol-1)%t:txP.len
 			exe 'top '.(winwidth(0)-t:txP.size[tcol]-1).'vsp '.t:txP.name[nextcol]
+			exe alignmentcmd
 			exe t:txP.exe[nextcol]
 			wincmd l
 			se wfw
@@ -366,6 +362,7 @@ fun! PanLeft(N,...)
 			wincmd t
 			let tcol=nextcol
 			se wfw scrollopt=ver,jump
+			let &scrollopt=t:txP.scrollopt
 		endwhile
 		let offset=t:txP.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
@@ -380,8 +377,9 @@ fun! PanLeft(N,...)
 			endwhile
 			se scrollopt=jump
 			exe 'e '.t:txP.name[tcol]
+			exe alignmentcmd
 			exe t:txP.exe[tcol]
-			se scrollopt=ver,jump
+			let &scrollopt=t:txP.scrollopt
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
 			if t:txP.size[tcol]-loff<&columns-1
 				let spaceremaining=&columns-t:txP.size[tcol]+loff
@@ -389,12 +387,13 @@ fun! PanLeft(N,...)
 				se nowfw scrollopt=jump
 				while spaceremaining>=2
 					exe 'bot '.(spaceremaining-1).'vsp '.(t:txP.name[NextCol])
+					exe alignmentcmd
 					exe t:txP.exe[NextCol]
 					norm! 0
 					let spaceremaining-=t:txP.size[NextCol]+1
 					let NextCol=(NextCol+1)%len(t:txP.name)
 				endwhile
-				se scrollopt=ver,jump
+				let &scrollopt=t:txP.scrollopt
 				windo se wfw
 			en
 		en
@@ -403,13 +402,11 @@ fun! PanLeft(N,...)
 endfun
 
 fun! PanRight(N,...)
-	let screentopline=a:0? a:1 : line('w0')
+	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."Gzt"
 	let tcol=get(t:txP.ix,bufname(winbufnr(1)),-99999)
 	let [bcol,loff,extrashift,N]=[get(t:txP.ix,bufname(winbufnr(winnr('$'))),-99999),winwidth(1)==&columns? (&wrap? 0 : virtcol('.')-wincol()) : (t:txP.size[tcol]>winwidth(1)? t:txP.size[tcol]-winwidth(1) : 0),0,a:N]
 	if tcol+bcol<0
-   		ec "> Current plane does not contain" bufname(winbufnr(1)) "or" bufname(winbufnr('$')) "..."
-		call HelpfulPlaneWizard()
-		return
+   		throw "Current plane does not contain either" bufname(winbufnr(1)) "or" bufname(winbufnr('$'))
 	elseif N>=&columns
 		if winwidth(1)==&columns
         	let loff+=&columns
@@ -447,8 +444,9 @@ fun! PanRight(N,...)
 		en
 		se scrollopt=jump
 		exe 'e '.t:txP.name[tcol]
+   		exe alignmentcmd
 		exe t:txP.exe[tcol]
-		se scrollopt=ver,jump
+		let &scrollopt=t:txP.scrollopt
 		only
 		exe 'norm! 0'.(loff>0? loff.'zl' : '')
 	elseif N>0
@@ -481,13 +479,14 @@ fun! PanRight(N,...)
 			se nowfw scrollopt=jump
 			let nextcol=(bcol+1)%len(t:txP.name)
 			exe 'rightb vert '.(winwidth(0)-t:txP.size[bcol]-1).'split '.t:txP.name[nextcol]
+   			exe alignmentcmd
 			exe t:txP.exe[nextcol]
 			wincmd h
 			se wfw
 			wincmd b
 			norm! 0
 			let bcol=nextcol
-			se wfw scrollopt=ver,jump
+			let &scrollopt=t:txP.scrollopt
 		endwhile
 	elseif &columns-t:txP.size[tcol]+loff>=2
 		let bcol=tcol
@@ -496,11 +495,12 @@ fun! PanRight(N,...)
 		while spaceremaining>=2
 			let bcol=(bcol+1)%len(t:txP.name)
 			exe 'bot '.(spaceremaining-1).'vsp '.(t:txP.name[bcol])
+   			exe alignmentcmd
 			exe t:txP.exe[bcol]
 			norm! 0
 			let spaceremaining-=t:txP.size[bcol]+1
 		endwhile
-		se scrollopt=ver,jump
+		let &scrollopt=t:txP.scrollopt
 		windo se wfw
 	en
 	return extrashift
