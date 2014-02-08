@@ -1,7 +1,7 @@
 "Global hotkey: press <f3> to begin
 let txb_key='<f10>'
 
-let txbOnLoadCol='se scb nowrap cole=2'
+let txb_onloadcol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
@@ -329,13 +329,13 @@ endfun
 
 fun! s:CreatePlane(name,...)
 	let plane={}
-	let plane.name=type(a:name)==1? map(glob(a:name,0,1),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
 	if plane.name is 'INV'
      	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
 	else
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-		let plane.exe=exists("a:2")? a:2 : repeat([g:txbOnLoadCol],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat([g:txb_onloadcol],plane.len)
 		let plane.scrollopt='ver,jump'
 		let plane.changelist=[[0,0,0,0]]
 		let plane.changelistmarker=0
@@ -500,7 +500,6 @@ fun! TXBmousePanWin()
 	en
 endfun
 
-let g:debug=[]
 fun! TXBmouseNav()
 	let [c,w0]=[100,-1]
 	while c!="\<leftrelease>"
@@ -527,10 +526,8 @@ fun! TXBmouseNav()
 			ec ecstr
 		en
 		let c=getchar()
-		let g:debug+=[strtrans(c)]
 		while c!="\<leftdrag>" && c!="\<leftrelease>"
 			let c=getchar()
-			let g:debug+=['loop: '.strtrans(c)]
 		endwhile
 	endwhile
 	redr|ec &ls? ' '.v:mouse_lnum.' , '.v:mouse_col : join(map(range(1,winnr('$')),'v:val==w0? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')
