@@ -143,7 +143,7 @@ fun! GetPlanePos()
 endfun
 
 fun! InitPlane(...)
-	se sidescroll=1 mouse=a 
+	se sidescroll=1 mouse=a lz
 	se nosol scrollopt=ver,jump wiw=1 wmw=0 ve=all
 	if exists("a:1")
 		if type(a:1)==1 	"(string name, [int min, int max, list Sizes, list Settings, LCol, LOff])
@@ -183,6 +183,7 @@ fun! InitPlane(...)
 		let NextCol=(NextCol+1)%len(g:NavNames)
 	endwhile
 	windo se wfw
+	echo "\n        FILE      SIZE           AUTOEXEC\n".join(map(range(len(g:NavNames)),'printf("%15.15S %5d    %.".(&columns-27)."s",g:NavNames[v:val][-10:],g:NavSizes[v:val],g:NavSettings[v:val])'),"\n")
 endfun
 
 fun! PanLeft(N)
@@ -206,26 +207,21 @@ fun! PanLeft(N)
 	let [w0,g:LOff]=[winwidth(0),g:LOff-N]
 	if w0!=&columns
 		wincmd t
-		exe N.'wincmd >'
-		if w0-winwidth(winnr('$'))!=N
-			wincmd b	
-			exe (N-w0+winwidth(0)).'wincmd <'
-			wincmd t
-		en
 		se nowfw scrollopt=
+   		wincmd b	
+   		exe N.'wincmd <'
+		wincmd t
 		while winwidth(0)>=g:NavSizes[g:LCol]+2
-			let NextWindow=(g:LCol-1)%len(g:NavNames)
-			let screentopline=line('w0')
+			let [NextWindow,screentopline]=[(g:LCol-1)%len(g:NavNames),line('w0')]
 			exe 'lefta '.(winwidth(0)-g:NavSizes[g:LCol]-1).'vsp '.g:NavNames[NextWindow]
 			exe g:NavSettings[NextWindow]
 			wincmd l
 			se wfw
 			norm 0
 			wincmd t
-			se wfw
 			let g:LCol=NextWindow
 		endwhile
-		se scrollopt=ver,jump
+		se wfw scrollopt=ver,jump
 		exe 'norm! 0'.(winwidth(0)<g:NavSizes[g:LCol]? g:NavSizes[g:LCol]-winwidth(0).'zl' : '')
 		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(0)])
 	elseif g:LOff>=-1
@@ -338,8 +334,9 @@ fun! PanRight(N)
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 		wincmd b
 		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(1)])
-		se nowfw scrollopt=
+		se scrollopt=
 		while winwidth(0)>=g:NavSizes[g:RCol]+2
+			se nowfw
 			let NextWindow=(g:RCol+1)%len(g:NavNames)
 			let screentopline=line('w0')
 			exe 'rightb vert '.(winwidth(0)-g:NavSizes[g:RCol]-1).'split '.g:NavNames[NextWindow]
