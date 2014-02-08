@@ -2,7 +2,8 @@
 "Panning mode hotkey, as name rather than raw characters (ie, '<f3>' and not "\<f3>" or ^V<f3>):
 	let txpHotkey=exists("txpHotkey")? txpHotkey : '<f3>'
 "Execute on opening a new column. Edit for a particular file by setting t:txP.exe[t:txP.ix['file']]
-	let txpDefaultExe='se nowrap cole=2'
+"Note: scb should always be set. Toggle scrollbinding by using the internal command <hotkey>S
+	let txpDefaultExe='se nowrap scb cole=2'
                       
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txP')? 'call MousePanCol()' : 'call MousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.g:txpHotkey.' :if exists("t:txP") \| call KbdPan() \| else \| call TxpPrompt()\| en<cr>'
@@ -40,6 +41,11 @@ fun! TxpPrompt(...)
 		\\n
 		\\n                        Additional Comments:
 		\\n - Assumes no horizontal splits
+		\\n - For now, Textplane assumes the files are in the current directory
+		\\n   (ie, :cd ~/SomeDir). Adding files from another directory shouldn't
+		\\n   be a big issue but hasn't been thoroughly tested.
+		\\n - Scroll binding may desync if you are scrolling a column much
+		\\n   longer than the others. Press ".g:txpHotkey." twice to redraw.
 		\\n - Turning off or simplifying statusbar may improve speed
 		\\n - Vim can't detect cursor mouseclicks beyond column 253
 		\\n - Set g:txpHotkey either in the source file or before sourcing
@@ -469,16 +475,18 @@ fun! MousePanCol()
 			if &wrap
 				call setpos('.',[b0,v:mouse_lnum,0,v:mouse_col])
 			en
-			let [x,y]=&wrap? [(v:mouse_col-1)%winwidth(v:mouse_win),line('w0')+winline()] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum]
-			let nxy_expr=&wrap? "call setpos('.',[0,v:mouse_lnum,0,v:mouse_col])|let [nx,l0]=[(v:mouse_col-1)%".winwidth(v:mouse_win).",y-winline()]" : "let [nx,l0]=[v:mouse_col-".(virtcol('.')-wincol()).",line('w0')+y-v:mouse_lnum]"
+			let wrap=&wrap
+			let [x,y]=&wrap? [wincol(),line('w0')+winline()] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum]
+			let nxy_expr=&wrap? "call setpos('.',[0,v:mouse_lnum,0,v:mouse_col])|let [nx,l0]=[wincol(),y-winline()]" : "let [nx,l0]=[v:mouse_col-".(virtcol('.')-wincol()).",line('w0')+y-v:mouse_lnum]"
 			let ix=get(t:txP.ix,bufname(b0),-1)
 			let ecstr=ix==-1? ' < '.bufname(b0).' not registered >' : &ls? ' '.v:mouse_lnum.' , '.v:mouse_col : (' '.(t:txP.name[(ix-2)%t:txP.len]).' < '.(t:txP.name[(ix-1)%t:txP.len]).' << '.(t:txP.name[ix]).' >> '.(t:txP.name[(ix+1)%t:txP.len]).' > '.(t:txP.name[(ix+2)%t:txP.len]))[:&columns-2]
 		else
 			exe nxy_expr
 			exe x && nx && x!=nx? nx>x? 'call PanLeft(nx-x)' : 'call PanRight(x-nx)' : 'let x=x? x : nx'
 			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
-			let y=l0>0? y : y-l0+1
+			let [x,y]=[wrap? nx : x, l0>0? y : y-l0+1]
 			redr
+			let ecstr=x.', '.nx
 			ec ecstr
 		en
 		let c=getchar()
