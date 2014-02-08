@@ -1,40 +1,68 @@
+"just need to restore original window position (must do in Panleft / Panright)
+"optimize normal zl so there is no constant zeroing
+"PanLeft1, Panright1
+
+
+"try to get absolute coordinates for mouse
+"map arrow keys to navigation for now?
+"small pan
+"init plane on startup (easy, just use all caps)
+"need to optimize window movements first, maybe a return value based on whether restoring cursor position is possible
+"restore window positions after panning with mouse!!!
 "synergize with mousecursor / Navmode settings
 "... the only problem here is changing windows ... but that shouldn't happen.
 "/later
-"optimize normal zl so there is no constant zeroing
 "bookmarks / goto file-line-column
 "scb flag
 "resize (by setcurrentsize)
 "clean up plane / save
 "optimizations: exe wrapcmd
-"PanLeft1, Panright1
 "helpful fail messages for InitPlane
+"SwitchNavMode
 
 
+fun! MouseNav()
+	"need to account for special case of &wrap && winline=1
+	"only need to account for resizings of origwin
+	let winorig=v:mouse_win
+	let offset=&wrap? (virtcol('.')%winwidth(0)-wincol()) : (virtcol('.')-wincol())
+	let [x,y]=[(&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset)*(v:mouse_win==winorig),v:mouse_lnum]
+	let nx=x
+	while getchar()=="\<leftdrag>"
+		let [nx,ny]=[(&wrap? (v:mouse_col-1)%winwidth(0) : v:mouse_col-offset)*(v:mouse_win==winorig),v:mouse_lnum]
+		if x&&nx
+			let [dx,dy]=[nx-x,ny-y]
+			if dx>0
+				call PanLeft(dx)
+				"account for when an additional column is gained N->N+1
+			elseif dx<0
+				call PanRight(-dx)
+			en
+			redr | ec [dx,dy]
+			"let [x,y]=[nx,ny]
+		en
+	endwhile
+endfun
+"nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
+nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MouseNav()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
 
 let g:NavNames=['test-10','test-20','test-40','test-80','test-60','test-150']
+let g:NavDic={'test-10':0,'test-20':1,'test-40':2,'test-80':3,'test-60':4,'test-150':5}
 let g:NavSizes=['10','20','40','80','60','150']
 let [g:LCol,g:LOff]=[0,0]
 
 fun! GetPlanePos()
-	let [LeftColName,RightColName]=[bufname(winbufnr(1)),bufname(winbufnr('$'))]
-	if g:NavNames[g:LCol]!=LeftColName
-		let found=index(g:NavNames,LeftColName)
-		if found!=-1
-        	let g:LCol=found
-		en
-	en
-	if g:NavNames[g:RCol]!=RightColName
-		let found=index(g:NavNames,RightColName)
-		if found!=-1
-        	let g:RCol=found
-		en
-	en
-	if winwidth(1)==&columns && !&wrap
-		let g:LOff=virtcol('.')-wincol()+1
-	else
-		let g:LOff=g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0
-	en
+	let g:LCol=g:NavDic[bufname(winbufnr(1))]
+	let g:RCol=g:NavDic[bufname(winbufnr('$'))]
+	let g:LOff=winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)
+endfun
+
+fun! IndexDic(list)
+   let [index,i]=[{},0]
+   for e in a:list
+		let [index[e],i]=[i,i+1]
+   endfor
+   return index
 endfun
 
 fun! InitPlane(...)
@@ -43,6 +71,7 @@ fun! InitPlane(...)
 			let g:NavNames=split(glob(a:1),"\n")
 	   		let min=exists("a:2")? a:2 : 0
 			let max=exists("a:3")? a:3>0 && a:3<=len(g:NavNames)? a:3 : len(g:NavNames) : len(g:NavNames)
+			let g:NavNames=g:NavNames[min : max]
             let g:NavSizes=exists("a:4")? a:4 : repeat([60],len(g:NavNames))
 		elseif type(a:1)==3 "(list Names, list Sizes,[int leftcol, int offset])
 			let g:NavNames=a:1
@@ -51,6 +80,7 @@ fun! InitPlane(...)
 			let g:LOff=exists("a:4")? a:4 : g:LOff
 		en
 	en
+  	let g:NavDic=IndexDic(g:NavNames)
 	se wiw=1
 	se wmw=0
 	se ve=all
@@ -66,6 +96,8 @@ fun! InitPlane(...)
 	endwhile
 	let g:RCol=(NextCol-1)%len(g:NavNames)
 	windo se wfw
+	let t:NavPlane=1
+	let t:MouseNav=1
 endfun
 
 fun! PanLeft(N)
@@ -139,7 +171,6 @@ fun! PanLeft(N)
 			let g:RCol=(NextCol-1)%len(g:NavNames)
 		en
 	en
-	"redr | ec g:LCol g:NavNames[g:LCol] g:RCol g:NavNames[g:RCol] g:LOff '*' dbm
 endfun
 nno <c-j> :<c-u>call PanLeft(v:count1)<cr>
 
@@ -240,6 +271,5 @@ fun! PanRight(N)
 			let spaceremaining-=g:NavSizes[g:RCol]+1
 		endwhile
 	en
-	"redr | ec g:LCol g:NavNames[g:LCol] g:RCol g:NavNames[g:RCol] g:LOff '*' dbm
 endfun
 nno <c-k> :<c-u>call PanRight(v:count1)<cr>
