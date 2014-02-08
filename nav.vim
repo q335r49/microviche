@@ -151,17 +151,16 @@ augroup END
 fun! TXPOnInsert()
 	if exists("t:txP")
 		if t:txP.changelistmarker<-1 && len(t:txP.changelist)>=-t:txP.changelistmarker
-			call remove(t:txP.changelistmarker,-1)
+			call remove(t:txPchangelist,t:txP.changelistmarker,-1)
 		en
 		let pos=[bufname('%'),line('.'),col('.')]
-		if pos[0] isnot t:txP.changelist[-1][0] || abs(pos[1]-t:txP.changelist[-1][1])>5
-			let g:t:txP.changelist+=[pos]
+		if empty(t:txP.changelist) || pos[0] isnot t:txP.changelist[-1][0] || abs(pos[1]-t:txP.changelist[-1][1])>5
+			let t:txP.changelist+=[pos]
 		en
-		let g:t:txP.changelistmarker=0
+		let t:txP.changelistmarker=0
 	en
 endfun
-let keypdict.9="redr
-\\n	if !empty(t:txP.changelist)
+let keypdict.9="if !empty(t:txP.changelist)
 \\n		let t:txP.changelistmarker=max([t:txP.changelistmarker-1,-len(t:txP.changelist)])
 \\n		let ix=get(t:txP.ix,t:txP.changelist[t:txP.changelistmarker][0],-1)
 \\n		while ix==-1
@@ -170,11 +169,10 @@ let keypdict.9="redr
 \\n			let ix=empty(t:txP.changelist)? -2 : get(t:txP.ix,t:txP.changelist[t:txP.changelistmarker][0],-1)
 \\n		endwhile
 \\n		if ix!=-2
-\\n			CenterPos(ix,t:txP.changelist[t:txP.changelistmarker][1],t:txP.changelist[t:txP.changelistmarker][2])
+\\n			call CenterPos(ix,t:txP.changelist[t:txP.changelistmarker][1],t:txP.changelist[t:txP.changelistmarker][2])
 \\n		en
 \\n	en"
-let keypdict.32="redr
-\\n	if !empty(t:txP.changelist)
+let keypdict.32="if !empty(t:txP.changelist)
 \\n		let t:txP.changelistmarker=min([t:txP.changelistmarker+1,-1])
 \\n		let ix=get(t:txP.ix,t:txP.changelist[t:txP.changelistmarker][0],-1)
 \\n		while ix==-1
@@ -183,7 +181,7 @@ let keypdict.32="redr
 \\n			let ix=empty(t:txP.changelist)? -2 : get(t:txP.ix,t:txP.changelist[t:txP.changelistmarker][0],-1)
 \\n		endwhile
 \\n		if ix!=-2
-\\n			CenterPos(ix,t:txP.changelist[t:txP.changelistmarker][1],t:txP.changelist[t:txP.changelistmarker][2])
+\\n			call CenterPos(ix,t:txP.changelist[t:txP.changelistmarker][1],t:txP.changelist[t:txP.changelistmarker][2])
 \\n		en
 \\n	en"
 
@@ -288,6 +286,7 @@ fun! CreatePlane(name,...)
 		let plane.exe=exists("a:2")? a:2 : repeat(['se nowrap scb cole=2'],plane.len)
 		let plane.scrollopt='ver,jump'
 		let plane.changelist=[[0,0,0,0]]
+		let plane.changelistmarker=0
 		let [plane.ix,i]=[{},0]
 		for e in plane.name
 			let [plane.ix[e],i]=[i,i+1]
