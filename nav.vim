@@ -22,6 +22,7 @@ fun! TxpPrompt(...)
 		\\n     hjklyubn  - pan
 		\\n     HJKLYUBN  - pan faster
 		\\n     s         - Toggle scrollbind
+		\\n     ` or '    - Go to bookmark
 		\\n
 		\\n                        Additional Comments:
 		\\n
@@ -31,8 +32,6 @@ fun! TxpPrompt(...)
 		\\n - There are some inevitable minor graphical glitches when dealing
 		\\n   with columns of greatly unequal length.
 		\\n - Vim can't detect cursor mouseclicks beyond column 253
-		\\n - Redrawing will reposition cursor in the middle of the screen due
-		\\n   to hackish workaround to a syncbind bug
 		\\n - You can directly load a pattern by evoking
 		\\n     :call LoadPlane(CreatePlane('file*'))
 		\\n - You can save loaded plane between sessions by storing t:txP to a
@@ -68,54 +67,71 @@ fun! TxpPrompt(...)
 	en
 endfun
 
-nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe (MousePan{exists('t:txP')? 'Col' : 'Win'}()==1? "keepj norm! \<lt>leftmouse>":"")<cr>
+nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:call MousePan{exists('t:txP')? 'Col' : 'Win'}()\|exe "keepj norm! \<lt>leftmouse>"<cr>
 nn <silent> <f3> :if exists('t:txP') \| call KeyboardPan() \| else \| call TxpPrompt()\| en<cr>
 
-fun! GoBookmark(mark,...)
-	let pos=getpos("'".a:mark)
-	if pos[1]==0
-	 	echo 'Mark' a:mark "doesn't exist on current plane"
-		return 1
+fun! CenterBookMark(mark)
+	let [bufnr,line,col,off]=getpos("'".a:mark)
+	let colix=get(t:txP.ix,bufname(bufnr? bufnr : bufnr('%')),-1)
+	if colix==-1
+	    ec "Mark '".a:mark." not on current plane"
+	elseif line==0
+		ec 'Mark '.a:mark." not set"
 	else
-    	call ShiftView(bufname(pos[0]? pos[0] : '%'),max([1,pos[1]-&lines/2]))
-       	exe 'norm!' pos[1].(a:0? 'G' : 'G'.pos[2].'|')
+		call CenterPos(colix,line,col,off)
 	en
 endfun
-fun! ShiftView(col,l,...)
-	let cf=type(a:col)? get(t:txP.ix,a:col,-1) : a:col
-	if cf<0 || cf>=t:txP.len
-    	throw type(a:col)? a:col." not contained in current plane: ".string(t:txP.name) : "Destination column (".cf.") must be between 0 and total columns (".(t:txP.len).") inclusive"
-	en
-	let lf=a:l
-	let offset=exists('a:1')? a:1 : 0
-	let speed=exists('a:2')? a:2 : 3
-	let not_there=1
-	while not_there
+
+fun! CenterPos(targcol,...)
+   	let cursor=[exists("a:1")? a:1 : line('.'),exists("a:2")? a:2 : 1]
+	let [offset,tcol]=[(&columns-t:txP.size[a:targcol])/2,a:targcol]
+	while offset>0
+		let tcol=(tcol-1)%t:txP.len
+		let offset-=t:txP.size[tcol]
+	endwhile
+	call ShiftView(tcol<0? tcol+t:txP.len : tcol,max([1,cursor[0]-&lines/2]),-offset)
+	let targwin=bufwinnr(t:txP.name[a:targcol])
+	if targwin==-1
 		wincmd t
+		call TXPRedraw()
+		let targwin=bufwinnr(t:txP.name[a:targcol])
+	en
+	if targwin==-1
+		throw "Badly formed columns"
+	else
+		exe targwin.'wincmd w'
+		cal cursor(cursor)
+	en
+endfun
+
+fun! ShiftView(targcol,...)
+	if a:targcol<0 || a:targcol>t:txP.len
+		throw "Column number ".a:targcol." must be between 0 and t:txP.len".t:txP.len."inclusive"
+	en
+	let [targline,offset,speed,not_there]=[exists('a:1')? a:1 : line('w0'),exists('a:2')? a:2 : 0,exists('a:3')? a:3 : 3,1]
+	while not_there
+		wincmd t  "Needed??
 		let [tcol,l0]=[get(t:txP.ix,bufname(winbufnr(1)),-1),line('w0')]
 		if tcol==-1
    			throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txP.name)
-		elseif tcol==cf
-			if lf<1 || lf>line('$')
-				throw "Destination line (".lf.") must be between 1 and last line (".line('$').") inclusive"
+		elseif tcol==a:targcol
+			if targline<1 || targline>line('$')
+				throw "Destination line (".targline.") must be between 1 and last line (".line('$').") inclusive"
 			else
 				let not_there=0
-				let x_dist=-max([t:txP.size[cf]-winwidth(1)+offset,0])
+				let x_dist=-max([t:txP.size[a:targcol]-winwidth(1),0])+offset
 			en
 		else
-			let x_dist=cf>tcol? winwidth(0)+(cf-tcol>1? eval(join(t:txP.size[(tcol+1):(cf-1)],'+')) : 0)+offset : -(max([0,t:txP.size[tcol]-winwidth(0)])+(tcol-cf>0? eval(join(t:txP.size[(cf):tcol-1],'+')) : 0))+offset
+			let x_dist=a:targcol>tcol? winwidth(0)+(a:targcol-tcol>1? eval(join(t:txP.size[(tcol+1):(a:targcol-1)],'+')) : 0)+offset : -(max([0,t:txP.size[tcol]-winwidth(0)])+(tcol-a:targcol>0? eval(join(t:txP.size[(a:targcol):tcol-1],'+')) : 0))+offset
 		en
-		let y_dist=lf-l0
+		let y_dist=targline-l0
 		let curbuf=winbufnr(1)
 		let scalar_speed=abs(abs(x_dist)+abs(y_dist))
 		while winbufnr(1)==curbuf && scalar_speed
 			let dx=x_dist>=0? min([x_dist,x_dist*speed/scalar_speed]) : max([x_dist,x_dist*speed/scalar_speed])
-			let l0=y_dist>=0? min([l0+y_dist*speed/scalar_speed,lf]) : max([l0-y_dist*speed/scalar_speed,lf])
-			let [x_dist,y_dist]=[x_dist-dx,abs(lf-l0)]
+			let l0=y_dist>=0? min([l0+y_dist*speed/scalar_speed,targline]) : max([l0-y_dist*speed/scalar_speed,targline])
+			let [x_dist,y_dist]=[x_dist-dx,abs(targline-l0)]
 			call Pan(dx,l0)
-			if winnr()!=1
-				wincmd t
-			en
 			let scalar_speed=abs(abs(x_dist)+abs(y_dist))
 		endwhile
 	endwhile
@@ -123,7 +139,7 @@ endfun
 
 fun! Pan(dx,y)
 	call Pan{a:dx>0? 'Right' : 'Left'}(abs(a:dx))
-	if line('$')<a:y
+	if a:y>line('$')
 		for i in range(winnr()+1,winnr('$'))+range(1,winnr()-1)
 			exe i.'wincmd w'
 			if line('$')>=a:y
@@ -135,28 +151,27 @@ fun! Pan(dx,y)
 		norm! Gzt
 		redr
 		return line('w0')
-	else
+	elseif a:y>0
 		exe 'norm!' a:y.'Gzt'
 		redr
 		return a:y
+	else
+		norm! gg
+		return 1
 	en
 endfun
 
 let keypdict={}
 fun! KeyboardPan()
-	let y=line('w0')
-	call LoadPlane()
-	let panningMsg="' ' | ' ' | ' ' | ' ' | "
-	let frame=0
-	while 1
-		echon panningMsg[frame%6:frame%6+10]
-		exe get(g:keypdict,getchar(),'redr|echo "Press f1 for help.     "')
-		let frame+=1
+	let [y,continue]=[line('w0'),1]
+	while continue
+		echon &ls==0? join(map(tabpagebuflist(),'bufname(v:val)'),' / ')[:&columns-2] : " < nav >"
+		exe get(g:keypdict,getchar(),'redr|ec " (Press f1 for help)     "')
 	endwhile
 endfun
-let keypdict.96='call GoBookmark(nr2char(getchar()))|return'
-let keypdict.39='call GoBookmark(nr2char(getchar()),0)|return'
-let keypdict.27="return"
+let keypdict.96='ec "Input bookmark"|call CenterBookMark(nr2char(getchar()))|let continue=0'
+let keypdict.39='ec "Input bookmark"|call CenterBookMark(nr2char(getchar()))|let continue=0'
+let keypdict.27="let continue=0"
 let keypdict.104='cal Pan(-2,y)'
 let keypdict.72 ='cal Pan(-6,y)'
 let keypdict.106='let y=Pan(0,y+2)'
@@ -173,10 +188,10 @@ let keypdict.98 ='let y=Pan(-1,y+1)'
 let keypdict.66 ='let y=Pan(-3,y+3)'
 let keypdict.110='let y=Pan(1,y+1)'
 let keypdict.78 ='let y=Pan(3,y+3)'
-let keypdict["\<f3>"]="call LoadPlane()|redr|return"
-let keypdict["\<f5>"]="call LoadPlane()|redr"
-let keypdict["\<leftmouse>"]="call MousePanCol()"
-let keypdict.115='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? [" Scrollbind off","jump"] : [" Scrollbind on","ver,jump"] | call LoadPlane() | echon msg'
+let keypdict["\<f3>"]="call TXPRedraw()|redr|let continue=0"
+let keypdict["\<f5>"]="call TXPRedraw()|redr"
+let keypdict["\<leftmouse>"]="call MousePanCol()|let y=line('w0')|redr"
+let keypdict.115='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? [" Scrollbind off","jump"] : [" Scrollbind on","ver,jump"] | call TXPRedraw() | echon msg'
 let keypdict["\<f1>"]="call TxpPrompt(0)"
 
 fun! CreatePlane(name,...)
@@ -197,6 +212,13 @@ fun! CreatePlane(name,...)
 	en
 endfun
 
+fun! TXPRedraw()
+	let pos=[bufnr('%'),line('w0')]
+	norm! mt
+	exe "norm! :call LoadPlane()\<cr>"
+   	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."Gzt`t"
+endfun
+
 fun! LoadPlane(...)
     if a:0
     	let t:txP=a:1
@@ -215,9 +237,9 @@ fun! LoadPlane(...)
 		only
    		exe 'e' t:txP.name[0] 
 	en
-	norm! M
-	let possav=[bufnr('%'),line('w0'),line('.')]
-	let alignmentcmd="norm! ".possav[1]."Gzt"
+	let pos=[bufnr('%'),line('w0')]
+	norm! mt0
+	let alignmentcmd="norm! ".line('w0')."Gzt"
 	se scrollopt=jump
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0%t:txP.len,0]
 	let remain=split0
@@ -290,9 +312,9 @@ fun! LoadPlane(...)
 		en
 		wincmd h
 	endw
-	exe bufwinnr(possav[0]).'wincmd w|norm! '.possav[1].'Gzt'.possav[2].'G'
 	let &scrollopt=t:txP.scrollopt
-	syncbind
+	norm! :syncbind
+   	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."Gzt`t"
 endfun
 
 fun! DeleteHiddenBuffers()
@@ -333,10 +355,11 @@ fun! MousePanWin()
 		endw
 	en
 endfun
+
 fun! MousePanCol()
-	ec 'Panning...'
 	let win0=-1
-	while getchar()!="\<leftrelease>"
+	let c=getchar()
+	while c=="\<leftdrag>" || c==27 || c==91 || c==77 || c==64 || c=='<80>kb' || c==129
 		if v:mouse_win!=win0
 			let win0=v:mouse_win
 			exe v:mouse_win."wincmd w"
@@ -358,9 +381,14 @@ fun! MousePanCol()
 			en
 		en
 		redr
+		if &ls==0
+	   		ec join(map(tabpagebuflist(),'bufname(v:val)'),' \ ')[:&columns-2]
+		en
+		let c=getchar()
+		while c!="\<leftdrag>" && c!="\<leftrelease>"
+			let c=getchar()
+		endwhile
 	endwhile
-	exe "norm! \<leftmouse>"
-	redr|ec "Panning complete"
 endfun
 
 fun! PanLeft(N,...)
