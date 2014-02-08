@@ -1,14 +1,13 @@
-"switch mousenav loop back to <leftdrag> test
-"test: NavLeft / NavRight for &wrap
-"replace norm zl with absolute shifts based on offset
-"fun savenavpos restorenavpos > reset on resize, cleanup
-"* optimization: pan without redrawing (easy)
-"append(file, width, [position])
-"fun SetToCurrent (size, settings)
-"known limitation: can't select far right columns when window is very large
-
 nno <silent> <c-j> :<c-u>call NavLeft(v:count? v:count : 5)<cr>
 nno <silent> <c-k> :<c-u>call NavRight(v:count? v:count : 5)<cr>
+
+function! DeleteHiddenBuffers()
+    let tpbl=[]
+    call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
+    for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
+        silent execute 'bwipeout' buf
+    endfor
+endfunction
 
 fun! NavRight(N)
 	if a:N<=winwidth(0)-wincol()
@@ -52,6 +51,9 @@ fun! NavLeft(N)
 endfun
 
 let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
+if !exists('g:opt_device') "for compatibility
+	let opt_device=''
+en
 fun! MousePan()
 	if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
 		if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
@@ -181,18 +183,16 @@ fun! InitPlane(...)
 		let NextCol=(NextCol+1)%len(g:NavNames)
 	endwhile
 	windo se wfw
-	let t:NavPlane=1
-	let t:MouseNav=1
 endfun
 
 fun! PanLeft(N)
-	let [g:LCol,g:LOff]=[get(g:NavDic,bufname(winbufnr(1)),-1),winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)]
+	let [N,g:extrashiftamt,g:LCol,g:LOff]=[a:N,0,get(g:NavDic,bufname(winbufnr(1)),-1),winwidth(1)==&columns? (&wrap? g:LOff : virtcol('.')-wincol()) : (g:NavSizes[g:LCol]>winwidth(1)? g:NavSizes[g:LCol]-winwidth(1) : 0)]
 	if g:LCol<0
 		return 1
 	en
-   	let [N,g:extrashiftamt]=[a:N,0]
 	if N>=&columns
-		wincmd t | only
+		wincmd t
+		only
 	el
 		wincmd b
 		while winwidth(0)<N
