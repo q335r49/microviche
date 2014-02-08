@@ -1,8 +1,8 @@
 " ---- User Settings ----
 "Panning mode hotkey, as name rather than raw characters (ie, '<f3>' and not "\<f3>" or ^V<f3>):
 	let txpHotkey=exists("txpHotkey")? txpHotkey : '<f3>'
-"Execute on opening a new column. Edit for a particular file by setting t:txP.exe[t:txP.ix['file']]
-"Note: scb should always be set. Toggle scrollbinding by using the internal command <hotkey>S
+"Execute on opening a new column.
+"Note: scollbind (scb) should always be set! Toggle scrollbinding by using the internal command <hotkey>S
 	let txpDefaultExe='se nowrap scb cole=2'
                       
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txP')? 'call MousePanCol()' : 'call MousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
@@ -38,6 +38,7 @@ fun! TxpPrompt(...)
 		\\n     p[X]      - put a link to bookmark X here
 		\\n     S         - Scrollbind toggle
 		\\n     s         - 'slide' to bookmark
+		\\n     E         - Edit current buffer settings
 		\\n
 		\\n                        Additional Comments:
 		\\n - Assumes no horizontal splits
@@ -152,7 +153,34 @@ let keypdict[len(eval('"\'.txpHotkey.'"'))>1? eval('"\'.txpHotkey.'"') : char2nr
 let keypdict["\<f5>"]="call LoadPlane()|let msg='redrawn'"
 let keypdict["\<leftmouse>"]="call MousePanCol()|let y=line('w0')|redr"
 let keypdict.83='let [msg,t:txP.scrollopt]=t:txP.scrollopt=="ver,jump"? [" Scrollbind off","jump"] : [" Scrollbind on","ver,jump"] | call LoadPlane() | echon msg'
-let keypdict["\<f1>"]="call TxpPrompt(0)"
+let keypdict["\<f1>"]='call TxpPrompt(0)'
+let keypdict[69]='call TXPEditSettings()|let continue=0'
+
+fun! TXPEditSettings()
+   	let ix=get(t:txP.ix,expand('%'),-1)
+	if ix==-1
+		ec " Error: Current buffer not registered!"
+	else
+    	let t:txP.size[ix]=input(' Column width: ',t:txP.size[ix])
+    	let t:txP.exe[ix]=input(' Autoexecute on load: ',t:txP.exe[ix])
+    	let newix=input(' Column position (0-'.(t:txP.len-1).'): ',ix)
+		if newix>=0 && newix<t:txP.len && newix!=ix
+			let item=remove(t:txP.name,ix)
+			call insert(t:txP.name,item,newix)
+			let item=remove(t:txP.size,ix)
+			call insert(t:txP.size,item,newix)
+			let item=remove(t:txP.exe,ix)
+			call insert(t:txP.exe,item,newix)
+			let [t:txP.ix,i]=[{},0]
+			for e in t:txP.name
+				let [t:txP.ix[e],i]=[i,i+1]
+			endfor
+		else
+			ec " Invalid index entry"
+		en
+		call LoadPlane()
+	en
+endfun
 
 augroup txP
 	autocmd!
@@ -402,7 +430,6 @@ fun! LoadPlane(...)
 		se wfw
 		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txP.len]
 		if expand('%:p')!=#fnamemodify(t:txP.name[ccol],":p")
-			call input('Reloading file '.t:txP.name[ccol].' in window number '.winnr())
 			exe 'e' t:txP.name[ccol] 
 			exe alignmentcmd
 			exe t:txP.exe[ccol]
