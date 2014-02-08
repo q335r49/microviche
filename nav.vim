@@ -1,9 +1,9 @@
 " ---- User Settings ----
 "Panning mode hotkey, as name rather than raw characters (ie, '<f3>' and not "\<f3>" or ^V<f3>):
 	let txpHotkey=exists("txpHotkey")? txpHotkey : '<f3>'
-"Execute on opening a new column.
-"Note: scollbind (scb) should always be set! Toggle scrollbinding by using the internal command <hotkey>S
-	let txpDefaultExe='se nowrap scb cole=2'
+"Execute on opening a new column. Edit for a particular file by using <hotkey>E
+"Note: scb (scrollbind) should always be set, toggle scrollbinding by using <hotkey>S instead
+	let txpDefaultExe='se scb nowrap cole=2'
                       
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txP')? 'call MousePanCol()' : 'call MousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.g:txpHotkey.' :if exists("t:txP") \| call KbdPan() \| else \| call TxpPrompt()\| en<cr>'
@@ -159,7 +159,7 @@ let keypdict[69]='call TXPEditSettings()|let continue=0'
 fun! TXPEditSettings()
    	let ix=get(t:txP.ix,expand('%'),-1)
 	if ix==-1
-		ec " Error: Current buffer not registered!"
+		ec " Error: Current buffer not in plane"
 	else
     	let t:txP.size[ix]=input(' Column width: ',t:txP.size[ix])
     	let t:txP.exe[ix]=input(' Autoexecute on load: ',t:txP.exe[ix])
@@ -175,8 +175,6 @@ fun! TXPEditSettings()
 			for e in t:txP.name
 				let [t:txP.ix[e],i]=[i,i+1]
 			endfor
-		else
-			ec " Invalid index entry"
 		en
 		call LoadPlane()
 	en
