@@ -187,13 +187,14 @@ fun! MousePan()
 					let x=nx
 				en
 				if v:mouse_lnum!=y
-					let expr='norm! '.(winnr()!=win0? win0."\<c-w>w" :(v:mouse_lnum>y? (v:mouse_lnum-y)."\<c-y>" : (y-v:mouse_lnum)."\<c-e>"))
+					"let expr='norm! '.(winnr()!=win0? win0."\<c-w>w" :(v:mouse_lnum>y? (v:mouse_lnum-y)."\<c-y>" : (y-v:mouse_lnum)."\<c-e>"))
+					let expr='norm! '.(winnr()!=win0? win0."\<c-w>w" : "").(ny>y? (ny-y)."\<c-y>" : (y-ny)."\<c-e>")
 					exe expr
 				en
 			en
-			redr
+			"redr
 			"redr | ec "Panning columns ..." (ec &wfw
-			"redr | ec "Panning columns ..." (exists('ny')? y.'-'.ny : '---') [v:mouse_win, v:mouse_col, v:mouse_lnum]
+			redr | ec "Panning columns ..." (exists('ny')? y.'-'.ny : '---') [v:mouse_win, v:mouse_col, v:mouse_lnum]
 		endwhile
 		exe v:mouse_win."wincmd w"
 		call cursor(v:mouse_lnum,1,v:mouse_col)
@@ -405,9 +406,8 @@ fun! PanRight(N)
 		exe 'norm! 0'.(g:LOff>0? g:LOff.'zl' : '')
 		wincmd b
 		let g:LOff=max([0,g:NavSizes[g:LCol]-winwidth(1)])
-		se scrollopt=
+		se nowfw scrollopt=
 		while winwidth(0)>=g:NavSizes[g:RCol]+2
-			se nowfw
 			let NextWindow=(g:RCol+1)%len(g:NavNames)
 			let screentopline=line('w0')
 			exe 'rightb vert '.(winwidth(0)-g:NavSizes[g:RCol]-1).'split '.g:NavNames[NextWindow]
@@ -415,11 +415,10 @@ fun! PanRight(N)
 			wincmd h
 			se wfw
 			wincmd b
-			se wfw
 			norm! 0
 			let g:RCol=NextWindow
 		endwhile
-		se scrollopt=ver,jump
+		se wfw scrollopt=ver,jump
 	elseif &columns-g:NavSizes[g:LCol]+g:LOff>=2
 		let g:RCol=g:LCol
 		let spaceremaining=&columns-g:NavSizes[g:LCol]+g:LOff
