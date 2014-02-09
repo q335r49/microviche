@@ -66,6 +66,7 @@ fun! s:printHelp()
 		\\n\\CRoadmap:
 		\\n1.5    - Prettier formatting / syntax for map\n
 		\\n\\CChangelog:
+		\\n1.4.3  - divide by zero bug in zoomlevel
 		\\n1.4.2  - map drag for ttymouse=xterm
 		\\n1.4.1  - Map panning speed matches zoom speed
 		\\n1.4.0  - Mouse support for map
@@ -290,7 +291,7 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let s:bksizes=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
+let s:bksizes=[0,[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
 let TXBdoCmdExe.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
 let s:pad=repeat(' ',100)
 fun! s:getMapDisp(map,w,h,H)
@@ -450,7 +451,7 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \en\n",
 \"g":'let s:ms.continue=2',
 \"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
-\"-":'let t:txb.zoom=max([t:txb.zoom-1,0])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
+\"-":'let t:txb.zoom=max([t:txb.zoom-1,1])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
 \"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." inserted"|en',
 \"D":'if s:ms.c<len(s:ms.array) && input(s:ms.disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
