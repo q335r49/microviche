@@ -12,25 +12,10 @@ if &cp | se nocompatible | en
 	let s:bgridL=45
 "Map: block sizes for various zooms
 	let s:bksizes=[[2,6],[3,7],[4,10],[5,12],[6,14],[7,17],[8,20],[9,25]]
-"Mouse panning speed: Increase multiplier to increase panning speed (Only works when &ttymouse==xterm2)
-	let TXB_panStep=[0,1,2,4,8,16,16]
-	let TXB_panMultiplier=2
+"Mouse panning speed (only works when &ttymouse==xterm2)
+	let TXBpanSpeed=2
 
-"Should autodetect mouse settings. The need for the VimEnter autocommand is due to a perculiarity in vim where the ttymouse settings are set after the startup scripts are sourced, and only needed if you are sourcing this script on startup.
-au VimEnter * call s:SetMouseMode()
-call s:SetMouseMode()
-fun! s:SetMouseMode()
-	if &ttymouse=="xterm"
-		echoerr "Warning! Your &ttymouse is set to 'xterm', which does not support mouse drag messages. Try ':set ttymouse=xterm2' and resourcing this file to enable mouse panning."
-	elseif &ttymouse=="xterm2"
-		nn <silent> <leftmouse> :call InitDrag(exists("t:txb")? "NavCol" : "PanWin")<cr>
-	else
-   		echoerr "Warning! For better mouse panning performance, try setting ttymouse to xterm2 (se ttymouse=xterm2). Your current setting is: ".&ttymouse
-		nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
-	en
-endfun
-
-exe 'nn <silent> '.txb_key.' :if exists("t:txb")\|call TXBcmd(-1)\|else\|call TXBstart()\|en<cr>'
+exe 'nn <silent> '.txb_key.' :if exists("t:txb")\|call TXBcmd("ini")\|else\|call TXBstart()\|en<cr>'
 
 let TXBcmds={}
 fun! s:PrintHelp()
@@ -197,18 +182,18 @@ fun! ProcessDrag()
 	let g:TXB_prevcoord=k
 endfun
 
+let s:panStep=[0,1,2,4,8,16,16]
 fun! PanWin(dx,dy)
-	exe "norm! ".(a:dy>0? g:TXB_panMultiplier*get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXB_panMultiplier*get(g:TXB_panStep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
+	exe "norm! ".(a:dy>0? g:TXBpanSpeed*get(g:s:panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXBpanSpeed*get(g:s:panStep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
-
 fun! NavCol(dx,dy)
 	let possav=s:SaveCursPos()
 	if a:dx>0
-		call s:PanLeft(g:TXB_panMultiplier*get(g:TXB_panStep,a:dx,16))
+		call s:PanLeft(g:TXBpanSpeed*get(g:s:panStep,a:dx,16))
 	elseif a:dx<0
-		call s:PanRight(g:TXB_panMultiplier*get(g:TXB_panStep,-a:dx,16))
+		call s:PanRight(g:TXBpanSpeed*get(g:s:panStep,-a:dx,16))
 	en
-	exe "norm! ".(a:dy>0? g:TXB_panMultiplier*get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXB_panMultiplier*get(g:TXB_panStep,-a:dy,16)."\<c-e>" : 'g')
+	exe "norm! ".(a:dy>0? g:TXBpanSpeed*get(g:s:panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXBpanSpeed*get(g:s:panStep,-a:dy,16)."\<c-e>" : 'g')
 	let s0=t:txb.ix[bufname(winbufnr(1))]
 	call s:RestoreCursPos(possav)
 	redr
@@ -261,7 +246,7 @@ fun! s:NavigateMap(array,c_ini,r_ini)
 	endwhile
 	let [&ch,&more]=settings
 endfun
-let s:mapdict={27:"let continue=0"}
+let s:mapdict={27:"let continue=0|redr"}
 let s:mapdict.106="let r+=1"
 let s:mapdict.107="let r=r>0? r-1 : r"
 let s:mapdict.108="let c+=1"
@@ -282,7 +267,7 @@ let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c
 	\let redr=1\n
 \en\n"
 let s:mapdict.105=s:mapdict.99
-let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|return"
+let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|redr|return"
 let s:mapdict.13=s:mapdict.103
 let s:mapdict.43='let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
 let s:mapdict.61=s:mapdict.43
@@ -290,7 +275,7 @@ let s:mapdict.45='let t:txb.zoom=max([t:txb.zoom-1,0])|let [redr,rows,cols,pad]=
 let s:mapdict.95=s:mapdict.45
 let s:mapdict.73='if c<len(a:array)|call insert(a:array,[],c)|let redr=1|let msg=" Col ".c." inserted"|en'
 let s:mapdict.68='if c<len(a:array) && input("Really delete column? (y/n)")==?"y"|call remove(a:array,c)|let redr=1|let msg=" Col ".c." deleted"|en'
-	let TXBcmds.o='let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])|let g:txbc.continue=0'
+	let TXBcmds.o='let g:txbc.continue=0|let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])'
 
 fun! DeleteHiddenBuffers()
 	let tpbl=[]
@@ -552,14 +537,15 @@ fun! TXBcmd(...)
 		let g:txbc={'y':line('w0'),'continue':1,'msg':'','possav':(s:SaveCursPos())}
 		exe get(g:TXBcmds,a:1,'let g:txbc.msg="Press f1 for help"')
 	en
-	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(g:txbc.msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : g:txbc.msg
-	let g:txbc.msg=''
-	let g:GC_ProcChar="TXBcmdPC"
-	call feedkeys("\<plug>TxbZ")
+	if g:txbc.continue
+		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(g:txbc.msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : g:txbc.msg
+		let g:txbc.msg=''
+		let g:GC_ProcChar="TXBcmdPC"
+		call feedkeys("\<plug>TxbZ")
+	en
 endfun
 fun! TXBcmdPC(c)
 	exe get(g:TXBcmds,a:c,'let g:txbc.msg="Press f1 for help"')
-	"exe PRINT("a:c|string(g:txbc)|get(g:TXBcmds,a:c,-1)")
    	call s:RestoreCursPos(g:txbc.possav)
 	if g:txbc.continue
 		call feedkeys(g:txb_rawkey)
@@ -568,7 +554,7 @@ fun! TXBcmdPC(c)
 	en
 endfun
 
-let TXBcmds[-1]=""
+let TXBcmds.ini=""
 let TXBcmds.D="redr\n
 \let confirm=input(' < Really delete current column (y/n)? ')\n
 \if confirm==?'y'\n
@@ -712,7 +698,19 @@ fun! s:DeleteCol(index)
 	endfor
 endfun
 
+fun! TXBSetMouseMode()
+	if &ttymouse=="xterm"
+		echoerr "Warning! Your &ttymouse is set to 'xterm', which does not support mouse drag messages. Try ':set ttymouse=xterm2' and reloading the plane to enable mouse panning."
+	elseif &ttymouse=="xterm2"
+		nn <silent> <leftmouse> :call InitDrag(exists("t:txb")? "NavCol" : "PanWin")<cr>
+	else
+   		echoerr "Warning! For better mouse panning performance, try setting ttymouse to xterm2 (se ttymouse=xterm2). Your current setting is: ".&ttymouse
+		nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
+	en
+endfun
+
 fun! s:LoadPlane(...)
+	call TXBSetMouseMode()
 	if a:0
 		let t:txb=a:1
 		se sidescroll=1 mouse=a lz noea nosol wiw=1 wmw=0 ve=all
