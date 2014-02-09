@@ -1,19 +1,22 @@
 "Global hotkey: press this key anywhere to begin
 	let txb_key='<f10>'
-"Grid panning speed: reduce (>=1) for a smoother animation
-	let s:xspeed=9
-	let s:yspeed=9
-"Grid dimensions. A small grid is 1 split and s:sgridL rows, a big grid is s:bgridW splits and s:bgridL rows.
-	let s:sgridL=15
-	let s:bgridW=3
-	let s:bgridL=45
+"Grid panning speed: reduce for a smoother animation
+	let s:hpanstep=9
+	let s:vpanstep=2
+"Grid dimensions: a small grid is 1 split and s:smHgrid lines, a big grid s:bigVgrid splits and s:bigHgrid lines
+	let s:bigVgrid=3
+	let s:smHgrid=15
+	let s:bigHgrid=45
+"Block dimensions for map
+	let s:mapgridH=3
+	let s:mapgridW=7
 
 let txb_onloadcol='se scb cole=2 nowrap'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
 let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
-let s:keydict={}
+let TXBcmds={}
 
 fun! s:MakeGridNameList(len)
 	let alpha=map(range(65,90),'nr2char(v:val)')
@@ -32,7 +35,7 @@ endfun
 fun! s:PrintHelp()
 	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 11, 2013 q335r49@gmail.com\n
 	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
-	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
+	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:\n
 	\\n    f1        - show this message
 	\\n    R r       - Redraw / redraw and return to normal mode
 	\\n    hjkl      - cardinal motions along grid (HJKL for big grid)
@@ -40,31 +43,112 @@ fun! s:PrintHelp()
 	\\n    .         - Snap to big grid
 	\\n    g         - Goto grid (eg, 'e3')
 	\\n    D A       - Delete / append split
-	\\n    E         - Edit split settings\n
-	\\n    tab space - Back / foward in changelist
+	\\n    E         - Edit split settings
 	\\n    S         - Scrollbind toggle
 	\\n    m         - go to bookmark
-	\\n    ^X        - Delete hidden buffers (if too many are loaded from panning)
-	\\n    The vi keys (hjkl for cardinals and yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:sgridL.". Panning by big grid (uppercase keys) snaps the top corner to a split multiple of ".s:bgridW." and to a line multiple by ".s:bgridL.".\n
+	\\n    ^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
+	\\n    o         - Open map
+	\\n    c         - in map: change grid name
+	\\n    hjkl      - in map: cardinal motions
+	\\n    yubn      - in map: diagonal motions
+	\\n    g,<cr>    - in map: go to grid\n
+	\\n    The vi keys (hjkl for cardinals and yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:smHgrid.". Panning by big grid (uppercase keys) snaps the top corner to a split multiple of ".s:bigVgrid." and to a line multiple by ".s:bigHgrid.".\n
 	\\n    If the file list includes the current buffer, loading will redraw the plane there. This allows you to restore your previous position. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed for initialization in a new vim session).\n
+	\\n    The map (o) provides yet another way to navigate the abyss. It will start out blank -- fill it in by naming (c) big grids. It is navigated the same way as the grid itself and will always start centered at the current block. You must set your viminfo to save global variables (:set viminfo+=!) to save the map between sessions.\n
 	\\n    There are a few known limitations. Scrollbind desyncs if scrolling in a much longer split (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue ... or input 'm' for monologue)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	redr
-	if input(FormatPar(helpmsg,width,(&columns-width)/2))==?'m'
+	redr|if input(FormatPar(helpmsg,width,(&columns-width)/2))==?'m'
 	let helpmsg="\n\\C\"... into the abyss he slipped
 	\\n\\CEndless fathoms to fall
 	\\n\\CNe'er again homely hearth to linger
 	\\n\\CNor warm hand to grasp!\"\n\n
 	\\n    I've been thinking now for a long time how the usual memory technologies are pretty inadequate when it comes organizing thinking over a long period of time, since it seems to me that thoughts can't really be broken up into disrete projects or categories. So I don't think of this as a system primarily to be used for organizing -- that comes naturally -- though of course I did once think it would primarily be an aid towards that ends. But now, I don't think of this as another kind of mind mapping but rather more as a system of raw accumulation. There are some tools for organizing and layout but primarily the hope is maybe simply -- to descend!\n
 	\\n    So what should one throw into the textabyss? Ideally, in my mind, everything: it seems to me that time itself is perhaps the only real category there is, and perhaps not even that. Thoughts of a certain period tend to relate to each other in a way that we can't forsee when we try to make sense of our thoughts.\n
-	\\n    Vim is sort of a fascinating environment. Writing textabyss has been an enormously enjoyable ... it's written in a scripting language so I tried above all to make use of inbuilt functions and to aim for speed. The coolest feeling in vim, to me, is, *removing* a feature that you've added because you realize that the developers have already anticipated the problem -- to realize other means of acheiving your ends, or to find that those ends aren't really worth pursuing. Vim was just about the only choice for me primarily because of how easy it is to install everywhere, especially on Android, and so the discovery that vim is well thought out comes as a kind of added bonus. I sort of hope that textabyss itself is the same way, that one would start by awkwardly incorporating it into one's workflow, realize its inadequacies and limitations, but also to also to slowly realize the workflow that it has imagined as in many ways sufficient.\n
-	\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally glitches still arise for this reason. Actually, just padding, say, 500 or 1000 blank lines to the end of every split does not involve a great deal of overhead and would solve most problems. The main issue might then be that one would want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
+	\\n    Vim is sort of a fascinating environment. Writing textabyss has been an pretty entertaining ... I tried above all to make use of inbuilt functions and to aim for speed. The coolest feeling in vim, to me, is, *removing* a feature that you've added because you realize that the developers have already anticipated the problem -- to realize other means of acheiving your ends, or to find that those ends aren't really worth pursuing. Vim was just about the only choice for me primarily because of how easy it is to install everywhere, especially on Android, and so the discovery that vim is well thought out comes as a kind of added bonus. I sort of hope that textabyss itself is the same way, that one would start by awkwardly incorporating it into one's workflow, realize its inadequacies and limitations, but also to also to slowly realize the workflow that it has imagined as in many ways sufficient.\n
+	\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync for this reason. Actually, just padding, say, 500 or 1000 blank lines to the end of every split would solve most problems with very little overhead. The main issue might then be that one would want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
 	\\n    There are some limitations on file names and locations that I've left as is, for the sake of simplicity and speed. File names, for example, shouldn't have spaces and should probably be located in the same directory. I originally planned for textabyss to be a reorganization of existing files but I think it makes much more sense not to pay attention to the names of splits at all, and instead to, for example, focus on the grid (eg, 'e5') as a way of orienting oneself. It's easy to snap to the grid, but perhaps the grid itself should be treated as a general kind of guide, and not as precise locations or 'blocks' of text. One knows vaguely where something is.\n
-	\\n    One of the great things about vim is how easy it is to synergize various components. For me, I feel like a lot of functions can be left out of this core script since they are easily added by the user. One example, mentioned above, is the helpfulness of a 'goto last non-blank line' function. Another example would be the autocommands on loading new scripts -- one could, depending on one's needs, automatically perform initialization commands such as padding blank lines and adjusting various settings when a split is created or displayed with vim's inbuilt :autocommand feature.\n
+	\\n    One of the great things about vim is how easy it is to synergize various components -- well, sometimes with a bit of complex conditional scripting. For me, I feel like a lot of functions can be left out of this core script since they are easily added by the user. And I do hope that the entire textabyss fits fairly transparently into what one is already working with. One example, mentioned above, is the helpfulness of a 'goto last non-blank line' function. Another example would be the autocommands on loading new scripts -- one could, depending on one's needs, automatically perform initialization commands such as padding blank lines and adjusting various settings when a split is created or displayed with vim's inbuilt :autocommand feature.\n
 	\\n    Thanks again for trying out textabyss!\n\n\\C                   - Leon Jan '14"
 	cal input(FormatPar(helpmsg,width,(&columns-width)/2))
 	en
 endfun
+
+let map=map(range(9),'map(range(v:key),v:key.".v:key.\"-\".RAND()")')
+
+let s:pad=repeat(' ',100)
+fun! s:GetMapDisp(map,w,h,H)
+	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
+	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"[''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l,''.v:val.''*l*a:h+(a:w)*".v:val."+a:w-1+v:val*l]")'')'),'w':(a:w)}
+endfun
+
+fun! s:PrintHL(disp,r,c,trailer)
+	let prev_stop=0
+	for i in a:disp.hlmap[a:r][a:c]
+		echohl NONE
+		echon i[0]? a:disp.str[prev_stop : i[0]-1] : ''
+		echohl visual
+		echon a:disp.str[i[0]:i[1]]
+		let prev_stop=i[1]+1
+	endfor
+	echohl NONE
+	echon a:disp.str[prev_stop :].a:trailer
+endfun
+
+fun! s:NavigateMap(array,c_ini,r_ini)
+	let [more,&more]=[&more,0]
+	let &ch=&lines-1
+	let r=a:r_ini
+	let c=a:c_ini
+	let r_screen=(&lines-1)/(s:mapgridH+1)
+	let r_remainder=&lines-r_screen*(s:mapgridH+1)
+	let whitespace=repeat("\n",r_remainder-1).' '
+	let c_screen=&columns/(s:mapgridW+1)
+	let r_off=max([r-r_screen/2,0])
+	let c_off=max([c-c_screen/2,0])
+	let subarray=map(range(c_off,c_off+c_screen-1),'map(range(r_off,r_off+r_screen-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")')
+	let disp=s:GetMapDisp(subarray,s:mapgridW,s:mapgridH,r_screen)
+	let k=0
+	let update=0
+	let cmd=0
+	while k!=27
+		redr!
+		call s:PrintHL(disp,r-r_off,c-c_off,whitespace.nr2char(c+65)." ".r)
+		let k=getchar()
+		exe get(s:mapdict,k,'')
+		let [r_offnew,c_offnew]=[r<r_off? r : r>=r_off+r_screen? r-r_screen+1 : r_off,c<c_off? c : c>=c_off+c_screen? c-c_screen+1 : c_off]
+		if [r_off,c_off]!=[r_offnew,c_offnew] || update
+			let [r_off,c_off]=[r_offnew,c_offnew]
+			let subarray=map(range(c_off,c_off+c_screen-1),'map(range(r_off,r_off+r_screen-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")')
+			let disp=s:GetMapDisp(subarray,s:mapgridW,s:mapgridH,r_screen)
+			let update=0
+		en
+	endwhile
+	let &ch=1
+	let &more=more
+endfun
+let s:mapdict={}
+let s:mapdict.106="let r+=1"
+let s:mapdict.107="let r=r>0? r-1 : r"
+let s:mapdict.108="let c+=1"
+let s:mapdict.104="let c=c>0? c-1 : c"
+let s:mapdict.121="let c=c>0? c-1 : c|let r=r>0? r-1 : r"
+let s:mapdict.117="let c+=1|let r=r>0? r-1 : r"
+let s:mapdict.98 ="let c=c>0? c-1 : c|let r+=1"
+let s:mapdict.110="let c+=1|let r+=1"
+let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c][r] : '')\n
+\if !empty(input)\n
+ 	\if c>=len(a:array)\n
+		\call extend(a:array,eval('['.join(repeat(['[]'],c+1-len(a:array)),',').']'))\n
+	\en\n
+	\if r>=len(a:array[c])\n
+		\call extend(a:array[c],repeat([''],r+1-len(a:array[c])))\n
+	\en\n
+	\let a:array[c][r]=input\n
+	\let update=1\n
+\en\n"
+let s:mapdict.103="call s:GotoBlock(nr2char(65+c).r)|let k=27"
+let s:mapdict.13=s:mapdict.103
+let TXBcmds.111='let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])|let continue=0'
 
 fun! DeleteHiddenBuffers()
 	let tpbl=[]
@@ -73,7 +157,7 @@ fun! DeleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-let s:keydict.24='cal DeleteHiddenBuffers()|let continue=0'
+let TXBcmds.24='cal DeleteHiddenBuffers()|let continue=0'
 
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -123,9 +207,9 @@ fun! s:BlockPan(dx,y,...)
 	let cury=line('w0')
 	let absolute_x=exists('a:1')? a:1 : 0
 	let dir=absolute_x? absolute_x : a:dx
-	let y=a:y>cury?  (a:y-cury-1)/s:sgridL+1 : a:y<cury? -(cury-a:y-1)/s:sgridL-1 : 0
-   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:sgridL.'*'.s:sgridL.'+'.s:sgridL : 'let y_dest=!y? cury : cury>'.s:sgridL.'? (cury-1)/'.s:sgridL.'*'.s:sgridL.' : 1'
-	let pan_y=(y>=0? 'let cury=cury+'.s:yspeed.'<y_dest? cury+'.s:yspeed.' : y_dest' : 'let cury=cury-'.s:yspeed.'>y_dest? cury-'.s:yspeed.' : y_dest')."\n
+	let y=a:y>cury?  (a:y-cury-1)/s:smHgrid+1 : a:y<cury? -(cury-a:y-1)/s:smHgrid-1 : 0
+   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:smHgrid.'*'.s:smHgrid.'+'.s:smHgrid : 'let y_dest=!y? cury : cury>'.s:smHgrid.'? (cury-1)/'.s:smHgrid.'*'.s:smHgrid.' : 1'
+	let pan_y=(y>=0? 'let cury=cury+'.s:vpanstep.'<y_dest? cury+'.s:vpanstep.' : y_dest' : 'let cury=cury-'.s:vpanstep.'>y_dest? cury-'.s:vpanstep.' : y_dest')."\n
 		\if cury>line('$')\n
 			\let longlinefound=0\n
 			\for i in range(winnr('$')-1)\n
@@ -148,8 +232,8 @@ fun! s:BlockPan(dx,y,...)
 		while continue
 			exe update_ydest
 			let buf0=winbufnr(1)
-			while winwidth(1)>s:xspeed
-				call PanRight(s:xspeed)
+			while winwidth(1)>s:hpanstep
+				call PanRight(s:hpanstep)
 				exe pan_y
 				redr
 			endwhile
@@ -175,8 +259,8 @@ fun! s:BlockPan(dx,y,...)
 				call s:PanLeft(4)
 				let buf0=winbufnr(1)
 			en
-			while winwidth(1)<t:txb.size[ix]-s:xspeed
-				call s:PanLeft(s:xspeed)
+			while winwidth(1)<t:txb.size[ix]-s:hpanstep
+				call s:PanLeft(s:hpanstep)
 				exe pan_y
 				redr
 			endwhile
@@ -201,57 +285,58 @@ fun! s:BlockPan(dx,y,...)
 		let y+=y>0? -1 : y<0? 1 : 0
 	endwhile
 endfun
-let s:Y1='let y=y/s:sgridL*s:sgridL+s:sgridL|'
-let s:Ym1='let y=max([1,y/s:sgridL*s:sgridL-s:sgridL])|'
-	let s:keydict.104='cal s:BlockPan(-1,y)'
-	let s:keydict.106=s:Y1.'cal s:BlockPan(0,y)'
-	let s:keydict.107=s:Ym1.'cal s:BlockPan(0,y)'
-	let s:keydict.108='cal s:BlockPan(1,y)'
-	let s:keydict.121=s:Ym1.'cal s:BlockPan(-1,y)'
-	let s:keydict.117=s:Ym1.'cal s:BlockPan(1,y)'
-	let s:keydict.98 =s:Y1.'cal s:BlockPan(-1,y)'
-	let s:keydict.110=s:Y1.'cal s:BlockPan(1,y)'
-let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bgridW : (v:val-1)-(v:val-1)%s:bgridW) : v:val-v:val%s:bgridW")[0]'
-let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bgridW? 0 : v:val-v:val%s:bgridW+s:bgridW")[0]'
-let s:Y1='let y=y/s:bgridL*s:bgridL+s:bgridL|'
-let s:Ym1='let y=max([1,y/s:bgridL*s:bgridL-s:bgridL])|'
-	let s:keydict.72='cal s:BlockPan('.s:DXm1.',y,-1)'
-	let s:keydict.74=s:Y1.'cal s:BlockPan(0,y)'
-	let s:keydict.75=s:Ym1.'cal s:BlockPan(0,y)'
-	let s:keydict.76='cal s:BlockPan('.s:DX1.',y,1)'
-	let s:keydict.89=s:Ym1.'cal s:BlockPan('.s:DXm1.',y,-1)'
-	let s:keydict.85=s:Ym1.'cal s:BlockPan('.s:DX1.',y,1)'
-	let s:keydict.66=s:Y1.'cal s:BlockPan('.s:DXm1.',y,-1)'
-	let s:keydict.78=s:Y1.'cal s:BlockPan('.s:DX1.',y,1)'
+let s:Y1='let y=y/s:smHgrid*s:smHgrid+s:smHgrid|'
+let s:Ym1='let y=max([1,y/s:smHgrid*s:smHgrid-s:smHgrid])|'
+	let TXBcmds.104='cal s:BlockPan(-1,y)'
+	let TXBcmds.106=s:Y1.'cal s:BlockPan(0,y)'
+	let TXBcmds.107=s:Ym1.'cal s:BlockPan(0,y)'
+	let TXBcmds.108='cal s:BlockPan(1,y)'
+	let TXBcmds.121=s:Ym1.'cal s:BlockPan(-1,y)'
+	let TXBcmds.117=s:Ym1.'cal s:BlockPan(1,y)'
+	let TXBcmds.98 =s:Y1.'cal s:BlockPan(-1,y)'
+	let TXBcmds.110=s:Y1.'cal s:BlockPan(1,y)'
+let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bigVgrid : (v:val-1)-(v:val-1)%s:bigVgrid) : v:val-v:val%s:bigVgrid")[0]'
+let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bigVgrid? 0 : v:val-v:val%s:bigVgrid+s:bigVgrid")[0]'
+let s:Y1='let y=y/s:bigHgrid*s:bigHgrid+s:bigHgrid|'
+let s:Ym1='let y=max([1,y/s:bigHgrid*s:bigHgrid-s:bigHgrid])|'
+	let TXBcmds.72='cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.74=s:Y1.'cal s:BlockPan(0,y)'
+	let TXBcmds.75=s:Ym1.'cal s:BlockPan(0,y)'
+	let TXBcmds.76='cal s:BlockPan('.s:DX1.',y,1)'
+	let TXBcmds.89=s:Ym1.'cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.85=s:Ym1.'cal s:BlockPan('.s:DX1.',y,1)'
+	let TXBcmds.66=s:Y1.'cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.78=s:Y1.'cal s:BlockPan('.s:DX1.',y,1)'
 unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
+fun! s:GetGrid()
+	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
+	let [sd,dir]=(ix%s:bigVgrid>s:bigVgrid/2 && ix+s:bigVgrid-ix%s:bigVgrid<t:txb.len-1)? [ix+s:bigVgrid-ix%s:bigVgrid,1] : [ix-ix%s:bigVgrid,-1]
+	return [sd/3,(l0%s:bigHgrid>s:bigHgrid/2? l0+s:bigHgrid-l0%s:bigHgrid : l0-l0%s:bigHgrid)/s:bigHgrid]
+endfun
 fun! s:SnapToGrid()
 	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
-	let [sd,dir]=(ix%s:bgridW>s:bgridW/2 && ix+s:bgridW-ix%s:bgridW<t:txb.len-1)? [ix+s:bgridW-ix%s:bgridW,1] : [ix-ix%s:bgridW,-1]
-	call s:BlockPan(sd,l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL,dir)
+	let [sd,dir]=(ix%s:bigVgrid>s:bigVgrid/2 && ix+s:bigVgrid-ix%s:bigVgrid<t:txb.len-1)? [ix+s:bigVgrid-ix%s:bigVgrid,1] : [ix-ix%s:bigVgrid,-1]
+	call s:BlockPan(sd,l0%s:bigHgrid>s:bigHgrid/2? l0+s:bigHgrid-l0%s:bigHgrid : l0-l0%s:bigHgrid,dir)
 endfun
-let s:keydict.46='call s:SnapToGrid()|let continue=0'
-
-fun! TXB_GetKeyDict()
-	return s:keydict
-endfun
+let TXBcmds.46='call s:SnapToGrid()|let continue=0'
 
 fun! TXBcmd(...)
 	let [y,continue,msg]=[line('w0'),1,'']
 	let pos=[winnr(),winline(),wincol()]
-	if a:0 | exe get(s:keydict,a:1,'let msg="Press f1 for help"') | en
+	if a:0 | exe get(g:TXBcmds,a:1,'let msg="Press f1 for help"') | en
 	while continue
 		let s0=t:txb.ix[bufname(winbufnr(1))]
-		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? t:txb.gridnames[v:val/s:bgridW] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
+		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."')) : msg
 		let [msg,c]=['',getchar()]
-		exe get(s:keydict,c,'let msg="Press f1 for help"')
+		exe get(g:TXBcmds,c,'let msg="Press f1 for help"')
 	endwhile
     let s0=t:txb.ix[bufname(winbufnr(1))]
 	exe pos[0].'wincmd w'
 	call setpos('.',[0,line('w0')+pos[1],min([pos[2],winwidth(0)]),0])
-	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? t:txb.gridnames[v:val/s:bgridW] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
 endfun
-let s:keydict.68="redr
+let TXBcmds.68="redr
 \\n	let confirm=input(' < Really delete current column (y/n)? ')
 \\n	if confirm==?'y'
 \\n		let ix=get(t:txb.ix,expand('%'),-1)
@@ -264,7 +349,7 @@ let s:keydict.68="redr
 \\n			let msg='Current buffer not in plane; deletion failed'
 \\n		en
 \\n	en"
-let s:keydict.65="let ix=get(t:txb.ix,expand('%'),-1)
+let TXBcmds.65="let ix=get(t:txb.ix,expand('%'),-1)
 \\n	if ix!=-1
 \\n	    redr
 \\n		let file=input(' < File to append: ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')
@@ -278,14 +363,14 @@ let s:keydict.65="let ix=get(t:txb.ix,expand('%'),-1)
 \\n	else
 \\n		let msg='Current buffer not in plane'
 \\n	en"
-let s:keydict.27="let continue=0|redr|ec ''"
-let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
-let s:keydict.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
-let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let continue=0|redr"
-let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
-let s:keydict["\<f1>"]='call s:PrintHelp()|let continue=0'
-let s:keydict.69='call s:EditSettings()|let continue=0'
-let s:keydict.103="let input=input('Goto block: ')|if !empty(input)|call s:GotoBlock(input)|en|let continue=0"
+let TXBcmds.27="let continue=0|redr|ec ''"
+let TXBcmds.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
+let TXBcmds.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
+let TXBcmds["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let continue=0|redr"
+let TXBcmds.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
+let TXBcmds["\<f1>"]='call s:PrintHelp()|let continue=0'
+let TXBcmds.69='call s:EditSettings()|let continue=0'
+let TXBcmds.103="let input=input('Goto block: ')|if !empty(input)|call s:GotoBlock(input)|en|let continue=0"
 
 fun! TXBstart(...)                                          
 	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
@@ -442,48 +527,7 @@ fun! s:CenterBookmark(mark,...)
 		call s:CenterPos(colix,line,col,exists('a:1')? a:1 : 1)
 	en
 endfun
-let s:keydict.109='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
-
-augroup txb
-	autocmd!
-	au InsertLeave * call TXBoninsert()
-augroup END
-fun! TXBoninsert()
-	if exists("t:txb")
-		if t:txb.changelistmarker<-1 && len(t:txb.changelist)>=-t:txb.changelistmarker
-			call remove(t:txb.changelist,t:txb.changelistmarker,-1)
-		en
-		let pos=[bufname('%'),line('.'),col('.')]
-		if empty(t:txb.changelist) || pos[0] isnot t:txb.changelist[-1][0] || abs(pos[1]-t:txb.changelist[-1][1])>5
-			let t:txb.changelist+=[pos]
-		en
-		let t:txb.changelistmarker=0
-	en
-endfun
-let s:keydict.9="if !empty(t:txb.changelist)
-\\n		let t:txb.changelistmarker=max([t:txb.changelistmarker-1,-len(t:txb.changelist)])
-\\n		let ix=get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
-\\n		while ix==-1
-\\n			call remove(t:txb.changelist,t:txb.changelistmarker)
-\\n			let t:txb.changelistmarker=max([t:txb.changelistmarker,-len(t:txb.changelist)])
-\\n			let ix=empty(t:txb.changelist)? -2 : get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
-\\n		endwhile
-\\n		if ix!=-2
-\\n			call s:CenterPos(ix,t:txb.changelist[t:txb.changelistmarker][1],t:txb.changelist[t:txb.changelistmarker][2])
-\\n		en
-\\n	en"
-let s:keydict.32="if !empty(t:txb.changelist)
-\\n		let t:txb.changelistmarker=min([t:txb.changelistmarker+1,-1])
-\\n		let ix=get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
-\\n		while ix==-1
-\\n			call remove(t:txb.changelist,t:txb.changelistmarker)
-\\n			let t:txb.changelistmarker=min([t:txb.changelistmarker+1,-1])
-\\n			let ix=empty(t:txb.changelist)? -2 : get(t:txb.ix,t:txb.changelist[t:txb.changelistmarker][0],-1)
-\\n		endwhile
-\\n		if ix!=-2
-\\n			call s:CenterPos(ix,t:txb.changelist[t:txb.changelistmarker][1],t:txb.changelist[t:txb.changelistmarker][2])
-\\n		en
-\\n	en"
+let TXBcmds.109='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
 
 fun! s:CreatePlane(name,...)
 	let plane={}
@@ -495,10 +539,9 @@ fun! s:CreatePlane(name,...)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
 		let plane.exe=exists("a:2")? a:2 : repeat([g:txb_onloadcol],plane.len)
 		let plane.scrollopt='ver,jump'
-		let plane.changelist=[[0,0,0,0]]
-		let plane.changelistmarker=0
 		let plane.gridnames=[]
 		let [plane.ix,i]=[{},0]
+		let plane.map=[[]]
 		for e in plane.name
 			let [plane.ix[e],i]=[i,i+1]
 		endfor
@@ -681,7 +724,7 @@ fun! TXBmouseNav()
 			let [b0,wrap]=[winbufnr(0),&wrap]
 			let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
 			let s0=t:txb.ix[bufname(winbufnr(1))]
-			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? t:txb.gridnames[v:val/s:bgridW] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
 		else
 			if wrap
 				exe "norm! \<leftmouse>"
@@ -701,7 +744,7 @@ fun! TXBmouseNav()
 		endwhile
 	endwhile
 	let s0=t:txb.ix[bufname(winbufnr(1))]
-	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? t:txb.gridnames[v:val/s:bgridW] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
 endfun
 
 fun! s:PanLeft(N,...)
