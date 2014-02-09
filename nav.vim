@@ -23,8 +23,7 @@ fun! s:PrintHelp()
 	\\n    HJKLYUBN  - 'pan big block': to col 0,3,6.. to line 0,45,90..
 	\\n    tab space - Back / foward in changelist
 	\\n    D A       - Delete / append column
-	\\n    g         - goto textlink (of the form file@line)
-	\\n    p[X]      - paste a textlink to bookmark X here
+	\\n    g         - Goto Block (eg, 'e3')
 	\\n    S         - Scrollbind toggle
 	\\n    s         - 'slide' to bookmark
 	\\n    E         - Edit column settings\n
@@ -49,7 +48,26 @@ fun! s:Pan(dx,y)
 	return line('w0')
 endfun
 
-let alphab=map(range(65,90),'nr2char(v:val)')+[' ']
+fun! TXB_GotoPos(col,row)
+	let name=t:txb.name[a:col]
+	wincmd t
+	only
+	exe 'e '.name
+	exe 'norm!' (a:row? a:row : 1).'zt'
+	call s:LoadPlane()
+endfun
+fun! GotoBlock(str)
+	let [col,row]=['','']
+	for i in range(len(a:str)-1,0,-1)
+		if a:str[i]>0 || a:str[i] is '0'
+			let row=a:str[i].row
+		else
+			let col=a:str[i].col
+		en
+	endfor
+	let line=index(s:bknames,col,0,1)*3
+	call TXB_GotoPos(index(s:bknames,col,0,1)*3,row*45)
+endfun
 fun! s:BigBlockPan(dx,dy)
 	let s:unreachable_ydestination=0
 	let [x0,y0]=[get(t:txb.ix,bufname(winbufnr(1)),-1),line('w0')]
@@ -58,8 +76,10 @@ fun! s:BigBlockPan(dx,dy)
 	en
 	let xd=a:dx<0? (!x0? 0 : (x0-1)/3*3) : a:dx>0? min([(t:txb.len-1)/3*3,x0/3*3+3]) : x0
 	let yd=a:dy<0? (y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])) : a:dy>0? y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen : y0
+	exe PRINT('x0,y0,xd,yd')
 	while y0!=yd || x0!=xd
 		call s:BlockPan(x0>xd? -1 : x0<xd? 1 : 0,y0>yd? -1 : y0<yd? 1 : 0)
+		exe PRINT('x0,y0,xd,yd')
 		let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
 		if x0==-1
 			throw bufname(winbufnr(1))." not contained in current plane."
@@ -221,12 +241,11 @@ fun! TXBcmd()
 	while continue
 		let cucsav=&cuc
 		se cuc
-		let msg=empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
-		redr|ec msg
+		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
 		let msg=''
 		let c=getchar()
 		let &cuc=cucsav
-		exe get(s:keydict,c,'let msg=" < Press f1 for help >"')
+		exe get(s:keydict,c,'let msg="Press f1 for help"')
 	endwhile
 	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
 endfun
@@ -238,9 +257,9 @@ let s:keydict.68="redr
 \\n			call s:DeleteCol(ix)
 \\n			wincmd W
 \\n			call s:LoadPlane(t:txb)
-\\n			let msg=' < col '.ix.' removed >'
+\\n			let msg='col '.ix.' removed'
 \\n		else
-\\n			let msg=' < Current buffer not in plane; deletion failed >'
+\\n			let msg='Current buffer not in plane; deletion failed'
 \\n		en
 \\n	en"
 let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
@@ -250,36 +269,22 @@ let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
 \\n		if !empty(file)
 \\n			call s:AppendCol(ix,file)
 \\n			call s:LoadPlane(t:txb)
-\\n			let msg=' < col '.(ix+1).' appended >'
+\\n			let msg='col '.(ix+1).' appended'
 \\n		else
-\\n			let msg=' < aborted >'
+\\n			let msg='aborted'
 \\n		en
 \\n	else
-\\n		let msg=' < Current buffer not in plane; append failed >'
+\\n		let msg='Current buffer not in plane; append failed'
 \\n	en"
-let s:keydict.103="let marker=split(expand('<cWORD>'),'@')
-\\n let continue=0
-\\n if len(marker)>=2
-\\n		let [i,l]=[get(t:txb.ix,marker[0],-1),marker[1]==0? 0 : marker[1]]
-\\n		if i!=-1
-\\n			call TXBoninsert()
-\\n			call s:CenterPos(i,l,1,3)
-\\n			let msg=' < slide >'
-\\n		else
-\\n			let msg=' < link must be of form file@line >'
-\\n		en
-\\n else
-\\n		let msg=' < link must be of form file@line >'
-\\n	en"
-let s:keydict.112="redr|ec ' < register: '|let [continue,pos]=[0,getpos(\"'\".nr2char(getchar()))]|exe 'norm! i'.bufname(pos[0]).'@'.pos[1]"
 let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
 let s:keydict.27="let continue=0|redr|ec ''"
 let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
-let s:keydict.82="call s:LoadPlane(t:txb)|let msg=' < redrawn >'"
+let s:keydict.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
 let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
-let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? [" < Scrollbind off >","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
+let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
 let s:keydict["\<f1>"]='call s:PrintHelp()|let continue=0'
 let s:keydict.69='call s:EditSettings()|let continue=0'
+let s:keydict.103="let input=input('Goto block: ')|if !empty(input)|call GotoBlock(input)|en|let continue=0"
 
 fun! s:EditSettings()
    	let ix=get(t:txb.ix,expand('%'),-1)
