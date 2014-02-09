@@ -1,21 +1,21 @@
-"Global hotkey: press this key anywhere to begin
+"Global hotkey: press to begin
 	let txb_key='<f10>'
-"Grid panning speed: reduce for a smoother animation
-	let s:hpanstep=9
-	let s:vpanstep=2
-"Grid dimensions: a small grid is 1 split and s:smHgrid lines, a big grid s:bigVgrid splits and s:bigHgrid lines
-	let s:bigVgrid=3
-	let s:smHgrid=15
-	let s:bigHgrid=45
-"Block dimensions for map
-	let s:mapgridH=3
-	let s:mapgridW=7
+"Grid panning animation step
+	let s:pansteph=9
+	let s:panstepv=2
+"Small grid: 1 split x s:sgridL lines
+	let s:sgridL=15
+"Big grid: s:bgridS splits x s:bgridL lines
+	let s:bgridS=3
+	let s:bgridL=45
+"Map print block size
+	let s:mapblockL=4
+	let s:mapblockC=10
 
-let txb_onloadcol='se scb cole=2 nowrap'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
-let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
+let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 let TXBcmds={}
 
 fun! s:MakeGridNameList(len)
@@ -33,31 +33,24 @@ fun! s:MakeGridNameList(len)
 endfun
 
 fun! s:PrintHelp()
-	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 11, 2013 q335r49@gmail.com\n
-	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
-	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:\n
-	\\n    f1        - show this message
+	let helpmsg="\n\\CWelcome to Textabyss!\n\\C(Updated Jan 16, 2013 q335r49@gmail.com)\n
+	\\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
+	\\n\nOnce loaded, use the mouse to pan or press ".g:txb_key." again to access the following commands:\n
+	\\n    hjklyubn  - cardinal / diagonal motions along grid (HJKL... for big grid)
 	\\n    R r       - Redraw / redraw and return to normal mode
-	\\n    hjkl      - cardinal motions along grid (HJKL for big grid)
-	\\n    yubn      - diagonal motions along grid (YUBN for big grid)
 	\\n    .         - Snap to big grid
-	\\n    g         - Goto grid (eg, 'e3')
-	\\n    D A       - Delete / append split
-	\\n    E         - Edit split settings
-	\\n    S         - Scrollbind toggle
-	\\n    m         - go to bookmark
+	\\n    D A E     - Delete / Append / Edit settings for split
 	\\n    ^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
+	\\nThe vi keys (hjkl for cardinals and yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:sgridL.". Panning by big grid (uppercase keys) snaps the top corner to a split multiple of ".s:bgridS." and to a line multiple by ".s:bgridL.".\n
+	\\nIf the file list includes the current buffer, loading will redraw the plane there. This allows you to restore your previous position. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed for initialization in a new vim session).\n
 	\\n    o         - Open map
-	\\n    c         - in map: change grid name
-	\\n    hjkl      - in map: cardinal motions
-	\\n    yubn      - in map: diagonal motions
-	\\n    g,<cr>    - in map: go to grid\n
-	\\n    The vi keys (hjkl for cardinals and yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:smHgrid.". Panning by big grid (uppercase keys) snaps the top corner to a split multiple of ".s:bigVgrid." and to a line multiple by ".s:bigHgrid.".\n
-	\\n    If the file list includes the current buffer, loading will redraw the plane there. This allows you to restore your previous position. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed for initialization in a new vim session).\n
-	\\n    The map (o) provides yet another way to navigate the abyss. It will start out blank -- fill it in by naming (c) big grids. It is navigated the same way as the grid itself and will always start centered at the current block. You must set your viminfo to save global variables (:set viminfo+=!) to save the map between sessions.\n
-	\\n    There are a few known limitations. Scrollbind desyncs if scrolling in a much longer split (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue ... or input 'm' for monologue)"
+	\\n    hjklyubn  - map: cardinal / diagonal motions
+	\\n    g <cr>    - map: go to grid
+	\\n    c         - map: change grid name\n
+	\\nThe map (o) provides yet another way to navigate the abyss. It will start out blank -- fill it in by naming (c) big grids. It is navigated the same way as the plane and will always start centered at the current block. You must set your viminfo to save global variables (:set viminfo+=!) to save the map between sessions.\n
+	\\nThere are a few known limitations. Scrollbind desyncs if scrolling in a much longer split (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue ... or input 'm' for a monologue)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	redr|if input(FormatPar(helpmsg,width,(&columns-width)/2))==?'m'
+	redr|if input(s:FormatPar(helpmsg,width,(&columns-width)/2))==?'m'
 	let helpmsg="\n\\C\"... into the abyss he slipped
 	\\n\\CEndless fathoms to fall
 	\\n\\CNe'er again homely hearth to linger
@@ -69,78 +62,45 @@ fun! s:PrintHelp()
 	\\n    There are some limitations on file names and locations that I've left as is, for the sake of simplicity and speed. File names, for example, shouldn't have spaces and should probably be located in the same directory. I originally planned for textabyss to be a reorganization of existing files but I think it makes much more sense not to pay attention to the names of splits at all, and instead to, for example, focus on the grid (eg, 'e5') as a way of orienting oneself. It's easy to snap to the grid, but perhaps the grid itself should be treated as a general kind of guide, and not as precise locations or 'blocks' of text. One knows vaguely where something is.\n
 	\\n    One of the great things about vim is how easy it is to synergize various components -- well, sometimes with a bit of complex conditional scripting. For me, I feel like a lot of functions can be left out of this core script since they are easily added by the user. And I do hope that the entire textabyss fits fairly transparently into what one is already working with. One example, mentioned above, is the helpfulness of a 'goto last non-blank line' function. Another example would be the autocommands on loading new scripts -- one could, depending on one's needs, automatically perform initialization commands such as padding blank lines and adjusting various settings when a split is created or displayed with vim's inbuilt :autocommand feature.\n
 	\\n    Thanks again for trying out textabyss!\n\n\\C                   - Leon Jan '14"
-	cal input(FormatPar(helpmsg,width,(&columns-width)/2))
+	cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 	en
 endfun
 
 let s:pad=repeat(' ',100)
 fun! s:GetMapDisp(map,w,h,H)
-	let print=[]
-	let pos=0
-	let map={'w':(a:w),'h':(a:h)}
-	let s=map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]')
-	let map.hlmap=map(range(a:H),'range(len(a:map))')
-	for i in range(a:H)
-		for j in range(a:h)
-			call add(print,join(map(map(range(len(a:map)),'len(a:map[v:val])>i? a:map[v:val][i] : "[NUL]"'),'v:val[s[j][0] : s[j][1]].s:pad[1:(s[j][1]>=len(v:val)? (s[j][0]>=len(v:val)? a:w : a:w-len(v:val)+s[j][0]) : 0)]'))."\n")
-		endfor
-		let l=len(print[-1])
-		for k in range(len(a:map))
-			let map.hlmap[i][k]=map(range(a:h),"[pos+(a:w+1)*k+v:val*l,pos+(a:w+1)*k+a:w-1+v:val*l]")
-		endfor
-		let pos+=len(print[-1])*a:h+1
-		call add(print,"\n")
-	endfor
-	let map.str=join(print,"")
-	return map
+	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
+	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
 endfun
 
-fun! s:PrintHL(disp,r,c,trailer)
-	let prev_stop=0
+fun! s:PrintMapDisp(disp,r,c)
+	let ticker=0
 	for i in a:disp.hlmap[a:r][a:c]
-		echohl NONE
-		echon i[0]? a:disp.str[prev_stop : i[0]-1] : ''
+		echon i? a:disp.str[ticker : i-1] : ''
 		echohl visual
-		echon a:disp.str[i[0]:i[1]]
-		let prev_stop=i[1]+1
+		let ticker=i+a:disp.w
+		echon a:disp.str[i : ticker-1]
+		echohl NONE
 	endfor
-	echohl NONE
-	echon a:disp.str[prev_stop :].a:trailer
+	echon a:disp.str[ticker :]
 endfun
 
 fun! s:NavigateMap(array,c_ini,r_ini)
-	let [more,&more]=[&more,0]
-	let &ch=&lines-1
-	let r=a:r_ini
-	let c=a:c_ini
-	let r_screen=(&lines-1)/(s:mapgridH+1)
-	let r_remainder=&lines-r_screen*(s:mapgridH+1)
-	let whitespace=repeat("\n",r_remainder-1).' '
-	let c_screen=&columns/(s:mapgridW+1)
-	let r_off=max([r-r_screen/2,0])
-	let c_off=max([c-c_screen/2,0])
-	let subarray=map(range(c_off,c_off+c_screen-1),'map(range(r_off,r_off+r_screen-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")')
-	let disp=s:GetMapDisp(subarray,s:mapgridW,s:mapgridH,r_screen)
-	let k=0
-	let update=0
-	let cmd=0
-	while k!=27
-		redr!
-		call s:PrintHL(disp,r-r_off,c-c_off,whitespace.nr2char(c+65)." ".r)
-		let k=getchar()
-		exe get(s:mapdict,k,'')
-		let [r_offnew,c_offnew]=[r<r_off? r : r>=r_off+r_screen? r-r_screen+1 : r_off,c<c_off? c : c>=c_off+c_screen? c-c_screen+1 : c_off]
-		if [r_off,c_off]!=[r_offnew,c_offnew] || update
-			let [r_off,c_off]=[r_offnew,c_offnew]
-			let subarray=map(range(c_off,c_off+c_screen-1),'map(range(r_off,r_off+r_screen-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")')
-			let disp=s:GetMapDisp(subarray,s:mapgridW,s:mapgridH,r_screen)
-			let update=0
+	let [settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=[[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:mapblockL,&columns/s:mapblockC,repeat("\n",(&lines-1)%s:mapblockL).' ',1,1]
+	let [roff,coff]=[max([r-rows/2,0]),max([c-cols/2,0])]
+	while continue
+		let [roffn,coffn]=[r<roff? r : r>=roff+rows? r-rows+1 : roff,c<coff? c : c>=coff+cols? c-cols+1 : coff]
+		if [roff,coff]!=[roffn,coffn] || redr
+			let [roff,coff,redr]=[roffn,coffn,0]
+			let disp=s:GetMapDisp(map(range(coff,coff+cols-1),'map(range(roff,roff+rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mapblockC,s:mapblockL,rows)
 		en
+		redr!
+		call s:PrintMapDisp(disp,r-roff,c-coff)
+		echon pad.get(t:txb.gridnames,c,'--').r
+		exe get(s:mapdict,getchar(),'')
 	endwhile
-	let &ch=1
-	let &more=more
+	let [&ch,&more]=settings
 endfun
-let s:mapdict={}
+let s:mapdict={27:"let continue=0"}
 let s:mapdict.106="let r+=1"
 let s:mapdict.107="let r=r>0? r-1 : r"
 let s:mapdict.108="let c+=1"
@@ -158,9 +118,9 @@ let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c
 		\call extend(a:array[c],repeat([''],r+1-len(a:array[c])))\n
 	\en\n
 	\let a:array[c][r]=input\n
-	\let update=1\n
+	\let redr=1\n
 \en\n"
-let s:mapdict.103="call s:GotoBlock(nr2char(65+c).r)|let k=27"
+let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|return"
 let s:mapdict.13=s:mapdict.103
 let TXBcmds.111='let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])|let continue=0'
 
@@ -173,7 +133,7 @@ fun! DeleteHiddenBuffers()
 endfun
 let TXBcmds.24='cal DeleteHiddenBuffers()|let continue=0'
 
-fun! FormatPar(str,w,pad)
+fun! s:FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
 	for line in split(a:str,"\n",1)
 		let [center,seg]=[line[0:1]==#'\C',[0]]
@@ -213,17 +173,17 @@ fun! s:GotoBlock(str)
 			let col=a:str[i].col
 		en
 	endfor
-	let line=index(t:txb.gridnames,col,0,1)*3
-	call TXB_GotoPos(index(t:txb.gridnames,col,0,1)*3,row*45)
+	let line=index(t:txb.gridnames,col,0,1)*s:bgridS
+	call TXB_GotoPos(index(t:txb.gridnames,col,0,1)*s:bgridS,s:bgridL*row)
 endfun
 
 fun! s:BlockPan(dx,y,...)
 	let cury=line('w0')
 	let absolute_x=exists('a:1')? a:1 : 0
 	let dir=absolute_x? absolute_x : a:dx
-	let y=a:y>cury?  (a:y-cury-1)/s:smHgrid+1 : a:y<cury? -(cury-a:y-1)/s:smHgrid-1 : 0
-   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:smHgrid.'*'.s:smHgrid.'+'.s:smHgrid : 'let y_dest=!y? cury : cury>'.s:smHgrid.'? (cury-1)/'.s:smHgrid.'*'.s:smHgrid.' : 1'
-	let pan_y=(y>=0? 'let cury=cury+'.s:vpanstep.'<y_dest? cury+'.s:vpanstep.' : y_dest' : 'let cury=cury-'.s:vpanstep.'>y_dest? cury-'.s:vpanstep.' : y_dest')."\n
+	let y=a:y>cury?  (a:y-cury-1)/s:sgridL+1 : a:y<cury? -(cury-a:y-1)/s:sgridL-1 : 0
+   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:sgridL.'*'.s:sgridL.'+'.s:sgridL : 'let y_dest=!y? cury : cury>'.s:sgridL.'? (cury-1)/'.s:sgridL.'*'.s:sgridL.' : 1'
+	let pan_y=(y>=0? 'let cury=cury+'.s:panstepv.'<y_dest? cury+'.s:panstepv.' : y_dest' : 'let cury=cury-'.s:panstepv.'>y_dest? cury-'.s:panstepv.' : y_dest')."\n
 		\if cury>line('$')\n
 			\let longlinefound=0\n
 			\for i in range(winnr('$')-1)\n
@@ -246,13 +206,13 @@ fun! s:BlockPan(dx,y,...)
 		while continue
 			exe update_ydest
 			let buf0=winbufnr(1)
-			while winwidth(1)>s:hpanstep
-				call PanRight(s:hpanstep)
+			while winwidth(1)>s:pansteph
+				call s:PanRight(s:pansteph)
 				exe pan_y
 				redr
 			endwhile
 			if winbufnr(1)==buf0
-				call PanRight(winwidth(1))
+				call s:PanRight(winwidth(1))
 			en
 			while cury!=y_dest
 				exe pan_y
@@ -273,8 +233,8 @@ fun! s:BlockPan(dx,y,...)
 				call s:PanLeft(4)
 				let buf0=winbufnr(1)
 			en
-			while winwidth(1)<t:txb.size[ix]-s:hpanstep
-				call s:PanLeft(s:hpanstep)
+			while winwidth(1)<t:txb.size[ix]-s:pansteph
+				call s:PanLeft(s:pansteph)
 				exe pan_y
 				redr
 			endwhile
@@ -299,8 +259,8 @@ fun! s:BlockPan(dx,y,...)
 		let y+=y>0? -1 : y<0? 1 : 0
 	endwhile
 endfun
-let s:Y1='let y=y/s:smHgrid*s:smHgrid+s:smHgrid|'
-let s:Ym1='let y=max([1,y/s:smHgrid*s:smHgrid-s:smHgrid])|'
+let s:Y1='let y=y/s:sgridL*s:sgridL+s:sgridL|'
+let s:Ym1='let y=max([1,y/s:sgridL*s:sgridL-s:sgridL])|'
 	let TXBcmds.104='cal s:BlockPan(-1,y)'
 	let TXBcmds.106=s:Y1.'cal s:BlockPan(0,y)'
 	let TXBcmds.107=s:Ym1.'cal s:BlockPan(0,y)'
@@ -309,10 +269,10 @@ let s:Ym1='let y=max([1,y/s:smHgrid*s:smHgrid-s:smHgrid])|'
 	let TXBcmds.117=s:Ym1.'cal s:BlockPan(1,y)'
 	let TXBcmds.98 =s:Y1.'cal s:BlockPan(-1,y)'
 	let TXBcmds.110=s:Y1.'cal s:BlockPan(1,y)'
-let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bigVgrid : (v:val-1)-(v:val-1)%s:bigVgrid) : v:val-v:val%s:bigVgrid")[0]'
-let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bigVgrid? 0 : v:val-v:val%s:bigVgrid+s:bigVgrid")[0]'
-let s:Y1='let y=y/s:bigHgrid*s:bigHgrid+s:bigHgrid|'
-let s:Ym1='let y=max([1,y/s:bigHgrid*s:bigHgrid-s:bigHgrid])|'
+let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bgridS : (v:val-1)-(v:val-1)%s:bgridS) : v:val-v:val%s:bgridS")[0]'
+let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bgridS? 0 : v:val-v:val%s:bgridS+s:bgridS")[0]'
+let s:Y1='let y=y/s:bgridL*s:bgridL+s:bgridL|'
+let s:Ym1='let y=max([1,y%s:bgridL? y-y%s:bgridL : y-y%s:bgridL-s:bgridL])|'
 	let TXBcmds.72='cal s:BlockPan('.s:DXm1.',y,-1)'
 	let TXBcmds.74=s:Y1.'cal s:BlockPan(0,y)'
 	let TXBcmds.75=s:Ym1.'cal s:BlockPan(0,y)'
@@ -325,13 +285,13 @@ unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
 fun! s:GetGrid()
 	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
-	let [sd,dir]=(ix%s:bigVgrid>s:bigVgrid/2 && ix+s:bigVgrid-ix%s:bigVgrid<t:txb.len-1)? [ix+s:bigVgrid-ix%s:bigVgrid,1] : [ix-ix%s:bigVgrid,-1]
-	return [sd/3,(l0%s:bigHgrid>s:bigHgrid/2? l0+s:bigHgrid-l0%s:bigHgrid : l0-l0%s:bigHgrid)/s:bigHgrid]
+	let [sd,dir]=(ix%s:bgridS>s:bgridS/2 && ix+s:bgridS-ix%s:bgridS<t:txb.len-1)? [ix+s:bgridS-ix%s:bgridS,1] : [ix-ix%s:bgridS,-1]
+	return [sd/3,(l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL)/s:bgridL]
 endfun
 fun! s:SnapToGrid()
 	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
-	let [sd,dir]=(ix%s:bigVgrid>s:bigVgrid/2 && ix+s:bigVgrid-ix%s:bigVgrid<t:txb.len-1)? [ix+s:bigVgrid-ix%s:bigVgrid,1] : [ix-ix%s:bigVgrid,-1]
-	call s:BlockPan(sd,l0%s:bigHgrid>s:bigHgrid/2? l0+s:bigHgrid-l0%s:bigHgrid : l0-l0%s:bigHgrid,dir)
+	let [sd,dir]=(ix%s:bgridS>s:bgridS/2 && ix+s:bgridS-ix%s:bgridS<t:txb.len-1)? [ix+s:bgridS-ix%s:bgridS,1] : [ix-ix%s:bgridS,-1]
+	call s:BlockPan(sd,l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL,dir)
 endfun
 let TXBcmds.46='call s:SnapToGrid()|let continue=0'
 
@@ -341,14 +301,14 @@ fun! TXBcmd(...)
 	if a:0 | exe get(g:TXBcmds,a:1,'let msg="Press f1 for help"') | en
 	while continue
 		let s0=t:txb.ix[bufname(winbufnr(1))]
-		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."')) : msg
+		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
 		let [msg,c]=['',getchar()]
 		exe get(g:TXBcmds,c,'let msg="Press f1 for help"')
 	endwhile
     let s0=t:txb.ix[bufname(winbufnr(1))]
 	exe pos[0].'wincmd w'
 	call setpos('.',[0,line('w0')+pos[1],min([pos[2],winwidth(0)]),0])
-	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 endfun
 let TXBcmds.68="redr
 \\n	let confirm=input(' < Really delete current column (y/n)? ')
@@ -381,10 +341,8 @@ let TXBcmds.27="let continue=0|redr|ec ''"
 let TXBcmds.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
 let TXBcmds.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
 let TXBcmds["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let continue=0|redr"
-let TXBcmds.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
 let TXBcmds["\<f1>"]='call s:PrintHelp()|let continue=0'
 let TXBcmds.69='call s:EditSettings()|let continue=0'
-let TXBcmds.103="let input=input('Goto block: ')|if !empty(input)|call s:GotoBlock(input)|en|let continue=0"
 
 fun! TXBstart(...)                                          
 	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
@@ -452,97 +410,6 @@ fun! s:EditSettings()
 	en
 endfun
 
-fun! s:Pan(dx,y)
-	exe a:dx>0? 'call PanRight(a:dx)' : 'call s:PanLeft(-a:dx)'
-	if a:y>line('$')
-		for i in range(winnr('$')-1)
-			wincmd w
-			if line('$')>=a:y
-				break
-			en
-		endfor
-	en
-	exe 'norm!' a:y.'zt'
-	return line('w0')
-endfun
-
-fun! s:ShiftView(targcol,...)
-	let [tcol,targline,offset,speed]=[!a:targcol,exists('a:1')? a:1 : line('w0'),exists('a:2')? a:2 : 0,exists('a:3')? a:3 : 3]
-	let sizes=t:txb.size+t:txb.size
-	while tcol!=a:targcol
-		let [new_tcol,l0]=[get(t:txb.ix,bufname(winbufnr(1)),-1),line('w0')]
-		if new_tcol==-1
-			throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txb.name)
-		en
-		let tcol=new_tcol<tcol && tcol<a:targcol? new_tcol+t:txb.len : new_tcol>tcol && tcol>a:targcol? new_tcol-t:txb.len : new_tcol
-		let x_dist0=a:targcol==tcol? -max([sizes[a:targcol]-winwidth(1),0])+offset : a:targcol>tcol? winwidth(1)+(a:targcol-tcol>1? eval(join(sizes[(tcol+1):(a:targcol-1)],'+')) : 0)+offset : -(max([0,sizes[tcol]-winwidth(1)])+(tcol-a:targcol>0? eval(join(sizes[(a:targcol+t:txb.len) : (tcol-1+t:txb.len)],'+')) : 0))+offset
-		let y_dist0=targline-l0
-		let curbuf=winbufnr(1)
-		let [x_dist,y_dist,x_t,y_t]=[x_dist0,y_dist0,0,0]
-		while winbufnr(1)==curbuf && (x_dist || y_dist)
-   			if abs(y_dist)>abs(x_dist)
-				let dy=y_dist>=0? min([speed,y_dist]) : max([-speed,y_dist])
-              	let dx={x_dist>=0? 'min' : 'max'}([(y_t+dy)*x_dist0/y_dist0-x_t,x_dist])
-			else
-				let dx=x_dist>=0? min([speed,x_dist]) : max([-speed,x_dist])
-              	let dy={y_dist>=0? 'min' : 'max'}([(x_t+dx)*y_dist0/x_dist0-y_t,y_dist])
-			en
-			let [y_t,x_t,l0]=[y_t+dy,x_t+dx,l0+dy]
-			let [x_dist,y_dist]=[x_dist-dx,targline-l0]
-			call s:Pan(dx,l0)
-			redr
-		endwhile
-	endwhile
-endfun
-
-fun! s:CenterPos(targcol,...)
-   	let cursor=[exists("a:1")? a:1 : line('.'),exists("a:2")? a:2 : 1]
-	let [offset,tcol]=[(&columns-t:txb.size[a:targcol])/2,a:targcol]
-	while offset>0
-		let tcol=(tcol-1)%t:txb.len
-		let offset-=t:txb.size[tcol]
-	endwhile
-	let tcol=tcol<0? tcol+t:txb.len : tcol
-	let cur_tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
-	if cur_tcol==-1
-		throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txb.name)
-	en
-	if tcol>cur_tcol && cur_tcol+t:txb.len-tcol<tcol-cur_tcol
-		call s:ShiftView(tcol-t:txb.len, max([1,cursor[0]-&lines/2]),-offset,exists("a:3")? a:3 : 3)
-	elseif tcol<cur_tcol && tcol+t:txb.len-cur_tcol<cur_tcol-tcol
-		call s:ShiftView(tcol+t:txb.len, max([1,cursor[0]-&lines/2]),-offset,exists("a:3")? a:3 : 3)
-	else
-		call s:ShiftView(tcol, max([1,cursor[0]-&lines/2]),-offset,exists("a:3")? a:3 : 3)
-	en
-	let targwin=bufwinnr(t:txb.name[a:targcol])
-	if targwin==-1
-		wincmd t
-		call s:LoadPlane()
-		let targwin=bufwinnr(t:txb.name[a:targcol])
-	en
-	if targwin==-1
-		throw "Badly formed columns"
-	else
-		exe targwin.'wincmd w'
-		cal cursor(cursor)
-	en
-endfun
-
-fun! s:CenterBookmark(mark,...)
-	let [bufnr,line,col,off]=getpos("'".a:mark)
-	let colix=get(t:txb.ix,bufname(bufnr? bufnr : bufnr('%')),-1)
-	if colix==-1
-	    ec "Mark '".a:mark." not on current plane"
-		return 2
-	elseif line==0
-		ec 'Mark '.a:mark." not set"
-		return 1
-	else
-		call s:CenterPos(colix,line,col,exists('a:1')? a:1 : 1)
-	en
-endfun
-let TXBcmds.109='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
-
 fun! s:CreatePlane(name,...)
 	let plane={}
 	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
@@ -551,7 +418,7 @@ fun! s:CreatePlane(name,...)
 	else
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-		let plane.exe=exists("a:2")? a:2 : repeat([g:txb_onloadcol],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
 		let plane.scrollopt='ver,jump'
 		let plane.gridnames=[]
 		let [plane.ix,i]=[{},0]
@@ -570,6 +437,7 @@ fun! s:AppendCol(index,file,...)
 	call insert(t:txb.name,a:file,a:index+1)
 	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
 	call insert(t:txb.exe,'se nowrap scb cole=2',a:index+1)
+	call insert(t:txb.map,[])
 	let t:txb.len=len(t:txb.name)
 	let [t:txb.ix,i]=[{},0]
 	for e in t:txb.name
@@ -579,11 +447,11 @@ fun! s:AppendCol(index,file,...)
 		let t:txb.gridnames=s:MakeGridNameList(t:txb.len+50)
 	endif
 endfun
-
 fun! s:DeleteCol(index)
 	call remove(t:txb.name,a:index)	
 	call remove(t:txb.size,a:index)	
 	call remove(t:txb.exe,a:index)	
+	call remove(t:txb.map,a:index)	
 	let t:txb.len=len(t:txb.name)
 	let [t:txb.ix,i]=[{},0]
 	for e in t:txb.name
@@ -738,7 +606,7 @@ fun! TXBmouseNav()
 			let [b0,wrap]=[winbufnr(0),&wrap]
 			let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
 			let s0=t:txb.ix[bufname(winbufnr(1))]
-			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
+			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 		else
 			if wrap
 				exe "norm! \<leftmouse>"
@@ -746,7 +614,7 @@ fun! TXBmouseNav()
 			else
 				let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 			en
-			let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : PanRight(x-nx)] : [x? x : nx,0]
+			let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
 			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
 			let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 			redr
@@ -758,7 +626,7 @@ fun! TXBmouseNav()
 		endwhile
 	endwhile
 	let s0=t:txb.ix[bufname(winbufnr(1))]
-	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bigVgrid)? t:txb.gridnames[v:val/s:bigVgrid] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:smHgrid),'!v:key || v:val%(s:bigHgrid)<s:smHgrid? v:val/s:bigHgrid : "."'))
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 endfun
 
 fun! s:PanLeft(N,...)
@@ -852,7 +720,7 @@ fun! s:PanLeft(N,...)
 	return extrashift
 endfun
 
-fun! PanRight(N,...)
+fun! s:PanRight(N,...)
 	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
 	let tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
 	let [bcol,loff,extrashift,N]=[get(t:txb.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
