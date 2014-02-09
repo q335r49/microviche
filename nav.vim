@@ -69,69 +69,54 @@ fun! GotoBlock(str)
 	call TXB_GotoPos(index(s:bknames,col,0,1)*3,row*45)
 endfun
 fun! s:BigBlockPan(dx,dy)
-	let s:unreachable_ydestination=0
 	let [x0,y0]=[get(t:txb.ix,bufname(winbufnr(1)),-1),line('w0')]
 	if x0==-1
 		throw bufname(winbufnr(1))." not contained in current plane."
 	en
 	let xd=a:dx<0? (!x0? 0 : (x0-1)/3*3) : a:dx>0? min([(t:txb.len-1)/3*3,x0/3*3+3]) : x0
 	let yd=a:dy<0? (y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])) : a:dy>0? y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen : y0
-	exe PRINT('x0,y0,xd,yd')
-	while y0!=yd || x0!=xd
-		call s:BlockPan(x0>xd? -1 : x0<xd? 1 : 0,y0>yd? -1 : y0<yd? 1 : 0)
-		exe PRINT('x0,y0,xd,yd')
-		let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
-		if x0==-1
-			throw bufname(winbufnr(1))." not contained in current plane."
-		en
-		let y0=x0!=xd || !s:unreachable_ydestination? line('w0') : yd
-	endwhile
-	return s:bknames[x0/3].'-'.(line('w0')/45)
+	call s:BlockPan(xd,yd,1)
 endfun
-fun! s:BlockPan(dx,dy)
-	let cury=line('w0')
-	let dy=a:dy
-	if dy>=0
-		let exe_ydest='let y_dest=!dy? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen
-		let exe_cury='let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest'
-	elseif dy<0
-		let exe_ydest='let y_dest=!dy? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
-		let exe_cury='let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest'
-	en
-	let exe_pany="if cury!=y_dest\n".exe_cury."\nif cury>line('$')\n
-			\let s:unreachable_ydestination=1\n
+fun! s:BlockPan(dx,dy,absolute)
+	let [curx,cury]=[a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : -1,line('w0')]
+	let dy=!a:absolute? a:dy : a:dy>cury?  (a:dy-cury-1)/s:bkylen+1 : a:dy<cury? -(cury-a:dy-1)/s:bkylen-1 : 0
+   	let update_ydest=dy>=0? 'let y_dest=!dy? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen : 'let y_dest=!dy? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
+	let pan_y=(dy>=0? 'let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest' : 'let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest')."\n
+		\if cury>line('$')\n
 			\for i in range(winnr('$')-1)\n
 				\wincmd w\n
 				\if line('$')>=cury\n
 					\exe 'norm!' cury.'zt'\n
-					\let s:unreachable_ydestination=0\n
 					\break\n
 				\en\n
 			\endfor\n
 		\else\n
 			\exe 'norm!' cury.'zt'\n
-		\en\nen"
-	if a:dx>0
-		for i in range(a:dx)
-			exe exe_ydest
+		\en"
+	if a:absolute && a:dx>curx || !a:absolute && a:dx>0
+		let i=a:absolute? curx : 0
+		while i<a:dx
+			exe update_ydest
 			let buf0=winbufnr(1)
 			while winwidth(1)>s:bkxspd
 				call PanRight(s:bkxspd)
-				exe exe_pany
+				exe pan_y
 				redr
 			endwhile
 			if winbufnr(1)==buf0
 				call PanRight(winwidth(1))
 			en
 			while cury!=y_dest
-				exe exe_pany
+				exe pan_y
 				redr
 			endwhile
 			let dy+=dy>0? -1 : dy<0? 1 : 0
-		endfor
-	elseif a:dx<0
-		for i in range(-a:dx)
-			exe exe_ydest
+			let i=a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : i+1
+		endwhile
+	elseif a:absolute && a:dx<curx || !a:absolute && a:dx<0
+		let i=a:absolute? curx : 0
+		while i>a:dx
+			exe update_ydest
 			let buf0=winbufnr(1)
 			let ix=get(t:txb.ix,bufname(buf0),-1)
 			if ix==-1
@@ -143,45 +128,96 @@ fun! s:BlockPan(dx,dy)
 			en
 			while winwidth(1)<t:txb.size[ix]-s:bkxspd
 				call s:PanLeft(s:bkxspd)
-				exe exe_pany
+				exe pan_y
 				redr
 			endwhile
 			if winbufnr(1)==buf0
 				call s:PanLeft(t:txb.size[ix]-winwidth(1))
 			en
 			while cury!=y_dest
-				exe exe_pany
+				exe pan_y
 				redr
 			endwhile
 			let dy+=dy>0? -1 : dy<0? 1 : 0
-		endfor
+			let i=a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : i-1
+		endwhile
 	en
 	while dy
-		exe exe_ydest
+		exe update_ydest
 		while cury!=y_dest
-			exe exe_pany
+			exe pan_y
 			redr
 		endwhile
 		let dy+=dy>0? -1 : dy<0? 1 : 0
 	endwhile
 endfun
 let s:keydict={}
-let s:keydict.104='cal s:BlockPan(-1,0)'
-let s:keydict.72 ='let msg=s:BigBlockPan(-1,0)'
-let s:keydict.106='cal s:BlockPan(0,1)'
-let s:keydict.74 ='let msg=s:BigBlockPan(0,1)'
-let s:keydict.107='cal s:BlockPan(0,-1)'
-let s:keydict.75 ='let msg=s:BigBlockPan(0,-1)'
-let s:keydict.108='cal s:BlockPan(1,0)'
-let s:keydict.76 ='let msg=s:BigBlockPan(1,0)'
-let s:keydict.121='cal s:BlockPan(-1,-1)'
-let s:keydict.89 ='let msg=s:BigBlockPan(-1,-1)'
-let s:keydict.117='cal s:BlockPan(1,-1)'
-let s:keydict.85 ='let msg=s:BigBlockPan(1,-1)'
-let s:keydict.98 ='cal s:BlockPan(-1,1)'
-let s:keydict.66 ='let msg=s:BigBlockPan(-1,1)'
-let s:keydict.110='cal s:BlockPan(1,1)'
-let s:keydict.78 ='let msg=s:BigBlockPan(1,1)'
+let s:keydict.104='cal s:BlockPan(-1,0,0)'
+let s:keydict.72 ='cal s:BigBlockPan(-1,0)'
+let s:keydict.106='cal s:BlockPan(0,1,0)'
+let s:keydict.74 ='cal s:BigBlockPan(0,1)'
+let s:keydict.107='cal s:BlockPan(0,-1,0)'
+let s:keydict.75 ='cal s:BigBlockPan(0,-1)'
+let s:keydict.108='cal s:BlockPan(1,0,0)'
+let s:keydict.76 ='cal s:BigBlockPan(1,0)'
+let s:keydict.121='cal s:BlockPan(-1,-1,0)'
+let s:keydict.89 ='cal s:BigBlockPan(-1,-1)'
+let s:keydict.117='cal s:BlockPan(1,-1,0)'
+let s:keydict.85 ='cal s:BigBlockPan(1,-1)'
+let s:keydict.98 ='cal s:BlockPan(-1,1,0)'
+let s:keydict.66 ='cal s:BigBlockPan(-1,1)'
+let s:keydict.110='cal s:BlockPan(1,1,0)'
+let s:keydict.78 ='cal s:BigBlockPan(1,1)'
+
+fun! TXBcmd()
+	let [y,continue,msg]=[line('w0'),1,'']
+	while continue
+		let cucsav=&cuc
+		se cuc
+		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
+		let msg=''
+		let c=getchar()
+		let &cuc=cucsav
+		exe get(s:keydict,c,'let msg="Press f1 for help"')
+	endwhile
+	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
+endfun
+let s:keydict.68="redr
+\\n	let confirm=input(' < Really delete current column (y/n)? ')
+\\n	if confirm==?'y'
+\\n		let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
+\\n		if ix!=-1
+\\n			call s:DeleteCol(ix)
+\\n			wincmd W
+\\n			call s:LoadPlane(t:txb)
+\\n			let msg='col '.ix.' removed'
+\\n		else
+\\n			let msg='Current buffer not in plane; deletion failed'
+\\n		en
+\\n	en"
+let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
+\\n	if ix!=-1
+\\n	    redr
+\\n		let file=input(' < File to append: ','','file')
+\\n		if !empty(file)
+\\n			call s:AppendCol(ix,file)
+\\n			call s:LoadPlane(t:txb)
+\\n			let msg='col '.(ix+1).' appended'
+\\n		else
+\\n			let msg='aborted'
+\\n		en
+\\n	else
+\\n		let msg='Current buffer not in plane; append failed'
+\\n	en"
+let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
+let s:keydict.27="let continue=0|redr|ec ''"
+let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
+let s:keydict.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
+let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
+let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
+let s:keydict["\<f1>"]='call s:PrintHelp()|let continue=0'
+let s:keydict.69='call s:EditSettings()|let continue=0'
+let s:keydict.103="let input=input('Goto block: ')|if !empty(input)|call GotoBlock(input)|en|let continue=0"
 
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -235,56 +271,6 @@ fun! TXBstart(...)
 		en
 	en
 endfun
-
-fun! TXBcmd()
-	let [y,continue,msg]=[line('w0'),1,'']
-	while continue
-		let cucsav=&cuc
-		se cuc
-		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
-		let msg=''
-		let c=getchar()
-		let &cuc=cucsav
-		exe get(s:keydict,c,'let msg="Press f1 for help"')
-	endwhile
-	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
-endfun
-let s:keydict.68="redr
-\\n	let confirm=input(' < Really delete current column (y/n)? ')
-\\n	if confirm==?'y'
-\\n		let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
-\\n		if ix!=-1
-\\n			call s:DeleteCol(ix)
-\\n			wincmd W
-\\n			call s:LoadPlane(t:txb)
-\\n			let msg='col '.ix.' removed'
-\\n		else
-\\n			let msg='Current buffer not in plane; deletion failed'
-\\n		en
-\\n	en"
-let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
-\\n	if ix!=-1
-\\n	    redr
-\\n		let file=input(' < File to append: ','','file')
-\\n		if !empty(file)
-\\n			call s:AppendCol(ix,file)
-\\n			call s:LoadPlane(t:txb)
-\\n			let msg='col '.(ix+1).' appended'
-\\n		else
-\\n			let msg='aborted'
-\\n		en
-\\n	else
-\\n		let msg='Current buffer not in plane; append failed'
-\\n	en"
-let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
-let s:keydict.27="let continue=0|redr|ec ''"
-let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
-let s:keydict.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
-let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
-let s:keydict.83='let [msg,t:txb.scrollopt]=t:txb.scrollopt=="ver,jump"? ["Scrollbind off","jump"] : [" < Scrollbind on >","ver,jump"] | call s:LoadPlane()'
-let s:keydict["\<f1>"]='call s:PrintHelp()|let continue=0'
-let s:keydict.69='call s:EditSettings()|let continue=0'
-let s:keydict.103="let input=input('Goto block: ')|if !empty(input)|call GotoBlock(input)|en|let continue=0"
 
 fun! s:EditSettings()
    	let ix=get(t:txb.ix,expand('%'),-1)
