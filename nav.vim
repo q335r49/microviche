@@ -17,10 +17,12 @@ let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
 \\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single fine and use ".g:txb_key."A to append additional splits.
 \\n    Setting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the previously used plane (and the map, below) will be saved and suggested when the hotkey is pressed.\n
 \\nOnce loaded, use the mouse to pan or press ".g:txb_key." again:
-\\n    hjklyubn  - move along small grid (HJKLYUBN for big grid)
+\\n    hjklyubn  - pan small grid
+\\n    HJKLYUBN  - pan big grid
 \\n    r         - redraw
 \\n    .         - Snap to big grid
-\\n    ^H^J^K^L^Y^U^B^N - jump to edges and corners of current big grid
+\\n    ^H^J^K^L
+\\n    ^Y^U^B^N  - cursor to edges and corners of current big grid
 \\n    D A E     - Delete split / Append split / Edit split settings
 \\n    ^X        - Delete hidden buffers (eg, if too many are loaded from panning)
 \\nSmall gridlines are at every split and lines divisible by ".s:sgridL." while big gridlines are at splits divisible by ".s:bgridS." and lines divisible by ".s:bgridL.".\n
@@ -31,7 +33,7 @@ let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
 \\n    c         - change name
 \\n    + -       - zoom
 \\n    I D       - Insert / Delete column
-\\nThe map will start out blank, so fill it in by changing (c) big grid names.\n
+\\nThe map will start out blank, so fill it in by changing (c) big grid names. The map is for bookmarking only, changing the map will not change the plane in any way.\n
 \\nI haven't done a lot of testing with exotic file names, so to be on the safe side, files names shouldn't contain spaces and should be in the current directory (change to that directory beforehand with :cd ~/SomeDir). And horizontal splits aren't supported and may interfere with mouse panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
 let width=&columns>80? min([&columns-10,80]) : &columns-2
 redr
@@ -48,13 +50,15 @@ let helpmsg="\n\n\\C\"... into the abyss he slipped
 \\n\n\\RThanks for trying out Textabyss!\n\n\\RLeon Q335r49@gmail.com"
 cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 elseif input==?'c'
-let helpmsg="\n\n\\CChangelog\n
-\\n1.2.2 - Minor bug where the rightmost split will overshift on PanRight
+let helpmsg="\n\n1.2.2 - Minor bug where the rightmost split will overshift on PanRight
 \\n1.2.3 - FormatPar for help dialogs now has option to align right
 \\n1.2.4 - Minor bug with map when horizontal block size divides columns
 \\n1.2.5 - Cursor behaves more predictably (Curor won't move on panning / clicking without dragging relocates cursor)
 \\n1.2.5 - Echo confirmation for various commands
 \\n1.2.6 - Ctrl-YUBNHJKL jumps to grid corners
+\\n1.2.7 - Minor updates to grid corners
+\\n\n\\CUpcoming
+\\n1.3.0 - Mouse panning for map
 \\n"
 cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 en
@@ -315,18 +319,24 @@ fun! s:GridCorners(dx,dy)
 		let desty=cursory>=line('.')? max([cursory-winheight(0),line('w0')]) : min([cursory,line('w0')])
 	en
 	let ix=get(t:txb.ix,expand('%'),-1)
-	if ix==-1 | return | en
+	if ix==-1 | return 300 | en
 	if a:dx<0
  		let destix=ix/s:bgridS*s:bgridS
+		let eval='"norm! '.cursory.'G0"'
+	elseif a:dx>0
+		let destix=min([ix/s:bgridS*s:bgridS+s:bgridS-1,t:txb.len-1])
+		let eval='"norm! '.cursory.'Gg$"'
+	else
+    	let destix=min([ix-ix%s:bgridS+s:bgridS/2,t:txb.len-1])
+		let eval='"norm! '.cursory.'G".(winwidth(0)/2)."|"'
+	en
+	if destix<ix || destix==ix && winnr()==1
 		if winnr()-ix+destix==1 && winwidth(1)<t:txb.size[destix]
 		   	call s:BlockPan(-1,desty)
 		elseif winnr()<=ix-destix
 			call s:BlockPan(destix,desty,-1)
 		en
-		let win=bufwinnr(bufnr(t:txb.name[destix]))
-   		exe win==-1? 'return 100' : 'norm! '.win."\<c-w>w".cursory.'G0'
-	elseif a:dx>0
-		let destix=min([ix/s:bgridS*s:bgridS+s:bgridS-1,t:txb.len-1])
+	elseif destix>ix || destix==ix && winnr()==winnr('$')
    		while t:txb.ix[bufname(winbufnr(winnr('$')))]<destix
    			call s:PanRight(s:pansteph)
    		endwhile
@@ -338,34 +348,11 @@ fun! s:GridCorners(dx,dy)
 			endwhile
 			call s:PanRight(t:txb.size[destix]-winwidth(winnr('$')))
 		en
-		let win=bufwinnr(bufnr(t:txb.name[destix]))
-   		exe win==-1? 'return 300' : 'norm! '.win."\<c-w>w".cursory.'Gg$'
-	else
-    	let destix=min([ix-ix%s:bgridS+s:bgridS/2,t:txb.len-1])
-		if destix>ix
-			while t:txb.ix[bufname(winbufnr(winnr('$')))]<destix
-				call s:PanRight(s:pansteph)
-			endwhile
-			let win=bufwinnr(bufnr(t:txb.name[destix]))
-			exe win==-1? 'return 400' : win."wincmd w"
-			if winnr()==winnr('$') && winwidth(0)<t:txb.size[destix]
-				while t:txb.size[destix]-winwidth(winnr('$'))>s:pansteph
-					call s:PanRight(s:pansteph)
-				endwhile
-				call s:PanRight(t:txb.size[destix]-winwidth(winnr('$')))
-			en
-		elseif destix<ix
-			exe PRINT('destix|ix|winwidth(1)|t:txb.size[destix]')
-			if winnr()-ix+destix==1 && winwidth(1)<t:txb.size[destix]
-			   	call s:BlockPan(-1,desty)
-			elseif winnr()<=ix-destix
-				call s:BlockPan(destix,desty,-1)
-			en
-		en
-		let win=bufwinnr(bufnr(t:txb.name[destix]))
-		exe win==-1? 'return 500' : win."wincmd w"
-		exe s:bgridS%2? 'norm! '.cursory.'G'.(winwidth(0)/2).'|' : 'norm! '.cursory.'Gg0'
+		exe 'norm! '.desty.'zt'
 	en
+	let win=bufwinnr(bufnr(t:txb.name[destix]))
+	exe win==-1? 'return 100' : win."wincmd w"
+	exe eval(eval)
 endfun
 	let TXBcmds.25='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,-1)'
 	let TXBcmds.21='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,-1)'
