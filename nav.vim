@@ -1,3 +1,4 @@
+if &cp | se nocompatible | en
 "Global hotkey: press to begin
 	let txb_key='<f10>'
 "Grid panning animation step
@@ -8,11 +9,51 @@
 "Big grid: s:bgridS splits x s:bgridL lines
 	let s:bgridS=3
 	let s:bgridL=45
-"Map print block size
-	let s:mapblockL=4
-	let s:mapblockC=10
+"Map: block sizes for various zooms
+	let s:bksizes=[[2,6],[3,7],[4,10],[5,12],[6,14],[7,17],[8,20],[9,25]]
 
-if &cp | se nocompatible | en
+fun! s:PrintHelp()
+let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
+\\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single fine and use ".g:txb_key."A to append additional splits.
+\\n    Setting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the previously used plane (and the map, below) will be saved and suggested when the hotkey is pressed.\n
+\\nOnce loaded, use the mouse to pan or press ".g:txb_key." again:
+\\n    hjklyubn  - move along small grid (HJKLYUBN for big grid)
+\\n    r         - redraw
+\\n    .         - Snap to big grid
+\\n    D A E     - Delete split / Append split / Edit split settings
+\\n    ^X        - Delete hidden buffers (say, if too many are loaded from panning)
+\\nSmall gridlines are at every split and lines divisible by ".s:sgridL." while big gridlines are at splits divisible by ".s:bgridS." and lines divisible by ".s:bgridL.".\n
+\\nYou can also press 'o' (after pressing ".g:txb_key.") to enter a map:
+\\n    o         - 'Open grid' (map mode)
+\\n    hjklyubn  - navigate map
+\\n    g <cr>    - go to grid
+\\n    c         - change name
+\\n    + -       - zoom
+\\n    I D       - Insert / Delete column
+\\nThe map will start out blank, so fill it in by changing (c) big grid names.\n
+\\nI haven't done a lot of testing with exotic file names, so to be on the safe side, files names shouldn't contain spaces and should be in the current directory (change to that directory beforehand with :cd ~/SomeDir). And horizontal splits aren't supported and may interfere with mouse panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
+let width=&columns>80? min([&columns-10,80]) : &columns-2
+redr
+let input=input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+if input==?'m'
+let helpmsg="\n\n\\C\"... into the abyss he slipped
+\\n\\CEndless fathoms he fell
+\\n\\CNe'er in homely hearth to linger
+\\n\\CNor warm hand to grasp!\"\n
+\\n    I've been thinking for awhile now how most programs are pretty inadequate at organizing thinking over a long period of time, since what we think we're talking about often changes greatly on retrospection. It seems to me that time itself is the only real way to make sense of things. So I don't think of this as another kind of mind mapping but rather more as a means of raw accumulation. There are of course tools for organizing and layout but primarily one perhaps simply ... descends!\n
+\\n    Vim is certainly a fascinating environment to work in. For me, there's a great pleasure that comes from removing a feature that I've added upon realizing that it was already baked in -- and this may involve realizing other means of acheiving an ends or settling for alternative ends. I hope that the experience with textabyss is sort of similar, ie, that one starts by awkwardly incorporating it into one's workflow, realizing its inadequacies and limitations, but also realizing the workflow that it has imagined to be in many ways sufficient.\n
+\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
+\\n    One of the great things about vim is how easy it is to synergize components -- well, sometimes with a bit of scripting. So I feel that the textabyss script itself can be kept fairly simple. For example, automatically padding blank lines and adjusting various settings when a split is appended can be done with vim's inbuilt :autocommand * BufNewFile feature.\n
+\\n\n\\RThanks for trying out Textabyss!\n\n\\RLeon Q335r49@gmail.com"
+cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+elseif input==?'c'
+let helpmsg="\n\n\\CChangelog\n
+\\n1.2.2 - Minor bug where the rightmost split will overshift on PanRight
+\\n1.2.3 - FormatPar for help dialogs now has option to align right"
+cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+en
+endfun
+
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
@@ -32,46 +73,11 @@ fun! s:MakeGridNameList(len)
 	en
 endfun
 
-fun! s:PrintHelp()
-	let helpmsg="\n\\CWelcome to Textabyss!\n\\C(Updated Jan 16, 2013 q335r49@gmail.com)\n
-	\\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
-	\\n\nOnce loaded, use the mouse to pan or press ".g:txb_key." again to access the following commands:\n
-	\\n    hjklyubn  - cardinal / diagonal motions along grid (HJKL... for big grid)
-	\\n    R r       - Redraw / redraw and return to normal mode
-	\\n    .         - Snap to big grid
-	\\n    D A E     - Delete / Append / Edit settings for split
-	\\n    ^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
-	\\nThe vi keys (hjkl for cardinals and yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:sgridL.". Panning by big grid (uppercase keys) snaps the top corner to a split multiple of ".s:bgridS." and to a line multiple by ".s:bgridL.".\n
-	\\nIf the file list includes the current buffer, loading will redraw the plane there. This allows you to restore your previous position. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed for initialization in a new vim session).\n
-	\\n    o         - Open map
-	\\n    hjklyubn  - map: cardinal / diagonal motions
-	\\n    g <cr>    - map: go to grid
-	\\n    c         - map: change grid name\n
-	\\nThe map (o) provides yet another way to navigate the abyss. It will start out blank -- fill it in by naming (c) big grids. It is navigated the same way as the plane and will always start centered at the current block. You must set your viminfo to save global variables (:set viminfo+=!) to save the map between sessions.\n
-	\\nThere are a few known limitations. Scrollbind desyncs if scrolling in a much longer split (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue ... or input 'm' for a monologue)"
-	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	redr|if input(s:FormatPar(helpmsg,width,(&columns-width)/2))==?'m'
-	let helpmsg="\n\\C\"... into the abyss he slipped
-	\\n\\CEndless fathoms to fall
-	\\n\\CNe'er again homely hearth to linger
-	\\n\\CNor warm hand to grasp!\"\n\n
-	\\n    I've been thinking now for a long time how the usual memory technologies are pretty inadequate when it comes organizing thinking over a long period of time, since it seems to me that thoughts can't really be broken up into disrete projects or categories. So I don't think of this as a system primarily to be used for organizing -- that comes naturally -- though of course I did once think it would primarily be an aid towards that ends. But now, I don't think of this as another kind of mind mapping but rather more as a system of raw accumulation. There are some tools for organizing and layout but primarily the hope is maybe simply -- to descend!\n
-	\\n    So what should one throw into the textabyss? Ideally, in my mind, everything: it seems to me that time itself is perhaps the only real category there is, and perhaps not even that. Thoughts of a certain period tend to relate to each other in a way that we can't forsee when we try to make sense of our thoughts.\n
-	\\n    Vim is sort of a fascinating environment. Writing textabyss has been an pretty entertaining ... I tried above all to make use of inbuilt functions and to aim for speed. The coolest feeling in vim, to me, is, *removing* a feature that you've added because you realize that the developers have already anticipated the problem -- to realize other means of acheiving your ends, or to find that those ends aren't really worth pursuing. Vim was just about the only choice for me primarily because of how easy it is to install everywhere, especially on Android, and so the discovery that vim is well thought out comes as a kind of added bonus. I sort of hope that textabyss itself is the same way, that one would start by awkwardly incorporating it into one's workflow, realize its inadequacies and limitations, but also to also to slowly realize the workflow that it has imagined as in many ways sufficient.\n
-	\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync for this reason. Actually, just padding, say, 500 or 1000 blank lines to the end of every split would solve most problems with very little overhead. The main issue might then be that one would want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
-	\\n    There are some limitations on file names and locations that I've left as is, for the sake of simplicity and speed. File names, for example, shouldn't have spaces and should probably be located in the same directory. I originally planned for textabyss to be a reorganization of existing files but I think it makes much more sense not to pay attention to the names of splits at all, and instead to, for example, focus on the grid (eg, 'e5') as a way of orienting oneself. It's easy to snap to the grid, but perhaps the grid itself should be treated as a general kind of guide, and not as precise locations or 'blocks' of text. One knows vaguely where something is.\n
-	\\n    One of the great things about vim is how easy it is to synergize various components -- well, sometimes with a bit of complex conditional scripting. For me, I feel like a lot of functions can be left out of this core script since they are easily added by the user. And I do hope that the entire textabyss fits fairly transparently into what one is already working with. One example, mentioned above, is the helpfulness of a 'goto last non-blank line' function. Another example would be the autocommands on loading new scripts -- one could, depending on one's needs, automatically perform initialization commands such as padding blank lines and adjusting various settings when a split is created or displayed with vim's inbuilt :autocommand feature.\n
-	\\n    Thanks again for trying out textabyss!\n\n\\C                   - Leon Jan '14"
-	cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
-	en
-endfun
-
 let s:pad=repeat(' ',100)
 fun! s:GetMapDisp(map,w,h,H)
 	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
 	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
 endfun
-
 fun! s:PrintMapDisp(disp,r,c)
 	let ticker=0
 	for i in a:disp.hlmap[a:r][a:c]
@@ -83,20 +89,19 @@ fun! s:PrintMapDisp(disp,r,c)
 	endfor
 	echon a:disp.str[ticker :]
 endfun
-
 fun! s:NavigateMap(array,c_ini,r_ini)
-	let [settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=[[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:mapblockL,&columns/s:mapblockC,repeat("\n",(&lines-1)%s:mapblockL).' ',1,1]
+	let [msg,settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=['',[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0]).' ',1,1]
 	let [roff,coff]=[max([r-rows/2,0]),max([c-cols/2,0])]
 	while continue
 		let [roffn,coffn]=[r<roff? r : r>=roff+rows? r-rows+1 : roff,c<coff? c : c>=coff+cols? c-cols+1 : coff]
 		if [roff,coff]!=[roffn,coffn] || redr
 			let [roff,coff,redr]=[roffn,coffn,0]
-			let disp=s:GetMapDisp(map(range(coff,coff+cols-1),'map(range(roff,roff+rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mapblockC,s:mapblockL,rows)
+			let disp=s:GetMapDisp(map(range(coff,coff+cols-1),'map(range(roff,roff+rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],rows)
 		en
 		redr!
 		call s:PrintMapDisp(disp,r-roff,c-coff)
-		echon pad.get(t:txb.gridnames,c,'--').r
-		exe get(s:mapdict,getchar(),'')
+		echon pad.get(t:txb.gridnames,c,'--').r.msg
+		exe get(s:mapdict,getchar(),'let msg=" hjklyubn|motion +-|zoom I|nsertCol D|eleteCol c|hange g|oto"')
 	endwhile
 	let [&ch,&more]=settings
 endfun
@@ -105,10 +110,10 @@ let s:mapdict.106="let r+=1"
 let s:mapdict.107="let r=r>0? r-1 : r"
 let s:mapdict.108="let c+=1"
 let s:mapdict.104="let c=c>0? c-1 : c"
-let s:mapdict.121="let c=c>0? c-1 : c|let r=r>0? r-1 : r"
-let s:mapdict.117="let c+=1|let r=r>0? r-1 : r"
-let s:mapdict.98 ="let c=c>0? c-1 : c|let r+=1"
-let s:mapdict.110="let c+=1|let r+=1"
+let s:mapdict.121="let [r,c]=[r>0? r-1 : r,c>0? c-1 : c]"
+let s:mapdict.117="let [r,c]=[r>0? r-1 : r,c+1]"
+let s:mapdict.98 ="let [r,c]=[r+1,c>0? c-1 : c]"
+let s:mapdict.110="let [r,c]=[r+1,c+1]"
 let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c][r] : '')\n
 \if !empty(input)\n
  	\if c>=len(a:array)\n
@@ -122,6 +127,12 @@ let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c
 \en\n"
 let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|return"
 let s:mapdict.13=s:mapdict.103
+let s:mapdict.43='let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
+let s:mapdict.61=s:mapdict.43
+let s:mapdict.45='let t:txb.zoom=max([t:txb.zoom-1,0])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
+let s:mapdict.95=s:mapdict.45
+let s:mapdict.73='if c<len(a:array)|call insert(a:array,[],c)|let redr=1|let msg=" Col ".c." inserted"|en'
+let s:mapdict.68='if c<len(a:array) && input("Really delete column? (y/n)")==?"y"|call remove(a:array,c)|let redr=1|let msg=" Col ".c." deleted"|en'
 let TXBcmds.111='let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])|let continue=0'
 
 fun! DeleteHiddenBuffers()
@@ -134,25 +145,28 @@ endfun
 let TXBcmds.24='cal DeleteHiddenBuffers()|let continue=0'
 
 fun! s:FormatPar(str,w,pad)
-	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
-	for line in split(a:str,"\n",1)
-		let [center,seg]=[line[0:1]==#'\C',[0]]
-		if center
-			let line=line[2:]
+	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	for k in range(len(pars))
+		if pars[k][0]==#'\'
+			let format=pars[k][1]
+   			let pars[k]=pars[k][(format=='\'? 1 : 2):]
+		else
+			let format=''
 		en
-		while seg[-1]<len(line)-a:w
-			let ix=(a:w+strridx(tr(line[seg[-1]:seg[-1]+a:w-1],&brk,spc),' '))%a:w
-			call add(seg,seg[-1]+ix-(line[seg[-1]+ix=~'\s']))
+		let seg=[0]
+		while seg[-1]<len(pars[k])-a:w
+			let ix=(a:w+strridx(tr(pars[k][seg[-1]:seg[-1]+a:w-1],&brk,spc),' '))%a:w
+			call add(seg,seg[-1]+ix-(pars[k][seg[-1]+ix=~'\s']))
 			let ix=seg[-2]+ix+1
-			while line[ix]==" "
+			while pars[k][ix]==" "
 				let ix+=1
 			endwhile
 			call add(seg,ix)
 		endw
-		call add(seg,len(line)-1)
-		let output.=center? pad.join(map(range(len(seg)/2),'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].line[seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad)."\n" : pad.join(map(range(len(seg)/2),'line[seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad)."\n"
+		call add(seg,len(pars[k])-1)
+		let pars[k]=pad.join(map(range(len(seg)/2),format==#'C'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : format==#'R'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : 'pars[k][seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad) 
 	endfor
-	return output
+	return join(pars,"\n")
 endfun
 
 fun! TXB_GotoPos(col,row)
@@ -310,36 +324,35 @@ fun! TXBcmd(...)
 	call setpos('.',[0,line('w0')+pos[1],min([pos[2],winwidth(0)]),0])
 	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 endfun
-let TXBcmds.68="redr
-\\n	let confirm=input(' < Really delete current column (y/n)? ')
-\\n	if confirm==?'y'
-\\n		let ix=get(t:txb.ix,expand('%'),-1)
-\\n		if ix!=-1
-\\n			call s:DeleteCol(ix)
-\\n			wincmd W
-\\n			call s:LoadPlane(t:txb)
-\\n			let msg='col '.ix.' removed'
-\\n		else
-\\n			let msg='Current buffer not in plane; deletion failed'
-\\n		en
-\\n	en"
-let TXBcmds.65="let ix=get(t:txb.ix,expand('%'),-1)
-\\n	if ix!=-1
-\\n	    redr
-\\n		let file=input(' < File to append: ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')
-\\n		if !empty(file)
-\\n			call s:AppendCol(ix,file)
-\\n			call s:LoadPlane(t:txb)
-\\n			let msg='col '.(ix+1).' appended'
-\\n		else
-\\n			let msg='(aborted)'
-\\n		en
-\\n	else
-\\n		let msg='Current buffer not in plane'
-\\n	en"
+let TXBcmds.68="redr\n
+\let confirm=input(' < Really delete current column (y/n)? ')\n
+\if confirm==?'y'\n
+	\let ix=get(t:txb.ix,expand('%'),-1)\n
+	\if ix!=-1\n
+		\call s:DeleteCol(ix)\n
+		\wincmd W\n
+		\call s:LoadPlane(t:txb)\n
+		\let msg='col '.ix.' removed'\n
+	\else\n
+		\let msg='Current buffer not in plane; deletion failed'\n
+	\en\n
+\en"
+let TXBcmds.65="let ix=get(t:txb.ix,expand('%'),-1)\n
+\if ix!=-1\n
+	\redr\n
+	\let file=input(' < File to append (between : ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
+	\if !empty(file)\n
+		\call s:AppendCol(ix,file)\n
+		\call s:LoadPlane(t:txb)\n
+		\let msg='col '.(ix+1).' appended'\n
+	\else\n
+		\let msg='(aborted)'\n
+	\en\n
+\else\n
+	\let msg='Current buffer not in plane'\n
+\en"
 let TXBcmds.27="let continue=0|redr|ec ''"
 let TXBcmds.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
-let TXBcmds.82="call s:LoadPlane(t:txb)|let msg='redrawn'"
 let TXBcmds["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let continue=0|redr"
 let TXBcmds["\<f1>"]='call s:PrintHelp()|let continue=0'
 let TXBcmds.69='call s:EditSettings()|let continue=0'
@@ -361,7 +374,7 @@ fun! TXBstart(...)
 		if curbufix==-1 | tabe | en
 		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
 		call s:LoadPlane(plane)
-	elseif c=="\<f1>"
+	elseif c is "\<f1>"
 		call s:PrintHelp() 
 	else
 		let input=input("> Enter file pattern or type HELP: ", g:TXB_PREVPAT)
@@ -420,15 +433,13 @@ fun! s:CreatePlane(name,...)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
 		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
 		let plane.scrollopt='ver,jump'
-		let plane.gridnames=[]
+		let plane.zoom=min([2,len(s:bksizes)])
 		let [plane.ix,i]=[{},0]
 		let plane.map=[[]]
 		for e in plane.name
 			let [plane.ix[e],i]=[i,i+1]
 		endfor
-		if len(t:txb.gridnames)<plane.len
-			let t:txb.gridnames=s:MakeGridNameList(plane.len+50)
-		en
+		let plane.gridnames=s:MakeGridNameList(plane.len+50)
 		return plane
 	en
 endfun
@@ -437,7 +448,6 @@ fun! s:AppendCol(index,file,...)
 	call insert(t:txb.name,a:file,a:index+1)
 	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
 	call insert(t:txb.exe,'se nowrap scb cole=2',a:index+1)
-	call insert(t:txb.map,[])
 	let t:txb.len=len(t:txb.name)
 	let [t:txb.ix,i]=[{},0]
 	for e in t:txb.name
@@ -451,7 +461,6 @@ fun! s:DeleteCol(index)
 	call remove(t:txb.name,a:index)	
 	call remove(t:txb.size,a:index)	
 	call remove(t:txb.exe,a:index)	
-	call remove(t:txb.map,a:index)	
 	let t:txb.len=len(t:txb.name)
 	let [t:txb.ix,i]=[{},0]
 	for e in t:txb.name
@@ -801,12 +810,16 @@ fun! s:PanRight(N,...)
 		if !nobotresize
 			wincmd b
 			exe 'vert res+'.N
+			if virtcol('.')!=wincol()
+				norm! 0
+			en
 			wincmd t	
 			if winwidth(1)!=wf
 				exe 'vert res'.wf
 			en
+		else
+			wincmd t
 		en
-		wincmd t
 		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 		exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 		while winwidth(winnr('$'))>=t:txb.size[bcol]+2
