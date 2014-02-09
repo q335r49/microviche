@@ -65,7 +65,7 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CChangelog:
-		\\n1.4.6  - added 'm' in map mode to toggle display between label / cell
+		\\n1.4.7  - removed map display cell
 		\\n1.4.5  - map label display initial
 		\\n1.4.4  - make sure xterm dragging doesn't interefere with clicking
 		\\n1.4.3  - divide by zero bug in zoomlevel
@@ -296,11 +296,7 @@ endfun
 let s:bksizes=[0,[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
 let TXBdoCmdExe.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
 let s:pad=repeat(' ',400)
-fun! s:getMapDispCell(map,w,h,H)
-	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
-	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
-endfun
-fun! s:getMapDispLabel(map,w,h,H)          
+fun! s:getMapDisp(map,w,h,H)          
 	let hlist_prototype=repeat([''],a:h)
 	let mapl=len(a:map)
 	let strarray=[]
@@ -312,11 +308,11 @@ fun! s:getMapDispLabel(map,w,h,H)
 				let row=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))
 				let [val,ix]=[row/100,row%100]
 				if val<j*a:w
-					let occ[ix].=s:pad[:j*a:w-val-1].'~'.a:map[j][i]
+					let occ[ix].=s:pad[:j*a:w-val-1].'^ '.a:map[j][i]
 				elseif val>=j*a:w+a:w
-					let occ[ix]=occ[ix][:j*a:w+a:w-2].'~'.a:map[j][i]
+					let occ[ix]=occ[ix][:j*a:w+a:w-2].'^ '.a:map[j][i]
 				else            
-					let occ[ix].='~'.a:map[j][i]
+					let occ[ix].='^ '.a:map[j][i]
 				en
 			en
 		endfor
@@ -343,7 +339,7 @@ fun! s:navMapKeyHandler(c)
 			if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
         		let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
 				let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-				let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 				redr!
 				call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
 				echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.s:ms.msg
@@ -359,7 +355,7 @@ fun! s:navMapKeyHandler(c)
 					if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
 						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-						let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 						redr!
 						call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
 						echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).s:ms.msg
@@ -379,7 +375,7 @@ fun! s:navMapKeyHandler(c)
 					let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 					if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-						let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 					en
 					redr!
 					call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
@@ -395,7 +391,7 @@ fun! s:navMapKeyHandler(c)
 			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
 				let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-				let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 			en
 			redr!
 			call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
@@ -417,7 +413,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms.roff=max([s:ms.r-s:ms.rows/2,0])
 	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
-   	let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+   	let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 	call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
 	echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).(s:ms.msg)
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
@@ -432,7 +428,6 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\ng <cr>      Goto block (and exit map)
 \\n+ -         Increase / decrease block size
 \\nI D         Insert / delete column
-\\nm           Toggle display mode between cell / label
 \\nq           Quit
 \\n\\CMouse:
 \\ndoubleclick             Goto block
@@ -440,7 +435,6 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\ntop left corner click   Quit
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"j":"let s:ms.r+=1",
-\"m":"let t:txb.mapdisplaymode=t:txb.mapdisplaymode==#'s:getMapDispLabel'? 's:getMapDispCell' : 's:getMapDispLabel'|let s:ms.redr=1",
 \"q":"let s:ms.continue=0",
 \"jj":"let s:ms.r+=2",
 \"jjj":"let s:ms.r+=3",
@@ -831,9 +825,6 @@ fun! <SID>initPlane(...)
 	if c==13 || c==10
 		if curbufix==-1 | tabe | en
 		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
-		if !exists('plane.mapdisplaymode')
-			let plane.mapdisplaymode="s:getMapDispLabel"
-		en
 		call TXBload(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
@@ -891,7 +882,6 @@ fun! s:makePlane(name,...)
 		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
 		let plane.scrollopt='ver,jump'
 		let plane.zoom=min([2,len(s:bksizes)])
-		let plane.mapdisplaymode="s:getMapDispLabel"
 		let [plane.ix,i]=[{},0]
 		let plane.map=[[]]
 		for e in plane.name
