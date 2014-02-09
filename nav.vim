@@ -833,6 +833,9 @@ fun! <SID>initPlane(...)
 	if c==13 || c==10
 		if curbufix==-1 | tabe | en
 		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
+		if !exists('plane.mapdisplaymode')
+			let plane.mapdisplaymode="s:getMapDispLabel"
+		en
 		call TXBload(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
