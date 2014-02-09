@@ -20,7 +20,7 @@ let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
 \\n    hjklyubn  - pan small grid
 \\n    HJKLYUBN  - pan big grid
 \\n    r         - redraw
-\\n    .         - Snap to big grid
+\\n    .         - Snap to the big grid cursor is in
 \\n    ^H^J^K^L
 \\n    ^Y^U^B^N  - cursor to edges and corners of current big grid
 \\n    D A E     - Delete split / Append split / Edit split settings
@@ -57,6 +57,7 @@ let helpmsg="\n\n1.2.2 - Minor bug where the rightmost split will overshift on P
 \\n1.2.5 - Echo confirmation for various commands
 \\n1.2.6 - Ctrl-YUBNHJKL jumps to grid corners
 \\n1.2.7 - Minor updates to grid corners
+\\n1.2.8 - Snap to grid now snaps to the grid the cursor is currently in
 \\n\n\\CUpcoming
 \\n1.3.0 - Mouse panning for map
 \\n"
@@ -135,6 +136,7 @@ let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c
 	\let a:array[c][r]=input\n
 	\let redr=1\n
 \en\n"
+let s:mapdict.105=s:mapdict.99
 let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|return"
 let s:mapdict.13=s:mapdict.103
 let s:mapdict.43='let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
@@ -354,14 +356,14 @@ fun! s:GridCorners(dx,dy)
 	exe win==-1? 'return 100' : win."wincmd w"
 	exe eval(eval)
 endfun
-	let TXBcmds.25='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,-1)'
-	let TXBcmds.21='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,-1)'
-	let TXBcmds.2 ='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,1)'
-	let TXBcmds.14='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,1)'
-	let TXBcmds.8 ='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,0)'
-	let TXBcmds.12='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,0)'
-	let TXBcmds.10='let [continue,restorepos]=[0,0]|cal s:GridCorners(0,1)'
-	let TXBcmds.11='let [continue,restorepos]=[0,0]|cal s:GridCorners(0,-1)'
+	let TXBcmds.25='cal s:GridCorners(-1,-1)|let possav=s:SaveCursPos()'
+	let TXBcmds.21='cal s:GridCorners( 1,-1)|let possav=s:SaveCursPos()'
+	let TXBcmds.2 ='cal s:GridCorners(-1, 1)|let possav=s:SaveCursPos()'
+	let TXBcmds.14='cal s:GridCorners( 1, 1)|let possav=s:SaveCursPos()'
+	let TXBcmds.8 ='cal s:GridCorners(-1, 0)|let possav=s:SaveCursPos()'
+	let TXBcmds.12='cal s:GridCorners( 1, 0)|let possav=s:SaveCursPos()'
+	let TXBcmds.10='cal s:GridCorners( 0, 1)|let possav=s:SaveCursPos()'
+	let TXBcmds.11='cal s:GridCorners( 0,-1)|let possav=s:SaveCursPos()'
 
 fun! s:GetGrid()
 	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
@@ -373,23 +375,29 @@ fun! s:SnapToGrid()
 	let [sd,dir]=(ix%s:bgridS>s:bgridS/2 && ix+s:bgridS-ix%s:bgridS<t:txb.len-1)? [ix+s:bgridS-ix%s:bgridS,1] : [ix-ix%s:bgridS,-1]
 	call s:BlockPan(sd,l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL,dir)
 endfun
-	let TXBcmds.46='call s:SnapToGrid()|let continue=0'
+fun! s:SnapToCursorGrid()
+	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
+ 	let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]>=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
+	call s:BlockPan(x,l0-l0%s:bgridL,dir)
+endfun
+	let TXBcmds.46='call s:SnapToCursorGrid()|let continue=0'
 
 fun! TXBcmd(...)
 	let [y,continue,msg]=[line('w0'),1,'']
-	let possav=[bufnr('%')]+getpos('.')[1:]
-	let restorepos=1
+	let possav=s:SaveCursPos()
 	if a:0 | exe get(g:TXBcmds,a:1,'let msg="Press f1 for help"') | en
 	while continue
+		call s:RestoreCursPos(possav)
+		let possav=s:SaveCursPos()
+		let matchID=matchadd("Visual",'\%#')
 		let s0=t:txb.ix[bufname(winbufnr(1))]
 		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
 		let [msg,c]=['',getchar()]
+		call matchdelete(matchID)
 		exe get(g:TXBcmds,c,'let msg="Press f1 for help"')
 	endwhile
     let s0=t:txb.ix[bufname(winbufnr(1))]
-	if restorepos
-		call s:RestorePos(possav)
-	en
+   	call s:RestoreCursPos(possav)
 	redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
 endfun
 let TXBcmds.68="redr\n
@@ -684,7 +692,10 @@ fun! TXBmousePanWin()
 	exe "norm! ".possav[3]."|"
 endfun
 
-fun! s:RestorePos(possav)
+fun! s:SaveCursPos()
+	return [bufnr('%')]+getpos('.')[1:]
+endfun
+fun! s:RestoreCursPos(possav)
 	let win=bufwinnr(a:possav[0])
 	if win==-1
 		let ix=[get(t:txb.ix,bufname(a:possav[0]),-1),get(t:txb.ix,bufname(''),-1)]
@@ -744,7 +755,7 @@ fun! TXBmouseNav()
 	en
 	let s0=t:txb.ix[bufname(winbufnr(1))]
 	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
-	call s:RestorePos(possav)
+	call s:RestoreCursPos(possav)
 endfun
 
 fun! s:PanLeft(N,...)
