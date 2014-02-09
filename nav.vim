@@ -73,12 +73,26 @@ fun! s:PrintHelp()
 	en
 endfun
 
-let map=map(range(9),'map(range(v:key),v:key.".v:key.\"-\".RAND()")')
-
 let s:pad=repeat(' ',100)
 fun! s:GetMapDisp(map,w,h,H)
-	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
-	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"[''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l,''.v:val.''*l*a:h+(a:w)*".v:val."+a:w-1+v:val*l]")'')'),'w':(a:w)}
+	let print=[]
+	let pos=0
+	let map={'w':(a:w),'h':(a:h)}
+	let s=map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]')
+	let map.hlmap=map(range(a:H),'range(len(a:map))')
+	for i in range(a:H)
+		for j in range(a:h)
+			call add(print,join(map(map(range(len(a:map)),'len(a:map[v:val])>i? a:map[v:val][i] : "[NUL]"'),'v:val[s[j][0] : s[j][1]].s:pad[1:(s[j][1]>=len(v:val)? (s[j][0]>=len(v:val)? a:w : a:w-len(v:val)+s[j][0]) : 0)]'))."\n")
+		endfor
+		let l=len(print[-1])
+		for k in range(len(a:map))
+			let map.hlmap[i][k]=map(range(a:h),"[pos+(a:w+1)*k+v:val*l,pos+(a:w+1)*k+a:w-1+v:val*l]")
+		endfor
+		let pos+=len(print[-1])*a:h+1
+		call add(print,"\n")
+	endfor
+	let map.str=join(print,"")
+	return map
 endfun
 
 fun! s:PrintHL(disp,r,c,trailer)
