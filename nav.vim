@@ -1,39 +1,51 @@
 "Global hotkey: press this key anywhere to begin
 	let txb_key='<f10>'
-"Block panning speed: set lower (>=1) for a smoother animation
-	let s:bkxspd=5
-	let s:bkyspd=5
-"Block dimensions. A small block is 1 column and s:bkylen rows. A big block is s:bkxlen columns and s:bbkylen rows.
-"Blocks are always aligned. Ie, the first block will always start at column, line 1, etc.
-	let s:bkxlen=3
-	let s:bkylen=15
-	let s:bbkylen=45
-
+"Grid panning speed: reduce (>=1) for a smoother animation
+	let s:xspeed=5
+	let s:yspeed=5
+"Grid dimensions. A small grid is 1 split and s:sgridL rows, a big grid is s:bgridW splits and s:bgridL rows.
+	let s:sgridL=15
+	let s:bgridW=3
+	let s:bgridL=45
 
 let txb_onloadcol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
 let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
-let s:bknames=map(range(65,90),'nr2char(v:val)')
+
+let s:bknames=[]
+fun! s:MakeGridNamesArray(size)
+	let alpha=map(range(65,90),'nr2char(v:val)')
+	let powers=[26,26*26,26*26*26,26*26*26]
+	let array1=map(range(powers[0]),'alpha[v:val%26]')
+	if a:size<=powers[0]
+		return array1
+	elseif a:size<=powers[0]+powers[1]
+		return extend(array1,map(range(a:size-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+   	else
+		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+		return extend(array1,map(range(a:size-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+	en
+endfun
 
 fun! s:PrintHelp()
 	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 11, 2013 q335r49@gmail.com\n
 	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
 	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
 	\\n    f1        - show this message
-	\\n    R r       - Redraw / redraw and go to normal mode
-	\\n    hjklyubn  - 'pan block': to next col, to line 0,15,30..
-	\\n    HJKLYUBN  - 'pan big block': to col 0,3,6.. to line 0,45,90..
+	\\n    R r       - Redraw / redraw and return to normal mode
+	\\n    hjkl      - cardinal motions along grid (HJKL for big grid)
+	\\n    yubn      - diagonal motions along grid (YUBN for big grid)
 	\\n    tab space - Back / foward in changelist
-	\\n    D A       - Delete / append column
-	\\n    g         - Goto Block (eg, 'e3')
+	\\n    D A       - Delete / append split
+	\\n    g         - Goto grid (eg, 'e3')
 	\\n    S         - Scrollbind toggle
 	\\n    s         - 'slide' to bookmark
-	\\n    E         - Edit column settings\n
-	\\n    Navigating with the 'roguelike keys' (hjklyubn) will navigate the text by 'blocks' which may help with spatial organzation. You can think of a block as a page since panning by blocks will always align the top corner to a column edge and to a line number divisible by 15 or 45. Also, block panning will not 'wrap': panning past col 0 won't return one to the last col.\n
-	\\n    If the file list includes the current buffer loading is the same as redrawing. So you can restore your previous position by pressing ".g:txb_key." in that case. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed) between sessions.\n
-	\\n    There are a few known limitations: scrollbind desyncs if scrolling in a much longer column (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue)"
+	\\n    E         - Edit split settings\n
+	\\n    The vi keys (hjkl, yubn for diagonals) will navigate the text by grid which provides a kind of spatial guide. Panning by small grid snaps the top corner to a split edge and a line multiple of ".s:sgridL.". Panning by big grid snaps the top corner to a split multiple of ".s:bgridW." and to a line multiple by ".s:bgridL.".\n
+	\\n    If the file list includes the current buffer, loading will redraw the plane there. This allows you to restore your previous position. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed on a new vim session).\n
+	\\n    There are a few known limitations: scrollbind desyncs if scrolling in a much longer split (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	redr|ec input(FormatPar(helpmsg,width,(&columns-width)/2))
 endfun
@@ -75,9 +87,9 @@ endfun
 
 fun! s:BlockPan(dx,y)
 	let cury=line('w0')
-	let y=a:y>cury?  (a:y-cury-1)/s:bkylen+1 : a:y<cury? -(cury-a:y-1)/s:bkylen-1 : 0
-   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen : 'let y_dest=!y? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
-	let pan_y=(y>=0? 'let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest' : 'let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest')."\n
+	let y=a:y>cury?  (a:y-cury-1)/s:sgridL+1 : a:y<cury? -(cury-a:y-1)/s:sgridL-1 : 0
+   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:sgridL.'*'.s:sgridL.'+'.s:sgridL : 'let y_dest=!y? cury : cury>'.s:sgridL.'? (cury-1)/'.s:sgridL.'*'.s:sgridL.' : 1'
+	let pan_y=(y>=0? 'let cury=cury+'.s:yspeed.'<y_dest? cury+'.s:yspeed.' : y_dest' : 'let cury=cury-'.s:yspeed.'>y_dest? cury-'.s:yspeed.' : y_dest')."\n
 		\if cury>line('$')\n
 			\for i in range(winnr('$')-1)\n
 				\wincmd w\n
@@ -95,8 +107,8 @@ fun! s:BlockPan(dx,y)
 		while i<a:dx
 			exe update_ydest
 			let buf0=winbufnr(1)
-			while winwidth(1)>s:bkxspd
-				call PanRight(s:bkxspd)
+			while winwidth(1)>s:xspeed
+				call PanRight(s:xspeed)
 				exe pan_y
 				redr
 			endwhile
@@ -123,8 +135,8 @@ fun! s:BlockPan(dx,y)
 				call s:PanLeft(4)
 				let buf0=winbufnr(1)
 			en
-			while winwidth(1)<t:txb.size[ix]-s:bkxspd
-				call s:PanLeft(s:bkxspd)
+			while winwidth(1)<t:txb.size[ix]-s:xspeed
+				call s:PanLeft(s:xspeed)
 				exe pan_y
 				redr
 			endwhile
@@ -149,8 +161,8 @@ fun! s:BlockPan(dx,y)
 	endwhile
 endfun
 let s:keydict={}
-let s:Y1='let y=y/s:bkylen*s:bkylen+s:bkylen|'
-let s:Ym1='let y=max([1,y/s:bkylen*s:bkylen-s:bkylen])|'
+let s:Y1='let y=y/s:sgridL*s:sgridL+s:sgridL|'
+let s:Ym1='let y=max([1,y/s:sgridL*s:sgridL-s:sgridL])|'
 	let s:keydict.104='cal s:BlockPan(-1,y)'
 	let s:keydict.106=s:Y1.'cal s:BlockPan(0,y)'
 	let s:keydict.107=s:Ym1.'cal s:BlockPan(0,y)'
@@ -159,11 +171,11 @@ let s:Ym1='let y=max([1,y/s:bkylen*s:bkylen-s:bkylen])|'
 	let s:keydict.117=s:Ym1.'cal s:BlockPan(1,y)'
 	let s:keydict.98 =s:Y1.'cal s:BlockPan(-1,y)'
 	let s:keydict.110=s:Y1.'cal s:BlockPan(1,y)'
-let s:DX1='3-get(t:txb.ix,bufname(winbufnr(1)),0)%s:bkxlen'
+let s:DX1='3-get(t:txb.ix,bufname(winbufnr(1)),0)%s:bgridW'
 let s:MAP1=[-3,-1,-2]
-let s:DXm1='s:MAP1[get(t:txb.ix,bufname(winbufnr(1)),0)%s:bkxlen]'
-let s:Y1='let y=y/s:bbkylen*s:bbkylen+s:bbkylen|'
-let s:Ym1='let y=max([1,y/s:bbkylen*s:bbkylen-s:bbkylen])|'
+let s:DXm1='s:MAP1[get(t:txb.ix,bufname(winbufnr(1)),0)%s:bgridW]'
+let s:Y1='let y=y/s:bgridL*s:bgridL+s:bgridL|'
+let s:Ym1='let y=max([1,y/s:bgridL*s:bgridL-s:bgridL])|'
 	let s:keydict.72='cal s:BlockPan('.s:DXm1.',y)'
 	let s:keydict.74=s:Y1.'cal s:BlockPan(0,y)'
 	let s:keydict.75=s:Ym1.'cal s:BlockPan(0,y)'
@@ -174,18 +186,18 @@ let s:Ym1='let y=max([1,y/s:bbkylen*s:bbkylen-s:bbkylen])|'
 	let s:keydict.78=s:Y1.'cal s:BigBlockPan('.s:DX1.',y)'
 unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
-fun! TXBcmd()
+fun! TXBcmd(...)
 	let [y,continue,msg]=[line('w0'),1,'']
+	if a:0 | exe get(s:keydict,a:1,'let msg="Press f1 for help"') | en
 	while continue
-		let cucsav=&cuc
-		se cuc
-		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/s:bkxlen].'-'.(line('w0')/s:bbkylen) : msg
-		let msg=''
-		let c=getchar()
-		let &cuc=cucsav
+		let [cuc,&cuc]=[&cuc,1]
+		let s0=t:txb.ix[bufname(winbufnr(1))]
+		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? s:bknames[v:val/s:bgridW] : "."')).' | '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
+		let [msg,c,&cuc]=['',getchar(),cuc]
 		exe get(s:keydict,c,'let msg="Press f1 for help"')
 	endwhile
-	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
+	let s0=t:txb.ix[bufname(winbufnr(1))]
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? s:bknames[v:val/s:bgridW] : "."')).' / '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 endfun
 let s:keydict.68="redr
 \\n	let confirm=input(' < Really delete current column (y/n)? ')
@@ -200,19 +212,19 @@ let s:keydict.68="redr
 \\n			let msg='Current buffer not in plane; deletion failed'
 \\n		en
 \\n	en"
-let s:keydict.65="let ix=get(t:txb.ix,bufname(winbufnr(0)),-1)
+let s:keydict.65="let ix=get(t:txb.ix,bufname('%'),-1)
 \\n	if ix!=-1
 \\n	    redr
-\\n		let file=input(' < File to append: ','','file')
+\\n		let file=input(' < File to append: ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')
 \\n		if !empty(file)
 \\n			call s:AppendCol(ix,file)
 \\n			call s:LoadPlane(t:txb)
 \\n			let msg='col '.(ix+1).' appended'
 \\n		else
-\\n			let msg='aborted'
+\\n			let msg='(aborted)'
 \\n		en
 \\n	else
-\\n		let msg='Current buffer not in plane; append failed'
+\\n		let msg='Current buffer not in plane'
 \\n	en"
 let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
 let s:keydict.27="let continue=0|redr|ec ''"
@@ -445,6 +457,9 @@ fun! s:CreatePlane(name,...)
 		for e in plane.name
 			let [plane.ix[e],i]=[i,i+1]
 		endfor
+		if len(s:bknames)<plane.len
+			let s:bknames=s:MakeGridNamesArray(plane.len+50)
+		en
 		return plane
 	en
 endfun
@@ -458,6 +473,9 @@ fun! s:AppendCol(index,file,...)
 	for e in t:txb.name
 		let [t:txb.ix[e],i]=[i,i+1]
 	endfor
+	if len(s:bknames)<t:txb.len
+		let s:bknames=s:MakeGridNamesArray(t:txb.len+50)
+	endif
 endfun
 fun! s:DeleteCol(index)
 	call remove(t:txb.name,a:index)	
@@ -569,6 +587,9 @@ fun! s:LoadPlane(...)
 	catch
 	endtry
    	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
+	if len(s:bknames)<t:txb.len
+		let s:bknames=s:MakeGridNamesArray(t:txb.len+50)
+	en
 endfun
 
 let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
@@ -613,7 +634,8 @@ fun! TXBmouseNav()
 			en
 			let [b0,wrap]=[winbufnr(0),&wrap]
 			let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
-			let ecstr=&ls? ' '.v:mouse_lnum.' , '.v:mouse_col : join(map(range(1,winnr('$')),'v:val==w0? "{{".bufname(winbufnr(v:val))."}}" : bufname(winbufnr(v:val))'),' ')
+			let s0=t:txb.ix[bufname(winbufnr(1))]
+			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? s:bknames[v:val/s:bgridW] : "."')).' [ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 		else
 			if wrap
 				exe "norm! \<leftmouse>"
@@ -632,7 +654,8 @@ fun! TXBmouseNav()
 			let c=getchar()
 		endwhile
 	endwhile
-	redr|ec &ls? ' '.v:mouse_lnum.' , '.v:mouse_col : join(map(range(1,winnr('$')),'v:val==w0? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')
+	let s0=t:txb.ix[bufname(winbufnr(1))]
+	let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridW)? s:bknames[v:val/s:bgridW] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 endfun
 
 fun! s:PanLeft(N,...)
