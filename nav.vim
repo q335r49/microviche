@@ -66,6 +66,7 @@ fun! s:printHelp()
 		\\n\\CRoadmap:
 		\\n1.5    - Prettier formatting / syntax for map\n
 		\\n\\CChangelog:
+		\\n1.4.2  - map drag for ttymouse=xterm
 		\\n1.4.1  - Map panning speed matches zoom speed
 		\\n1.4.0  - Mouse support for map
 		\\n1.3.17 - Code refactor, reduce global var 'pollution'
@@ -327,24 +328,37 @@ fun! s:navMapKeyHandler(c)
 				let [&ch,&more,&ls,&stal]=s:ms.settings
 				return
 			elseif s:ms.prevcoord[0]==1
-				let s:ms.r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:bksizes[t:txb.zoom][0]+s:ms.roff
-				let s:ms.c=(g:TXBmsmsg[1]-1)/s:bksizes[t:txb.zoom][1]+s:ms.coff
-				if [s:ms.r,s:ms.c]==s:ms.prevclick
-					let [&ch,&more,&ls,&stal]=s:ms.settings
-					cal s:gotoPos(s:ms.c,s:bgridL*s:ms.r)
-					return
+				if &ttymouse=='xterm'
+					if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
+						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						redr!
+						call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+						echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.s:ms.msg
+						let s:ms.msg=''
+					en
+					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
+				else
+					let s:ms.r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:bksizes[t:txb.zoom][0]+s:ms.roff
+					let s:ms.c=(g:TXBmsmsg[1]-1)/s:bksizes[t:txb.zoom][1]+s:ms.coff
+					if [s:ms.r,s:ms.c]==s:ms.prevclick
+						let [&ch,&more,&ls,&stal]=s:ms.settings
+						cal s:gotoPos(s:ms.c,s:bgridL*s:ms.r)
+						return
+					en
+					let s:ms.prevclick=[s:ms.r,s:ms.c]
+					let s:ms.prevcoord=[0,0,0]
+					let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
+					if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
+						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+					en
+					redr!
+					call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+					echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
+					let s:ms.msg=''
 				en
-				let s:ms.prevclick=[s:ms.r,s:ms.c]
-				let s:ms.prevcoord=[0,0,0]
-				let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
-				if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
-					let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-					let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
-				en
-				redr!
-				call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
-				echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
-				let s:ms.msg=''
 			en
 		en
 		call <SID>getchar()
