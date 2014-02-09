@@ -64,10 +64,8 @@ fun! s:printHelp()
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	elseif input==?'c'
 		let helpmsg="\n
-		\\n\\CRoadmap:
-		\\n1.5    - Prettier formatting / syntax for map\n
 		\\n\\CChangelog:
-		\\n1.4.6  - added 'm' in map mode to toggle display
+		\\n1.4.6  - added 'm' in map mode to toggle display between label / cell
 		\\n1.4.5  - map label display initial
 		\\n1.4.4  - make sure xterm dragging doesn't interefere with clicking
 		\\n1.4.3  - divide by zero bug in zoomlevel
@@ -314,11 +312,11 @@ fun! s:getMapDispLabel(map,w,h,H)
 				let row=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))
 				let [val,ix]=[row/100,row%100]
 				if val<j*a:w
-					let occ[ix].=s:pad[:j*a:w-val-1].'+'.a:map[j][i]
+					let occ[ix].=s:pad[:j*a:w-val-1].'~'.a:map[j][i]
 				elseif val>=j*a:w+a:w
-					let occ[ix]=occ[ix][:j*a:w+a:w-2].'+'.a:map[j][i]
-				else
-					let occ[ix].='+'.a:map[j][i]
+					let occ[ix]=occ[ix][:j*a:w+a:w-2].'~'.a:map[j][i]
+				else            
+					let occ[ix].='~'.a:map[j][i]
 				en
 			en
 		endfor
@@ -364,7 +362,7 @@ fun! s:navMapKeyHandler(c)
 						let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 						redr!
 						call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
-						echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.s:ms.msg
+						echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).s:ms.msg
 						let s:ms.msg=''
 					en
 					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
@@ -381,11 +379,11 @@ fun! s:navMapKeyHandler(c)
 					let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 					if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-						let s:ms.disp=t:txb.mapdisplaymode(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 					en
 					redr!
 					call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
-					echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
+					echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).(s:ms.msg)
 					let s:ms.msg=''
 				en
 			en
@@ -401,7 +399,7 @@ fun! s:navMapKeyHandler(c)
 			en
 			redr!
 			call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
-			echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
+			echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).(s:ms.msg)
 			let s:ms.msg=''
 			call <SID>getchar()
 		elseif s:ms.continue==2
@@ -421,7 +419,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let [&more,&ls,&stal]=[0,0,0]
    	let s:ms.disp={t:txb.mapdisplaymode}(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 	call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
-	echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
+	echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).(s:ms.msg)
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call <SID>getchar()
 endfun
