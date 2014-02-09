@@ -66,6 +66,7 @@ fun! s:printHelp()
 		\\n\\CRoadmap:
 		\\n1.5    - Prettier formatting / syntax for map\n
 		\\n\\CChangelog:
+		\\n1.4.4  - make sure xterm dragging doesn't interefere with clicking
 		\\n1.4.3  - divide by zero bug in zoomlevel
 		\\n1.4.2  - map drag for ttymouse=xterm
 		\\n1.4.1  - Map panning speed matches zoom speed
@@ -329,7 +330,7 @@ fun! s:navMapKeyHandler(c)
 				let [&ch,&more,&ls,&stal]=s:ms.settings
 				return
 			elseif s:ms.prevcoord[0]==1
-				if &ttymouse=='xterm'
+				if &ttymouse=='xterm' && s:ms.prevcoord[1]!=g:TXBmsmsg[1] && s:ms.prevcoord[2]!=g:TXBmsmsg[2] 
 					if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
 						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
@@ -364,7 +365,7 @@ fun! s:navMapKeyHandler(c)
 		en
 		call <SID>getchar()
 	else
-		exe get(s:mapdict,a:c,'let s:ms.msg="   Press f1 for help"')
+		exe get(s:mapdict,a:c,'let s:ms.msg="   Press f1 for help or q to quit"')
 		if s:ms.continue==1
 			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
