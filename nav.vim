@@ -49,7 +49,8 @@ cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 elseif input==?'c'
 let helpmsg="\n\n\\CChangelog\n
 \\n1.2.2 - Minor bug where the rightmost split will overshift on PanRight
-\\n1.2.3 - FormatPar for help dialogs now has option to align right"
+\\n1.2.3 - FormatPar for help dialogs now has option to align right
+\\n1.2.4 - Minor bug with map when horizontal block size divides columns"
 cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 en
 endfun
@@ -90,7 +91,7 @@ fun! s:PrintMapDisp(disp,r,c)
 	echon a:disp.str[ticker :]
 endfun
 fun! s:NavigateMap(array,c_ini,r_ini)
-	let [msg,settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=['',[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0]).' ',1,1]
+	let [msg,settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=['',[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0]).' ',1,1]
 	let [roff,coff]=[max([r-rows/2,0]),max([c-cols/2,0])]
 	while continue
 		let [roffn,coffn]=[r<roff? r : r>=roff+rows? r-rows+1 : roff,c<coff? c : c>=coff+cols? c-cols+1 : coff]
