@@ -13,6 +13,7 @@
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
 	let s:panSpeedMultiplier=2
 "Explanation of changed settings
+
 	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
 	se noequalalways                  "Needed for correct panning [Do not change]
 	se winwidth=1                     "Needed for correct panning [Do not change]
@@ -294,10 +295,32 @@ endfun
 
 let s:bksizes=[0,[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
 let TXBdoCmdExe.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
-let s:pad=repeat(' ',100)
+let s:pad=repeat(' ',400)
 fun! s:getMapDisp(map,w,h,H)
+	let occupied_prototype=repeat([''],a:h)
+	let str=''
+	let mapl=len(a:map)
+	let strarray=[]
+	for i in range(a:H)
+		let occ=copy(occupied_prototype)
+		for j in range(mapl)
+			if !empty(a:map[j][i])
+				let row=min(map(copy(occupied_prototype),'len(occ[v:key])*100+v:key'))
+				let [val,ix]=[row/100,row%100]
+				if val<j*a:w
+					let occ[ix].=s:pad[:j*a:w-val-1].'+'.a:map[j][i]
+				elseif val>=j*a:w+a:w
+					let occ[ix]=occ[ix][:j*a:w+a:w-2].'+'.a:map[j][i]
+				else
+					let occ[ix].='+'.a:map[j][i]
+				en
+			en
+		endfor
+		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
+	endfor
 	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
-	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
+	let g:disp={'str':join(strarray,''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
+	return g:disp
 endfun
 fun! s:printMapDisp(disp,r,c)
 	let ticker=0
