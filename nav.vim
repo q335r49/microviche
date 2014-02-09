@@ -1,19 +1,26 @@
-"Global hotkey: press <f3> to begin
-let txb_key='<f10>'
+"Global hotkey: press this key anywhere to begin
+	let txb_key='<f10>'
+"Block panning speed: set lower (>=1) for a smoother animation
+	let s:bkxspd=5
+	let s:bkyspd=5
+"Block height: Big block size will always be 3*s:bkylen
+	let s:bkylen=15
 
 let txb_onloadcol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
 nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
 let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
+let s:bknames=map(range(65,90),'nr2char(v:val)')
 
 fun! s:PrintHelp()
-	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 4, 2013 q335r49@gmail.com\n
+	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 6, 2013 q335r49@gmail.com\n
 	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
 	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
 	\\n    f1        - show this message
 	\\n    R r       - Redraw / redraw and go to normal mode
-	\\n    hjklyubn  - pan
+	\\n    hjklyubn  - 'pan block': to next col, to line 0,15,30..
+	\\n    HJKLYUBN  - 'pan big block': to col 0,3,6.. to line 0,45,90..
 	\\n    tab space - Back / foward in changelist
 	\\n    D A       - Delete / append column
 	\\n    g         - goto textlink (of the form file@line)
@@ -21,8 +28,9 @@ fun! s:PrintHelp()
 	\\n    S         - Scrollbind toggle
 	\\n    s         - 'slide' to bookmark
 	\\n    E         - Edit column settings\n
-	\\n    If the file list includes the current buffer loading is the same as redrawing. So you can restore your previous position by pressing ".g:txb_key." in that case. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed) between sessions.
-	\\n\n    There are a few known limitations: scrollbind desyncs if scrolling in a much longer column (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue)"
+	\\n    Navigating with the 'roguelike keys' (hjklyubn) will navigate the text by 'blocks' which may help with spatial organzation. You can think of a block as a page since panning by blocks will always align the top corner to a column edge and to a line number divisible by 15 or 45. Also, block panning will not 'wrap': panning past col 0 won't return one to the last col.\n
+	\\n    If the file list includes the current buffer loading is the same as redrawing. So you can restore your previous position by pressing ".g:txb_key." in that case. If you have viminfo set to save global variables (:set viminfo+=!), the previous plane will automatically be saved (suggested when the hotkey is pressed) between sessions.\n
+	\\n    There are a few known limitations: scrollbind desyncs if scrolling in a much longer column (press ".g:txb_key."r to redraw). Mouse events past column 253 go undetected. Horizontal splits are not supported and may interfere with redrawing. And for now, files are assumed to be in the current directory, so change to that directory beforehand (:cd ~/SomeDir). Other directories should work but this hasn't been thoroughly tested.\n\n\\C(Press enter to continue)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	redr|ec input(FormatPar(helpmsg,width,(&columns-width)/2))
 endfun
@@ -41,43 +49,24 @@ fun! s:Pan(dx,y)
 	return line('w0')
 endfun
 
-let s:bkxspd=5
-let s:bkyspd=5
-let s:bkylen=15
+let alphab=map(range(65,90),'nr2char(v:val)')+[' ']
 fun! s:BigBlockPan(dx,dy)
 	let s:unreachable_ydestination=0
-	let y0=line('w0')
-	let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
+	let [x0,y0]=[get(t:txb.ix,bufname(winbufnr(1)),-1),line('w0')]
 	if x0==-1
 		throw bufname(winbufnr(1))." not contained in current plane."
 	en
-	if a:dx<0
-		let xd=!x0? 0 : (x0-1)/3*3
-	elseif a:dx>0
-		let xd=min([(t:txb.len-1)/3*3,x0/3*3+3])
-	else
-		let xd=x0
-	en
-	if a:dy<0
-		let yd=y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])
-	elseif a:dy>0
-		let yd=y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen
-	else
-		let yd=y0
-	en
+	let xd=a:dx<0? (!x0? 0 : (x0-1)/3*3) : a:dx>0? min([(t:txb.len-1)/3*3,x0/3*3+3]) : x0
+	let yd=a:dy<0? (y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])) : a:dy>0? y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen : y0
 	while y0!=yd || x0!=xd
 		call s:BlockPan(x0>xd? -1 : x0<xd? 1 : 0,y0>yd? -1 : y0<yd? 1 : 0)
 		let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
 		if x0==-1
 			throw bufname(winbufnr(1))." not contained in current plane."
 		en
-		if x0!=xd || !s:unreachable_ydestination
-			let y0=line('w0')
-		else
-			let s:unreachable_ydestination=0
-			let y0=yd
-		en
+		let y0=x0!=xd || !s:unreachable_ydestination? line('w0') : yd
 	endwhile
+	return s:bknames[x0/3].'-'.(line('w0')/45)
 endfun
 fun! s:BlockPan(dx,dy)
 	let cury=line('w0')
@@ -128,7 +117,7 @@ fun! s:BlockPan(dx,dy)
 			if ix==-1
 				throw bufname(buf0)." not contained in current plane."
 			en
-			if winwidth(1)>=t:txb.size[ix]
+			if ix && winwidth(1)>=t:txb.size[ix]
 				call s:PanLeft(4)
 				let buf0=winbufnr(1)
 			en
@@ -158,21 +147,21 @@ fun! s:BlockPan(dx,dy)
 endfun
 let s:keydict={}
 let s:keydict.104='cal s:BlockPan(-1,0)'
-let s:keydict.72 ='cal s:BigBlockPan(-1,0)'
+let s:keydict.72 ='let msg=s:BigBlockPan(-1,0)'
 let s:keydict.106='cal s:BlockPan(0,1)'
-let s:keydict.74 ='cal s:BigBlockPan(0,1)'
+let s:keydict.74 ='let msg=s:BigBlockPan(0,1)'
 let s:keydict.107='cal s:BlockPan(0,-1)'
-let s:keydict.75 ='cal s:BigBlockPan(0,-1)'
+let s:keydict.75 ='let msg=s:BigBlockPan(0,-1)'
 let s:keydict.108='cal s:BlockPan(1,0)'
-let s:keydict.76 ='cal s:BigBlockPan(1,0)'
+let s:keydict.76 ='let msg=s:BigBlockPan(1,0)'
 let s:keydict.121='cal s:BlockPan(-1,-1)'
-let s:keydict.89 ='cal s:BigBlockPan(-1,-1)'
+let s:keydict.89 ='let msg=s:BigBlockPan(-1,-1)'
 let s:keydict.117='cal s:BlockPan(1,-1)'
-let s:keydict.85 ='cal s:BigBlockPan(1,-1)'
+let s:keydict.85 ='let msg=s:BigBlockPan(1,-1)'
 let s:keydict.98 ='cal s:BlockPan(-1,1)'
-let s:keydict.66 ='cal s:BigBlockPan(-1,1)'
+let s:keydict.66 ='let msg=s:BigBlockPan(-1,1)'
 let s:keydict.110='cal s:BlockPan(1,1)'
-let s:keydict.78 ='cal s:BigBlockPan(1,1)'
+let s:keydict.78 ='let msg=s:BigBlockPan(1,1)'
 
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -228,12 +217,13 @@ fun! TXBstart(...)
 endfun
 
 fun! TXBcmd()
-	let [y,continue]=[line('w0'),1]
+	let [y,continue,msg]=[line('w0'),1,'']
 	while continue
 		let cucsav=&cuc
 		se cuc
-		let msg=&ls? ' < nav >' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "<<".bufname(winbufnr(v:val)).">>" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
+		let msg=empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
 		redr|ec msg
+		let msg=''
 		let c=getchar()
 		let &cuc=cucsav
 		exe get(s:keydict,c,'let msg=" < Press f1 for help >"')
