@@ -11,101 +11,92 @@
 	let s:bgridS=3
 	let s:bgridL=45
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
-	let TXBpanSpeed=2
+	let s:panSpeedMultiplier=2
 
-if &compatible|se nocompatible|en "Enable vim features, changes &ttymouse
-se sidescroll=1                   "Needed for smooth panning
-se mouse=a                        "Enable mouse
-se lazyredraw                     "Less redraws
-se noequalalways                  "Needed for correct panning
-se nostartofline                  "Cursor remains at column when moving up and down
-se winwidth=1                     "Needed for correct panning
-se winminwidth=0                  "Needed for correct panning
-se virtualedit=all                "Needed for leftmost split to be drawn correctly
-se hidden                         "Prevents error messages when modified buffer is panned offscreen
+"Explanation of changed settings
+	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
+	se noequalalways                  "Needed for correct panning [Do not change]
+	se winwidth=1                     "Needed for correct panning [Do not change]
+	se winminwidth=0                  "Needed for correct panning [Do not change]
+	se sidescroll=1                   "Needed for smooth panning
+	se mouse=a                        "Enable mouse
+	se lazyredraw                     "Less redraws
+	se nostartofline                  "Prevents cursor from jumping to start of line when scrolling up and down
+	se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
+	se hidden                         "Suppresses error messages when modified buffer is panned offscreen
 
-fun! TXBSetMouseMode()
-	if exists('s:TXBcmdUnmap')
-		exe s:TXBcmdUnmap
-	en
-	if &ttymouse=="xterm"
-		echoerr "Warning! Your &ttymouse is set to 'xterm', which does not support mouse drag messages. Try ':set ttymouse=xterm2' or ':set ttymouse=sgr' and reloading the plane to enable mouse panning."
-		nmap <silent> <plug>TxbY<esc>[M :call TXBProcChar(-1)<cr>
-		let s:TXBcmdUnmap='nunmap <plug>TxbY<esc>[M'
-	elseif &ttymouse==?"xterm2"
-		nn <silent> <leftmouse> :call InitDragXterm2(exists("t:txb")? "TXBNavCol" : "TXBPanWin")<cr>
-		nmap <silent> <plug>TxbY<esc>[M :call TXBProcChar(-1)<cr>
-		let s:TXBcmdUnmap='nunmap <plug>TxbY<esc>[M'
-	elseif &ttymouse==?"sgr"
-		nn <silent> <leftmouse> :call InitDragSGR(exists("t:txb")? "TXBNavCol" : "TXBPanWin")<cr>
-		nmap <silent> <plug>TxbY<esc>[< :call TXBProcChar(-1)<cr>
-		let s:TXBcmdUnmap='nunmap <plug>TxbY<esc>[<'
-	else
-   		echoerr "Warning! For better mouse panning performance, try setting ttymouse to xterm2 (se ttymouse=xterm2) or sgr (se ttymouse=sgr). Your current setting is: ".&ttymouse
-		nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "TXBPanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
-		nmap <silent> <plug>TxbY<esc>[M :call TXBProcChar(-1)<cr>
-		let s:TXBcmdUnmap='nunmap <plug>TxbY<esc>[M'
-	en
-endfun
+
+
+let TXBDragCmd={"xterm":"norm! \<leftmouse>",
+\"xterm2":'call InitDragXterm2(exists("t:txb")? "TXBNavCol" : "TXBPanWin")',
+\"sgr":'call InitDragSGR(exists("t:txb")? "TXBNavCol" : "TXBPanWin")'}
+nn <silent> <leftmouse> :exe get(TXBDragCmd,&ttymouse,'exe TXBmouse{exists("t:txb")? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""')<cr>
 
 exe 'nn <silent> '.txb_key.' :if exists("t:txb")\|call TXBcmd("ini")\|else\|call TXBstart()\|en<cr>'
 let TXBcmds={}
 fun! s:PrintHelp()
-let helpmsg="\n\\CWelcome to Textabyss v1.3!\n
-\\nPress ".g:txb_key." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:txb_key."A to append additional splits.\n
-\\nOnce loaded, use the mouse to pan or press ".g:txb_key." followed by:
-\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
-\\nHJKLYUBN  - pan big grid    (".s:bgridS." splits x ".s:bgridL." lines)
-\\n^hjklyubn - Cursor to edges and corners of current big grid
-\\no         - Open map        (1 split x ".s:bgridL." lines)
-\\nr         - redraw
-\\n.         - Snap to the current big grid
-\\nD A E     - Delete split / Append split / Edit split settings
-\\n<f1>      - Show this message
-\\nq <esc>   - Abort
-\\n^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
-\\nIf mousedragging doesn't pan, try setting 'ttymouse'  to 'sgr' or 'xterm2' and reloading the plane. Most other modes are supported but will disable some advanced features. 'xterm', however, does not report dragging and will disable mouse panning entirely.\n
-\\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-\\nSetting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the previously used plane and the map will be saved and suggested when the hotkey is first pressed.\n
-\\nHorizontal splits aren't supported and may interfere with mouse panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
-let width=&columns>80? min([&columns-10,80]) : &columns-2
-redr
-let input=input(s:FormatPar(helpmsg,width,(&columns-width)/2))
-if input==?'m'
-let helpmsg="\n\n\\C~\n\\C\"... into the abyss he slipped
-\\n\\CEndless fathoms he fell
-\\n\\CNe'er in homely hearth to linger
-\\n\\CNor warm hand to grasp!\"\n\\C~\n
-\\n    In a time when memory capacity is growing exponentially, memory storage and retrieval, especially when it comes to prose, still seems quite undeveloped. It makes very little sense, to me, to have a massive hard drive when, in terms of text, actual production might be on the order of kilobytes per year. Depending on how prolific you are as a writer, you may have thousands or tens of thousands of pages in mysteriously named folders on old hard drives (say, since 5th grade). So the problem is one of organization, retreival, and accessibility rather than availability of space. There are various efforts in this regard, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month.\n
-\\n    The textabyss is yet another solution to this problem. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 to 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.\n
-\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
-\\n\\RThanks for trying out Textabyss!\n\n\\RLeon, q335r49@gmail.com"
-cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
-elseif input==?'c'
-let helpmsg="\n
-\\n1.3.13 - Prevent reloading of split (and subsequent error message if changed)
-\\n1.3.12 - Safer append column function (check for duplicate, bad file names)
-\\n1.3.11 - 'se hidden' to prevent error messages
-\\n1.3.10 - Support &ttymouse=sgr
-\\n1.3.9  - Allows drag splits to resize when not in plane
-\\n1.3.8  - File names can now contain spaces / message about consistent starting directory
-\\n1.3.7  - Grid system reworked & simplified, only small grids named
-\\n1.3.6  - Map now corresponds to single split, not big grid splits
-\\n1.3.5  - Monologue changed to focus on intention
-\\n1.3.4  - Help message added to map, map supports cut / paste
-\\n1.3.1  - Cursor remains visible during global hotkey. Known issue: bug in vim (fixed: 7.4.169) misdisplays cursor when using grid corner commands.
-\\n1.3.0  - When &ttymouse==xterm2, new mousepanning method that uses raw keycodes and allows for accelerated motions
-\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in (and not the one that occupies the majority of the screen)
-\\n1.2.7  - Minor updates to grid corners
-\\n1.2.6  - Feature: Ctrl-YUBNHJKL jumps to grid corners
-\\n1.2.5  - Echo confirmation for various commands
-\\n1.2.5  - Curor won't move on panning. Clicking without dragging relocates cursor
-\\n1.2.4  - Minor bug with map when horizontal block size divides columns
-\\n1.2.3  - FormatPar for help dialogs now has option to align right
-\\n1.2.2  - Minor bug where the rightmost split will overshift on PanRight
-\\n"
-cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
-en
+	let helpmsg="\n\\CWelcome to Textabyss v1.3!\n
+	\\nPress ".g:txb_key." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:txb_key."A to append additional splits.\n
+	\\nOnce loaded, use the mouse to pan or press ".g:txb_key." followed by:
+	\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
+	\\nHJKLYUBN  - pan big grid    (".s:bgridS." splits x ".s:bgridL." lines)
+	\\n^hjklyubn - Cursor to edges and corners of current big grid
+	\\no         - Open map        (1 split x ".s:bgridL." lines)
+	\\nr         - redraw
+	\\n.         - Snap to the current big grid
+	\\nD A E     - Delete split / Append split / Edit split settings
+	\\n<f1>      - Show this message
+	\\nq <esc>   - Abort
+	\\n^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
+	\\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
+	\\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
+	\\nSetting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the plane will be suggested on ".g:txb_key." the next time you run vim. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBLoadPlane(BACKUP)'.\n
+	\\nHorizontal splits aren't supported and may interfere with panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
+	let width=&columns>80? min([&columns-10,80]) : &columns-2
+	redr
+	let input=input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+	if input==?'m'
+	let helpmsg="\n\n\\C~\n\\C\"... into the abyss he slipped
+	\\n\\CEndless fathoms he fell
+	\\n\\CNe'er in homely hearth to linger
+	\\n\\CNor warm hand to grasp!\"\n\\C~\n
+	\\n    In a time when memory capacity is growing exponentially, memory storage and retrieval, especially when it comes to prose, still seems quite undeveloped. It makes very little sense, to me, to have a massive hard drive when, in terms of text, actual production might be on the order of kilobytes per year. Depending on how prolific you are as a writer, you may have thousands or tens of thousands of pages in mysteriously named folders on old hard drives (say, since 5th grade). So the problem is one of organization, retreival, and accessibility rather than availability of space. There are various efforts in this regard, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month.\n
+	\\n    The textabyss is yet another solution to this problem. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 to 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.\n
+	\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
+	\\n\\RThanks for trying out Textabyss!\n\n\\RLeon, q335r49@gmail.com"
+	cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+	elseif input==?'c'
+	let helpmsg="\n
+	\\n\\CRoadmap:
+	\\n1.4    - Mouse support for map
+	\\n1.5    - Prettier formatting / syntax for map\n
+	\\n\\CChangelog:
+	\\n1.3.16 - Minor bug with map-delete column not redrawing
+	\\n1.3.15 - Removed outdated Edit Split message
+	\\n1.3.14 - Cursor now responds as needed to ttymouse setting without reloading plane
+	\\n1.3.13 - Prevent reloading of split (and subsequent error message if changed)
+	\\n1.3.12 - Safer append column function (check for duplicate, bad file names)
+	\\n1.3.11 - 'se hidden' to prevent error messages
+	\\n1.3.10 - Support &ttymouse=sgr
+	\\n1.3.9  - Allows drag splits to resize when not in plane
+	\\n1.3.8  - File names can now contain spaces / message about consistent starting directory
+	\\n1.3.7  - Grid system reworked & simplified, only small grids named
+	\\n1.3.6  - Map now corresponds to single split, not big grid splits
+	\\n1.3.5  - Monologue changed to focus on intention
+	\\n1.3.4  - Help message added to map, map supports cut / paste
+	\\n1.3.1  - Cursor remains visible during global hotkey. Known issue: bug in vim (fixed: 7.4.169) misdisplays cursor when using grid corner commands.
+	\\n1.3.0  - When &ttymouse==xterm2, new mousepanning method that uses raw keycodes and allows for accelerated motions
+	\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in (and not the one that occupies the majority of the screen)
+	\\n1.2.7  - Minor updates to grid corners
+	\\n1.2.6  - Feature: Ctrl-YUBNHJKL jumps to grid corners
+	\\n1.2.5  - Echo confirmation for various commands
+	\\n1.2.5  - Curor won't move on panning. Clicking without dragging relocates cursor
+	\\n1.2.4  - Minor bug with map when horizontal block size divides columns
+	\\n1.2.3  - FormatPar for help dialogs now has option to align right
+	\\n1.2.2  - Minor bug where the rightmost split will overshift on PanRight
+	\\n"
+	cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+	en
 endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
@@ -262,16 +253,16 @@ endfun
 
 let s:panstep=[0,1,2,4,8,16,16]
 fun! TXBPanWin(dx,dy)
-	exe "norm! ".(a:dy>0? g:TXBpanSpeed*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? g:TXBpanSpeed*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
+	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! TXBNavCol(dx,dy)
 	let possav=s:SaveCursPos()
 	if a:dx>0
-		call s:PanLeft(g:TXBpanSpeed*get(s:panstep,a:dx,16))
+		call s:PanLeft(s:panSpeedMultiplier*get(s:panstep,a:dx,16))
 	elseif a:dx<0
-		call s:PanRight(g:TXBpanSpeed*get(s:panstep,-a:dx,16))
+		call s:PanRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	en
-	exe "norm! ".(a:dy>0? g:TXBpanSpeed*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? g:TXBpanSpeed*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
+	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
 	call s:RestoreCursPos(possav)
 	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL))
 endfun
@@ -311,41 +302,43 @@ endfun
 fun! s:NavigateMap(array,c_ini,r_ini)
 	let settings=[&ch,&more,&ls,&stal]
 	let &ch=&lines
-	let g:ms={'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'rows':(&ch-1)/s:bksizes[t:txb.zoom][0],'cols':(&columns-1)/s:bksizes[t:txb.zoom][1],'pad':repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0]).' ','continue':1,'redr':1}
-	let g:ms.roff=max([g:ms.r-g:ms.rows/2,0])
-	let g:ms.coff=max([g:ms.c-g:ms.cols/2,0])
+	let s:ms={'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'rows':(&ch-1)/s:bksizes[t:txb.zoom][0],'cols':(&columns-1)/s:bksizes[t:txb.zoom][1],'pad':repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0]).' ','continue':1,'redr':1}
+	let s:ms.roff=max([s:ms.r-s:ms.rows/2,0])
+	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
-   	let g:ms.disp=s:GetMapDisp(map(range(g:ms.coff,g:ms.coff+g:ms.cols-1),'map(range(g:ms.roff,g:ms.roff+g:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],g:ms.rows)
-	call s:PrintMapDisp(g:ms.disp,g:ms.r-g:ms.roff,g:ms.c-g:ms.coff)
-	echon g:ms.pad.get(t:txb.gridnames,g:ms.c,'--').(g:ms.r).(g:ms.msg)
+   	let s:ms.disp=s:GetMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+	call s:PrintMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+	echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
 	let g:GC_ProcChar="NavMapHandleKeys"
 	call TXBGetChar()
 endfun
+let g:chist=[]
 fun! NavMapHandleKeys(c)
 	if a:c is -1
-		let g:ms.msg=string(g:GC_MouseCmd)
+		let s:ms.msg=string(g:TXBmsmsg)
 	else
-		exe get(s:mapdict,a:c,'let g:ms.msg="   Press f1 for help"')
+		exe get(s:mapdict,a:c,'let s:ms.msg="   Press f1 for help"')
 	en
-	if g:ms.continue==1
-		let [roffn,coffn]=[g:ms.r<g:ms.roff? g:ms.r : g:ms.r>=g:ms.roff+g:ms.rows? g:ms.r-g:ms.rows+1 : g:ms.roff,g:ms.c<g:ms.coff? g:ms.c : g:ms.c>=g:ms.coff+g:ms.cols? g:ms.c-g:ms.cols+1 : g:ms.coff]
-		if [g:ms.roff,g:ms.coff]!=[roffn,coffn] || g:ms.redr
-			let [g:ms.roff,g:ms.coff,g:ms.redr]=[roffn,coffn,0]
-			let g:ms.disp=s:GetMapDisp(map(range(g:ms.coff,g:ms.coff+g:ms.cols-1),'map(range(g:ms.roff,g:ms.roff+g:ms.rows-1),"exists(\"g:ms.array[".v:val."][v:val]\")? g:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],g:ms.rows)
+	let g:chist+=[a:c]
+	if s:ms.continue==1
+		let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
+		if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
+			let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
+			let s:ms.disp=s:GetMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 		en
 		redr!
-		call s:PrintMapDisp(g:ms.disp,g:ms.r-g:ms.roff,g:ms.c-g:ms.coff)
-		echon (g:ms.pad).get(t:txb.gridnames,g:ms.c,'--').(g:ms.r).(g:ms.msg)
-		let g:ms.msg=''
+		call s:PrintMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+		echon (s:ms.pad).get(t:txb.gridnames,s:ms.c,'--').(s:ms.r).(s:ms.msg)
+		let s:ms.msg=''
 		call TXBGetChar()
-	elseif g:ms.continue==2
-		let [&ch,&more,&ls,&stal]=g:ms.settings
-		cal TXB_GotoPos(g:ms.c,s:bgridL*g:ms.r)
+	elseif s:ms.continue==2
+		let [&ch,&more,&ls,&stal]=s:ms.settings
+		cal TXB_GotoPos(s:ms.c,s:bgridL*s:ms.r)
 	else
-		let [&ch,&more,&ls,&stal]=g:ms.settings
+		let [&ch,&more,&ls,&stal]=s:ms.settings
 	en
 endfun
-let s:mapdict={"\e":"let g:ms.continue=0|redr",
+let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal input(s:FormatPar("\n\n\\C~~ Map help ~~
 \\nhjkl     Move cardinally
 \\nyubn     Move diagonally
@@ -356,48 +349,48 @@ let s:mapdict={"\e":"let g:ms.continue=0|redr",
 \\nI D      Insert / delete column
 \\nq        Quit
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
-\"j":"let g:ms.r+=1",
-\"q":"let g:ms.continue=0",
-\"jj":"let g:ms.r+=2",
-\"jjj":"let g:ms.r+=3",
-\"k":"let g:ms.r=g:ms.r>0? g:ms.r-1 : g:ms.r",
-\"kk":"let g:ms.r=g:ms.r>1? g:ms.r-2 : g:ms.r",
-\"kkk":"let g:ms.r=g:ms.r>2? g:ms.r-3 : g:ms.r",
-\"l":"let g:ms.c+=1",
-\"ll":"let g:ms.c+=2",
-\"lll":"let g:ms.c+=3",
-\"h":"let g:ms.c=g:ms.c>0? g:ms.c-1 : g:ms.c",
-\"hh":"let g:ms.c=g:ms.c>1? g:ms.c-2 : g:ms.c",
-\"hhh":"let g:ms.c=g:ms.c>2? g:ms.c-3 : g:ms.c",
-\"y":"let [g:ms.r,g:ms.c]=[g:ms.r>0? g:ms.r-1 : g:ms.r,g:ms.c>0? g:ms.c-1 : g:ms.c]",
-\"u":"let [g:ms.r,g:ms.c]=[g:ms.r>0? g:ms.r-1 : g:ms.r,g:ms.c+1]",
-\"b":"let [g:ms.r,g:ms.c]=[g:ms.r+1,g:ms.c>0? g:ms.c-1 : g:ms.c]",
-\"n":"let [g:ms.r,g:ms.c]=[g:ms.r+1,g:ms.c+1]",
-\"x":"if exists('g:ms.array[g:ms.c][g:ms.r]')|let @\"=g:ms.array[g:ms.c][g:ms.r]|let g:ms.array[g:ms.c][g:ms.r]=''|let g:ms.redr=1|en",
-\"p":"if g:ms.c>=len(g:ms.array)\n
-	\call extend(g:ms.array,eval('['.join(repeat(['[]'],g:ms.c+1-len(g:ms.array)),',').']'))\n
+\"j":"let s:ms.r+=1",
+\"q":"let s:ms.continue=0",
+\"jj":"let s:ms.r+=2",
+\"jjj":"let s:ms.r+=3",
+\"k":"let s:ms.r=s:ms.r>0? s:ms.r-1 : s:ms.r",
+\"kk":"let s:ms.r=s:ms.r>1? s:ms.r-2 : s:ms.r",
+\"kkk":"let s:ms.r=s:ms.r>2? s:ms.r-3 : s:ms.r",
+\"l":"let s:ms.c+=1",
+\"ll":"let s:ms.c+=2",
+\"lll":"let s:ms.c+=3",
+\"h":"let s:ms.c=s:ms.c>0? s:ms.c-1 : s:ms.c",
+\"hh":"let s:ms.c=s:ms.c>1? s:ms.c-2 : s:ms.c",
+\"hhh":"let s:ms.c=s:ms.c>2? s:ms.c-3 : s:ms.c",
+\"y":"let [s:ms.r,s:ms.c]=[s:ms.r>0? s:ms.r-1 : s:ms.r,s:ms.c>0? s:ms.c-1 : s:ms.c]",
+\"u":"let [s:ms.r,s:ms.c]=[s:ms.r>0? s:ms.r-1 : s:ms.r,s:ms.c+1]",
+\"b":"let [s:ms.r,s:ms.c]=[s:ms.r+1,s:ms.c>0? s:ms.c-1 : s:ms.c]",
+\"n":"let [s:ms.r,s:ms.c]=[s:ms.r+1,s:ms.c+1]",
+\"x":"if exists('s:ms.array[s:ms.c][s:ms.r]')|let @\"=s:ms.array[s:ms.c][s:ms.r]|let s:ms.array[s:ms.c][s:ms.r]=''|let s:ms.redr=1|en",
+\"p":"if s:ms.c>=len(s:ms.array)\n
+	\call extend(s:ms.array,eval('['.join(repeat(['[]'],s:ms.c+1-len(s:ms.array)),',').']'))\n
 \en\n
-\if g:ms.r>=len(g:ms.array[g:ms.c])\n
-	\call extend(g:ms.array[g:ms.c],repeat([''],g:ms.r+1-len(g:ms.array[g:ms.c])))\n
+\if s:ms.r>=len(s:ms.array[s:ms.c])\n
+	\call extend(s:ms.array[s:ms.c],repeat([''],s:ms.r+1-len(s:ms.array[s:ms.c])))\n
 \en\n
-\let g:ms.array[g:ms.c][g:ms.r]=@\"\n
-\let g:ms.redr=1\n",
-\"c":"let input=input((g:ms.disp.str).\"\nChange: \",exists('g:ms.array[g:ms.c][g:ms.r]')? g:ms.array[g:ms.c][g:ms.r] : '')\n
+\let s:ms.array[s:ms.c][s:ms.r]=@\"\n
+\let s:ms.redr=1\n",
+\"c":"let input=input((s:ms.disp.str).\"\nChange: \",exists('s:ms.array[s:ms.c][s:ms.r]')? s:ms.array[s:ms.c][s:ms.r] : '')\n
 \if !empty(input)\n
- 	\if g:ms.c>=len(g:ms.array)\n
-		\call extend(g:ms.array,eval('['.join(repeat(['[]'],g:ms.c+1-len(g:ms.array)),',').']'))\n
+ 	\if s:ms.c>=len(s:ms.array)\n
+		\call extend(s:ms.array,eval('['.join(repeat(['[]'],s:ms.c+1-len(s:ms.array)),',').']'))\n
 	\en\n
-	\if g:ms.r>=len(g:ms.array[g:ms.c])\n
-		\call extend(g:ms.array[g:ms.c],repeat([''],g:ms.r+1-len(g:ms.array[g:ms.c])))\n
+	\if s:ms.r>=len(s:ms.array[s:ms.c])\n
+		\call extend(s:ms.array[s:ms.c],repeat([''],s:ms.r+1-len(s:ms.array[s:ms.c])))\n
 	\en\n
-	\let g:ms.array[g:ms.c][g:ms.r]=input\n
-	\let g:ms.redr=1\n
+	\let s:ms.array[s:ms.c][s:ms.r]=input\n
+	\let s:ms.redr=1\n
 \en\n",
-\"g":'let g:ms.continue=2',
-\"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [g:ms.redr,g:ms.rows,g:ms.cols,g:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
-\"-":'let t:txb.zoom=max([t:txb.zoom-1,0])|let [g:ms.redr,g:ms.rows,g:ms.cols,g:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
-\"I":'if g:ms.c<len(g:ms.array)|call insert(g:ms.array,[],g:ms.c)|let g:ms.redr=1|let g:ms.msg=" Col ".(g:ms.c)." inserted"|en',
-\"D":'if g:ms.c<len(g:ms.array) && input("Really delete column? (y/n)")==?"y"|call remove(g:ms.array,g:ms.c)|let redr=1|let g:ms.msg=" Col ".(g:ms.c)." deleted"|en'}
+\"g":'let s:ms.continue=2',
+\"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
+\"-":'let t:txb.zoom=max([t:txb.zoom-1,0])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
+\"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." inserted"|en',
+\"D":'if s:ms.c<len(s:ms.array) && input(s:ms.disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
@@ -638,6 +631,7 @@ endfun
 	let TXBcmds['.']='let g:txbc.possav=SaveCursPos()|call s:SnapToCursorGrid()|let g:txbc.continue=0'
 	let TXBcmds['.']='call s:SnapToCursorGrid()|let g:txbc.continue=0'
 
+nmap <silent> <plug>TxbY<esc>[ :call TXBProcChar(-1)<cr>
 nmap <silent> <plug>TxbY :call TXBGetChar()<cr>
 nmap <silent> <plug>TxbZ :call TXBGetChar()<cr>
 fun! TXBGetChar()
@@ -648,9 +642,26 @@ fun! TXBGetChar()
 		call TXBProcChar(getchar())
 	en
 endfun
+
+"mouse    leftdown leftdrag leftup
+"xterm    32                35
+"xterm2   32       64       35
+"sgr      0M       32M      0m 
+"TXBmsmsg 1        2        3            else 0
 fun! TXBProcChar(c)
 	if a:c==-1
-		let g:GC_MouseCmd=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
+		if &ttymouse=~?'xterm'
+			let g:TXBmsmsg=[getchar(0)*0+getchar(0),getchar(0),getchar(0)]
+			let g:TXBmsmsg[0]=g:TXBmsmsg[0]==64? 2 : g:TXBmsmsg[0]==32? 1 : g:TXBmsmsg[0]==35? 3 : 0
+		elseif &ttymouse==?'sgr'
+			let g:TXBmsmsg=split(join(map([getchar(0)*0+getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)],'type(v:val)? v:val : nr2char(v:val)'),''),';')
+			let g:TXBmsmsg=[str2nr(g:TXBmsmsg[0]).g:TXBmsmsg[2][len(g:TXBmsmsg[2])-1],str2nr(g:TXBmsmsg[1]),str2nr(g:TXBmsmsg[2])]
+			let g:TXBmsmsg[0]=g:TXBmsmsg[0]==#'32M'? 2 : g:TXBmsmsg[0]==#'0M'? 1 : (g:TXBmsmsg[0]==#'0m' || g:TXBmsmsg[0]==#'32K') ? 3 : 0
+		else
+			let g:TXBmsmsg=[0,0,0]
+		en
+		while getchar(0) isnot 0
+		endwhile
 		call {g:GC_ProcChar}(-1)	
 	else
 		let [k,c]=['',a:c]
@@ -728,7 +739,11 @@ let TXBcmds["\<f1>"]='call s:PrintHelp()|let g:txbc.continue=0'
 let TXBcmds.E='call s:EditSettings()|let g:txbc.continue=0'
 
 fun! TXBstart(...)                                          
-	call TXBSetMouseMode()            "Sets mouse panning mode
+	if &ttymouse==?"xterm"
+		echoerr "Warning: ttymouse is set to 'xterm', which doesn't report mouse dragging. Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+	elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
+   		echoerr "Warning: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'. Your current setting is: ".&ttymouse
+	en
 	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
 	let plane=type(preventry)==1? s:CreatePlane(preventry) : type(preventry)==4? preventry : {'name':''}
 	if !empty(plane.name)
@@ -765,17 +780,13 @@ fun! s:EditSettings()
 		ec " Error: Current buffer not in plane"
 	else
 		redr
-		let input=input(' < Column width: ',t:txb.size[ix])
+		let input=input('Column width: ',t:txb.size[ix])
 		if empty(input) | return | en
     	let t:txb.size[ix]=input
-		redr
-    	let input=input(" < Autoexecute on load:
-			\\n * scb should always be set so that one can toggle global scrollbind via <hotkey>S
-			\\n * wrap defaults to 'wrap' if not set\n",t:txb.exe[ix])
+    	let input=input("Autoexecute on load: ",t:txb.exe[ix])
 		if empty(input) | return | en
 		let t:txb.exe[ix]=input
-		redr
-    	let input=input(' < Column position (0-'.(t:txb.len-1).'): ',ix)
+    	let input=input('Column position (0-'.(t:txb.len-1).'): ',ix)
 		if empty(input) | return | en
 		let newix=input
 		if newix>=0 && newix<t:txb.len && newix!=ix
@@ -871,14 +882,14 @@ fun! TXBLoadPlane(...)
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0,0]
 	let remain=split0
 	while remain>=1
-		let colt=(colt-1)%len(t:txb.size)
+		let colt=(colt-1)%t:txb.len
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
 	let [colb,remain,colsRight]=[col0%t:txb.len,&columns-(split0>0? split0+1+t:txb.size[col0] : min([winwidth(1),t:txb.size[col0]])),1]
 	while remain>=2
 		let remain-=t:txb.size[colb]+1
-		let colb=(colb+1)%len(t:txb.size)
+		let colb=(colb+1)%t:txb.len
 		let colsRight+=1
 	endwhile
 	let colbw=t:txb.size[colb]+remain
@@ -900,9 +911,9 @@ fun! TXBLoadPlane(...)
 	en
 	let dif=colsRight+colsLeft-winnr('$')
 	if dif>0
-		let colb=(col0+colsRight-1-dif)%len(t:txb.size)
+		let colb=(col0+colsRight-1-dif)%t:txb.len
 		for i in range(dif)
-			let colb=(colb+1)%len(t:txb.size)
+			let colb=(colb+1)%t:txb.len
 			exe 'bot vsp '.escape(t:txb.name[colb],' ')
 			exe alignmentcmd
 			exe t:txb.exe[colb]
