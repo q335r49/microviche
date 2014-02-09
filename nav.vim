@@ -16,6 +16,23 @@ if &cp | se nocompatible | en
 	let TXB_panStep=[0,1,2,4,8,16,16]
 	let TXB_panMultiplier=2
 
+"Should autodetect mouse settings. The need for the VimEnter autocommand is due to a perculiarity in vim where the ttymouse settings are set after the startup scripts are sourced, and only needed if you are sourcing this script on startup.
+au VimEnter * call s:SetMouseMode()
+call s:SetMouseMode()
+fun! s:SetMouseMode()
+	if &ttymouse=="xterm"
+		echoerr "Warning! Your &ttymouse is set to 'xterm', which does not support mouse drag messages. Try ':set ttymouse=xterm2' and resourcing this file to enable mouse panning."
+	elseif &ttymouse=="xterm2"
+		nn <silent> <leftmouse> :call InitDrag(exists("t:txb")? "NavCol" : "PanWin")<cr>
+	else
+   		echoerr "Warning! For better mouse panning performance, try setting ttymouse to xterm2 (se ttymouse=xterm2). Your current setting is: ".&ttymouse
+		nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
+	en
+endfun
+
+exe 'nn <silent> '.txb_key.' :if exists("t:txb")\|call TXBcmd(-1)\|else\|call TXBstart()\|en<cr>'
+
+let TXBcmds={}
 fun! s:PrintHelp()
 let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
 \\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single fine and use ".g:txb_key."A to append additional splits.
@@ -62,144 +79,141 @@ let helpmsg="\n\n1.2.2 - Minor bug where the rightmost split will overshift on P
 \\n1.2.6 - Ctrl-YUBNHJKL jumps to grid corners
 \\n1.2.7 - Minor updates to grid corners
 \\n1.2.8 - Snap to grid now snaps to the grid the cursor is currently in
-\\n1.2.9 - When &ttymouse==xterm2, new mousepanning method that uses raw keycodes and allows for accelerated motions
+\\n1.3.0 - When &ttymouse==xterm2, new mousepanning method that uses raw keycodes and allows for accelerated motions
+\\n1.3.1 - Cursor should remains visible when accessing the main commands. Known issue: bug in vim means that cusor is misdrawn when using right grid corner commands. (Pressing escape will reveal that they are in the correct position)
 \\n\n\\CUpcoming
-\\n1.3.0 - Mouse panning for map (for &ttymouse==xterm2)
+\\n1.4.0 - Mouse panning for map (for &ttymouse==xterm2)
 \\n"
 cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 en
 endfun
 
-exe 'nn <silent> '.txb_key.' :if exists("t:txb")\|call TXBcmd(-1)\|else\|call TXBstart()\|en<cr>'
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
-let TXBcmds={}
 
-if &ttymouse=="xterm"
-	echoerr "Warning! Your &ttymouse is set to 'xterm', which does not support mouse drag messages. Try ':set ttymouse=xterm2' and resourcing this file to enable mouse panning."
-elseif &ttymouse=="xterm2"
-	nn <silent> <leftmouse> :call InitDrag(exists("t:txb")? "NavCol" : "PanWin")<cr>
-
-	fun! InitDrag(funcname)
-		if getchar()=="\<leftrelease>"
-			exe "norm! \<leftmouse>"
-		else
-			let g:TXB_prevcoord=[0,0,0]
-			let g:TXB_DragHandler=a:funcname
-			nno <silent> <esc>[M :call ProcessDrag()<cr>
-		en
-	endfun
-	fun! ProcessDrag()
-		let k=[getchar(0),getchar(0),getchar(0)]
-		if k[0]==35
-			nunmap <esc>[M
-		elseif k[1] && k[2] && g:TXB_prevcoord[1] && g:TXB_prevcoord[2]
-			call {g:TXB_DragHandler}(k[1]-g:TXB_prevcoord[1],k[2]-g:TXB_prevcoord[2])
-		en
-		let g:TXB_prevcoord=k
-	endfun
-
-	fun! PanWin(dx,dy)
-		exe "norm! ".(a:dy>0? g:TXB_panMultiplier*get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXB_panMultiplier*get(g:TXB_panStep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
-	endfun
-
-	fun! NavCol(dx,dy)
-		let possav=s:SaveCursPos()
-		if a:dx>0
-			call s:PanLeft(g:TXB_panMultiplier*get(g:TXB_panStep,a:dx,16))
-		elseif a:dx<0
-			call s:PanRight(g:TXB_panMultiplier*get(g:TXB_panStep,-a:dx,16))
-		en
-		exe "norm! ".(a:dy>0? get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? get(g:TXB_panStep,-a:dy,16)."\<c-e>" : 'g')
-		call s:RestoreCursPos(possav)
-	endfun
-else
-	echoerr "Warning! For better mouse panning performance, try setting ttymouse to xterm2 (se ttymouse=xterm2). Your current setting is: ".&ttymouse
-	fun! TXBmouseNav()
-		let possav=[bufnr('%')]+getpos('.')[1:]
-		let [c,w0]=[getchar(),-1]
-		if c!="\<leftdrag>"
-			return 1
-		else
-			while c!="\<leftrelease>"
-				if v:mouse_win!=w0
-					let w0=v:mouse_win
-					exe "norm! \<leftmouse>"
-					if !exists('t:txb')
-						return
-					en
-					let [b0,wrap]=[winbufnr(0),&wrap]
-					let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
-					let s0=t:txb.ix[bufname(winbufnr(1))]
-					let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
-				else
-					if wrap
-						exe "norm! \<leftmouse>"
-						let [nx,l0]=[wincol(),y-winline()]
-					else
-						let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
-					en
-					let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
-					exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
-					let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
-					redr
-					ec ecstr
+fun! TXBmouseNav()
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	let [c,w0]=[getchar(),-1]
+	if c!="\<leftdrag>"
+		return 1
+	else
+		while c!="\<leftrelease>"
+			if v:mouse_win!=w0
+				let w0=v:mouse_win
+				exe "norm! \<leftmouse>"
+				if !exists('t:txb')
+					return
 				en
+				let [b0,wrap]=[winbufnr(0),&wrap]
+				let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
+				let s0=t:txb.ix[bufname(winbufnr(1))]
+				let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+			else
+				if wrap
+					exe "norm! \<leftmouse>"
+					let [nx,l0]=[wincol(),y-winline()]
+				else
+					let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+				en
+				let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
+				exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
+				let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
+				redr
+				ec ecstr
+			en
+			let c=getchar()
+			while c!="\<leftdrag>" && c!="\<leftrelease>"
 				let c=getchar()
-				while c!="\<leftdrag>" && c!="\<leftrelease>"
-					let c=getchar()
-				endwhile
 			endwhile
-		en
-		let s0=t:txb.ix[bufname(winbufnr(1))]
-		redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
-		call s:RestoreCursPos(possav)
-	endfun
+		endwhile
+	en
+	let s0=t:txb.ix[bufname(winbufnr(1))]
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+	call s:RestoreCursPos(possav)
+endfun
 
-	let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
-	fun! TXBmousePanWin()
-		let possav=[bufnr('%')]+getpos('.')[1:]
-		call feedkeys("\<leftmouse>")
-		call getchar()
-		exe v:mouse_win."wincmd w"
-		if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
-			if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
-			return 1 | en
-		exe "norm! \<leftmouse>"
-		redr!
-		let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
-		let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
-		let c=getchar()
-		if c=="\<leftdrag>"
-			while c=="\<leftdrag>"
-				let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
-				let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
+fun! TXBmousePanWin()
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	call feedkeys("\<leftmouse>")
+	call getchar()
+	exe v:mouse_win."wincmd w"
+	if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
+		if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
+		return 1 | en
+	exe "norm! \<leftmouse>"
+	redr!
+	let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
+	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+	let c=getchar()
+	if c=="\<leftdrag>"
+		while c=="\<leftdrag>"
+			let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
+			let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+			call winrestview(v)
+			exe redrexpr
+			let c=getchar()
+		endwhile
+	else
+		return 1
+	en
+	if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
+		let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
+		let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
+		while !getchar(1) && glv+glh
+			let [y,x,vc,hc]=[vc>get(g:glidestep,glv,1),hc>get(g:glidestep,glh,1),vc+1,hc+1]
+			if y||x
+				let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
 				call winrestview(v)
 				exe redrexpr
-				let c=getchar()
-			endwhile
-		else
-			return 1
-		en
-		if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
-			let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
-			let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
-			while !getchar(1) && glv+glh
-				let [y,x,vc,hc]=[vc>get(g:glidestep,glv,1),hc>get(g:glidestep,glh,1),vc+1,hc+1]
-				if y||x
-					let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
-					call winrestview(v)
-					exe redrexpr
-				en
-			endw
-		en
-		exe min([max([line('w0'),possav[1]]),line('w$')])
-		let firstcol=virtcol('.')-wincol()+1
-		let lastcol=firstcol+winwidth(0)-1
-		let possav[3]=min([max([firstcol,possav[2]+possav[3]]),lastcol])
-		exe "norm! ".possav[3]."|"
-	endfun
-	nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
-en
+			en
+		endw
+	en
+	exe min([max([line('w0'),possav[1]]),line('w$')])
+	let firstcol=virtcol('.')-wincol()+1
+	let lastcol=firstcol+winwidth(0)-1
+	let possav[3]=min([max([firstcol,possav[2]+possav[3]]),lastcol])
+	exe "norm! ".possav[3]."|"
+endfun
+
+fun! InitDrag(funcname)
+	if getchar()=="\<leftrelease>"
+		exe "norm! \<leftmouse>"
+	else
+		let g:TXB_prevcoord=[0,0,0]
+		let g:TXB_DragHandler=a:funcname
+		nno <silent> <esc>[M :call ProcessDrag()<cr>
+	en
+endfun
+fun! ProcessDrag()
+	let k=[getchar(0),getchar(0),getchar(0)]
+	while getchar(0) isnot 0
+		call getchar(0)
+	endwhile
+	if k[0]==35
+		nunmap <esc>[M
+	elseif k[1] && k[2] && g:TXB_prevcoord[1] && g:TXB_prevcoord[2]
+		call {g:TXB_DragHandler}(k[1]-g:TXB_prevcoord[1],k[2]-g:TXB_prevcoord[2])
+	en
+	let g:TXB_prevcoord=k
+endfun
+
+fun! PanWin(dx,dy)
+	exe "norm! ".(a:dy>0? g:TXB_panMultiplier*get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXB_panMultiplier*get(g:TXB_panStep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
+endfun
+
+fun! NavCol(dx,dy)
+	let possav=s:SaveCursPos()
+	if a:dx>0
+		call s:PanLeft(g:TXB_panMultiplier*get(g:TXB_panStep,a:dx,16))
+	elseif a:dx<0
+		call s:PanRight(g:TXB_panMultiplier*get(g:TXB_panStep,-a:dx,16))
+	en
+	exe "norm! ".(a:dy>0? g:TXB_panMultiplier*get(g:TXB_panStep,a:dy,16)."\<c-y>" : a:dy<0? g:TXB_panMultiplier*get(g:TXB_panStep,-a:dy,16)."\<c-e>" : 'g')
+	let s0=t:txb.ix[bufname(winbufnr(1))]
+	call s:RestoreCursPos(possav)
+	redr
+	ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+endfun
 
 fun! s:MakeGridNameList(len)
 	let alpha=map(range(65,90),'nr2char(v:val)')
@@ -513,6 +527,26 @@ fun! s:SnapToCursorGrid()
 endfun
 	let TXBcmds['.']='call s:SnapToCursorGrid()|let g:txbc.continue=0'
 
+nmap <silent> <plug>TxbZ :call TXBGetChar()<cr>
+nmap <silent> <plug>TxbY<esc> :call TXBProcChar(27)<cr>
+nmap <silent> <plug>TxbY :call TXBGetChar()<cr>
+fun! TXBGetChar()
+	if getchar(1) is 0
+		sleep 1m
+		call feedkeys("\<plug>TxbY")
+	else
+		call TXBProcChar(getchar())
+	en
+endfun
+fun! TXBProcChar(c)
+	let [k,c]=['',a:c]
+	while c isnot 0
+		let k.=type(c)==0? nr2char(c) : c
+		let c=getchar(0)
+	endwhile
+	call {g:GC_ProcChar}(k)
+endfun
+
 fun! TXBcmd(...)
 	if a:0
 		let g:txbc={'y':line('w0'),'continue':1,'msg':'','possav':(s:SaveCursPos())}
@@ -533,7 +567,6 @@ fun! TXBcmdPC(c)
     	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(g:txbc.msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : g:txbc.msg
 	en
 endfun
-let TXBcmds["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let g:txbc.continue=0|redr"
 
 let TXBcmds[-1]=""
 let TXBcmds.D="redr\n
