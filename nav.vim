@@ -55,7 +55,9 @@ cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
 en
 endfun
 
-nn <silent> <leftmouse> :call getchar()<cr><leftmouse>:exe exists('t:txb')? 'call TXBmouseNav()' : 'call TXBmousePanWin()'\|exe "keepj norm! \<lt>leftmouse>"<cr>
+let g:TXBmatchID=[]
+nn <silent> <leftmouse> :let g:TXBpossav=[bufnr('%')]+getpos('.')[1:]\|call add(g:TXBmatchID,matchadd('CursorColumn','\%'.line('.').'l\%'.virtcol('.').'v'))<cr>:exe (exists('t:txb') && TXBmouseNav() \|\| !exists('t:txb') && TXBmousePanWin())? "keepj norm! \<lt>leftmouse>" : ""<cr>
+"nn <silent> <leftmouse> :let g:TXBpossav=[bufnr('%')]+getpos('.')[1:]<cr>:exe (exists('t:txb') && TXBmouseNav() \|\| !exists('t:txb') && TXBmousePanWin())? "keepj norm! \<lt>leftmouse>" : ""<cr>
 exe 'nn <silent> '.txb_key.' :if exists("t:txb") \| call TXBcmd() \| else \| call TXBstart()\| en<cr>'
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 let TXBcmds={}
@@ -573,23 +575,42 @@ fun! s:LoadPlane(...)
 	en
 endfun
 
+fun! s:ClearMatches()
+	for i in getmatches()
+		let idx=index(g:TXBmatchID,i.id)
+		if idx!=-1
+			call matchdelete(i.id)
+			call remove(g:TXBmatchID,idx)
+		en
+	endfor
+endfun
+
 let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
-if !exists('g:opt_device') "for compatibility
-	let opt_device=''
-en
 fun! TXBmousePanWin()
+	call feedkeys("\<leftmouse>")
+	call getchar()
+	exe v:mouse_win."wincmd w"
 	if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
 		if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
 		return 1 | en
 	exe "norm! \<leftmouse>"
+	echom reltimestr(reltime())
+	redr!
 	let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
-	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(g:opt_device==?'droid4' && veon)? 'redr!':'redr']
-	while getchar()=="\<leftdrag>"
-		let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
-		let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
-		call winrestview(v)
-		exe redrexpr
-	endwhile
+	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+	let c=getchar()
+	if c=="\<leftdrag>"
+		while c=="\<leftdrag>"
+			let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
+			let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+			call winrestview(v)
+			exe redrexpr
+			let c=getchar()
+		endwhile
+	else
+		call s:ClearMatches()
+		return 1
+	en
 	if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
 		let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
 		let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
@@ -602,41 +623,87 @@ fun! TXBmousePanWin()
 			en
 		endw
 	en
+	call s:ClearMatches()
+	let g:TXBpossav[1]=min([max([line('w0'),g:TXBpossav[1]]),line('w$')])
+	call setpos('.',g:TXBpossav)
 endfun
 
 fun! TXBmouseNav()
-	let [c,w0]=[100,-1]
-	while c!="\<leftrelease>"
-		if v:mouse_win!=w0
-			let w0=v:mouse_win
-			exe "norm! \<leftmouse>"
-			if !exists('t:txb')
-				return
-			en
-			let [b0,wrap]=[winbufnr(0),&wrap]
-			let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
-			let s0=t:txb.ix[bufname(winbufnr(1))]
-			let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
-		else
-			if wrap
+	let [c,w0]=[getchar(),-1]
+	if c!="\<leftdrag>"
+		call s:ClearMatches()
+		return 1
+	else
+		while c!="\<leftrelease>"
+			if v:mouse_win!=w0
+				let w0=v:mouse_win
 				exe "norm! \<leftmouse>"
-				let [nx,l0]=[wincol(),y-winline()]
+				if !exists('t:txb')
+					call s:ClearMatches()
+					return
+				en
+				let [b0,wrap]=[winbufnr(0),&wrap]
+				let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
+				let s0=t:txb.ix[bufname(winbufnr(1))]
+				let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
 			else
-				let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+				if wrap
+					exe "norm! \<leftmouse>"
+					let [nx,l0]=[wincol(),y-winline()]
+				else
+					let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+				en
+				let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
+				exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
+				let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
+				redr
+				ec ecstr
 			en
-			let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
-			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
-			let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
-			redr
-			ec ecstr
-		en
-		let c=getchar()
-		while c!="\<leftdrag>" && c!="\<leftrelease>"
 			let c=getchar()
+			while c!="\<leftdrag>" && c!="\<leftrelease>"
+				let c=getchar()
+			endwhile
 		endwhile
-	endwhile
+	en
 	let s0=t:txb.ix[bufname(winbufnr(1))]
 	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+
+	let win=bufwinnr(g:TXBpossav[0])
+	if win==-1
+		let idx=get(t:txb.ix,bufname(g:TXBpossav[0]),-1)
+		if idx!=-1
+			let this=get(t:txb.ix,bufname(''),-1)
+			if this!=-1
+				if idx>this
+					wincmd b
+					call s:ClearMatches()
+					exe min([max([line('w0'),g:TXBpossav[1]]),line('w$')])
+					norm! g$
+				else
+					wincmd t
+					call s:ClearMatches()
+					exe min([max([line('w0'),g:TXBpossav[1]]),line('w$')])
+					norm! g0
+				en
+			en
+		en
+	else
+		exe win.'wincmd w'
+		call s:ClearMatches()
+   		exe min([max([line('w0'),g:TXBpossav[1]]),line('w$')])
+		if winnr()==1
+	    	let firstcol=virtcol('.')-wincol()+1
+			let lastcol=firstcol+winwidth(0)-1
+			let g:TXBpossav[3]=min([max([firstcol,g:TXBpossav[2]+g:TXBpossav[3]]),lastcol])
+			exe "norm! ".g:TXBpossav[3]."|"
+		else
+			let firstcol=1
+			let lastcol=winwidth(0)
+			let g:TXBpossav[3]=min([max([firstcol,g:TXBpossav[2]+g:TXBpossav[3]]),lastcol])
+			exe "norm! 0".g:TXBpossav[3]."|"
+		en
+	en
+	return
 endfun
 
 fun! s:PanLeft(N,...)
