@@ -1,587 +1,980 @@
-Project:
-Neck knife: strong rubber band
+if &cp | se nocompatible | en
+"Global hotkey: press to begin
+	let txb_key='<f10>'
+"Grid panning animation step
+	let s:pansteph=9
+	let s:panstepv=2
+"Small grid: 1 split x s:sgridL lines
+	let s:sgridL=15
+"Big grid: s:bgridS splits x s:bgridL lines
+	let s:bgridS=3
+	let s:bgridL=45
+"Map: block sizes for various zooms
+	let s:bksizes=[[2,6],[3,7],[4,10],[5,12],[6,14],[7,17],[8,20],[9,25]]
 
-SHOPPING
-chocolate milk
-dairy stuff
-chocolate shell
-eggs
-sea salt
-Face cream
-big bolt for removing tire???!!!
-/Chili
-jalapenos, corn, beef, gr.peppers, endive, meat, celery, carrots, 
+fun! s:PrintHelp()
+let helpmsg="\n\\CWelcome to Textabyss v1.2!\n
+\\nTo start, press ".g:txb_key." and enter a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single fine and use ".g:txb_key."A to append additional splits.
+\\n    Setting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the previously used plane (and the map, below) will be saved and suggested when the hotkey is pressed.\n
+\\nOnce loaded, use the mouse to pan or press ".g:txb_key." again:
+\\n    hjklyubn  - move along small grid (HJKLYUBN for big grid)
+\\n    r         - redraw
+\\n    .         - Snap to big grid
+\\n    ^H^J^K^L^Y^U^B^N - jump to edges and corners of current big grid
+\\n    D A E     - Delete split / Append split / Edit split settings
+\\n    ^X        - Delete hidden buffers (eg, if too many are loaded from panning)
+\\nSmall gridlines are at every split and lines divisible by ".s:sgridL." while big gridlines are at splits divisible by ".s:bgridS." and lines divisible by ".s:bgridL.".\n
+\\nYou can also press 'o' (after pressing ".g:txb_key.") to enter a map:
+\\n    o         - 'Open grid' (map mode)
+\\n    hjklyubn  - navigate map
+\\n    g <cr>    - go to grid
+\\n    c         - change name
+\\n    + -       - zoom
+\\n    I D       - Insert / Delete column
+\\nThe map will start out blank, so fill it in by changing (c) big grid names.\n
+\\nI haven't done a lot of testing with exotic file names, so to be on the safe side, files names shouldn't contain spaces and should be in the current directory (change to that directory beforehand with :cd ~/SomeDir). And horizontal splits aren't supported and may interfere with mouse panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
+let width=&columns>80? min([&columns-10,80]) : &columns-2
+redr
+let input=input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+if input==?'m'
+let helpmsg="\n\n\\C\"... into the abyss he slipped
+\\n\\CEndless fathoms he fell
+\\n\\CNe'er in homely hearth to linger
+\\n\\CNor warm hand to grasp!\"\n
+\\n    I've been thinking for awhile now how most programs are pretty inadequate at organizing thinking over a long period of time, since what we think we're talking about often changes greatly on retrospection. It seems to me that time itself is the only real way to make sense of things. So I don't think of this as another kind of mind mapping but rather more as a means of raw accumulation. There are of course tools for organizing and layout but primarily one perhaps simply ... descends!\n
+\\n    Vim is certainly a fascinating environment to work in. For me, there's a great pleasure that comes from removing a feature that I've added upon realizing that it was already baked in -- and this may involve realizing other means of acheiving an ends or settling for alternative ends. I hope that the experience with textabyss is sort of similar, ie, that one starts by awkwardly incorporating it into one's workflow, realizing its inadequacies and limitations, but also realizing the workflow that it has imagined to be in many ways sufficient.\n
+\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
+\\n    One of the great things about vim is how easy it is to synergize components -- well, sometimes with a bit of scripting. So I feel that the textabyss script itself can be kept fairly simple. For example, automatically padding blank lines and adjusting various settings when a split is appended can be done with vim's inbuilt :autocommand * BufNewFile feature.\n
+\\n\n\\RThanks for trying out Textabyss!\n\n\\RLeon Q335r49@gmail.com"
+cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+elseif input==?'c'
+let helpmsg="\n\n\\CChangelog\n
+\\n1.2.2 - Minor bug where the rightmost split will overshift on PanRight
+\\n1.2.3 - FormatPar for help dialogs now has option to align right
+\\n1.2.4 - Minor bug with map when horizontal block size divides columns
+\\n1.2.5 - Cursor behaves more predictably (Curor won't move on panning / clicking without dragging relocates cursor)
+\\n1.2.5 - Echo confirmation for various commands
+\\n1.2.6 - Ctrl-YUBNHJKL jumps to grid corners
+\\n"
+cal input(s:FormatPar(helpmsg,width,(&columns-width)/2))
+en
+endfun
 
-#Songs
-torelli - christmas concert
-he took her to a movie
-clockwork orange -- funeral for queen mary
-8-bit lacrimosa
-tiger lilly... my tiger lilly ... you're as wild as they come ... so what's the trouble, where's the problem , can't you see, it's amazing what u do to me
-da da da dadada  (kylie minogue)
-its crazy but its true, i only want to be with u
-saddest thing in the whole world / seeing your baby with another girl
-tori amos -- 'things are gonna changes, all the white horses"
-tori amos -- leather
-Dancing Queen
-Chicago 25 or 6 to 4
+nn <silent> <leftmouse> :exe TXBmouse{exists('t:txb')? "Nav" : "PanWin"}()? "keepj norm! \<lt>leftmouse>" : ""<cr>
+exe 'nn <silent> '.txb_key.' :call TXB{exists("t:txb")? "cmd" : "start"}()<cr>'
+let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
+let TXBcmds={}
 
-#espeak / speak
-espeak -w --stdout -f file | kbaudiosink
+fun! s:MakeGridNameList(len)
+	let alpha=map(range(65,90),'nr2char(v:val)')
+	let powers=[26,676,17576]
+	let array1=map(range(powers[0]),'alpha[v:val%26]')
+	if a:len<=powers[0]
+		return array1
+	elseif a:len<=powers[0]+powers[1]
+		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+   	else
+		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+	en
+endfun
 
-# town court number: 783-2714
+let s:pad=repeat(' ',100)
+fun! s:GetMapDisp(map,w,h,H)
+	let [s,l]=[map(range(a:h),'[v:val*a:w,v:val*a:w+a:w-1]'),len(a:map)*a:w+1]
+	return {'str':join(map(range(a:h*a:H),'join(map(map(range(len(a:map)),''len(a:map[v:val])>''.v:val/a:h.''? a:map[v:val][''.v:val/a:h.''] : "[NUL]"''),''v:val[s[''.v:val%a:h.''][0] : s[''.v:val%a:h.''][1]].s:pad[1:(s[''.v:val%a:h.''][1]>=len(v:val)? (s[''.v:val%a:h.''][0]>=len(v:val)? a:w : a:w-len(v:val)+s[''.v:val%a:h.''][0]) : 0)]''),'''')."\n"'),''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
+endfun
+fun! s:PrintMapDisp(disp,r,c)
+	let ticker=0
+	for i in a:disp.hlmap[a:r][a:c]
+		echon i? a:disp.str[ticker : i-1] : ''
+		echohl visual
+		let ticker=i+a:disp.w
+		echon a:disp.str[i : ticker-1]
+		echohl NONE
+	endfor
+	echon a:disp.str[ticker :]
+endfun
+fun! s:NavigateMap(array,c_ini,r_ini)
+	let [msg,settings,&ch,&more,r,c,rows,cols,pad,continue,redr]=['',[&ch,&more],&lines-1,0,a:r_ini,a:c_ini,(&lines-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0]).' ',1,1]
+	let [roff,coff]=[max([r-rows/2,0]),max([c-cols/2,0])]
+	while continue
+		let [roffn,coffn]=[r<roff? r : r>=roff+rows? r-rows+1 : roff,c<coff? c : c>=coff+cols? c-cols+1 : coff]
+		if [roff,coff]!=[roffn,coffn] || redr
+			let [roff,coff,redr]=[roffn,coffn,0]
+			let disp=s:GetMapDisp(map(range(coff,coff+cols-1),'map(range(roff,roff+rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],rows)
+		en
+		redr!
+		call s:PrintMapDisp(disp,r-roff,c-coff)
+		echon pad.get(t:txb.gridnames,c,'--').r.msg
+		exe get(s:mapdict,getchar(),'let msg=" hjklyubn|motion +-|zoom I|nsertCol D|eleteCol c|hange g|oto"')
+	endwhile
+	let [&ch,&more]=settings
+endfun
+let s:mapdict={27:"let continue=0"}
+let s:mapdict.106="let r+=1"
+let s:mapdict.107="let r=r>0? r-1 : r"
+let s:mapdict.108="let c+=1"
+let s:mapdict.104="let c=c>0? c-1 : c"
+let s:mapdict.121="let [r,c]=[r>0? r-1 : r,c>0? c-1 : c]"
+let s:mapdict.117="let [r,c]=[r>0? r-1 : r,c+1]"
+let s:mapdict.98 ="let [r,c]=[r+1,c>0? c-1 : c]"
+let s:mapdict.110="let [r,c]=[r+1,c+1]"
+let s:mapdict.99 ="let input=input('Change: ',exists('a:array[c][r]')? a:array[c][r] : '')\n
+\if !empty(input)\n
+ 	\if c>=len(a:array)\n
+		\call extend(a:array,eval('['.join(repeat(['[]'],c+1-len(a:array)),',').']'))\n
+	\en\n
+	\if r>=len(a:array[c])\n
+		\call extend(a:array[c],repeat([''],r+1-len(a:array[c])))\n
+	\en\n
+	\let a:array[c][r]=input\n
+	\let redr=1\n
+\en\n"
+let s:mapdict.103="let [&ch,&more]=settings|cal s:GotoBlock(t:txb.gridnames[c].r)|return"
+let s:mapdict.13=s:mapdict.103
+let s:mapdict.43='let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
+let s:mapdict.61=s:mapdict.43
+let s:mapdict.45='let t:txb.zoom=max([t:txb.zoom-1,0])|let [redr,rows,cols,pad]=[1,(&lines-1)/s:bksizes[t:txb.zoom][0],&columns/s:bksizes[t:txb.zoom][1],repeat("\n",(&lines-1)%s:bksizes[t:txb.zoom][0])." "]'
+let s:mapdict.95=s:mapdict.45
+let s:mapdict.73='if c<len(a:array)|call insert(a:array,[],c)|let redr=1|let msg=" Col ".c." inserted"|en'
+let s:mapdict.68='if c<len(a:array) && input("Really delete column? (y/n)")==?"y"|call remove(a:array,c)|let redr=1|let msg=" Col ".c." deleted"|en'
+	let TXBcmds.111='let grid=s:GetGrid()|cal s:NavigateMap(t:txb.map,grid[0],grid[1])|let continue=0'
 
-#Home
-Laptop sleeve
-Beanbag
+fun! DeleteHiddenBuffers()
+	let tpbl=[]
+	call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
+	for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
+		silent execute 'bwipeout' buf
+	endfor
+endfun
+	let TXBcmds.24='cal DeleteHiddenBuffers()|let [msg,continue]=["Hidden Buffers Deleted",0]'
 
-#shopping--online??
-garlic
-frozen spinach / brussel sprouts
-fruits
-beef
-chicken, cherry tomatos
-spring mix
-baby carrots
-lots of peppers
+fun! s:FormatPar(str,w,pad)
+	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	for k in range(len(pars))
+		if pars[k][0]==#'\'
+			let format=pars[k][1]
+   			let pars[k]=pars[k][(format=='\'? 1 : 2):]
+		else
+			let format=''
+		en
+		let seg=[0]
+		while seg[-1]<len(pars[k])-a:w
+			let ix=(a:w+strridx(tr(pars[k][seg[-1]:seg[-1]+a:w-1],&brk,spc),' '))%a:w
+			call add(seg,seg[-1]+ix-(pars[k][seg[-1]+ix=~'\s']))
+			let ix=seg[-2]+ix+1
+			while pars[k][ix]==" "
+				let ix+=1
+			endwhile
+			call add(seg,ix)
+		endw
+		call add(seg,len(pars[k])-1)
+		let pars[k]=pad.join(map(range(len(seg)/2),format==#'C'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : format==#'R'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : 'pars[k][seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad) 
+	endfor
+	return join(pars,"\n")
+endfun
 
-lvu9026
-library card number --- 21182004826781
-397034843196296
+fun! TXB_GotoPos(col,row)
+	let name=t:txb.name[a:col]
+	wincmd t
+	only
+	exe 'e '.name
+	exe 'norm!' (a:row? a:row : 1).'zt'
+	call s:LoadPlane()
+endfun
 
-== car ==
-hair stuff --> car
-eye exam
+fun! s:GotoBlock(str)
+	let [col,row]=['','']
+	for i in range(len(a:str)-1,0,-1)
+		if a:str[i]>0 || a:str[i] is '0'
+			let row=a:str[i].row
+		else
+			let col=a:str[i].col
+		en
+	endfor
+	let line=index(t:txb.gridnames,col,0,1)*s:bgridS
+	call TXB_GotoPos(index(t:txb.gridnames,col,0,1)*s:bgridS,s:bgridL*row)
+endfun
 
-== Oil Change ==
-149200 1/7/12
+fun! s:BlockPan(dx,y,...)
+	let cury=line('w0')
+	let absolute_x=exists('a:1')? a:1 : 0
+	let dir=absolute_x? absolute_x : a:dx
+	let y=a:y>cury?  (a:y-cury-1)/s:sgridL+1 : a:y<cury? -(cury-a:y-1)/s:sgridL-1 : 0
+   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:sgridL.'*'.s:sgridL.'+'.s:sgridL : 'let y_dest=!y? cury : cury>'.s:sgridL.'? (cury-1)/'.s:sgridL.'*'.s:sgridL.' : 1'
+	let pan_y=(y>=0? 'let cury=cury+'.s:panstepv.'<y_dest? cury+'.s:panstepv.' : y_dest' : 'let cury=cury-'.s:panstepv.'>y_dest? cury-'.s:panstepv.' : y_dest')."\n
+		\if cury>line('$')\n
+			\let longlinefound=0\n
+			\for i in range(winnr('$')-1)\n
+				\wincmd w\n
+				\if line('$')>=cury\n
+					\exe 'norm!' cury.'zt'\n
+					\let longlinefound=1\n
+					\break\n
+				\en\n
+			\endfor\n
+			\if !longlinefound\n
+				\exe 'norm! Gzt'\n
+			\en\n
+		\else\n
+			\exe 'norm!' cury.'zt'\n
+		\en"
+	if dir>0
+		let i=0
+		let continue=1
+		while continue
+			exe update_ydest
+			let buf0=winbufnr(1)
+			while winwidth(1)>s:pansteph
+				call s:PanRight(s:pansteph)
+				exe pan_y
+				redr
+			endwhile
+			if winbufnr(1)==buf0
+				call s:PanRight(winwidth(1))
+			en
+			while cury!=y_dest
+				exe pan_y
+				redr
+			endwhile
+			let y+=y>0? -1 : y<0? 1 : 0
+			let i+=1
+			let continue=absolute_x? (t:txb.ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i<a:dx
+		endwhile
+	elseif dir<0
+		let i=0
+		let continue=!map([t:txb.ix[bufname(winbufnr(1))]],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
+		while continue
+			exe update_ydest
+			let buf0=winbufnr(1)
+			let ix=t:txb.ix[bufname(buf0)]
+			if winwidth(1)>=t:txb.size[ix]
+				call s:PanLeft(4)
+				let buf0=winbufnr(1)
+			en
+			while winwidth(1)<t:txb.size[ix]-s:pansteph
+				call s:PanLeft(s:pansteph)
+				exe pan_y
+				redr
+			endwhile
+			if winbufnr(1)==buf0
+				call s:PanLeft(t:txb.size[ix]-winwidth(1))
+			en
+			while cury!=y_dest
+				exe pan_y
+				redr
+			endwhile
+			let y+=y>0? -1 : y<0? 1 : 0
+			let i-=1
+			let continue=absolute_x? (t:txb.ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i>a:dx
+		endwhile
+	en
+	while y
+		exe update_ydest
+		while cury!=y_dest
+			exe pan_y
+			redr
+		endwhile
+		let y+=y>0? -1 : y<0? 1 : 0
+	endwhile
+endfun
+let s:Y1='let y=y/s:sgridL*s:sgridL+s:sgridL|'
+let s:Ym1='let y=max([1,y/s:sgridL*s:sgridL-s:sgridL])|'
+	let TXBcmds.104='cal s:BlockPan(-1,y)'
+	let TXBcmds.106=s:Y1.'cal s:BlockPan(0,y)'
+	let TXBcmds.107=s:Ym1.'cal s:BlockPan(0,y)'
+	let TXBcmds.108='cal s:BlockPan(1,y)'
+	let TXBcmds.121=s:Ym1.'cal s:BlockPan(-1,y)'
+	let TXBcmds.117=s:Ym1.'cal s:BlockPan(1,y)'
+	let TXBcmds.98 =s:Y1.'cal s:BlockPan(-1,y)'
+	let TXBcmds.110=s:Y1.'cal s:BlockPan(1,y)'
+let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bgridS : (v:val-1)-(v:val-1)%s:bgridS) : v:val-v:val%s:bgridS")[0]'
+let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bgridS? 0 : v:val-v:val%s:bgridS+s:bgridS")[0]'
+let s:Y1='let y=y/s:bgridL*s:bgridL+s:bgridL|'
+let s:Ym1='let y=max([1,y%s:bgridL? y-y%s:bgridL : y-y%s:bgridL-s:bgridL])|'
+	let TXBcmds.72='cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.74=s:Y1.'cal s:BlockPan(0,y)'
+	let TXBcmds.75=s:Ym1.'cal s:BlockPan(0,y)'
+	let TXBcmds.76='cal s:BlockPan('.s:DX1.',y,1)'
+	let TXBcmds.89=s:Ym1.'cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.85=s:Ym1.'cal s:BlockPan('.s:DX1.',y,1)'
+	let TXBcmds.66=s:Y1.'cal s:BlockPan('.s:DXm1.',y,-1)'
+	let TXBcmds.78=s:Y1.'cal s:BlockPan('.s:DX1.',y,1)'
+unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
-== vim color problems, etc ==
-for connectbot, make sure 'start shell session is checked'
-download screen-256color from /lib/s/screen-256color, copy it to the /etc/termcap in android
-run export TERM=screen-256
-export TZ=EST+4
+fun! s:GridCorners(dx,dy)
+	if a:dy<0
+		let cursory=max([line('.')/s:bgridL*s:bgridL,1])
+		let desty=min([cursory,line('w0')])
+	elseif a:dy>0
+		let cursory=line('.')/s:bgridL*s:bgridL+s:bgridL-1
+		let desty=max([cursory-winheight(0),line('w0')])
+	else
+		let cursory=line('.')/s:bgridL*s:bgridL+s:bgridL/2
+		let desty=cursory>=line('.')? max([cursory-winheight(0),line('w0')]) : min([cursory,line('w0')])
+	en
+	let ix=get(t:txb.ix,expand('%'),-1)
+	if ix==-1 | return | en
+	if a:dx<0
+ 		let destix=ix/s:bgridS*s:bgridS
+		if winnr()-ix+destix==1 && winwidth(1)<t:txb.size[destix]
+		   	call s:BlockPan(-1,desty)
+		elseif winnr()<=ix-destix
+			call s:BlockPan(destix,desty,-1)
+		en
+		let win=bufwinnr(bufnr(t:txb.name[destix]))
+   		exe win==-1? 'return 100' : 'norm! '.win."\<c-w>w".cursory.'G0'
+	elseif a:dx>0
+		let destix=min([ix/s:bgridS*s:bgridS+s:bgridS-1,t:txb.len-1])
+   		while t:txb.ix[bufname(winbufnr(winnr('$')))]<destix
+   			call s:PanRight(s:pansteph)
+   		endwhile
+		let win=bufwinnr(bufnr(t:txb.name[destix]))
+   		exe win==-1? 'return 200' : win."wincmd w"
+		if winnr()==winnr('$') && winwidth(0)<t:txb.size[destix]
+			while t:txb.size[destix]-winwidth(winnr('$'))>s:pansteph
+				call s:PanRight(s:pansteph)
+			endwhile
+			call s:PanRight(t:txb.size[destix]-winwidth(winnr('$')))
+		en
+		let win=bufwinnr(bufnr(t:txb.name[destix]))
+   		exe win==-1? 'return 300' : 'norm! '.win."\<c-w>w".cursory.'Gg$'
+	else
+    	let destix=min([ix-ix%s:bgridS+s:bgridS/2,t:txb.len-1])
+		if destix>ix
+			while t:txb.ix[bufname(winbufnr(winnr('$')))]<destix
+				call s:PanRight(s:pansteph)
+			endwhile
+			let win=bufwinnr(bufnr(t:txb.name[destix]))
+			exe win==-1? 'return 400' : win."wincmd w"
+			if winnr()==winnr('$') && winwidth(0)<t:txb.size[destix]
+				while t:txb.size[destix]-winwidth(winnr('$'))>s:pansteph
+					call s:PanRight(s:pansteph)
+				endwhile
+				call s:PanRight(t:txb.size[destix]-winwidth(winnr('$')))
+			en
+		elseif destix<ix
+			exe PRINT('destix|ix|winwidth(1)|t:txb.size[destix]')
+			if winnr()-ix+destix==1 && winwidth(1)<t:txb.size[destix]
+			   	call s:BlockPan(-1,desty)
+			elseif winnr()<=ix-destix
+				call s:BlockPan(destix,desty,-1)
+			en
+		en
+		let win=bufwinnr(bufnr(t:txb.name[destix]))
+		exe win==-1? 'return 500' : win."wincmd w"
+		exe s:bgridS%2? 'norm! '.cursory.'G'.(winwidth(0)/2).'|' : 'norm! '.cursory.'Gg0'
+	en
+endfun
+	let TXBcmds.25='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,-1)'
+	let TXBcmds.21='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,-1)'
+	let TXBcmds.2 ='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,1)'
+	let TXBcmds.14='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,1)'
+	let TXBcmds.8 ='let [continue,restorepos]=[0,0]|cal s:GridCorners(-1,0)'
+	let TXBcmds.12='let [continue,restorepos]=[0,0]|cal s:GridCorners(1,0)'
+	let TXBcmds.10='let [continue,restorepos]=[0,0]|cal s:GridCorners(0,1)'
+	let TXBcmds.11='let [continue,restorepos]=[0,0]|cal s:GridCorners(0,-1)'
 
-FE6yq4KR4Ck9
-sue: 518-439-3321 518-300-6459
-javascript: Qr = prompt('Search YubNub for', ''); if (Qr) location.href = 'http://www.yubnub.org/parser/parse?command=' + escape(Qr)
+fun! s:GetGrid()
+	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
+	let [sd,dir]=(ix%s:bgridS>s:bgridS/2 && ix+s:bgridS-ix%s:bgridS<t:txb.len-1)? [ix+s:bgridS-ix%s:bgridS,1] : [ix-ix%s:bgridS,-1]
+	return [sd/3,(l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL)/s:bgridL]
+endfun
+fun! s:SnapToGrid()
+	let [ix,l0]=[t:txb.ix[bufname(winbufnr(1))],line('w0')]
+	let [sd,dir]=(ix%s:bgridS>s:bgridS/2 && ix+s:bgridS-ix%s:bgridS<t:txb.len-1)? [ix+s:bgridS-ix%s:bgridS,1] : [ix-ix%s:bgridS,-1]
+	call s:BlockPan(sd,l0%s:bgridL>s:bgridL/2? l0+s:bgridL-l0%s:bgridL : l0-l0%s:bgridL,dir)
+endfun
+	let TXBcmds.46='call s:SnapToGrid()|let continue=0'
 
- 		YOUTUBE OUTLINE
- 4 parts: tech demo, extra features, some design considerations, some philosophy
- panning, zooming
-  ...
- some advanced features I've added through use
- writeroom / only
-    "only to remove clutter
-    "tabe % versus only
-    	"easy to get out of only
-    "'fullscreen' options
- wrap versus hardwrap
-    "hardwrap sort of reflects the nature of vim as well, as there are workarounds... some might argue that hardwrap *is* a workaround to no line-by-line scrolling of long texts
- customizations
-    "I actually use the Q key...
- split color"
- step through features
- jumps
-    "table of contents (hardlinks)
-    "changelist
- todo
-  ...
- scripting versus coding -- vimscript and crosswords
-    I've stopped coding features that I don't really use
-    my relationship with vim, building a house
-    completely trivial to implement if vim offered a function for adjusting split sizes -- so the whole difficulty of scripting is workign within a set of preestablished rules...
- mouse panning ... long time with the n810 to not get such a basic feature? ... what vim "is" (not just keyboard ninjas)
- mouse pan win for free ... android devices ... earlier 'writing environment' ... vim's adaptability
-     one of the coolest workspaces ... ti-89 ... building one's virtual house
-  ...
- yes, infinite text, but also, the niceness of having splits too -- side by side -- but organized
-    "No longer: A 'plane compiler'
- long term: more naturally hierarchical or linear organizations, non-linear memory
- memory excising, blocks"
- Incredibly elaborate systems to do incredibly simple things -- and it all has to do with the text as a medium -- with the convertability of the text .. well, I mean, pattern warrior
-    "the willingness, fundamnetally, to work with TEXT in accepting what is convenient and inconvenient"
-    "Microsoft word, Android, n810
-    	"   Windows desktop
- horizontal splits
-    'traditional' desktop
-    why no horizontal splits
-    text anchors
+fun! TXBcmd(...)
+	let [y,continue,msg]=[line('w0'),1,'']
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	let restorepos=1
+	if a:0 | exe get(g:TXBcmds,a:1,'let msg="Press f1 for help"') | en
+	while continue
+		let s0=t:txb.ix[bufname(winbufnr(1))]
+		redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' - '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
+		let [msg,c]=['',getchar()]
+		exe get(g:TXBcmds,c,'let msg="Press f1 for help"')
+	endwhile
+    let s0=t:txb.ix[bufname(winbufnr(1))]
+	if restorepos
+		call s:RestorePos(possav)
+	en
+	redr|ec empty(msg)? join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' _ '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."')) : msg
+endfun
+let TXBcmds.68="redr\n
+\let confirm=input(' < Really delete current column (y/n)? ')\n
+\if confirm==?'y'\n
+	\let ix=get(t:txb.ix,expand('%'),-1)\n
+	\if ix!=-1\n
+		\call s:DeleteCol(ix)\n
+		\wincmd W\n
+		\call s:LoadPlane(t:txb)\n
+		\let msg='col '.ix.' removed'\n
+	\else\n
+		\let msg='Current buffer not in plane; deletion failed'\n
+	\en\n
+\en"
+let TXBcmds.65="let ix=get(t:txb.ix,expand('%'),-1)\n
+\if ix!=-1\n
+	\redr\n
+	\let file=input(' < File to append (between : ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
+	\if !empty(file)\n
+		\call s:AppendCol(ix,file)\n
+		\call s:LoadPlane(t:txb)\n
+		\let msg='col '.(ix+1).' appended'\n
+	\else\n
+		\let msg='(aborted)'\n
+	\en\n
+\else\n
+	\let msg='Current buffer not in plane'\n
+\en"
+let TXBcmds.27="let continue=0|redr|ec ''"
+let TXBcmds.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
+let TXBcmds["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|let continue=0|redr"
+let TXBcmds["\<f1>"]='call s:PrintHelp()|let continue=0'
+let TXBcmds.69='call s:EditSettings()|let continue=0'
 
-#done
-Added shortcuts to log functions in normD command
-Fixed menu history bug in pager
-Added gliding touch scrolling
-Added y emulation to cmdnorm
-Changed cmdnorm to exit on Esc rather than Q
-Fixed scrolling in folded texts via winline()
-Removed Center function: already implemented as :ce
-Explore no longer interacts with history
-remap center as `k, add line feed
-fixed c-r / s-r confusion
-longpress to toggle fold
-seamless way to deal with end of document scrolling
-have logappend calculate offset (for normal mode appends)
-invisible horizontal scrollbar on bottom
-no autocap on elipse
-yank for nested
-reading mode: remember offset
-long press to go to link
-Reformat folding, remove reading mode autocommands
-longpresses are activated on timeout
-fixed wacky log time display
-fixed cmdnorm cursor sticking around
-single esc to get out of autocap, use uppercase to avoid transformation
-synergize autocap and tmenu
-no new line autocap if option not set
-change log visualizations to pagers
-[pager] T/op
-pager constructor can now set cursor / offset
-add option to hide numbers on pager (default)
-changed folding to marker (from expr)
-fully swap g, gj, k, gk
-backspace / esc bug for autocap
-synergize mouse scrolling and statusline / split dragging
-changed fold to display line number
-editmru now edits input if no match was found
-log histogram accounts for current task
-combined histogram & printlog
-shownum, default statusline for pager
-separate histogram mode and chart mode
-shortcut for se invwrap
-included day of week in date display
-fixed viminfo bug (&vi was being reset to default)
-changed seach hl quick command to toggle
-changed foldtext to display custom marks
-cleared args before mksession to prevent unnecessary file loading
-curdevice for device specific settings
-changed tmenu trigger to _
-changed autocap cursor to ^
-added option to [S]ave and [L]oad color schemes
-last scheme name default entry for load color scheme
-change color chooser from C to c
-use /f to automcomplete {{{
-added () to distinguish folds, removed fold centering
-variable maxQselsize for Qsel list length
-added cygwin customizations (must define Cyg_Working_Dir... confusing as hell)
-Writeroom(margin) function for wide screens
-Mapped normal c-n c-p to search for folds
-opt_DisableAutocap added
-Changed Writeroom to take percentage
-Autoexit after saving a color scheme
-added ^W to activate writeroom in normD
-moved device-dependent settings to main vimrc file
-Cygwin: added ^C and ^V (clipboard) visual mode bindings
-added u/nformat to visD
-autoexit after loading a color scheme
-[Cygwin] Cursor changes shape based on mode
-[Cygwin] innoremap escape to escape-escape to prevent delay
-set nocompatible to avoid absurd errors
-notepad mode (set Cur_RunAs='notepad') with ^W ^S nmaps
-added option to set colorscheme (set opt_colorscheme), eliminated unnecessary persistent vars
-`il `iw for invlist, invwrap in normal / insert mode
-mutline fFtT for prose
-Eliminate longpress to expand folds for Cygwin by setting opt_LongPressTimeout
-Mouse now continues scrolling even for low timeouts if there is no fold or no jump under cursor
-mintty: `< anc `> to adjust font size
-no Mscroll for cygwin
-added `C to visD to copy and unwrap lines
-CheckFormatted: set wrap and autoformat options to execute after loading modelines, simplifying detection
-streamlined opt_TenuKey to change keymenu  
-cygwin: set timeoutlen=1 to avoid delay when exiting insert mode
-software caps lock for insert mode via `a
-TD: Command to jump to previous cursor position?
-Middle click to close split or tab
-added `it `is to toggle tab bar and status line
-updated visual `x to work on all lines
-`tb to tggle bookmark visibility
-remapped `1 ... `9 to switch tabs
-remapped arrow keys to alt-hjkl
-removed `< and `>, duplicates ctrl++ and ctrl+-
-altered checkformatted to check for fo=aw versus fo=a
-fixed A or I at beginning or end of line bug for checkformatted
-Used dictionary with InvertSetting()
-optimize: replace has_key() with get() in some instances
-turn recursion into loop in TMenu
-`<f1> and `<f2> for scrolling through buffers
-define EscAsc at beginning of file so that dictionaries can now be defined anywhere
-incorporated safeseach commands (SS, S) to keep search history when searching
-mapped v_g and n_g to avoid timeout commands
-v_gU to change to title case
-`X to execute inner paragraph
-logically streamlined TMenu
-remove arrow key remappings, due to ^n ^p
-gA to move to end of line (regardless of autoformat)
-vgP to select inner paragraph on formatted mode
-added command mappings for arrows, c-h, c-j, etc.
-removed +/- to jump to heading
-Scrollbar, toggle via B
-disable scrollbar/bookmarks if version lacks signs
-no longer writes variables, WriteVar() now writes to saveD by default if no argument supplied
-changed do_once to firstrun
-varsave no longer activates on :wa
-T command for edit in new tb
-mapped space and tab / bkspace to c-e, c-y in normal
-added current state to toggle menu
-322: minor bug with tabline highlighting
-minor bug with loading default colorscheme
-allow possibility of multiple device matches, obviate cur_runas
-remap space, tab, and backspace in normal mode to scroll for all devices
-simplify variable backup scheme: once a day, no varsaves
-remove Qsel
-rewrote history function, with PRUNE (untested).
-recent history browser, with sort by date / name
-use viminfo to save lists and dicts, no more varsaves
-option to dim inactive window (`<tab>D)
-merged invertD with normD
-updated normD help menu
-cleared n_c-i, remapped <f1> to scroll up
-custom help messages for all Tmenus, reorganized dictionary definitions
-fixed VARSAV_8 etc staying in memory
-Tmenu S for scrollbind, matching line numbers
-Recent files: t to open in new tab, quit on edit command
-Tmeni io for next, prev tab
-replaced tmenu with Qmenu, no more opt_tmenukey, no more insert menu
-auto-name folds without title
-replaced all ascii functions with ascii table qg
-generalzed printdic to all dictionaries and not just string dictionaries
-droid4 doesn't supprt %S in printf?
-hopefully fixed leftmouse being unable to select tabs
-merged SCHEMES and SWATCHES, swapped qc, qC, made caps more convenient
-set minimum split width, wiw=72
-need some scheme for saving settings
-paragraph mode for folding
-Have checkformatted recognize more predefined formatting (hardwrap, foldmark, foldpara)
-rightmouse to fold and unfold
-foldpara text now shows markings if the first to chars are the same
-qw qW to navigate splits, qr now wraps
-qw respects scrollbind
-set wiw to wrap width if autoformat
-removed a few unnecessary toggle variables
-manually enter colors
-can now choose NONE as color
-solarized color schemes
-change keys in dic
-[pager] now sorts keys
-cleaned up / optimized ridiculous nestedprint
-[pager] handles extreme window cases
-[pager] now uses full screen, no more more, no more resizing
-fixed vimrc bug introduced with removing varsav
-[pager] eval changed to E
-use printdic in all pagerfunctions as help
-[pager] / searches
-q: for command line normal
-greatly simplified printchart for Log
-changed lf to open and close folds, may not be portable
-Classes are no longer stored, vars are reinitialized
-Merged dictionary and list functions for pager
-mruf now listed under pager, chaned to FileList
-restore old viminfo settings since obviating varsave
-move all $MYVIMRC settings to vimrc
-implemented solarized for cygwin
-unlet Vars after saving them to avoid duplicate entries in patched versions of vim
-writevimstate, restorevars can now be called at any time
-saving now writes more natural names, X saved under SAVED_X
-finally, qmenu not dependant on logdic, via 'try'
-prettify, optimize qmenu
-pretty major mruf logical bug
-removed autocommands from ReloadVars
-ensure Lkeys and L were syncing when adding new keys
-made sure vim runs okay on minimal settings, better fallback for qmenu
-expand normal gj gk to visual as well
-minor bug in applying checkformatted movement mappings {}
-remove TODO from vim startup items
-logidic now starts at last row on startup
-prettify asciidic
-space between columns in nestedlist
-nestedlist now does not truncate unnecessarily on expand
-further nestedprint optimizations
-pager.setcursor for noninteractive manipulations
-colorized nested list!
-no redraws for nestedlist when recolors suffices
-removed se nocompatible -- was resetting &history
-remove wiw settings in checkformatted since setting is global
-qV to write viminfo file
-added gj / j swap to gvmap
-simplified fold paragraph
-[nestedlist] fixed dictionary highlight path by adding 'displaypath'
-[dropsync] Prompt to load dropsync conflicted files if new version is detected
-[nestedlist] fixed highlight bug when path goes all the way across!
-softcap now combines undos, has cursor
-[droid4] remap rightshift-2 to @
-Chat mode! via Dialogue()
-removed Cygwin_Working_Directory
-[chat] enter on blank entry to switch speakers
-windows tweaks
-RestoreSettings command wrapper for RestoreVimState()
-A more informiatve message to resolve viminfo conflicts
-remap ctrl-bkspace to c-w in cmode too
-R to undo for all systems (too confusing)
-small bug in @ mapping
-Blockwise text with Annotate()
-[log] LogClear (C)
-caps lock bug: remaped shift-bs to bs for droid4
-nargs should be + not 1 for escape chars in RestoreSettings
-possble bug in hour format in dropsync?
-enabled diff in droid4
-:qnv quit without writing viminfo
-Dialog can be used for formatted paragraphs
-Breaklines now breaks at &brk
-[Mscroll] now handles horizontal scrolling
-[Mscroll] horizontal scrolling enabled by 'se ve=all'
-[Prose] *Bold* and /italics/
-[Logdic] 'start' replaced with '-'
-[Mscroll] use redr (without !) on vert scroll
-Single undo x/X, x/X doesn't alter register
-Echo messages for q settings for wrap, virtualedit
-<353> Simplify qw/qW (no need for &scb consideration)
-qS now toggles, echos
-droid4 now uses separate viminfo
-x now no longer moves cusor
-bold and italics works over multiple lines
-complex logic for correct entry in "x for long deletes
-x works with counts
-qC now automatically prompts for group
-*bold* /italics/ now matches at beginning of line
-qG goes to section end (last non-whitespace before blank lines)
-minor but old variable mismatch bug (needed to use unlet) in CSChooser
-minor bug in load color scheme, used unlet! instead of unlet
-echo state for Writeroom
-Nocompatible setting for notepad (using command line, 'vim -uC', won't work???)
-Softcap: use startinsert! for end of line
-Softcap: added c-h as shortcut for insert mode
-colorscheme now remembers last scheme loaded.
-tab now scrolls up
-qm now toggles panning mode
-moved mousepan from vimrc to nav.vim to make nav.vim independent
-[nav] added exists('opt_device') check for compatibility
-[nav] InitPlane loading message
-[nav] PanMode now local to tab
-[cs] default color scheme name changed on save (and not just load)
-[nav] replace wincmd resizing with :vert res
-[nav] pause during automatic mouse mode switch to display error message
-[nav] set scrollopt=jump (and not scrollopt=) to prevent flickering on scrolloff
-[nav] set noea just in case it improves efficiency
-moved block text functions to code graveyard
-[q] qF now toggles both statusline and tabline
-changed BufWinEnter to BufRead for mappings
-[nav] opt_disable_syntax_while_panning
-[cs] echon used for fg / bg
-known issue: CSChooser clears cmaps <bs> . =
-[cs] complete rehaul based on command line input
-[cs] ^X to delete group
-[cs] removed help messages for CS
-[nav] lots of minor optimizations to panleft for heavy-use cases
-[nav] TogglePanMode restores from previous session
-[cs] can use +/- to toggle other attributes
-[cs] HJ now sets fg / bg to 'NONE'
-[q] removed: qL Load colorscheme
-[issue] windows doesn't support %s in strftime
-[cs] Enter now no longer exits
-[cs] press L to link 
-[cs] Swatches now displayed on load
-set ttimeoutlen=10
-[cs] [e]dit - current settings as default text, error checking
-f1 i-mapped to Ctrl-Ozh
-ctrl-bs, ctrl-w now works in Softcaps()                                                  
-[opt_cygwin] map ctrl-hjkl to arrow keys for all modes (especially tab completion)
-[nav] prettify InitPlane message
-<360> [cs] hjkl to navigates fields
-[cs] remove pn for navigating swatches, can only save and load now
-[cs] Go to Link
-[cs] Change redr to redr! for some cases, minor error catching
-[q] qw, qe now goes back / foward in jumplist
-[q] qg now prints out ascii under cursor, char for number under cursor, and waits for user input
-[q] tabswitching remapped to space / tab
-fixed norm! A when formatting is enabled and ve is enabled, will no longer jump to file end
-Bold and Underline now heave concealed ends (when &cole is set)
-[issue] resetting statusbar within mouseclick causes jumping
-Incredibly stupid CS_hi() link bug
-Undojx now echos correctly
-gd delete surround v1
-[nav] RedrawPlane() to restore plane based on currently active column
-[nav] changed leftabove to topleft
-[nav] RedrawPlane() restores cursor position
-[nav] ReinitializePlane() now works on single column (assuming NAV_NAMES, etc. valid)
-minor qG (go to section end) bug
-[nav] remove LCol / RCol as global variables
-[nav] Redraw now checks whether file names match
-[nav] PanLeft/right now throws exceptions, returns extra shift amount
-[nav] TogglePanMode removed
-[nav] Keyboard panning v1
-[nav] helpful error message for when t:txP doesn't exist
-[nav] redraw now fixes alignment
-[cs] load current highlight if group undefined in colorscheme
-qmenu leftmouse does not show help menu
-(finally) implemented multiline f/t for visual mode
-omap a/: eg, da/ (multiline!)
-removed manual reinflate since storing nested lists to viminfo seems to work
-norm! ga was overwriting last line of PrintDic
-prettify q-menu printing
-[nav] automatically switch windows when one reaches end of doc
-[nav] mouse panning works in KeyboardPan
-gA appends to end of paragraph
-vmap s<char> to surround selection with braces
-[nav] make mouse always pans cols when KeyboardPan is active
-enter maps to '+'
-consistent CS_ variable names
-map f1 to zh in normal mode too
-[nav] helpful message for creating planes
-[nav] use introduction incorporated into fuction
-[nav] eliminated opt_mousepan
-f3, f5 now works only if t:txP is loaded
-f1 Prints help mssage
-[nav] scrollbinding now a global option
-[nav] merge HelpfulPlaneWizard and CreatePlane
-[nav] shift certain messages back to throw
-[nav] fully inline help message
-[nav] pressing f3 will now access all plane commands
-[nav] ShiftView v1 to go to a particular line and column
-[nav] CenterView / Centerbookmark
-[nav] echo currently active windows if there is no statusbar
-[nav] hackish workaround to getchar() dropping leftrelease occasionally
-[nav] minor bug when keyboard panning after mouse panning
-minor bug involving 'dead' qF command on first use
-idiotic nmap f1 bug
-[nav] keyboard nav will no longer go past top of screen
-qf jumps to function declaration
-[nav] changed syncbind to exe "norm! :syncbind\<cr>"
-minor bug: redraw will now respect left scrolloff on first (or only) column
-[nav] mesages enabled in keyboardpan
-[nav] Shiftview now works both ways (having destination column be between -txP.len and 2*txP.len-1)
-[nav] Bookmark now takes shortest route
-[nav] Prettified bookmark enter
-[nav] changed redundant line.Gzt to line.zt
-greatly simplied qG, echo line numbers
-[nav] optimize MousePanCol + no more graphical glitches!!
-q menu prints tabs and splits if statusline and tabline are hidden
-[nav] E315 now caught
-[nav] txp_hotkey for easy hotkey changes
-[nav] Insert and delete column
-[nav] MousePan echos message if there is no statusbar
-[nav] Shiftview revamped
-Debug PRINT(str) function
-Both ql and qL works for log menu
-Bold and Underline now works on WORDS rather than on non-whitespaces
-Text Links of the form file@linenumber
-Put location reference here (navkey->g)
-[nav] mousepan no longer goes past beginning of window
-remapped Q to plane functions, <c-r> to 'record'
-[nav] changelist v1
-qG will jump to previous section break if none found
-q<tab>/<space> will 'keep up dashboard'
-Changed qw/e changelist scrolling to keep up dashboard
-revert: line number position in qmenu
-the return of writeroom, optimiazed (left col only)
-writeroom will only suggest minimum margin of 10
-vno S now automatically trims whitespaces
-vno T now strips outer parentheses, ignoring whitespaces
-[nav] mousepancol now works with &wrap (after sinister bug)
-[nav] autoexe as global variable in 'user settings'
-[nav] fixed bug when wrapped window is first column
-[nav] Removed loading message when loading new window
-[nav] Dialog for editing current settings / relocating column
-qg ascii dic now puts entry in cut register
-[nav] debugged wrap and long cols for PanL/R
-[nav] redraw reloads current window
-[nav] redraw remapped to r
-[nav] fixed winnr('$')>9 glitches, mostly (and also uncovered a long undiscovered bug!)
-[nav] added check for mouseclick that would change tabs into mousepancol
-[nav] always set cul during getchar loop (both kybdpan and Qmenu)
-[nav] RELEEEAAASSEEE111111111111
-black magic to remove tab bar toggle jitter
-revamped qmenu to show and hide statusbar and tabbar
-remapped G,gg to go to jump to 'section breaks' and not end or beginning of line
-add close / move tab to Qmenu cycle
-[nav] subtle bug in pan right involving windows of width 1
-[nav] more helpful mousepan message
-removed opt_colorscheme, now uses separate viminfo instead
-random foreground AND background for CS_UI
-[cs] edit edits only current field
-[cs] c-backspace now works
-Remapped nav-hotkey (f10) to qn
-cuc highlighting only
-added resizing splits to qmenu cycle
-[nav] redraw and quit mapped to r, redraw to R
-[nav] nasty redraw bug involving pre/post decrement
-[nav] change kbdpan message to match that of mousepan
-[nav] added a few final echos
-[nav] edgy name change, script-local functions
-PRINT now no longer has empty parenthesis as default input entry
-[cs] allow ctrl-backspace for editing cs_name
-[cs] ^Reload
-[nav] hotkey now raw
-[nav] Previous plane saved in between sessions (as suggestion)
-[nav] Separated help message and prompt: prompt is now only for when t:txb doesn't exist
-[nav] regression: hotkey now a name
-Goal: Cyberpunk home
-[cs] starts with color group under cursor
-[nav] esc in nav-E immediately quits
-'dG/gg' now works (ie, with G going to end of section)
-[nav] glob() uses only 1 argument for compatibility
-eliminated a few globals
-minor bug involving escaping spaces in MRUF
-[nav] nasty bug in panright involving autoshifting on hide for small winwidths
-[nav] block_pan mostly works
-[nav] big_block_pan mostly works
-[nav] retore txbcmd help message
-[nav] display block name
-[nav] Gotoblock
-[nav] obviated BigBlockPan()
-[nav] coordinates mostly works
-[nav] synergized qmenu and nav menu
-PRINT now splits at '|' and not ','
-qf now works for local functions
-[nav] suggests name for next column on append call
-[nav] appendcol and loadplane checks block names length
-[nav] vicious bug involving panning to long lines
-q<f5> now toggles debug mode (PRINT functions)
-whoa! setting wrap *and* hardwrap seems to fix narrow column issue!
-[nav] splits now automatically open wrapped
-[nav] elaborate solution for bgridpan left and right
-[nav] cursor screen position now stays constant when panning grid
-nasty esc bug in G,gg
-[nav] Added inbuilt monologue
-[nav] removed cursorhighlight
-whoa! the best way to display seems to be ch=1 & redr!|ec
-[nav] mousing during txbcmd exits
-[nav] complex conditions for blockpanning simply staying still
-[nav] snap to big grid
-all unassigned keys automatically assigned to Qnrm
-[nav] TXBcmds now global
-skeleton file of 500 blank lines for plane* (in vimrc)
-map display function is done
-map now expands and changes
-[nav] map incorporated!
-removed qp (plane hotkey) mapping from Qnrm
-[nav] no spaces in map
-[nav] synergize append / delete col
-[nav] streamlined -- removed bookmark, changelist
-G/gg now works when there are whitepsaces between the new lines
-Ed works with multiline entries..
-{} in wordwrap now works as motions
-TODO EMPTY
-[nav] zoom in and Out on blocks!
-[nav] First start fixes
-[nav] RELEAAAAAAAASSEEE!!!!111!!!!!! 1.2 (on vim.org)
-[nav] map: insert / delete
-[nav] messaging system for map
-q-f1 now automatically jumps to help file
-[nav] Align right for FormatPar
-[nav] hard error check to bug where rightmost col becomes decentered on vert res in panright
-WONT FIX: weird panleft bug where there rightmost split is 1 and it pushes and narrows he previous split
-[nav] - Minor bug with map when horizontal block size divides columns
-removed cursorcolumn highlighting for match highlighting of cursor position
-revamped mouse nav using feedkeys()
-[nav] cursor remains fixed when navigating and panning
-[nav] weird bug with restore position (changing windows will sidescroll)
-bug?: implications of changing windows causing sidescroll? <f10>c-j<f-10>c-k
-[nav] C-YUBNHJKL navigates within grid
+fun! TXBstart(...)                                          
+	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
+	let plane=type(preventry)==1? s:CreatePlane(preventry) : type(preventry)==4? preventry : {'name':''}
+	if !empty(plane.name)
+		ec "\n" (a:0 && a:1 isnot 0? "This" : "Previous") (type(preventry)==4? "plane has:" : "pattern matches:")
+		let curbufix=index(plane.name,expand('%'))
+		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
+		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
+		ec "(Press ENTER to load, ESC to try something else, or F1 for help)"
+		let c=getchar()
+	else
+		let c=0
+	en
+	if c==13 || c==10
+		if curbufix==-1 | tabe | en
+		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
+		call s:LoadPlane(plane)
+	elseif c is "\<f1>"
+		call s:PrintHelp() 
+	else
+		let input=input("> Enter file pattern or type HELP: ", g:TXB_PREVPAT)
+		if empty(input)
+			redr|ec "(aborted)"
+		elseif input==?'help'
+			call s:PrintHelp()
+		else
+			call TXBstart(input)
+		en
+	en
+endfun
 
-#todo
-mouse nav for map????? -- works for all cases except when the click is past the end -- just print an error message ('vim limitation') ... or just go to a new tab with map????? :D
-	mouse *drag* for map???? -- right click for map? zoom in and out????
+fun! s:EditSettings()
+   	let ix=get(t:txb.ix,expand('%'),-1)
+	if ix==-1
+		ec " Error: Current buffer not in plane"
+	else
+		redr
+		let input=input(' < Column width: ',t:txb.size[ix])
+		if empty(input) | return | en
+    	let t:txb.size[ix]=input
+		redr
+    	let input=input(" < Autoexecute on load:
+			\\n * scb should always be set so that one can toggle global scrollbind via <hotkey>S
+			\\n * wrap defaults to 'wrap' if not set\n",t:txb.exe[ix])
+		if empty(input) | return | en
+		let t:txb.exe[ix]=input
+		redr
+    	let input=input(' < Column position (0-'.(t:txb.len-1).'): ',ix)
+		if empty(input) | return | en
+		let newix=input
+		if newix>=0 && newix<t:txb.len && newix!=ix
+			let item=remove(t:txb.name,ix)
+			call insert(t:txb.name,item,newix)
+			let item=remove(t:txb.size,ix)
+			call insert(t:txb.size,item,newix)
+			let item=remove(t:txb.exe,ix)
+			call insert(t:txb.exe,item,newix)
+			let [t:txb.ix,i]=[{},0]
+			for e in t:txb.name
+				let [t:txb.ix[e],i]=[i,i+1]
+			endfor
+		en
+		call s:LoadPlane(t:txb)
+	en
+endfun
 
-#deferred
-(in vimrc?) No need to compile, but just highlight the space that needs to be deleted (or appended) and warn about nonwhitetext -- (not block number but raw line number)  / macro to insert line number
-mousepanwin doesn't work when wrap is on and the wrapped paragraph is HUGE
+fun! s:CreatePlane(name,...)
+	let plane={}
+	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	if plane.name is 'INV'
+     	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
+	else
+		let plane.len=len(plane.name)
+		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
+		let plane.scrollopt='ver,jump'
+		let plane.zoom=min([2,len(s:bksizes)])
+		let [plane.ix,i]=[{},0]
+		let plane.map=[[]]
+		for e in plane.name
+			let [plane.ix[e],i]=[i,i+1]
+		endfor
+		let plane.gridnames=s:MakeGridNameList(plane.len+50)
+		return plane
+	en
+endfun
+
+fun! s:AppendCol(index,file,...)
+	call insert(t:txb.name,a:file,a:index+1)
+	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
+	call insert(t:txb.exe,'se nowrap scb cole=2',a:index+1)
+	let t:txb.len=len(t:txb.name)
+	let [t:txb.ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb.ix[e],i]=[i,i+1]
+	endfor
+	if len(t:txb.gridnames)<t:txb.len
+		let t:txb.gridnames=s:MakeGridNameList(t:txb.len+50)
+	endif
+endfun
+fun! s:DeleteCol(index)
+	call remove(t:txb.name,a:index)	
+	call remove(t:txb.size,a:index)	
+	call remove(t:txb.exe,a:index)	
+	let t:txb.len=len(t:txb.name)
+	let [t:txb.ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb.ix[e],i]=[i,i+1]
+	endfor
+endfun
+
+fun! s:LoadPlane(...)
+	if a:0
+		let t:txb=a:1
+		se sidescroll=1 mouse=a lz noea nosol wiw=1 wmw=0 ve=all
+	elseif !exists("t:txb")
+		ec "\n> No plane initialized..."
+		call TXBstart()
+		return
+	en
+	let [col0,win0]=[get(t:txb.ix,bufname(""),a:0? -1 : -2),winnr()]
+	if col0==-2
+		ec "> Current buffer not registered in in plane..."
+		return
+	elseif col0==-1
+		let col0=0
+		only
+		exe 'e' t:txb.name[0] 
+	en
+	let pos=[bufnr('%'),line('w0')]
+	exe winnr()!=1? "norm! mt0" : "norm! mt"
+	let alignmentcmd="norm! 0".pos[1]."zt"
+	se scrollopt=jump
+	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0,0]
+	let remain=split0
+	while remain>=1
+		let colt=(colt-1)%len(t:txb.size)
+		let remain-=t:txb.size[colt]+1
+		let colsLeft+=1
+	endwhile
+	let [colb,remain,colsRight]=[col0%t:txb.len,&columns-(split0>0? split0+1+t:txb.size[col0] : min([winwidth(1),t:txb.size[col0]])),1]
+	while remain>=2
+		let remain-=t:txb.size[colb]+1
+		let colb=(colb+1)%len(t:txb.size)
+		let colsRight+=1
+	endwhile
+	let colbw=t:txb.size[colb]+remain
+	let dif=colsLeft-win0+1
+	if dif>0
+		let colt=(col0-win0)%t:txb.len
+		for i in range(dif)
+			let colt=(colt-1)%t:txb.len
+			exe 'top vsp '.t:txb.name[colt]
+			exe alignmentcmd
+			exe t:txb.exe[colt]
+			se wfw
+		endfor
+	elseif dif<0
+		wincmd t
+		for i in range(-dif)
+			exe 'hide'
+		endfor
+	en
+	let dif=colsRight+colsLeft-winnr('$')
+	if dif>0
+		let colb=(col0+colsRight-1-dif)%len(t:txb.size)
+		for i in range(dif)
+			let colb=(colb+1)%len(t:txb.size)
+			exe 'bot vsp '.t:txb.name[colb]
+			exe alignmentcmd
+			exe t:txb.exe[colb]
+			se wfw
+		endfor
+	elseif dif<0
+		wincmd b
+		for i in range(-dif)
+			exe 'hide'
+		endfor
+	en
+	windo se nowfw
+	wincmd =
+	wincmd b
+	let [bot,cwin]=[winnr(),-1]
+	while winnr()!=cwin
+		se wfw
+		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb.len]
+		let k=t:txb.name[ccol]
+		if expand('%:p')!=#fnamemodify(t:txb.name[ccol],":p")
+			exe 'e' t:txb.name[ccol] 
+			exe alignmentcmd
+			exe t:txb.exe[ccol]
+		elseif a:0
+			exe alignmentcmd
+			exe t:txb.exe[ccol]
+		en
+		if cwin==1
+			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
+			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+		else
+			let dif=(cwin==bot? colbw : t:txb.size[ccol])-winwidth(cwin)
+			exe 'vert res'.(dif>=0? '+'.dif : dif)
+		en
+		wincmd h
+	endw
+	let &scrollopt=t:txb.scrollopt
+	try
+		exe "silent norm! :syncbind\<cr>"
+	catch
+	endtry
+   	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
+	if len(t:txb.gridnames)<t:txb.len
+		let t:txb.gridnames=s:MakeGridNameList(t:txb.len+50)
+	en
+endfun
+
+let glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
+fun! TXBmousePanWin()
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	call feedkeys("\<leftmouse>")
+	call getchar()
+	exe v:mouse_win."wincmd w"
+	if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
+		if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
+		return 1 | en
+	exe "norm! \<leftmouse>"
+	redr!
+	let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
+	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+	let c=getchar()
+	if c=="\<leftdrag>"
+		while c=="\<leftdrag>"
+			let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
+			let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+			call winrestview(v)
+			exe redrexpr
+			let c=getchar()
+		endwhile
+	else
+		return 1
+	en
+	if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
+		let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
+		let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
+		while !getchar(1) && glv+glh
+			let [y,x,vc,hc]=[vc>get(g:glidestep,glv,1),hc>get(g:glidestep,glh,1),vc+1,hc+1]
+			if y||x
+				let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
+				call winrestview(v)
+				exe redrexpr
+			en
+		endw
+	en
+	exe min([max([line('w0'),possav[1]]),line('w$')])
+	let firstcol=virtcol('.')-wincol()+1
+	let lastcol=firstcol+winwidth(0)-1
+	let possav[3]=min([max([firstcol,possav[2]+possav[3]]),lastcol])
+	exe "norm! ".possav[3]."|"
+endfun
+
+fun! s:RestorePos(possav)
+	let win=bufwinnr(a:possav[0])
+	if win==-1
+		let ix=[get(t:txb.ix,bufname(a:possav[0]),-1),get(t:txb.ix,bufname(''),-1)]
+		if ix[0]!=-1 && ix[1]!=-1
+			if ix[0]>ix[1]
+				wincmd b
+				exe min([max([line('w0'),a:possav[1]]),line('w$')])
+				exe winnr()==1? "" : "norm! 0g$"
+			else
+				wincmd t
+				exe min([max([line('w0'),a:possav[1]]),line('w$')])
+				norm! g0
+			en
+		en
+	else
+		exe win.'wincmd w'
+   		exe min([max([line('w0'),a:possav[1]]),line('w$')])
+		exe winnr()==1? ("norm! ".min([max([virtcol('.')-wincol()+1,a:possav[2]+a:possav[3]]),virtcol('.')-wincol()+winwidth(0)])."|") : ("norm! 0".min([max([1,a:possav[2]+a:possav[3]]),winwidth(0)])."|")
+	en
+endfun
+
+fun! TXBmouseNav()
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	let [c,w0]=[getchar(),-1]
+	if c!="\<leftdrag>"
+		return 1
+	else
+		while c!="\<leftrelease>"
+			if v:mouse_win!=w0
+				let w0=v:mouse_win
+				exe "norm! \<leftmouse>"
+				if !exists('t:txb')
+					return
+				en
+				let [b0,wrap]=[winbufnr(0),&wrap]
+				let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
+				let s0=t:txb.ix[bufname(winbufnr(1))]
+				let ecstr=join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."'))." ' ".join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+			else
+				if wrap
+					exe "norm! \<leftmouse>"
+					let [nx,l0]=[wincol(),y-winline()]
+				else
+					let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+				en
+				let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
+				exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
+				let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
+				redr
+				ec ecstr
+			en
+			let c=getchar()
+			while c!="\<leftdrag>" && c!="\<leftrelease>"
+				let c=getchar()
+			endwhile
+		endwhile
+	en
+	let s0=t:txb.ix[bufname(winbufnr(1))]
+	redr|ec join(map(s0+winnr('$')>t:txb.len-1? range(s0,t:txb.len-1)+range(0,s0+winnr('$')-t:txb.len) : range(s0,s0+winnr('$')-1),'!v:key || !(v:val%s:bgridS)? t:txb.gridnames[v:val/s:bgridS] : "."')).' , '.join(map(range(line('w0'),line('w$'),s:sgridL),'!v:key || v:val%(s:bgridL)<s:sgridL? v:val/s:bgridL : "."'))
+	call s:RestorePos(possav)
+endfun
+
+fun! s:PanLeft(N,...)
+	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
+	let [extrashift,tcol]=[0,get(t:txb.ix,bufname(winbufnr(1)),-1)]
+	if tcol<0
+		throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txb.name)
+	elseif a:N<&columns
+		while winwidth(winnr('$'))<=a:N
+			wincmd b
+			let extrashift=(winwidth(0)==a:N)
+			hide
+		endw
+	elseif a:N>0
+		wincmd t
+		only
+	else
+		return
+	en
+	if winwidth(0)!=&columns
+		wincmd t	
+		if winwidth(winnr('$'))<=a:N+3+extrashift || winnr('$')>=9
+			se nowfw
+			wincmd b
+			exe 'vert res-'.(a:N+extrashift)
+			wincmd t
+			if winwidth(1)==1
+				wincmd l
+				se nowfw
+				wincmd t 
+				exe 'vert res+'.(a:N+extrashift)
+				wincmd l
+				se wfw
+				wincmd t
+			else
+				exe 'vert res+'.(a:N+extrashift)
+			en
+			se wfw
+		else
+			exe 'vert res+'.(a:N+extrashift)
+		en
+		while winwidth(0)>=t:txb.size[tcol]+2
+			se nowfw scrollopt=jump
+			let nextcol=(tcol-1)%t:txb.len
+			exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.t:txb.name[nextcol]
+			exe alignmentcmd
+			exe t:txb.exe[nextcol]
+			wincmd l
+			se wfw
+			norm! 0
+			wincmd t
+			let tcol=nextcol
+			se wfw scrollopt=ver,jump
+			let &scrollopt=t:txb.scrollopt
+		endwhile
+		let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
+		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+	else
+		let loff=&wrap? -a:N-extrashift : virtcol('.')-wincol()-a:N-extrashift
+		if loff>=0
+			exe 'norm! 0'.(loff>0? loff.'zl' : '')
+		else
+			let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
+			while loff<=-2
+				let tcol=(tcol-1)%t:txb.len
+				let loff+=t:txb.size[tcol]+1
+			endwhile
+			se scrollopt=jump
+			exe 'e '.t:txb.name[tcol]
+			exe alignmentcmd
+			exe t:txb.exe[tcol]
+			let &scrollopt=t:txb.scrollopt
+			exe 'norm! 0'.(loff>0? loff.'zl' : '')
+			if t:txb.size[tcol]-loff<&columns-1
+				let spaceremaining=&columns-t:txb.size[tcol]+loff
+				let NextCol=(tcol+1)%len(t:txb.name)
+				se nowfw scrollopt=jump
+				while spaceremaining>=2
+					exe 'bot '.(spaceremaining-1).'vsp '.(t:txb.name[NextCol])
+					exe alignmentcmd
+					exe t:txb.exe[NextCol]
+					norm! 0
+					let spaceremaining-=t:txb.size[NextCol]+1
+					let NextCol=(NextCol+1)%len(t:txb.name)
+				endwhile
+				let &scrollopt=t:txb.scrollopt
+				windo se wfw
+			en
+		en
+	en
+	return extrashift
+endfun
+
+fun! s:PanRight(N,...)
+	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
+	let tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
+	let [bcol,loff,extrashift,N]=[get(t:txb.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+	let nobotresize=0
+	if tcol<0 || bcol<0
+		throw (tcol<0? bufname(winbufnr(1)) : '').(bcol<0? ' '.bufname(winbufnr(winnr('$'))) : '')." not contained in current plane: ".string(t:txb.name)
+	elseif N>=&columns
+		if winwidth(1)==&columns
+			let loff+=&columns
+		else
+			let loff=winwidth(winnr('$'))
+			let bcol=tcol
+		en
+		if loff>=t:txb.size[tcol]
+			let loff=0
+			let tcol=(tcol+1)%len(t:txb.name)
+		en
+		let toshift=N-&columns
+		if toshift>=t:txb.size[tcol]-loff+1
+			let toshift-=t:txb.size[tcol]-loff+1
+			let tcol=(tcol+1)%len(t:txb.name)
+			while toshift>=t:txb.size[tcol]+1
+				let toshift-=t:txb.size[tcol]+1
+				let tcol=(tcol+1)%len(t:txb.name)
+			endwhile
+			if toshift==t:txb.size[tcol]
+				let N+=1
+				let extrashift=-1
+				let tcol=(tcol+1)%len(t:txb.name)
+				let loff=0
+			else
+				let loff=toshift
+			en
+		elseif toshift==t:txb.size[tcol]-loff
+			let N+=1
+			let extrashift=-1
+			let tcol=(tcol+1)%len(t:txb.name)
+			let loff=0
+		else
+			let loff+=toshift	
+		en
+		se scrollopt=jump
+		exe 'e '.t:txb.name[tcol]
+		exe alignmentcmd
+		exe t:txb.exe[tcol]
+		let &scrollopt=t:txb.scrollopt
+		only
+		exe 'norm! 0'.(loff>0? loff.'zl' : '')
+	elseif N>0
+		if winwidth(1)==1
+			wincmd t
+			hide
+			let N-=2
+			if N<=0
+				return
+			en
+		en
+		let shifted=0
+		while winwidth(1)<=N
+			let w2=winwidth(2)
+			let extrashift=winwidth(1)==N
+			let shifted+=winwidth(1)+1
+			wincmd t
+			hide
+			if winwidth(1)==w2
+				let nobotresize=1
+			en
+			let tcol=(tcol+1)%len(t:txb.name)
+			let loff=0
+		endw
+		let N+=extrashift
+		let loff+=N-shifted
+	else
+		return
+	en
+	let wf=winwidth(1)-N
+	if wf+N!=&columns
+		if !nobotresize
+			wincmd b
+			exe 'vert res+'.N
+			if virtcol('.')!=wincol()
+				norm! 0
+			en
+			wincmd t	
+			if winwidth(1)!=wf
+				exe 'vert res'.wf
+			en
+		else
+			wincmd t
+		en
+		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
+		exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+		while winwidth(winnr('$'))>=t:txb.size[bcol]+2
+			wincmd b
+			se nowfw scrollopt=jump
+			let nextcol=(bcol+1)%len(t:txb.name)
+			exe 'rightb vert '.(winwidth(0)-t:txb.size[bcol]-1).'split '.t:txb.name[nextcol]
+			exe alignmentcmd
+			exe t:txb.exe[nextcol]
+			wincmd h
+			se wfw
+			wincmd b
+			norm! 0
+			let bcol=nextcol
+			let &scrollopt=t:txb.scrollopt
+		endwhile
+	elseif &columns-t:txb.size[tcol]+loff>=2
+		let bcol=tcol
+		let spaceremaining=&columns-t:txb.size[tcol]+loff
+		se nowfw scrollopt=jump
+		while spaceremaining>=2
+			let bcol=(bcol+1)%len(t:txb.name)
+			exe 'bot '.(spaceremaining-1).'vsp '.(t:txb.name[bcol])
+			exe alignmentcmd
+			exe t:txb.exe[bcol]
+			norm! 0
+			let spaceremaining-=t:txb.size[bcol]+1
+		endwhile
+		let &scrollopt=t:txb.scrollopt
+		windo se wfw
+	else
+		let offset=loff-virtcol('.')+wincol()
+		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+	en
+	return extrashift
+endfun
