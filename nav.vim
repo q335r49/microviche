@@ -13,7 +13,7 @@ fun! s:PrintHelp()
 	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
 	\\n    f1        - show this message
 	\\n    R r       - Redraw / redraw and go to normal mode
-	\\n    hjklyubn  - pan (hold shift to pan faster)
+	\\n    hjklyubn  - pan
 	\\n    tab space - Back / foward in changelist
 	\\n    D A       - Delete / append column
 	\\n    g         - goto textlink (of the form file@line)
@@ -26,6 +26,106 @@ fun! s:PrintHelp()
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	redr|ec input(FormatPar(helpmsg,width,(&columns-width)/2))
 endfun
+
+fun! s:Pan(dx,y)
+	exe a:dx>0? 'call PanRight(a:dx)' : 'call s:PanLeft(-a:dx)'
+	if a:y>line('$')
+		for i in range(winnr('$')-1)
+			wincmd w
+			if line('$')>=a:y
+				break
+			en
+		endfor
+	en
+	exe 'norm!' a:y.'zt'
+	return line('w0')
+endfun
+
+let s:bkxspd=5
+fun! s:BlockPan(dx,dy)
+	let dy=a:dy
+	if dy>=0
+		let exe_ydest='let y_dest=!dy? cury : cury/15*15+15'
+	elseif dy<0
+		let exe_ydest='let y_dest=!dy? cury : (cury-1)/15*15'
+	en
+	if a:dx>0
+		for i in range(a:dx)
+			let cury=line('w0')
+			let y_dest=!dy? cury : cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+			let buf0=winbufnr(1)
+			while winwidth(1)>s:bkxspd
+				call PanRight(s:bkxspd)
+				if cury!=y_dest
+   					let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
+					exe 'norm!' cury.'zt'
+				en
+				redr
+			endwhile
+			if winbufnr(1)==buf0
+				call PanRight(winwidth(1))
+			en
+			while cury!=y_dest
+   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
+				exe 'norm!' cury.'zt'
+			endwhile
+			let dy+=dy>0? -1 : dy<0? 1 : 0
+		endfor
+	elseif a:dx<0
+		for i in range(-a:dx)
+			let cury=line('w0')
+			let y_dest=!dy? cury : cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+			let buf0=winbufnr(1)
+			let ix=get(t:txb.ix,bufname(buf0),-1)
+			if ix==-1
+				throw bufname(buf0)." not contained in current plane."
+			en
+			if winwidth(1)>=t:txb.size[ix]
+				call s:PanLeft(4)
+				let buf0=winbufnr(1)
+			en
+			while winwidth(1)<t:txb.size[ix]-s:bkxspd
+				call s:PanLeft(s:bkxspd)
+   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
+				exe 'norm!' cury.'zt'
+				redr
+			endwhile
+			if winbufnr(1)==buf0
+				call s:PanLeft(t:txb.size[ix]-winwidth(1))
+			en
+			while cury!=y_dest
+   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
+				exe 'norm!' cury.'zt'
+			endwhile
+			let dy+=dy>0? -1 : dy<0? 1 : 0
+		endfor
+	en
+	while dy
+		let y_dest=cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+		while cury!=y_dest
+			let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
+			exe 'norm!' cury.'zt'
+		endwhile
+		let dy+=dy>0? -1 : dy<0? 1 : 0
+	endwhile
+endfun
+let s:keydict={}
+let s:keydict.104='cal s:BlockPan(-1,0)'
+let s:keydict.72 ='cal s:BlockPan(-3,0)'
+let s:keydict.106='cal s:BlockPan(0,1)'
+let s:keydict.74 ='cal s:BlockPan(0,3)'
+let s:keydict.107='cal s:BlockPan(0,1)'
+let s:keydict.75 ='cal s:BlockPan(0,3)'
+let s:keydict.108='cal s:BlockPan(1,0)'
+let s:keydict.76 ='cal s:BlockPan(3,0)'
+let s:keydict.121='cal s:BlockPan(-1,-1)'
+let s:keydict.89 ='cal s:BlockPan(-3,-3)'
+let s:keydict.117='cal s:BlockPan(1,-1)'
+let s:keydict.85 ='cal s:BlockPan(3,-3)'
+let s:keydict.98 ='cal s:BlockPan(-1,1)'
+let s:keydict.66 ='cal s:BlockPan(-3,3)'
+let s:keydict.110='cal s:BlockPan(1,1)'
+let s:keydict.78 ='cal s:BlockPan(3,3)'
 
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -93,7 +193,6 @@ fun! TXBcmd()
 	endwhile
 	redr|ec &ls? ' - nav -' : join(map(range(1,winnr('$')),'v:val=='.winnr().'? "--".bufname(winbufnr(v:val))."--" : bufname(winbufnr(v:val))'),' ')[:&columns-2]
 endfun
-let s:keydict={}
 let s:keydict.68="redr
 \\n	let confirm=input(' < Really delete current column (y/n)? ')
 \\n	if confirm==?'y'
@@ -138,22 +237,6 @@ let s:keydict.103="let marker=split(expand('<cWORD>'),'@')
 let s:keydict.112="redr|ec ' < register: '|let [continue,pos]=[0,getpos(\"'\".nr2char(getchar()))]|exe 'norm! i'.bufname(pos[0]).'@'.pos[1]"
 let s:keydict.115='redr|ec " < mark >"|call TXBoninsert()|call s:CenterBookmark(nr2char(getchar()))|let continue=0'
 let s:keydict.27="let continue=0|redr|ec ''"
-let s:keydict.104='cal s:Pan(-2,y)'
-let s:keydict.72 ='cal s:Pan(-6,y)'
-let s:keydict.106='let y=s:Pan(0,y+2)'
-let s:keydict.74 ='let y=s:Pan(0,y+6)'
-let s:keydict.107='let y=s:Pan(0,y-2)'
-let s:keydict.75 ='let y=s:Pan(0,y-6)'
-let s:keydict.108='cal s:Pan(2,y)'
-let s:keydict.76 ='cal s:Pan(6,y)'
-let s:keydict.121='let y=s:Pan(-1,y-1)'
-let s:keydict.89 ='let y=s:Pan(-3,y-3)'
-let s:keydict.117='let y=s:Pan(1,y-1)'
-let s:keydict.85 ='let y=s:Pan(3,y-3)'
-let s:keydict.98 ='let y=s:Pan(-1,y+1)'
-let s:keydict.66 ='let y=s:Pan(-3,y+3)'
-let s:keydict.110='let y=s:Pan(1,y+1)'
-let s:keydict.78 ='let y=s:Pan(3,y+3)'
 let s:keydict.114="call s:LoadPlane(t:txb)|redr|ec ' (redrawn)'|let continue=0"
 let s:keydict.82="call s:LoadPlane(t:txb)|let msg=' < redrawn >'"
 let s:keydict["\<leftmouse>"]="call TXBmouseNav()|let y=line('w0')|redr"
@@ -311,20 +394,6 @@ fun! s:ShiftView(targcol,...)
 			redr
 		endwhile
 	endwhile
-endfun
-
-fun! s:Pan(dx,y)
-	exe a:dx>0? 'call s:PanRight(a:dx)' : 'call s:PanLeft(-a:dx)'
-	if a:y>line('$')
-		for i in range(winnr('$')-1)
-			wincmd w
-			if line('$')>=a:y
-				break
-			en
-		endfor
-	en
-	exe 'norm!' a:y.'zt'
-	return line('w0')
 endfun
 
 fun! s:CreatePlane(name,...)
@@ -519,7 +588,7 @@ fun! TXBmouseNav()
 			else
 				let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 			en
-			let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
+			let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : PanRight(x-nx)] : [x? x : nx,0]
 			exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
 			let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 			redr
@@ -624,10 +693,11 @@ fun! s:PanLeft(N,...)
 	return extrashift
 endfun
 
-fun! s:PanRight(N,...)
+fun! PanRight(N,...)
 	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
 	let tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
 	let [bcol,loff,extrashift,N]=[get(t:txb.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+	let nobotresize=0
 	if tcol<0 || bcol<0
 		throw (tcol<0? bufname(winbufnr(1)) : '').(bcol<0? ' '.bufname(winbufnr(winnr('$'))) : '')." not contained in current plane: ".string(t:txb.name)
 	elseif N>=&columns
@@ -683,10 +753,14 @@ fun! s:PanRight(N,...)
 		en
 		let shifted=0
 		while winwidth(1)<=N
+			let w2=winwidth(2)
 			let extrashift=winwidth(1)==N
 			let shifted+=winwidth(1)+1
 			wincmd t
 			hide
+			if winwidth(1)==w2
+				let nobotresize=1
+			en
 			let tcol=(tcol+1)%len(t:txb.name)
 			let loff=0
 		endw
@@ -697,12 +771,15 @@ fun! s:PanRight(N,...)
 	en
 	let wf=winwidth(1)-N
 	if wf+N!=&columns
-		wincmd b
-		exe 'vert res+'.N
-		wincmd t	
-		if winwidth(1)!=wf
-			exe 'vert res'.wf
+		if !nobotresize
+			wincmd b
+			exe 'vert res+'.N
+			wincmd t	
+			if winwidth(1)!=wf
+				exe 'vert res'.wf
+			en
 		en
+		wincmd t
 		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 		exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 		while winwidth(winnr('$'))>=t:txb.size[bcol]+2
