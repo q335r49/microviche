@@ -1,4 +1,4 @@
-"Check www.vim.org/scripts/script.php?script_id=4835 for previous versions
+"Check https://github.com/q335r49/textabyss for most recent version
 "Global hotkey: press to begin.
 	let s:hotkeyName='<f10>'
 	let s:hotkeyRaw="\<f10>"
