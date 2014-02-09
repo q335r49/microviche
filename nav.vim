@@ -3,8 +3,12 @@
 "Block panning speed: set lower (>=1) for a smoother animation
 	let s:bkxspd=5
 	let s:bkyspd=5
-"Block height: Big block size will always be 3*s:bkylen
+"Block dimensions. A small block is 1 column and s:bkylen rows. A big block is s:bkxlen columns and s:bbkylen rows.
+"Blocks are always aligned. Ie, the first block will always start at column, line 1, etc.
+	let s:bkxlen=3
 	let s:bkylen=15
+	let s:bbkylen=45
+
 
 let txb_onloadcol='se scb nowrap cole=2'
 if &cp | se nocompatible | en
@@ -14,7 +18,7 @@ let TXB_PREVPAT=exists("TXB_PREVPAT")? TXB_PREVPAT : ""
 let s:bknames=map(range(65,90),'nr2char(v:val)')
 
 fun! s:PrintHelp()
-	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 6, 2013 q335r49@gmail.com\n
+	let helpmsg="\n\\CWelcome to the textabyss, mwahahaha...\n\\CJan 11, 2013 q335r49@gmail.com\n
 	\\n    To start, press ".g:txb_key." and enter a file pattern. You can try \"*\" to for all files or something like \"pl*\" for a list that would include \"pl1\", \"plb\", \"planetary.txt\", etc
 	\\n\n    Once loaded, drag the mouse to navigate or press ".g:txb_key." for various commands:
 	\\n    f1        - show this message
@@ -68,20 +72,12 @@ fun! GotoBlock(str)
 	let line=index(s:bknames,col,0,1)*3
 	call TXB_GotoPos(index(s:bknames,col,0,1)*3,row*45)
 endfun
-fun! s:BigBlockPan(dx,dy)
-	let [x0,y0]=[get(t:txb.ix,bufname(winbufnr(1)),-1),line('w0')]
-	if x0==-1
-		throw bufname(winbufnr(1))." not contained in current plane."
-	en
-	let xd=a:dx<0? (!x0? 0 : (x0-1)/3*3) : a:dx>0? min([(t:txb.len-1)/3*3,x0/3*3+3]) : x0
-	let yd=a:dy<0? (y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])) : a:dy>0? y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen : y0
-	call s:BlockPan(xd,yd,1)
-endfun
-fun! s:BlockPan(dx,dy,absolute)
-	let [curx,cury]=[a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : -1,line('w0')]
-	let dy=!a:absolute? a:dy : a:dy>cury?  (a:dy-cury-1)/s:bkylen+1 : a:dy<cury? -(cury-a:dy-1)/s:bkylen-1 : 0
-   	let update_ydest=dy>=0? 'let y_dest=!dy? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen : 'let y_dest=!dy? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
-	let pan_y=(dy>=0? 'let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest' : 'let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest')."\n
+
+fun! s:BlockPan(dx,y)
+	let cury=line('w0')
+	let y=a:y>cury?  (a:y-cury-1)/s:bkylen+1 : a:y<cury? -(cury-a:y-1)/s:bkylen-1 : 0
+   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen : 'let y_dest=!y? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
+	let pan_y=(y>=0? 'let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest' : 'let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest')."\n
 		\if cury>line('$')\n
 			\for i in range(winnr('$')-1)\n
 				\wincmd w\n
@@ -90,11 +86,12 @@ fun! s:BlockPan(dx,dy,absolute)
 					\break\n
 				\en\n
 			\endfor\n
+			\exe 'norm! Gzt'\n
 		\else\n
 			\exe 'norm!' cury.'zt'\n
 		\en"
-	if a:absolute && a:dx>curx || !a:absolute && a:dx>0
-		let i=a:absolute? curx : 0
+	if a:dx>0
+		let i=0
 		while i<a:dx
 			exe update_ydest
 			let buf0=winbufnr(1)
@@ -110,11 +107,11 @@ fun! s:BlockPan(dx,dy,absolute)
 				exe pan_y
 				redr
 			endwhile
-			let dy+=dy>0? -1 : dy<0? 1 : 0
-			let i=a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : i+1
+			let y+=y>0? -1 : y<0? 1 : 0
+			let i=i+1
 		endwhile
-	elseif a:absolute && a:dx<curx || !a:absolute && a:dx<0
-		let i=a:absolute? curx : 0
+	elseif a:dx<0
+		let i=0
 		while i>a:dx
 			exe update_ydest
 			let buf0=winbufnr(1)
@@ -138,43 +135,51 @@ fun! s:BlockPan(dx,dy,absolute)
 				exe pan_y
 				redr
 			endwhile
-			let dy+=dy>0? -1 : dy<0? 1 : 0
-			let i=a:absolute? get(t:txb.ix,bufname(winbufnr(1)),-1) : i-1
+			let y+=y>0? -1 : y<0? 1 : 0
+			let i=i-1
 		endwhile
 	en
-	while dy
+	while y
 		exe update_ydest
 		while cury!=y_dest
 			exe pan_y
 			redr
 		endwhile
-		let dy+=dy>0? -1 : dy<0? 1 : 0
+		let y+=y>0? -1 : y<0? 1 : 0
 	endwhile
 endfun
 let s:keydict={}
-let s:keydict.104='cal s:BlockPan(-1,0,0)'
-let s:keydict.72 ='cal s:BigBlockPan(-1,0)'
-let s:keydict.106='cal s:BlockPan(0,1,0)'
-let s:keydict.74 ='cal s:BigBlockPan(0,1)'
-let s:keydict.107='cal s:BlockPan(0,-1,0)'
-let s:keydict.75 ='cal s:BigBlockPan(0,-1)'
-let s:keydict.108='cal s:BlockPan(1,0,0)'
-let s:keydict.76 ='cal s:BigBlockPan(1,0)'
-let s:keydict.121='cal s:BlockPan(-1,-1,0)'
-let s:keydict.89 ='cal s:BigBlockPan(-1,-1)'
-let s:keydict.117='cal s:BlockPan(1,-1,0)'
-let s:keydict.85 ='cal s:BigBlockPan(1,-1)'
-let s:keydict.98 ='cal s:BlockPan(-1,1,0)'
-let s:keydict.66 ='cal s:BigBlockPan(-1,1)'
-let s:keydict.110='cal s:BlockPan(1,1,0)'
-let s:keydict.78 ='cal s:BigBlockPan(1,1)'
+let s:Y1='let y=y/s:bkylen*s:bkylen+s:bkylen|'
+let s:Ym1='let y=max([1,y/s:bkylen*s:bkylen-s:bkylen])|'
+	let s:keydict.104='cal s:BlockPan(-1,y)'
+	let s:keydict.106=s:Y1.'cal s:BlockPan(0,y)'
+	let s:keydict.107=s:Ym1.'cal s:BlockPan(0,y)'
+	let s:keydict.108='cal s:BlockPan(1,y)'
+	let s:keydict.121=s:Ym1.'cal s:BlockPan(-1,y)'
+	let s:keydict.117=s:Ym1.'cal s:BlockPan(1,y)'
+	let s:keydict.98 =s:Y1.'cal s:BlockPan(-1,y)'
+	let s:keydict.110=s:Y1.'cal s:BlockPan(1,y)'
+let s:DX1='3-get(t:txb.ix,bufname(winbufnr(1)),0)%s:bkxlen'
+let s:MAP1=[-3,-1,-2]
+let s:DXm1='s:MAP1[get(t:txb.ix,bufname(winbufnr(1)),0)%s:bkxlen]'
+let s:Y1='let y=y/s:bbkylen*s:bbkylen+s:bbkylen|'
+let s:Ym1='let y=max([1,y/s:bbkylen*s:bbkylen-s:bbkylen])|'
+	let s:keydict.72='cal s:BlockPan('.s:DXm1.',y)'
+	let s:keydict.74=s:Y1.'cal s:BlockPan(0,y)'
+	let s:keydict.75=s:Ym1.'cal s:BlockPan(0,y)'
+	let s:keydict.76='cal s:BlockPan('.s:DX1.',y)'
+	let s:keydict.89=s:Ym1.'cal s:BigBlockPan('.s:DXm1.',y)'
+	let s:keydict.85=s:Ym1.'cal s:BigBlockPan('.s:DX1.',y)'
+	let s:keydict.66=s:Y1.'cal s:BigBlockPan('.s:DXm1.',y)'
+	let s:keydict.78=s:Y1.'cal s:BigBlockPan('.s:DX1.',y)'
+unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
 fun! TXBcmd()
 	let [y,continue,msg]=[line('w0'),1,'']
 	while continue
 		let cucsav=&cuc
 		se cuc
-		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/3].'-'.(line('w0')/45) : msg
+		redr|ec empty(msg)? s:bknames[t:txb.ix[bufname('%')]/s:bkxlen].'-'.(line('w0')/s:bbkylen) : msg
 		let msg=''
 		let c=getchar()
 		let &cuc=cucsav
