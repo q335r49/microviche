@@ -42,39 +42,87 @@ fun! s:Pan(dx,y)
 endfun
 
 let s:bkxspd=5
+let s:bkyspd=5
+let s:bkylen=15
+fun! s:BigBlockPan(dx,dy)
+	let s:unreachable_ydestination=0
+	let y0=line('w0')
+	let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
+	if x0==-1
+		throw bufname(winbufnr(1))." not contained in current plane."
+	en
+	if a:dx<0
+		let xd=!x0? 0 : (x0-1)/3*3
+	elseif a:dx>0
+		let xd=min([(t:txb.len-1)/3*3,x0/3*3+3])
+	else
+		let xd=x0
+	en
+	if a:dy<0
+		let yd=y0<=1? 1 : max([(y0-1)/(3*s:bkylen)*3*s:bkylen,1])
+	elseif a:dy>0
+		let yd=y0/(3*s:bkylen)*3*s:bkylen+3*s:bkylen
+	else
+		let yd=y0
+	en
+	while y0!=yd || x0!=xd
+		call s:BlockPan(x0>xd? -1 : x0<xd? 1 : 0,y0>yd? -1 : y0<yd? 1 : 0)
+		let x0=get(t:txb.ix,bufname(winbufnr(1)),-1)
+		if x0==-1
+			throw bufname(winbufnr(1))." not contained in current plane."
+		en
+		if x0!=xd || !s:unreachable_ydestination
+			let y0=line('w0')
+		else
+			let s:unreachable_ydestination=0
+			let y0=yd
+		en
+	endwhile
+endfun
 fun! s:BlockPan(dx,dy)
+	let cury=line('w0')
 	let dy=a:dy
 	if dy>=0
-		let exe_ydest='let y_dest=!dy? cury : cury/15*15+15'
+		let exe_ydest='let y_dest=!dy? cury : cury/'.s:bkylen.'*'.s:bkylen.'+'.s:bkylen
+		let exe_cury='let cury=cury+'.s:bkyspd.'<y_dest? cury+'.s:bkyspd.' : y_dest'
 	elseif dy<0
-		let exe_ydest='let y_dest=!dy? cury : (cury-1)/15*15'
+		let exe_ydest='let y_dest=!dy? cury : cury>'.s:bkylen.'? (cury-1)/'.s:bkylen.'*'.s:bkylen.' : 1'
+		let exe_cury='let cury=cury-'.s:bkyspd.'>y_dest? cury-'.s:bkyspd.' : y_dest'
 	en
+	let exe_pany="if cury!=y_dest\n".exe_cury."\nif cury>line('$')\n
+			\let s:unreachable_ydestination=1\n
+			\for i in range(winnr('$')-1)\n
+				\wincmd w\n
+				\if line('$')>=cury\n
+					\exe 'norm!' cury.'zt'\n
+					\let s:unreachable_ydestination=0\n
+					\break\n
+				\en\n
+			\endfor\n
+		\else\n
+			\exe 'norm!' cury.'zt'\n
+		\en\nen"
 	if a:dx>0
 		for i in range(a:dx)
-			let cury=line('w0')
-			let y_dest=!dy? cury : cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+			exe exe_ydest
 			let buf0=winbufnr(1)
 			while winwidth(1)>s:bkxspd
 				call PanRight(s:bkxspd)
-				if cury!=y_dest
-   					let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
-					exe 'norm!' cury.'zt'
-				en
+				exe exe_pany
 				redr
 			endwhile
 			if winbufnr(1)==buf0
 				call PanRight(winwidth(1))
 			en
 			while cury!=y_dest
-   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
-				exe 'norm!' cury.'zt'
+				exe exe_pany
+				redr
 			endwhile
 			let dy+=dy>0? -1 : dy<0? 1 : 0
 		endfor
 	elseif a:dx<0
 		for i in range(-a:dx)
-			let cury=line('w0')
-			let y_dest=!dy? cury : cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+			exe exe_ydest
 			let buf0=winbufnr(1)
 			let ix=get(t:txb.ix,bufname(buf0),-1)
 			if ix==-1
@@ -86,46 +134,45 @@ fun! s:BlockPan(dx,dy)
 			en
 			while winwidth(1)<t:txb.size[ix]-s:bkxspd
 				call s:PanLeft(s:bkxspd)
-   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
-				exe 'norm!' cury.'zt'
+				exe exe_pany
 				redr
 			endwhile
 			if winbufnr(1)==buf0
 				call s:PanLeft(t:txb.size[ix]-winwidth(1))
 			en
 			while cury!=y_dest
-   				let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
-				exe 'norm!' cury.'zt'
+				exe exe_pany
+				redr
 			endwhile
 			let dy+=dy>0? -1 : dy<0? 1 : 0
 		endfor
 	en
 	while dy
-		let y_dest=cury%15? (dy>0? cury/15*15+15 : cury-cury%15) : (dy>0? cury+15 : cury-15)
+		exe exe_ydest
 		while cury!=y_dest
-			let cury=cury>y_dest? max([cury-5,y_dest]) : min([cury+5,y_dest])
-			exe 'norm!' cury.'zt'
+			exe exe_pany
+			redr
 		endwhile
 		let dy+=dy>0? -1 : dy<0? 1 : 0
 	endwhile
 endfun
 let s:keydict={}
 let s:keydict.104='cal s:BlockPan(-1,0)'
-let s:keydict.72 ='cal s:BlockPan(-3,0)'
+let s:keydict.72 ='cal s:BigBlockPan(-1,0)'
 let s:keydict.106='cal s:BlockPan(0,1)'
-let s:keydict.74 ='cal s:BlockPan(0,3)'
-let s:keydict.107='cal s:BlockPan(0,1)'
-let s:keydict.75 ='cal s:BlockPan(0,3)'
+let s:keydict.74 ='cal s:BigBlockPan(0,1)'
+let s:keydict.107='cal s:BlockPan(0,-1)'
+let s:keydict.75 ='cal s:BigBlockPan(0,-1)'
 let s:keydict.108='cal s:BlockPan(1,0)'
-let s:keydict.76 ='cal s:BlockPan(3,0)'
+let s:keydict.76 ='cal s:BigBlockPan(1,0)'
 let s:keydict.121='cal s:BlockPan(-1,-1)'
-let s:keydict.89 ='cal s:BlockPan(-3,-3)'
+let s:keydict.89 ='cal s:BigBlockPan(-1,-1)'
 let s:keydict.117='cal s:BlockPan(1,-1)'
-let s:keydict.85 ='cal s:BlockPan(3,-3)'
+let s:keydict.85 ='cal s:BigBlockPan(1,-1)'
 let s:keydict.98 ='cal s:BlockPan(-1,1)'
-let s:keydict.66 ='cal s:BlockPan(-3,3)'
+let s:keydict.66 ='cal s:BigBlockPan(-1,1)'
 let s:keydict.110='cal s:BlockPan(1,1)'
-let s:keydict.78 ='cal s:BlockPan(3,3)'
+let s:keydict.78 ='cal s:BigBlockPan(1,1)'
 
 fun! FormatPar(str,w,pad)
 	let [output,pad,bigpad,spc]=["",repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
