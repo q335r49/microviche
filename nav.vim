@@ -65,7 +65,7 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CChangelog:
-		\\n1.4.8  - garbage inputs for map nav fixed
+		\\n1.4.8  - garbage inputs for map nav fix
 		\\n1.4.7  - removed map display cell
 		\\n1.4.5  - map label display initial
 		\\n1.4.4  - make sure xterm dragging doesn't interefere with clicking
@@ -204,12 +204,12 @@ fun! s:initDragSGR()
 			exe "norm! \<leftmouse>"
 		else
 			let s:prevCoord=[0,0,0]
-			let s:dragHandler=exists("t:txb")? function("s:navPlane") : function("s:panWin")
+			let s:dragHandler=function("s:panWin")
 			nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:dragHandler=exists("t:txb")? function("s:navPlane") : function("s:panWin")
+		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
 	return ''
@@ -241,12 +241,12 @@ fun! s:initDragXterm2()
 			exe "norm! \<leftmouse>"
 		else
 			let s:prevCoord=[0,0,0]
-			let s:dragHandler=exists("t:txb")? function("s:navPlane") : function("s:panWin")
+			let s:dragHandler=function("s:panWin")
 			nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:dragHandler=exists("t:txb")? function("s:navPlane") : function("s:panWin")
+		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
 	return ''
