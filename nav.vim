@@ -309,11 +309,11 @@ fun! s:getMapDisp(map,w,h,H)
 				let row=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))
 				let [val,ix]=[row/100,row%100]
 				if val<j*a:w
-					let occ[ix].=s:pad[:j*a:w-val-1].'^ '.a:map[j][i]
+					let occ[ix].=s:pad[:j*a:w-val-1].a:map[j][i]
 				elseif val>=j*a:w+a:w
-					let occ[ix]=occ[ix][:j*a:w+a:w-2].'^ '.a:map[j][i]
+					let occ[ix]=occ[ix][:j*a:w+a:w-2].a:map[j][i]
 				else            
-					let occ[ix].='^ '.a:map[j][i]
+					let occ[ix].=a:map[j][i]
 				en
 			en
 		endfor
@@ -331,13 +331,10 @@ fun! s:printMapDisp(disp,r,c)
 		echon a:disp.str[i : ticker-1]
 		echohl NONE
 	endfor
-	echon a:disp.str[ticker :]
-	echon s:ms.pad.get(t:txb.gridnames,s:ms.c,'--').s:ms.r.(exists('t:txb.map['.s:ms.c.']['.s:ms.r.']')? ' '.t:txb.map[s:ms.c][s:ms.r] : '' ).s:ms.msg
+	echon a:disp.str[ticker :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
-let db_hist=[]
 fun! s:navMapKeyHandler(c)
-	let g:db_hist+=[a:c]
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
 			let s:ms.prevcoord=copy(g:TXBmsmsg)
@@ -383,7 +380,7 @@ fun! s:navMapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mapdict,a:c,'let s:ms.msg="   Press f1 for help or q to quit"')
+		exe get(s:mapdict,a:c,'let s:ms.msg="Press f1 for help or q to quit"')
 		if s:ms.continue==1
 			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
@@ -403,7 +400,7 @@ endfun
 fun! s:navMap(array,c_ini,r_ini)
 	let settings=[&ch,&more,&ls,&stal]
 	let &ch=&lines
-	let s:ms={'prevclick':[0,0],'prevcoord':[0,0,0],'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'rows':(&ch-1)/s:bksizes[t:txb.zoom][0],'cols':(&columns-1)/s:bksizes[t:txb.zoom][1],'pad':repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0]).' ','continue':1,'redr':1}
+	let s:ms={'prevclick':[0,0],'prevcoord':[0,0,0],'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'rows':(&ch-1)/s:bksizes[t:txb.zoom][0],'cols':(&columns-1)/s:bksizes[t:txb.zoom][1],'continue':1,'redr':1}
 	let s:ms.roff=max([s:ms.r-s:ms.rows/2,0])
 	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
@@ -426,6 +423,7 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\ndoubleclick             Goto block
 \\ndrag                    Pan
 \\ntop left corner click   Quit
+\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker to each label, eg, ''^ Chapter 1''
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"j":"let s:ms.r+=1",
 \"q":"let s:ms.continue=0",
@@ -465,10 +463,10 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 	\let s:ms.redr=1\n
 \en\n",
 \"g":'let s:ms.continue=2',
-\"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
-\"-":'let t:txb.zoom=max([t:txb.zoom-1,1])|let [s:ms.redr,s:ms.rows,s:ms.cols,s:ms.pad]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1],repeat("\n",(&ch-1)%s:bksizes[t:txb.zoom][0])." "]',
-\"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." inserted"|en',
-\"D":'if s:ms.c<len(s:ms.array) && input(s:ms.disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg=" Col ".(s:ms.c)." deleted"|en'}
+\"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1]]',
+\"-":'let t:txb.zoom=max([t:txb.zoom-1,1])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1]]',
+\"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." inserted"|en',
+\"D":'if s:ms.c<len(s:ms.array) && input(s:ms.disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
