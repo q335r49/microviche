@@ -16,7 +16,6 @@
 	hi! link TXBmapSelection Visual
 	hi! link TXBmapSelectionEmpty Search
 "Explanation of changed settings
-
 	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
 	se noequalalways                  "Needed for correct panning [Do not change]
 	se winwidth=1                     "Needed for correct panning [Do not change]
@@ -27,7 +26,6 @@
 	se nostartofline                  "Prevents cursor from jumping to start of line when scrolling up and down
 	se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
 	se hidden                         "Suppresses error messages when modified buffer is panned offscreen
-
 
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|else\|call <SID>initPlane()\|en<cr>'
@@ -338,24 +336,21 @@ fun! s:getMapDisp(map,w,h,H)
 	endfor
 	return {'str':join(strarray,''),'hlmap':selmap,'w':(a:w),'r':r}
 endfun
-fun! s:printMapDisp(disp,r,c)
+fun! s:printMapDisp()
 	redr!
-	let ticker=0
-	let i=a:disp.hlmap[a:r][a:c][0]
-	echon i? a:disp.str[ticker : i-1] : ''
-	if a:disp.hlmap[a:r][a:c][1]
-		let len=a:disp.hlmap[a:r][a:c][1]
-		let len=(i+len)%a:disp.r<i%a:disp.r? len-(i+len)%a:disp.r : len
-		let ticker=i+len
+	let [i,len]=s:ms.disp.hlmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	echon i? s:ms.disp.str[0 : i-1] : ''
+	if len
+		let len=(i+len)%s:ms.disp.r<i%s:ms.disp.r? len-(i+len)%s:ms.disp.r : len
 		echohl TXBmapSelection
-		echon get(get(s:ms.array,s:ms.c,[]),s:ms.r,'')[:len]
+		echon s:ms.array[s:ms.c][s:ms.r][:len]
 	else
-		let ticker=i+a:disp.w
+		let len=s:ms.disp.w
 		echohl TXBmapSelectionEmpty
-		echon a:disp.str[i : ticker-1]
+		echon s:ms.disp.str[i : i+len-1]
 	en
 	echohl NONE
-	echon a:disp.str[ticker :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
+	echon s:ms.disp.str[i+len :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
 fun! s:navMapKeyHandler(c)
@@ -367,7 +362,7 @@ fun! s:navMapKeyHandler(c)
         		let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
 				let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
 				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
-				call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+				call s:printMapDisp()
 			en
 			let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
 		elseif g:TXBmsmsg[0]==3
@@ -380,7 +375,7 @@ fun! s:navMapKeyHandler(c)
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
 						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
 						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
-						call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+						call s:printMapDisp()
 					en
 					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
 				else
@@ -398,7 +393,7 @@ fun! s:navMapKeyHandler(c)
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
 						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 					en
-					call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+					call s:printMapDisp()
 				en
 			en
 		en
@@ -411,7 +406,7 @@ fun! s:navMapKeyHandler(c)
 				let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
 				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
 			en
-			call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+			call s:printMapDisp()
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms.continue==2
 			let [&ch,&more,&ls,&stal]=s:ms.settings
@@ -429,7 +424,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
    	let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
-	call s:printMapDisp(s:ms.disp,s:ms.r-s:ms.roff,s:ms.c-s:ms.coff)
+	call s:printMapDisp()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
