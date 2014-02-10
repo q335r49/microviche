@@ -12,6 +12,9 @@
 	let s:bgridL=45
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
 	let s:panSpeedMultiplier=2
+"Map default colors
+	hi! link TXBmapSelection Visual
+	hi! link TXBmapSelectionEmpty Search
 "Explanation of changed settings
 
 	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
@@ -296,41 +299,62 @@ endfun
 
 let s:bksizes=[0,[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
 let TXBkyCmd.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
-let s:pad=repeat(' ',400)
+let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
 	let hlist_prototype=repeat([''],a:h)
 	let mapl=len(a:map)
 	let strarray=[]
-	let l=len(a:map)*a:w+1
+	let l=(len(a:map)*a:w+1)*a:h
+	let r=len(a:map)*a:w+1
+	let selmap=map(range(a:H),'range(mapl)')
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
 		for j in range(mapl)
 			if !empty(a:map[j][i])
-				let row=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))
-				let [val,ix]=[row/100,row%100]
-				if val<j*a:w
-					let occ[ix].=s:pad[:j*a:w-val-1].a:map[j][i]
-				elseif val>=j*a:w+a:w
-					let occ[ix]=occ[ix][:j*a:w+a:w-2].a:map[j][i]
-				else            
-					let occ[ix].=a:map[j][i]
+				let found=0
+				for k in range(a:h)
+					if len(occ[k])<(j+1)*a:w
+						if len(occ[k])<j*a:w
+							let selmap[i][j]=[i*l+k*r+j*a:w,len(a:map[j][i])]
+							let occ[k]=occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]
+						else
+							let selmap[i][j]=[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])]
+							let occ[k]=occ[k].a:map[j][i]
+						en
+						let found=1
+						break
+					en
+				endfor
+				if !found
+					let k=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))%100
+					let occ[k]=occ[k][:j*a:w+a:w-2].a:map[j][i]
+					let selmap[i][j]=[i*l+k*r+j*a:w,len(a:map[j][i])]
 				en
+			else
+				let selmap[i][j]=[i*l+j*a:w,0]
 			en
 		endfor
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
-	return {'str':join(strarray,''),'hlmap':map(range(a:H),'map(range(len(a:map)),''map(range(a:h),"''.v:val.''*l*a:h+(a:w)*".v:val."+v:val*l")'')'),'w':(a:w)}
+	return {'str':join(strarray,''),'hlmap':selmap,'w':(a:w),'r':r}
 endfun
 fun! s:printMapDisp(disp,r,c)
 	redr!
 	let ticker=0
-	for i in a:disp.hlmap[a:r][a:c]
-		echon i? a:disp.str[ticker : i-1] : ''
-		echohl visual
+	let i=a:disp.hlmap[a:r][a:c][0]
+	echon i? a:disp.str[ticker : i-1] : ''
+	if a:disp.hlmap[a:r][a:c][1]
+		let len=a:disp.hlmap[a:r][a:c][1]
+		let len=(i+len)%a:disp.r<i%a:disp.r? len-(i+len)%a:disp.r : len
+		let ticker=i+len
+		echohl TXBmapSelection
+		echon get(get(s:ms.array,s:ms.c,[]),s:ms.r,'')[:len]
+	else
 		let ticker=i+a:disp.w
+		echohl TXBmapSelectionEmpty
 		echon a:disp.str[i : ticker-1]
-		echohl NONE
-	endfor
+	en
+	echohl NONE
 	echon a:disp.str[ticker :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
