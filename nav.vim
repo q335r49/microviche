@@ -50,7 +50,7 @@ fun! s:printHelp()
 	\\n^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
 	\\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
 	\\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nSetting your viminfo to save global variables (:set viminfo+=!) is highly recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
+	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
 	\\nKeyboard commands can be accessed via the TXBdoCmd(key) in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.\n
 	\\nHorizontal splits aren't supported and may interfere with panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -69,6 +69,7 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CChangelog:
+		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
 		\\n1.4.9  - Better map mode highlighting
 		\\n1.4.7  - Removed map cell display
@@ -93,7 +94,7 @@ fun! s:printHelp()
 		\\n1.3.0  - new mousepanning method that uses raw keycodes and allows for accelerated motions for ttymouse=xterm2
 		\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in and not the one that occupies the majority of the screen
 		\\n1.2.6  - Ctrl-YUBNHJKL jumps to grid corners
-		\\n1.2.5  - Curor won't move while panning\n"
+		\\n1.2.5  - Cursor won't move while panning\n"
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	en
 endfun
@@ -220,6 +221,7 @@ fun! <SID>doDragSGR()
 		let k=[32,0,0]
 	elseif k[0]==0
 		nunmap <esc>[<
+        if k[1:]==[1,1] | call TXBdoCmd('o') | en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
@@ -254,6 +256,7 @@ fun! <SID>doDragXterm2()
 	endwhile
 	if k[0]==35
 		nunmap <esc>[M
+        if k[1:]==[33,33] | call TXBdoCmd('o') | en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
@@ -430,8 +433,10 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\n\\CMouse:
 \\ndoubleclick             Goto block
 \\ndrag                    Pan
-\\ntop left corner click   Quit
-\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker to each label, eg, ''^ Chapter 1''
+\\ntopleft corner click    Quit
+\\ndrag to topleft corner  Show map
+\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1''
+\\n\nFor navigating without the keyboard, the map can be activated from the main plane by a mouse drag action that ends at the top left corner, and can be closed by a click at the top left corner. As with all mouse commands, this only works when ttymouse is set to xterm2 or sgr.
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"j":"let s:ms.r+=1",
 \"q":"let s:ms.continue=0",
