@@ -66,6 +66,7 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CChangelog:
+		\\n1.4.9  - Better map mode highlighting
 		\\n1.4.8  - garbage inputs for map nav fix
 		\\n1.4.7  - removed map display cell
 		\\n1.4.5  - map label display initial
@@ -312,14 +313,7 @@ fun! s:getMapDisp(map,w,h,H)
 				let found=0
 				for k in range(a:h)
 					if len(occ[k])<(j+1)*a:w
-						if len(occ[k])<j*a:w
-							let selmap[i][j]=[i*l+k*r+j*a:w,len(a:map[j][i])]
-							let occ[k]=occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]
-						else
-							let selmap[i][j]=[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])]
-							let occ[k]=occ[k].a:map[j][i]
-						en
-						let found=1
+						let [found,selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [1,[i*l+k*r+j*a:w,len(a:map[j][i])],occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]] : [1,[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])],occ[k].a:map[j][i]]
 						break
 					en
 				endfor
@@ -399,7 +393,7 @@ fun! s:navMapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mapdict,a:c,'let s:ms.msg="Press f1 for help or q to quit"')
+		exe get(s:mapdict,a:c,'let s:ms.msg=" Press f1 for help or q to quit"')
 		if s:ms.continue==1
 			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
@@ -478,7 +472,7 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 	\if s:ms.r>=len(s:ms.array[s:ms.c])\n
 		\call extend(s:ms.array[s:ms.c],repeat([''],s:ms.r+1-len(s:ms.array[s:ms.c])))\n
 	\en\n
-	\let s:ms.array[s:ms.c][s:ms.r]=input\n
+	\let s:ms.array[s:ms.c][s:ms.r]=strtrans(input)\n
 	\let s:ms.redr=1\n
 \en\n",
 \"g":'let s:ms.continue=2',
