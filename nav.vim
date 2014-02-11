@@ -12,6 +12,8 @@
 	let s:bgridL=45
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
 	let s:panSpeedMultiplier=2
+"Map zoom sizes (h x w)
+	let s:bksizes=[[1,1],[2,2],[2,3],[2,5],[3,7],[3,12]]
 "Map default colors
 	hi! link TXBmapSelection Visual
 	hi! link TXBmapSelectionEmpty Search
@@ -27,12 +29,13 @@
 	se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
 	se hidden                         "Suppresses error messages when modified buffer is panned offscreen
 
+let s:bksizes=[0]+s:bksizes
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|else\|call <SID>initPlane()\|en<cr>'
 let TXBmsCmd={}
 let TXBkyCmd={}
 fun! s:printHelp()
-	let helpmsg="\n\\CWelcome to Textabyss v1.3!\n
+	let helpmsg="\n\\CWelcome to Textabyss v1.4.9!\n
 	\\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
 	\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
@@ -69,38 +72,29 @@ fun! s:printHelp()
 		\\n1.5    - Colored maps
 		\\n\\CChangelog:
 		\\n1.4.9  - Better map mode highlighting
-		\\n1.4.8  - garbage inputs for map nav fix
-		\\n1.4.7  - removed map display cell
-		\\n1.4.5  - map label display initial
-		\\n1.4.4  - make sure xterm dragging doesn't interefere with clicking
-		\\n1.4.3  - divide by zero bug in zoomlevel
-		\\n1.4.2  - map drag for ttymouse=xterm
-		\\n1.4.1  - Map panning speed matches zoom speed
+		\\n1.4.7  - Removed map cell display
+		\\n1.4.5  - Map label display
+		\\n1.4.4  - Make sure xterm dragging doesn't interfere with clicking
+		\\n1.4.2  - Map drag for ttymouse=xterm
+		\\n1.4.1  - Map panning speed now 1 to 1
 		\\n1.4.0  - Mouse support for map
 		\\n1.3.17 - Code refactor, reduce global var 'pollution'
-		\\n1.3.16 - Minor bug with map-delete column not redrawing
-		\\n1.3.15 - Removed outdated Edit Split message
-		\\n1.3.14 - Cursor now responds as needed to ttymouse setting without reloading plane
-		\\n1.3.13 - Prevent reloading of split (and subsequent error message if changed)
-		\\n1.3.12 - Safer append column function (check for duplicate, bad file names)
+		\\n1.3.14 - Cursor now responds to ttymouse setting without reloading plane
+		\\n1.3.13 - Prevent reloading of same split (and subsequent error message when changed)
+		\\n1.3.12 - Error checking for append column function (check for duplicate, bad file names)
 		\\n1.3.11 - 'se hidden' to prevent error messages
-		\\n1.3.10 - Support &ttymouse=sgr
-		\\n1.3.9  - Allows drag splits to resize when not in plane
-		\\n1.3.8  - File names can now contain spaces / message about consistent starting directory
+		\\n1.3.10 - Support ttymouse=sgr
+		\\n1.3.9  - Allow drag splits to resize functionality when not in plane
+		\\n1.3.8  - File names can now contain spaces, help message about consistent starting directory
 		\\n1.3.7  - Grid system reworked & simplified, only small grids named
 		\\n1.3.6  - Map now corresponds to single split, not big grid splits
 		\\n1.3.5  - Monologue changed to focus on intention
 		\\n1.3.4  - Help message added to map, map supports cut / paste
 		\\n1.3.1  - Cursor remains visible during global hotkey. Known issue: bug in vim (fixed: 7.4.169) misdisplays cursor when using grid corner commands.
-		\\n1.3.0  - When &ttymouse==xterm2, new mousepanning method that uses raw keycodes and allows for accelerated motions
-		\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in (and not the one that occupies the majority of the screen)
-		\\n1.2.7  - Minor updates to grid corners
-		\\n1.2.6  - Feature: Ctrl-YUBNHJKL jumps to grid corners
-		\\n1.2.5  - Echo confirmation for various commands
-		\\n1.2.5  - Curor won't move on panning. Clicking without dragging relocates cursor
-		\\n1.2.4  - Minor bug with map when horizontal block size divides columns
-		\\n1.2.3  - formatPar for help dialogs now has option to align right
-		\\n1.2.2  - Minor bug where the rightmost split will overshift on PanRight\n"
+		\\n1.3.0  - new mousepanning method that uses raw keycodes and allows for accelerated motions for ttymouse=xterm2
+		\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in and not the one that occupies the majority of the screen
+		\\n1.2.6  - Ctrl-YUBNHJKL jumps to grid corners
+		\\n1.2.5  - Curor won't move while panning\n"
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	en
 endfun
@@ -298,7 +292,6 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let s:bksizes=[0,[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]
 let TXBkyCmd.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
@@ -321,7 +314,7 @@ fun! s:getMapDisp(map,w,h,H)
 				if empty(selmap[i][j])
 					let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
 					let occ[k]=occ[k][:j*a:w+a:w-2].a:map[j][i]
-					let selmap[i][j]=[i*l+k*r+j*a:w,len(a:map[j][i])]
+					let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(a:map[j][i])]
 				en
 			else
 				let selmap[i][j]=[i*l+j*a:w,0]
