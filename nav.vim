@@ -12,10 +12,10 @@
 	let s:bgridL=45
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
 	let s:panSpeedMultiplier=2
-"Map block size
+"Map block default size (press z in map mode to change)
 	let s:mgridH=2
 	let s:mgridW=5
-"Map default colors
+"Map colors
 	hi! link TXBmapSelection Visual
 	hi! link TXBmapSelectionEmpty Search
 "Explanation of changed settings
@@ -61,15 +61,13 @@ fun! s:printHelp()
 		\\n\\CEndless fathoms he fell
 		\\n\\CNe'er in homely hearth to linger
 		\\n\\CNor warm hand to grasp!\"\n\\C~\n
-		\\n    In a time when memory capacity is growing exponentially, memory storage and retrieval, especially when it comes to prose, still seems quite undeveloped. It makes very little sense, to me, to have a massive hard drive when, in terms of text, actual production might be on the order of kilobytes per year. Depending on how prolific you are as a writer, you may have thousands or tens of thousands of pages in mysteriously named folders on old hard drives (say, since 5th grade). So the problem is one of organization, retreival, and accessibility rather than availability of space. There are various efforts in this regard, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month.\n
+		\\n    In a time when memory capacity is growing exponentially, memory storage and retrieval, especially when it comes to prose, still seems quite undeveloped. It makes very little sense, to me, to have a massive hard drive when, in terms of text, actual production might be on the order of kilobytes per year. Depending on how prolific you are as a writer, you may have hundreds or thousands of pages in mysteriously named folders on old hard drives. So the problem is one of organization, retreival, and accessibility rather than availability of space. There are various efforts in this regard, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month.\n
 		\\n    The textabyss is yet another solution to this problem. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 to 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.\n
 		\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
 		\\n\\RThanks for trying out Textabyss!\n\n\\RLeon, q335r49@gmail.com"
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	elseif input==?'c'
 		let helpmsg="\n
-		\\n\\CUpcoming:
-		\\n1.5    - Colored maps
 		\\n\\CChangelog:
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
 		\\n1.4.9  - Better map mode highlighting
@@ -102,7 +100,7 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
-fun! s:initDragXterm() "Placeholder; not supported
+fun! s:initDragXterm() "Placeholder; xterm not supported
 	return "norm! \<leftmouse>"
 endfun
 let TXBmsCmd.xterm=function("s:initDragXterm")
@@ -268,7 +266,7 @@ fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	let possav=s:saveCursPos()
+	let possav=[bufnr('%')]+getpos('.')[1:]
 	if a:dx>0
 		call s:PanLeft(s:panSpeedMultiplier*get(s:panstep,a:dx,16))
 	elseif a:dx<0
@@ -293,7 +291,7 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let TXBkyCmd.o='let s:cmdS.continue=0|let grid=s:getMapGrid()|cal s:navMap(t:txb.map,grid[0],grid[1])'
+let TXBkyCmd.o='let s:cmdS.continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
 	let hlist_prototype=repeat([''],a:h)
@@ -686,17 +684,14 @@ endfun
 	let TXBkyCmd["\<c-j>"]='cal s:gotoGridCorners( 0, 1)|let s:cmdS.possav=s:saveCursPos()'
 	let TXBkyCmd["\<c-k>"]='cal s:gotoGridCorners( 0,-1)|let s:cmdS.possav=s:saveCursPos()'
 
-fun! s:getMapGrid()
-	return [t:txb.ix[expand('%')],line('.')/s:bgridL]
-endfun
-fun! s:snapToCursorGrid()
+fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
  	let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
 	"exe PRINT('ix|l0|x|dir')
 	call s:blockPan(x,l0-l0%s:bgridL,dir)
 endfun
-	let TXBkyCmd['.']='let s:cmdS.possav=saveCursPos()|call s:snapToCursorGrid()|let s:cmdS.continue=0'
-	let TXBkyCmd['.']='call s:snapToCursorGrid()|let s:cmdS.continue=0'
+	let TXBkyCmd['.']='let s:cmdS.possav=saveCursPos()|call s:snapToGrid()|let s:cmdS.continue=0'
+	let TXBkyCmd['.']='call s:snapToGrid()|let s:cmdS.continue=0'
 
 nmap <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nmap <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1050,8 +1045,8 @@ fun! s:restoreCursPos(possav)
 	en
 endfun
 
-fun! s:PanLeft(N,...)
-	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
+fun! s:PanLeft(N)
+	let alignmentcmd="norm! ".line('w0')."zt"
 	let [extrashift,tcol]=[0,get(t:txb.ix,bufname(winbufnr(1)),-1)]
 	if tcol<0
 		throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txb.name)
@@ -1141,8 +1136,8 @@ fun! s:PanLeft(N,...)
 	return extrashift
 endfun
 
-fun! s:PanRight(N,...)
-	let alignmentcmd="norm! ".(a:0? a:1 : line('w0'))."zt"
+fun! s:PanRight(N)
+	let alignmentcmd="norm! ".line('w0')."zt"
 	let tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
 	let [bcol,loff,extrashift,N]=[get(t:txb.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 	let nobotresize=0
