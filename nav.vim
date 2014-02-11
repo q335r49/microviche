@@ -65,6 +65,8 @@ fun! s:printHelp()
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	elseif input==?'c'
 		let helpmsg="\n
+		\\n\\CUpcoming:
+		\\n1.5    - Colored maps
 		\\n\\CChangelog:
 		\\n1.4.9  - Better map mode highlighting
 		\\n1.4.8  - garbage inputs for map nav fix
@@ -305,20 +307,19 @@ fun! s:getMapDisp(map,w,h,H)
 	let strarray=[]
 	let l=(len(a:map)*a:w+1)*a:h
 	let r=len(a:map)*a:w+1
-	let selmap=map(range(a:H),'range(mapl)')
+	let selmap=map(range(a:H),'repeat([0],mapl)')
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
 		for j in range(mapl)
 			if !empty(a:map[j][i])
-				let found=0
 				for k in range(a:h)
 					if len(occ[k])<(j+1)*a:w
-						let [found,selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [1,[i*l+k*r+j*a:w,len(a:map[j][i])],occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]] : [1,[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])],occ[k].a:map[j][i]]
+						let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(a:map[j][i])],occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])],occ[k].a:map[j][i]]
 						break
 					en
 				endfor
-				if !found
-					let k=min(map(copy(hlist_prototype),'len(occ[v:key])*100+v:key'))%100
+				if empty(selmap[i][j])
+					let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
 					let occ[k]=occ[k][:j*a:w+a:w-2].a:map[j][i]
 					let selmap[i][j]=[i*l+k*r+j*a:w,len(a:map[j][i])]
 				en
