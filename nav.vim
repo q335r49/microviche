@@ -12,8 +12,9 @@
 	let s:bgridL=45
 "Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
 	let s:panSpeedMultiplier=2
-"Map zoom sizes (h x w)
-	let s:bksizes=[[1,1],[2,2],[2,3],[2,5],[3,7],[3,12]]
+"Map block size
+	let s:mgridH=2
+	let s:mgridW=5
 "Map default colors
 	hi! link TXBmapSelection Visual
 	hi! link TXBmapSelectionEmpty Search
@@ -29,7 +30,6 @@
 	se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
 	se hidden                         "Suppresses error messages when modified buffer is panned offscreen
 
-let s:bksizes=[0]+s:bksizes
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|else\|call <SID>initPlane()\|en<cr>'
 let TXBmsCmd={}
@@ -71,6 +71,7 @@ fun! s:printHelp()
 		\\n\\CUpcoming:
 		\\n1.5    - Colored maps
 		\\n\\CChangelog:
+		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
 		\\n1.4.9  - Better map mode highlighting
 		\\n1.4.7  - Removed map cell display
 		\\n1.4.5  - Map label display
@@ -347,12 +348,12 @@ fun! s:navMapKeyHandler(c)
 			let s:ms.prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-        		let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
+        		let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/s:mgridH]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/s:mgridW]),0]
 				let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
 				call s:printMapDisp()
 			en
-			let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
+			let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%s:mgridH]
 		elseif g:TXBmsmsg[0]==3
 			if g:TXBmsmsg==[3,1,1]
 				let [&ch,&more,&ls,&stal]=s:ms.settings
@@ -360,15 +361,15 @@ fun! s:navMapKeyHandler(c)
 			elseif s:ms.prevcoord[0]==1
 				if &ttymouse=='xterm' && s:ms.prevcoord[1]!=g:TXBmsmsg[1] && s:ms.prevcoord[2]!=g:TXBmsmsg[2] 
 					if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/t:txb.zoom]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/t:txb.zoom]),0]
+						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/s:mgridH]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/s:mgridW]),0]
 						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
 						call s:printMapDisp()
 					en
-					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%t:txb.zoom,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%t:txb.zoom]
+					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%s:mgridH]
 				else
-					let s:ms.r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:bksizes[t:txb.zoom][0]+s:ms.roff
-					let s:ms.c=(g:TXBmsmsg[1]-1)/s:bksizes[t:txb.zoom][1]+s:ms.coff
+					let s:ms.r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:mgridH+s:ms.roff
+					let s:ms.c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms.coff
 					if [s:ms.r,s:ms.c]==s:ms.prevclick
 						let [&ch,&more,&ls,&stal]=s:ms.settings
 						cal s:gotoPos(s:ms.c,s:bgridL*s:ms.r)
@@ -379,7 +380,7 @@ fun! s:navMapKeyHandler(c)
 					let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 					if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
 						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+						let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
 					en
 					call s:printMapDisp()
 				en
@@ -392,7 +393,7 @@ fun! s:navMapKeyHandler(c)
 			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
 			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
 				let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+				let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
 			en
 			call s:printMapDisp()
 			call feedkeys("\<plug>TxbY")
@@ -407,11 +408,13 @@ endfun
 fun! s:navMap(array,c_ini,r_ini)
 	let settings=[&ch,&more,&ls,&stal]
 	let &ch=&lines
-	let s:ms={'prevclick':[0,0],'prevcoord':[0,0,0],'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'rows':(&ch-1)/s:bksizes[t:txb.zoom][0],'cols':(&columns-1)/s:bksizes[t:txb.zoom][1],'continue':1,'redr':1}
+	let s:ms={'prevclick':[0,0],'prevcoord':[0,0,0],'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'continue':1,'redr':1}
+	let s:ms.rows=(&ch-1)/s:mgridH
+	let s:ms.cols=(&columns-1)/s:mgridW
 	let s:ms.roff=max([s:ms.r-s:ms.rows/2,0])
 	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
-   	let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:bksizes[t:txb.zoom][1],s:bksizes[t:txb.zoom][0],s:ms.rows)
+   	let s:ms.disp=s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
 	call s:printMapDisp()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
@@ -423,8 +426,8 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\nx p         Cut block / Put block
 \\nc i         Change block
 \\ng <cr>      Goto block (and exit map)
-\\n+ -         Increase / decrease block size
 \\nI D         Insert / delete column
+\\nz           Adjust map block size
 \\nq           Quit
 \\n\\CMouse:
 \\ndoubleclick             Goto block
@@ -470,8 +473,7 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 	\let s:ms.redr=1\n
 \en\n",
 \"g":'let s:ms.continue=2',
-\"+":'let t:txb.zoom=min([t:txb.zoom+1,len(s:bksizes)-1])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1]]',
-\"-":'let t:txb.zoom=max([t:txb.zoom-1,1])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:bksizes[t:txb.zoom][0],(&columns-1)/s:bksizes[t:txb.zoom][1]]',
+\"z":'let s:mgridW=min([10,max([1,input(s:ms.disp.str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
 \"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." inserted"|en',
 \"D":'if s:ms.c<len(s:ms.array) && input(s:ms.disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
@@ -878,7 +880,6 @@ fun! s:makePlane(name,...)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
 		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
 		let plane.scrollopt='ver,jump'
-		let plane.zoom=min([2,len(s:bksizes)])
 		let [plane.ix,i]=[{},0]
 		let plane.map=[[]]
 		for e in plane.name
