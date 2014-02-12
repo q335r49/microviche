@@ -297,38 +297,47 @@ endfun
 let TXBkyCmd.o='let s:cmdS.continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
-	let hlist_prototype=repeat([''],a:h)
 	let mapl=len(a:map)
-	let strarray=[]
-	let l=(len(a:map)*a:w+1)*a:h
-	let r=len(a:map)*a:w+1
+	let r=mapl*a:w+1
+	let l=r*a:h
+	let hlist_prototype=repeat([''],a:h)
+	let j_prev=copy(hlist_prototype)
 	let selmap=map(range(a:H),'repeat([0],mapl)')
+	let strarray=[]
+	let colors=[]
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
 		for j in range(mapl)
-			if !empty(a:map[j][i])
-				for k in range(a:h)
-					if len(occ[k])<(j+1)*a:w
-						let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(a:map[j][i])],occ[k].s:pad[:j*a:w-len(occ[k])-1].a:map[j][i]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(a:map[j][i])],occ[k].a:map[j][i]]
-						break
-					en
-				endfor
-				if empty(selmap[i][j])
-					let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
-					let occ[k]=occ[k][:j*a:w+a:w-2].a:map[j][i]
-					let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(a:map[j][i])]
-				en
+			if empty(a:map[j][i])
+				let selmap[i][j]=[i*l+j*a:w,0,0]
+				continue
+			en
+			let k=0
+			while k<a:h && len(occ[k])>=(j+1)*a:w
+				let k+=1
+			endw
+			let disp=split(a:map[j][i],'#')
+			if k==a:h
+				let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
+				let selmap[i][j_prev[k]][1]-=len(occ[k])-(j*a:w+a:w-1)
+				let occ[k]=occ[k][:j*a:w+a:w-2].disp[0]
+				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(disp[0]),len(colors)]
 			else
-				let selmap[i][j]=[i*l+j*a:w,0]
+				let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(disp[0]),len(colors)],occ[k].s:pad[:j*a:w-len(occ[k])-1].disp[0]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(disp[0]),len(colors)],occ[k].disp[0]]
+			en
+			let j_prev[k]=j
+			if len(disp)>1
+				call add colors([selmap[i][j]+disp[1]])
 			en
 		endfor
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
-	return {'str':join(strarray,''),'hlmap':selmap,'w':(a:w),'r':r}
+	return {'str':join(strarray,''),'hlmap':selmap,'w':(a:w),'r':r,'colors':colors}
 endfun
 fun! s:printMapDisp()
 	redr!
-	let [i,len]=s:ms.disp.hlmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let [i,len,pos]=s:ms.disp.hlmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let ticker=0
 	echon i? s:ms.disp.str[0 : i-1] : ''
 	if len
 		let len=(i+len)%s:ms.disp.r<i%s:ms.disp.r? len-(i+len)%s:ms.disp.r : len
@@ -343,6 +352,7 @@ fun! s:printMapDisp()
 	echon s:ms.disp.str[i+len :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
+
 fun! s:navMapKeyHandler(c)
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
