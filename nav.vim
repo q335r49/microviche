@@ -305,11 +305,12 @@ fun! s:getMapDisp(map,w,h,H)
 	let selmap=map(range(a:H),'repeat([0],mapl)')
 	let strarray=[]
 	let colors=[]
+	let colorv=[]
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
 		for j in range(mapl)
 			if empty(a:map[j][i])
-				let selmap[i][j]=[i*l+j*a:w,0,0]
+				let selmap[i][j]=[i*l+j*a:w,0,len(colors)]
 				continue
 			en
 			let k=0
@@ -327,20 +328,72 @@ fun! s:getMapDisp(map,w,h,H)
 			en
 			let j_prev[k]=j
 			if len(disp)>1
-				call add colors([selmap[i][j]+disp[1]])
+				call extend(colors,[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
+				call extend(colorv,['echoh NONE','echoh '.disp[1]])
 			en
 		endfor
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
-	return {'str':join(strarray,''),'hlmap':selmap,'w':(a:w),'r':r,'colors':colors}
+	call add(colors,0)
+	call add(colorv,'echoh NONE')
+	return {'str':join(strarray,''),'selmap':selmap,'w':(a:w),'r':r,'color':colors, 'colorv':colorv}
+endfun
+
+fun! s:printMapDisp()
+	redr!
+	let [sel,notempty,pos]=s:ms.disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let colorl=len(s:ms.disp.color)
+	let p=0
+	if pos>0
+		if s:ms.disp.color[0]!=0
+			exe s:ms.disp.colorv[0]
+			echon s:ms.disp.str[:s:ms.disp.color[0]-1]
+		en
+		for p in range(1,pos-1)
+			exe s:ms.disp.colorv[p]
+			echon s:ms.disp.str[s:ms.disp.color[p-1]+1 : s:ms.disp.color[p]]
+		endfor
+		exe s:ms.disp.colorv[pos]
+		echon s:ms.disp.str[s:ms.disp.color[p]:sel-1]
+	elseif sel!=0
+		exe s:ms.disp.colorv[pos]
+		echon s:ms.disp.str[:sel-1]
+	en
+	if notempty
+		let fullen=len(s:ms.array[s:ms.c][s:ms.r])
+		let fullen=(sel+fullen)%s:ms.disp.r<sel%s:ms.disp.r? fullen-(sel+fullen)%s:ms.disp.r-1 : fullen
+		echohl TXBmapSelection
+		echon s:ms.array[s:ms.c][s:ms.r][:fullen-1]
+		let fullen=sel+fullen
+	else
+		let fullen=s:ms.disp.w
+		echohl TXBmapSelectionEmpty
+		echon s:ms.disp.str[sel : sel+fullen-1]
+		let fullen=sel+fullen
+	en
+    while p<colorl && s:ms.disp.color[p]<fullen
+		let p+=1
+	endwhile
+	if p<colorl
+		exe s:ms.disp.colorv[p]
+		echon s:ms.disp.str[fullen :s:ms.disp.color[p]-1]
+		for p in range(p+1,colorl-1)
+			exe s:ms.disp.colorv[p]
+			echon s:ms.disp.str[s:ms.disp.color[p-1]:s:ms.disp.color[p]-1]
+		endfor
+		let fullen=s:ms.disp.color[p][1]
+	en
+	return
+	echon get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
+	let s:ms.msg=''
 endfun
 fun! s:printMapDisp()
 	redr!
-	let [i,len,pos]=s:ms.disp.hlmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
-	let ticker=0
+	let [i,len,pos]=s:ms.disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
 	echon i? s:ms.disp.str[0 : i-1] : ''
 	if len
-		let len=(i+len)%s:ms.disp.r<i%s:ms.disp.r? len-(i+len)%s:ms.disp.r : len
+		let len=len(s:ms.array[s:ms.c][s:ms.r])
+		let len=(i+len)%s:ms.disp.r<i%s:ms.disp.r? len-(i+len)%s:ms.disp.r-1 : len
 		echohl TXBmapSelection
 		echon s:ms.array[s:ms.c][s:ms.r][:len]
 	else
