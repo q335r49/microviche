@@ -68,6 +68,10 @@ fun! s:printHelp()
 		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
 	elseif input==?'c'
 		let helpmsg="\n
+		\\n\\CRoadmap:
+		\\n1.5    - Colored labels
+		\\n1.6    - Remove big grid, grid corners, shift entirely to map
+		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
 		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
@@ -302,15 +306,21 @@ fun! s:getMapDisp(map,w,h,H)
 	let l=r*a:h
 	let hlist_prototype=repeat([''],a:h)
 	let j_prev=copy(hlist_prototype)
+	let j_prev_highlighted=copy(hlist_prototype)
 	let selmap=map(range(a:H),'repeat([0],mapl)')
 	let strarray=[]
 	let colors=[]
 	let colorv=[]
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
+		let j_prev_highlighted[0]=-1
 		for j in range(mapl)
 			if empty(a:map[j][i])
-				let selmap[i][j]=[i*l+j*a:w,0,len(colors)]
+				if j_prev_highlighted[0]!=-1 && i*l+j*a:w<colors[j_prev_highlighted[0]]
+					let selmap[i][j]=[i*l+j*a:w,0,len(colors)-1]
+				else
+					let selmap[i][j]=[i*l+j*a:w,0,len(colors)]
+				en
 				continue
 			en
 			let k=0
@@ -321,6 +331,9 @@ fun! s:getMapDisp(map,w,h,H)
 			if k==a:h
 				let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
 				let selmap[i][j_prev[k]][1]-=len(occ[k])-(j*a:w+a:w-1)
+				if j_prev_highlighted[k]!=-1
+	                let colors[j_prev_highlighted[k]]-=len(occ[k])-(j*a:w+a:w-1)
+				en
 				let occ[k]=occ[k][:j*a:w+a:w-2].disp[0]
 				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(disp[0]),len(colors)]
 			else
@@ -330,20 +343,23 @@ fun! s:getMapDisp(map,w,h,H)
 			if len(disp)>1
 				call extend(colors,[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
 				call extend(colorv,['echoh NONE','echoh '.disp[1]])
+				let j_prev_highlighted[k]=len(colors)-1
+			else
+				let j_prev_highlighted[k]=-1
 			en
 		endfor
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
-	call add(colors,0)
+	call add(colors,99999)
 	call add(colorv,'echoh NONE')
 	return {'str':join(strarray,''),'selmap':selmap,'w':(a:w),'r':r,'color':colors, 'colorv':colorv}
 endfun
 
 fun! s:printMapDisp()
-	redr!
 	let [sel,notempty,pos]=s:ms.disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
 	let colorl=len(s:ms.disp.color)
 	let p=0
+	redr!
 	if pos>0
 		if s:ms.disp.color[0]!=0
 			exe s:ms.disp.colorv[0]
@@ -351,12 +367,12 @@ fun! s:printMapDisp()
 		en
 		for p in range(1,pos-1)
 			exe s:ms.disp.colorv[p]
-			echon s:ms.disp.str[s:ms.disp.color[p-1]+1 : s:ms.disp.color[p]]
+			echon s:ms.disp.str[s:ms.disp.color[p-1] : s:ms.disp.color[p]-1]
 		endfor
 		exe s:ms.disp.colorv[pos]
 		echon s:ms.disp.str[s:ms.disp.color[p]:sel-1]
 	elseif sel!=0
-		exe s:ms.disp.colorv[pos]
+		exe s:ms.disp.colorv[0]
 		echon s:ms.disp.str[:sel-1]
 	en
 	if notempty
@@ -366,28 +382,27 @@ fun! s:printMapDisp()
 		echon s:ms.array[s:ms.c][s:ms.r][:fullen-1]
 		let fullen=sel+fullen
 	else
-		let fullen=s:ms.disp.w
+		let fullen=sel+s:ms.disp.w
 		echohl TXBmapSelectionEmpty
-		echon s:ms.disp.str[sel : sel+fullen-1]
-		let fullen=sel+fullen
+		echon s:ms.disp.str[sel : fullen-1]
 	en
     while p<colorl && s:ms.disp.color[p]<fullen
 		let p+=1
 	endwhile
+	let g:colors=s:ms.disp.color
 	if p<colorl
 		exe s:ms.disp.colorv[p]
 		echon s:ms.disp.str[fullen :s:ms.disp.color[p]-1]
 		for p in range(p+1,colorl-1)
 			exe s:ms.disp.colorv[p]
-			echon s:ms.disp.str[s:ms.disp.color[p-1]:s:ms.disp.color[p]-1]
+			echon s:ms.disp.str[s:ms.disp.color[p-1] : s:ms.disp.color[p]-1]
 		endfor
 		let fullen=s:ms.disp.color[p][1]
 	en
-	return
 	echon get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
-fun! s:printMapDisp()
+fun! s:printMapDispOld()
 	redr!
 	let [i,len,pos]=s:ms.disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
 	echon i? s:ms.disp.str[0 : i-1] : ''
