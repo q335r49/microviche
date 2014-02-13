@@ -306,7 +306,6 @@ fun! s:getMapDisp(map,w,h,H)
 	let r=mapl*a:w+1
 	let l=r*a:h
 	let hlist_prototype=repeat([''],a:h)
-	let j_prev=copy(hlist_prototype)
 	let j_prev_highlighted=copy(hlist_prototype)
 	let color_proto=map(range(a:H),'[]')
 	let selmap=map(range(a:H),'repeat([0],mapl)')
@@ -315,13 +314,14 @@ fun! s:getMapDisp(map,w,h,H)
 	let colorv=[]
 	let extendcolorexpr='call extend(colors,'.join(map(range(a:h),'"colorix[".v:val."]"'),'+').')'
 	let extendcolorvexpr='call extend(colorv,'.join(map(range(a:h),'"colorvix[".v:val."]"'),'+').')'
-	let g:a=extendcolorexpr
-	let g:b=extendcolorvexpr
+	let initializecolorix_expr='let colorix=['.join(map(range(a:h),'"[]"'),',').']'
+	let initializecolorvix_expr='let colorvix=['.join(map(range(a:h),'"[]"'),',').']'
+	let g:a=initializecolorix_expr
+	let g:b=initializecolorvix_expr
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
-		let j_prev_highlighted[0]=-1
-		let colorix=deepcopy(color_proto)
-		let colorvix=deepcopy(color_proto)
+		exe initializecolorix_expr
+		exe initializecolorvix_expr
 		for j in range(mapl)
 			if empty(a:map[j][i])
 				let selmap[i][j]=[i*l+j*a:w,0]
@@ -333,21 +333,20 @@ fun! s:getMapDisp(map,w,h,H)
 			endw
 			let parsed=split(a:map[j][i],'#')
 			if k==a:h
+				"exe PRINT('string(occ)|k')
 				let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
-				let selmap[i][j_prev[k]][1]-=len(occ[k])-(j*a:w+a:w-1)
 				if j_prev_highlighted[k]!=-1
-	                let colors[j_prev_highlighted[k]]-=len(occ[k])-(j*a:w+a:w-1)
+	                let colorix[k][-1]-=len(occ[k])-(j*a:w+a:w-1)
 				en
 				let occ[k]=occ[k][:j*a:w+a:w-2].parsed[0]
 				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(parsed[0])]
 			else
 				let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(parsed[0])],occ[k].s:pad[:j*a:w-len(occ[k])-1].parsed[0]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(parsed[0])],occ[k].parsed[0]]
 			en
-			let j_prev[k]=j
 			if len(parsed)>1
 				call extend(colorix[k],[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
 				call extend(colorvix[k],['echoh NONE','echoh '.parsed[1]])
-				let j_prev_highlighted[k]=len(colors)-1
+				let j_prev_highlighted[k]=1
 			else
 				let j_prev_highlighted[k]=-1
 			en
@@ -362,9 +361,13 @@ fun! s:getMapDisp(map,w,h,H)
 	let s:disp__r=r
 	let s:disp__color=add(colors,99999)
 	let s:disp__colorv=add(colorv,'echoh NONE')
-		let g:parr=s:disp__color
-		let g:parv=s:disp__colorv
-		let g:parstr=s:disp__str
+
+	let g:disp__str=join(strarray,'')
+	let g:disp__selmap=selmap
+    let g:disp__w=a:w
+	let g:disp__r=r
+	let g:disp__color=add(colors,99999)
+	let g:disp__colorv=add(colorv,'echoh NONE')
 endfun
 
 fun! s:printMapDisp()
@@ -498,6 +501,7 @@ fun! s:navMapKeyHandler(c)
 endfun
 fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__settings=[&ch,&more,&ls,&stal]
+		let [&more,&ls,&stal]=[0,0,0]
 		let &ch=&lines
 	let s:ms__prevclick=[0,0]
 	let s:ms__prevcoord=[0,0,0]
@@ -512,7 +516,6 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
 	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
 	let s:ms__displayfunc=function('s:printMapDisp')
-	let [&more,&ls,&stal]=[0,0,0]
    	call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 	call s:ms__displayfunc()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
@@ -793,7 +796,6 @@ endfun
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
  	let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
-	"exe PRINT('ix|l0|x|dir')
 	call s:blockPan(x,l0-l0%s:bgridL,dir)
 endfun
 	let TXBkyCmd['.']='let s:cmdS.possav=saveCursPos()|call s:snapToGrid()|let s:cmdS.continue=0'
