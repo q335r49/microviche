@@ -35,7 +35,7 @@ exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|els
 let TXBmsCmd={}
 let TXBkyCmd={}
 fun! s:printHelp()
-	let helpmsg="\n\\CWelcome to Textabyss v1.4.9!\n
+	let helpmsg="\n\\CWelcome to Textabyss v1.5!\n
 	\\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
 	\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
@@ -72,7 +72,8 @@ fun! s:printHelp()
 		\\n1.6    - Remove big grid, grid corners, shift entirely to map
 		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
-		\\n1.5.0  - Colored labels (beta)
+		\\n1.5.1  - Rather severe bug with map coloring
+		\\n1.5.0  - Colored labels
 		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
 		\\n1.4.9  - Better map mode highlighting
@@ -307,20 +308,23 @@ fun! s:getMapDisp(map,w,h,H)
 	let hlist_prototype=repeat([''],a:h)
 	let j_prev=copy(hlist_prototype)
 	let j_prev_highlighted=copy(hlist_prototype)
+	let color_proto=map(range(a:H),'[]')
 	let selmap=map(range(a:H),'repeat([0],mapl)')
 	let strarray=[]
 	let colors=[]
 	let colorv=[]
+	let extendcolorexpr='call extend(colors,'.join(map(range(a:h),'"colorix[".v:val."]"'),'+').')'
+	let extendcolorvexpr='call extend(colorv,'.join(map(range(a:h),'"colorvix[".v:val."]"'),'+').')'
+	let g:a=extendcolorexpr
+	let g:b=extendcolorvexpr
 	for i in range(a:H)
 		let occ=copy(hlist_prototype)
 		let j_prev_highlighted[0]=-1
+		let colorix=deepcopy(color_proto)
+		let colorvix=deepcopy(color_proto)
 		for j in range(mapl)
 			if empty(a:map[j][i])
-				if j_prev_highlighted[0]!=-1 && i*l+j*a:w<colors[j_prev_highlighted[0]]
-					let selmap[i][j]=[i*l+j*a:w,0,len(colors)-1]
-				else
-					let selmap[i][j]=[i*l+j*a:w,0,len(colors)]
-				en
+				let selmap[i][j]=[i*l+j*a:w,0]
 				continue
 			en
 			let k=0
@@ -335,19 +339,21 @@ fun! s:getMapDisp(map,w,h,H)
 	                let colors[j_prev_highlighted[k]]-=len(occ[k])-(j*a:w+a:w-1)
 				en
 				let occ[k]=occ[k][:j*a:w+a:w-2].parsed[0]
-				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(parsed[0]),len(colors)]
+				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(parsed[0])]
 			else
-				let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(parsed[0]),len(colors)],occ[k].s:pad[:j*a:w-len(occ[k])-1].parsed[0]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(parsed[0]),len(colors)],occ[k].parsed[0]]
+				let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(parsed[0])],occ[k].s:pad[:j*a:w-len(occ[k])-1].parsed[0]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(parsed[0])],occ[k].parsed[0]]
 			en
 			let j_prev[k]=j
 			if len(parsed)>1
-				call extend(colors,[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
-				call extend(colorv,['echoh NONE','echoh '.parsed[1]])
+				call extend(colorix[k],[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
+				call extend(colorvix[k],['echoh NONE','echoh '.parsed[1]])
 				let j_prev_highlighted[k]=len(colors)-1
 			else
 				let j_prev_highlighted[k]=-1
 			en
 		endfor
+		exe extendcolorexpr
+		exe extendcolorvexpr
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
 	let s:disp__str=join(strarray,'')
@@ -356,27 +362,34 @@ fun! s:getMapDisp(map,w,h,H)
 	let s:disp__r=r
 	let s:disp__color=add(colors,99999)
 	let s:disp__colorv=add(colorv,'echoh NONE')
+		let g:parr=s:disp__color
+		let g:parv=s:disp__colorv
+		let g:parstr=s:disp__str
 endfun
 
 fun! s:printMapDisp()
-	let [sel,notempty,pos]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
+	let [sel,notempty]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
 	let colorl=len(s:disp__color)
 	let p=0
 	redr!
-	if pos
-		if s:disp__color[0]!=0
-			exe s:disp__colorv[0]
-			echon s:disp__str[:s:disp__color[0]-1]
-		en
-		for p in range(1,pos-1)
+	if sel!=0
+		if sel>s:disp__color[0]
+			if s:disp__color[0]!=0
+       			exe s:disp__colorv[0]
+				echon s:disp__str[0 : s:disp__color[0]-1]
+			en
+			let p=1
+			while sel>s:disp__color[p]
+				exe s:disp__colorv[p]
+				echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
+				let p+=1
+			endwhile
 			exe s:disp__colorv[p]
-			echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
-		endfor
-		exe s:disp__colorv[pos]
-		echon s:disp__str[s:disp__color[p]:sel-1]
-	elseif sel
-		exe s:disp__colorv[0]
-		echon s:disp__str[:sel-1]
+			echon s:disp__str[s:disp__color[p-1]:sel-1]
+		else
+   		 	exe s:disp__colorv[0]
+			echon s:disp__str[:sel-1]
+		en
 	en
 	if notempty
 		let endmark=len(s:ms__array[s:ms__c][s:ms__r])
@@ -403,7 +416,7 @@ fun! s:printMapDisp()
 endfun
 fun! s:printMapDispNoHL()
 	redr!
-	let [i,len,pos]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
+	let [i,len]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
 	echon i? s:disp__str[0 : i-1] : ''
 	if len
 		let len=len(s:ms__array[s:ms__c][s:ms__r])
