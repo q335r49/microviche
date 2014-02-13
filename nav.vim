@@ -69,10 +69,10 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CRoadmap:
-		\\n1.5    - Colored labels
 		\\n1.6    - Remove big grid, grid corners, shift entirely to map
 		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
+		\\n1.5.0  - Colored labels (beta)
 		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
 		\\n1.4.9  - Better map mode highlighting
@@ -352,72 +352,77 @@ fun! s:getMapDisp(map,w,h,H)
 	endfor
 	call add(colors,99999)
 	call add(colorv,'echoh NONE')
-	let s:disp={'str':join(strarray,''),'selmap':selmap,'w':(a:w),'r':r,'color':colors, 'colorv':colorv}
+	let s:disp__str=join(strarray,'')
+	let s:disp__selmap=selmap
+    let s:disp__w=a:w
+	let s:disp__r=r
+	let s:disp__color=colors
+	let s:disp__colorv=colorv
 endfun
 
 fun! s:printMapDisp()
-	let [sel,notempty,pos]=s:disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
-	let colorl=len(s:disp.color)
+	let [sel,notempty,pos]=s:disp__selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let colorl=len(s:disp__color)
 	let p=0
 	redr!
 	if pos>0
-		if s:disp.color[0]!=0
-			exe s:disp.colorv[0]
-			echon s:disp.str[:s:disp.color[0]-1]
+		if s:disp__color[0]!=0
+			exe s:disp__colorv[0]
+			echon s:disp__str[:s:disp__color[0]-1]
 		en
 		for p in range(1,pos-1)
-			exe s:disp.colorv[p]
-			echon s:disp.str[s:disp.color[p-1] : s:disp.color[p]-1]
+			exe s:disp__colorv[p]
+			echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
 		endfor
-		exe s:disp.colorv[pos]
-		echon s:disp.str[s:disp.color[p]:sel-1]
+		exe s:disp__colorv[pos]
+		echon s:disp__str[s:disp__color[p]:sel-1]
 	elseif sel!=0
-		exe s:disp.colorv[0]
-		echon s:disp.str[:sel-1]
+		exe s:disp__colorv[0]
+		echon s:disp__str[:sel-1]
 	en
 	if notempty
 		let fullen=len(s:ms.array[s:ms.c][s:ms.r])
-		let fullen=(sel+fullen)%s:disp.r<sel%s:disp.r? fullen-(sel+fullen)%s:disp.r-1 : fullen
+		let fullen=(sel+fullen)%s:disp__r<sel%s:disp__r? fullen-(sel+fullen)%s:disp__r-1 : fullen
 		echohl TXBmapSelection
 		echon s:ms.array[s:ms.c][s:ms.r][:fullen-1]
 		let fullen=sel+fullen
 	else
-		let fullen=sel+s:disp.w
+		let fullen=sel+s:disp__w
 		echohl TXBmapSelectionEmpty
-		echon s:disp.str[sel : fullen-1]
+		echon s:disp__str[sel : fullen-1]
 	en
-    while p<colorl && s:disp.color[p]<fullen
+    while p<colorl && s:disp__color[p]<fullen
 		let p+=1
 	endwhile
-	let g:colors=s:disp.color
+	let g:colors=s:disp__color
 	if p<colorl
-		exe s:disp.colorv[p]
-		echon s:disp.str[fullen :s:disp.color[p]-1]
+		exe s:disp__colorv[p]
+		echon s:disp__str[fullen :s:disp__color[p]-1]
 		for p in range(p+1,colorl-1)
-			exe s:disp.colorv[p]
-			echon s:disp.str[s:disp.color[p-1] : s:disp.color[p]-1]
+			exe s:disp__colorv[p]
+			echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
 		endfor
-		let fullen=s:disp.color[p][1]
+		let fullen=s:disp__color[p][1]
 	en
 	echon get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
 fun! s:printMapDispOld()
 	redr!
-	let [i,len,pos]=s:disp.selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
-	echon i? s:disp.str[0 : i-1] : ''
+	let [i,len,pos]=s:disp__selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	echon i? s:disp__str[0 : i-1] : ''
 	if len
 		let len=len(s:ms.array[s:ms.c][s:ms.r])
-		let len=(i+len)%s:disp.r<i%s:disp.r? len-(i+len)%s:disp.r-1 : len
+		let len=(i+len)%s:disp__r<i%s:disp__r? len-(i+len)%s:disp__r-1 : len
 		echohl TXBmapSelection
 		echon s:ms.array[s:ms.c][s:ms.r][:len]
 	else
-		let len=s:disp.w
+		let len=s:disp__w
 		echohl TXBmapSelectionEmpty
-		echon s:disp.str[i : i+len-1]
+		echon s:disp__str[i : i+len-1]
 	en
 	echohl NONE
-	echon s:disp.str[i+len :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
+	echon s:disp__str[i+len :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
 
@@ -542,7 +547,7 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \en\n
 \let s:ms.array[s:ms.c][s:ms.r]=@\"\n
 \let s:ms.redr=1\n",
-\"c":"let input=input((s:disp.str).\"\nChange: \",exists('s:ms.array[s:ms.c][s:ms.r]')? s:ms.array[s:ms.c][s:ms.r] : '')\n
+\"c":"let input=input((s:disp__str).\"\nChange: \",exists('s:ms.array[s:ms.c][s:ms.r]')? s:ms.array[s:ms.c][s:ms.r] : '')\n
 \if !empty(input)\n
  	\if s:ms.c>=len(s:ms.array)\n
 		\call extend(s:ms.array,eval('['.join(repeat(['[]'],s:ms.c+1-len(s:ms.array)),',').']'))\n
@@ -554,9 +559,9 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 	\let s:ms.redr=1\n
 \en\n",
 \"g":'let s:ms.continue=2',
-\"z":'let s:mgridW=min([10,max([1,input(s:disp.str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
+\"z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
 \"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." inserted"|en',
-\"D":'if s:ms.c<len(s:ms.array) && input(s:disp.str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." deleted"|en'}
+\"D":'if s:ms.c<len(s:ms.array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
