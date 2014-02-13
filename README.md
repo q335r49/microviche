@@ -1,7 +1,7 @@
 # textabyss
 A pannable, zoomable 2D text plane for VIM for working on massive amounts of prose, organized by column. Navigate with the mouse, keyboard, or via a map. Also hosted at [vim.org](http://www.vim.org/scripts/script.php?script_id=4835).
 
-Check out the [youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8). 
+**Check out the [youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
 
 Color map  
 ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png "Map")
