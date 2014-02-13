@@ -303,71 +303,60 @@ let TXBkyCmd.o='let s:cmdS.continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%"
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
 	let mapl=len(a:map)
-	let r=mapl*a:w+1
-	let l=r*a:h
-	let hlist_prototype=repeat([''],a:h)
-	let j_prev_highlighted=copy(hlist_prototype)
-	let color_proto=map(range(a:H),'[]')
-	let selmap=map(range(a:H),'repeat([0],mapl)')
+	let s:disp__r=mapl*a:w+1
+	let l=s:disp__r*a:h
+	let templist=repeat([''],a:h)
+	let last_entry_colored=copy(templist)
+	let s:disp__selmap=map(range(a:H),'repeat([0],mapl)')
 	let strarray=[]
-	let colors=[]
-	let colorv=[]
-	let extendcolorexpr='call extend(colors,'.join(map(range(a:h),'"colorix[".v:val."]"'),'+').')'
-	let extendcolorvexpr='call extend(colorv,'.join(map(range(a:h),'"colorvix[".v:val."]"'),'+').')'
-	let initializecolorix_expr='let colorix=['.join(map(range(a:h),'"[]"'),',').']'
-	let initializecolorvix_expr='let colorvix=['.join(map(range(a:h),'"[]"'),',').']'
-	let g:a=initializecolorix_expr
-	let g:b=initializecolorvix_expr
+	let s:disp__color=[]
+	let s:disp__colorv=[]
+	let extend_colors='call extend(s:disp__color,'.join(map(templist,'"colorix[".v:key."]"'),'+').')'
+	let extend_colorv='call extend(s:disp__colorv,'.join(map(templist,'"colorvix[".v:key."]"'),'+').')'
+	let let_colorix='let colorix=['.join(map(templist,'"[]"'),',').']'
+	let let_colorvix='let colorvix=['.join(map(templist,'"[]"'),',').']'
+	let let_occ='let occ=['.repeat("'',",a:h)[:-2].']'
 	for i in range(a:H)
-		let occ=copy(hlist_prototype)
-		exe initializecolorix_expr
-		exe initializecolorvix_expr
+		exe let_occ
+		exe let_colorix
+		exe let_colorvix
 		for j in range(mapl)
 			if empty(a:map[j][i])
-				let selmap[i][j]=[i*l+j*a:w,0]
+				let s:disp__selmap[i][j]=[i*l+j*a:w,0]
 				continue
 			en
 			let k=0
-			while k<a:h && len(occ[k])>=(j+1)*a:w
+			let cell_border=(j+1)*a:w
+			while k<a:h && len(occ[k])>=cell_border
 				let k+=1
 			endw
 			let parsed=split(a:map[j][i],'#')
 			if k==a:h
-				"exe PRINT('string(occ)|k')
-				let k=min(map(copy(hlist_prototype),'len(occ[v:key])*30+v:key'))%30
-				if j_prev_highlighted[k]!=-1
-	                let colorix[k][-1]-=len(occ[k])-(j*a:w+a:w-1)
+				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
+				if last_entry_colored[k]
+	                let colorix[k][-1]-=len(occ[k])-(cell_border-1)
 				en
-				let occ[k]=occ[k][:j*a:w+a:w-2].parsed[0]
-				let selmap[i][j]=[i*l+k*r+j*a:w+a:w-1,len(parsed[0])]
+				let occ[k]=occ[k][:cell_border-2].parsed[0]
+				let s:disp__selmap[i][j]=[i*l+k*s:disp__r+cell_border-1,len(parsed[0])]
 			else
-				let [selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*r+j*a:w,len(parsed[0])],occ[k].s:pad[:j*a:w-len(occ[k])-1].parsed[0]] : [[i*l+k*r+j*a:w+(len(occ[k])%a:w),len(parsed[0])],occ[k].parsed[0]]
+				let [s:disp__selmap[i][j],occ[k]]=len(occ[k])<j*a:w? [[i*l+k*s:disp__r+j*a:w,1],occ[k].s:pad[:j*a:w-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp__r+j*a:w+(len(occ[k])%a:w),1],occ[k].parsed[0]]
 			en
 			if len(parsed)>1
-				call extend(colorix[k],[selmap[i][j][0],selmap[i][j][0]+selmap[i][j][1]])
+				call extend(colorix[k],[s:disp__selmap[i][j][0],s:disp__selmap[i][j][0]+len(parsed[0])])
 				call extend(colorvix[k],['echoh NONE','echoh '.parsed[1]])
-				let j_prev_highlighted[k]=1
+				let last_entry_colored[k]=1
 			else
-				let j_prev_highlighted[k]=-1
+				let last_entry_colored[k]=0
 			en
 		endfor
-		exe extendcolorexpr
-		exe extendcolorvexpr
+		exe extend_colors
+		exe extend_colorv
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
 	let s:disp__str=join(strarray,'')
-	let s:disp__selmap=selmap
     let s:disp__w=a:w
-	let s:disp__r=r
-	let s:disp__color=add(colors,99999)
-	let s:disp__colorv=add(colorv,'echoh NONE')
-
-	let g:disp__str=join(strarray,'')
-	let g:disp__selmap=selmap
-    let g:disp__w=a:w
-	let g:disp__r=r
-	let g:disp__color=add(colors,99999)
-	let g:disp__colorv=add(colorv,'echoh NONE')
+	call add(s:disp__color,99999)
+	call add(s:disp__colorv,'echoh NONE')
 endfun
 
 fun! s:printMapDisp()
@@ -375,9 +364,9 @@ fun! s:printMapDisp()
 	let colorl=len(s:disp__color)
 	let p=0
 	redr!
-	if sel!=0
+	if sel
 		if sel>s:disp__color[0]
-			if s:disp__color[0]!=0
+			if s:disp__color[0]
        			exe s:disp__colorv[0]
 				echon s:disp__str[0 : s:disp__color[0]-1]
 			en
