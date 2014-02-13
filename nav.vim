@@ -359,7 +359,7 @@ fun! s:getMapDisp(map,w,h,H)
 endfun
 
 fun! s:printMapDisp()
-	let [sel,notempty,pos]=s:disp__selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let [sel,notempty,pos]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
 	let colorl=len(s:disp__color)
 	let p=0
 	redr!
@@ -379,10 +379,10 @@ fun! s:printMapDisp()
 		echon s:disp__str[:sel-1]
 	en
 	if notempty
-		let endmark=len(s:ms.array[s:ms.c][s:ms.r])
+		let endmark=len(s:ms__array[s:ms__c][s:ms__r])
 		let endmark=(sel+endmark)%s:disp__r<sel%s:disp__r? endmark-(sel+endmark)%s:disp__r-1 : endmark
 		echohl TXBmapSelection
-		echon s:ms.array[s:ms.c][s:ms.r][:endmark-1]
+		echon s:ms__array[s:ms__c][s:ms__r][:endmark-1]
 		let endmark=sel+endmark
 	else
 		let endmark=sel+s:disp__w
@@ -398,67 +398,67 @@ fun! s:printMapDisp()
 		exe s:disp__colorv[p]
 		echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
 	endfor
-	echon get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
-	let s:ms.msg=''
+	echon get(t:txb.gridnames,s:ms__c,'--') s:ms__r s:ms__msg
+	let s:ms__msg=''
 endfun
 fun! s:printMapDispNoHL()
 	redr!
-	let [i,len,pos]=s:disp__selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
+	let [i,len,pos]=s:disp__selmap[s:ms__r-s:ms__roff][s:ms__c-s:ms__coff]
 	echon i? s:disp__str[0 : i-1] : ''
 	if len
-		let len=len(s:ms.array[s:ms.c][s:ms.r])
+		let len=len(s:ms__array[s:ms__c][s:ms__r])
 		let len=(i+len)%s:disp__r<i%s:disp__r? len-(i+len)%s:disp__r-1 : len
 		echohl TXBmapSelection
-		echon s:ms.array[s:ms.c][s:ms.r][:len]
+		echon s:ms__array[s:ms__c][s:ms__r][:len]
 	else
 		let len=s:disp__w
 		echohl TXBmapSelectionEmpty
 		echon s:disp__str[i : i+len-1]
 	en
 	echohl NONE
-	echon s:disp__str[i+len :] get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
-	let s:ms.msg=''
+	echon s:disp__str[i+len :] get(t:txb.gridnames,s:ms__c,'--') s:ms__r s:ms__msg
+	let s:ms__msg=''
 endfun
 
 fun! s:navMapKeyHandler(c)
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
-			let s:ms.prevcoord=copy(g:TXBmsmsg)
+			let s:ms__prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
-			if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-        		let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/s:mgridH]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/s:mgridW]),0]
-				let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-				call s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
+			if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+        		let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
+				let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
+				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 				call s:printMapDisp()
 			en
-			let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%s:mgridH]
+			let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
 		elseif g:TXBmsmsg[0]==3
 			if g:TXBmsmsg==[3,1,1]
-				let [&ch,&more,&ls,&stal]=s:ms.settings
+				let [&ch,&more,&ls,&stal]=s:ms__settings
 				return
-			elseif s:ms.prevcoord[0]==1
-				if &ttymouse=='xterm' && s:ms.prevcoord[1]!=g:TXBmsmsg[1] && s:ms.prevcoord[2]!=g:TXBmsmsg[2] 
-					if s:ms.prevcoord[1] && s:ms.prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let [s:ms.roff,s:ms.coff,s:ms.redr]=[max([0,s:ms.roff-(g:TXBmsmsg[2]-s:ms.prevcoord[2])/s:mgridH]),max([0,s:ms.coff-(g:TXBmsmsg[1]-s:ms.prevcoord[1])/s:mgridW]),0]
-						let [s:ms.r,s:ms.c]=[s:ms.r<s:ms.roff? s:ms.roff : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.roff+s:ms.rows-1 : s:ms.r,s:ms.c<s:ms.coff? s:ms.coff : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.coff+s:ms.cols-1 : s:ms.c]
-						call s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
+			elseif s:ms__prevcoord[0]==1
+				if &ttymouse=='xterm' && s:ms__prevcoord[1]!=g:TXBmsmsg[1] && s:ms__prevcoord[2]!=g:TXBmsmsg[2] 
+					if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+						let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
+						let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
+						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 						call s:printMapDisp()
 					en
-					let s:ms.prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms.prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms.prevcoord[2])%s:mgridH]
+					let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
 				else
-					let s:ms.r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:mgridH+s:ms.roff
-					let s:ms.c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms.coff
-					if [s:ms.r,s:ms.c]==s:ms.prevclick
-						let [&ch,&more,&ls,&stal]=s:ms.settings
-						cal s:gotoPos(s:ms.c,s:bgridL*s:ms.r)
+					let s:ms__r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:mgridH+s:ms__roff
+					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms__coff
+					if [s:ms__r,s:ms__c]==s:ms__prevclick
+						let [&ch,&more,&ls,&stal]=s:ms__settings
+						cal s:gotoPos(s:ms__c,s:bgridL*s:ms__r)
 						return
 					en
-					let s:ms.prevclick=[s:ms.r,s:ms.c]
-					let s:ms.prevcoord=[0,0,0]
-					let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
-					if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
-						let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-						call s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
+					let s:ms__prevclick=[s:ms__r,s:ms__c]
+					let s:ms__prevcoord=[0,0,0]
+					let [roffn,coffn]=[s:ms__r<s:ms__roff? s:ms__r : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__r-s:ms__rows+1 : s:ms__roff,s:ms__c<s:ms__coff? s:ms__c : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__c-s:ms__cols+1 : s:ms__coff]
+					if [s:ms__roff,s:ms__coff]!=[roffn,coffn] || s:ms__redr
+						let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
+						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 					en
 					call s:printMapDisp()
 				en
@@ -466,38 +466,45 @@ fun! s:navMapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mapdict,a:c,'let s:ms.msg=" Press f1 for help or q to quit"')
-		if s:ms.continue==1
-			let [roffn,coffn]=[s:ms.r<s:ms.roff? s:ms.r : s:ms.r>=s:ms.roff+s:ms.rows? s:ms.r-s:ms.rows+1 : s:ms.roff,s:ms.c<s:ms.coff? s:ms.c : s:ms.c>=s:ms.coff+s:ms.cols? s:ms.c-s:ms.cols+1 : s:ms.coff]
-			if [s:ms.roff,s:ms.coff]!=[roffn,coffn] || s:ms.redr
-				let [s:ms.roff,s:ms.coff,s:ms.redr]=[roffn,coffn,0]
-				call s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"s:ms.array[".v:val."][v:val]\")? s:ms.array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
+		exe get(s:mapdict,a:c,'let s:ms__msg=" Press f1 for help or q to quit"')
+		if s:ms__continue==1
+			let [roffn,coffn]=[s:ms__r<s:ms__roff? s:ms__r : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__r-s:ms__rows+1 : s:ms__roff,s:ms__c<s:ms__coff? s:ms__c : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__c-s:ms__cols+1 : s:ms__coff]
+			if [s:ms__roff,s:ms__coff]!=[roffn,coffn] || s:ms__redr
+				let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
+				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 			en
 			call s:printMapDisp()
 			call feedkeys("\<plug>TxbY")
-		elseif s:ms.continue==2
-			let [&ch,&more,&ls,&stal]=s:ms.settings
-			cal s:gotoPos(s:ms.c,s:bgridL*s:ms.r)
+		elseif s:ms__continue==2
+			let [&ch,&more,&ls,&stal]=s:ms__settings
+			cal s:gotoPos(s:ms__c,s:bgridL*s:ms__r)
 		else
-			let [&ch,&more,&ls,&stal]=s:ms.settings
+			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
 	en
 endfun
 fun! s:navMap(array,c_ini,r_ini)
-	let settings=[&ch,&more,&ls,&stal]
-	let &ch=&lines
-	let s:ms={'prevclick':[0,0],'prevcoord':[0,0,0],'array':(a:array),'settings':settings,'msg':'','r':(a:r_ini),'c':(a:c_ini),'continue':1,'redr':1}
-	let s:ms.rows=(&ch-1)/s:mgridH
-	let s:ms.cols=(&columns-1)/s:mgridW
-	let s:ms.roff=max([s:ms.r-s:ms.rows/2,0])
-	let s:ms.coff=max([s:ms.c-s:ms.cols/2,0])
+	let s:ms__settings=[&ch,&more,&ls,&stal]
+		let &ch=&lines
+	let s:ms__prevclick=[0,0]
+	let s:ms__prevcoord=[0,0,0]
+	let s:ms__array=a:array
+	let s:ms__msg=''
+	let s:ms__r=a:r_ini
+	let s:ms__c=a:c_ini
+	let s:ms__continue=1
+	let s:ms__redr=1
+	let s:ms__rows=(&ch-1)/s:mgridH
+	let s:ms__cols=(&columns-1)/s:mgridW
+	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
+	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
 	let [&more,&ls,&stal]=[0,0,0]
-   	call s:getMapDisp(map(range(s:ms.coff,s:ms.coff+s:ms.cols-1),'map(range(s:ms.roff,s:ms.roff+s:ms.rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms.rows)
+   	call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 	call s:printMapDisp()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
-let s:mapdict={"\e":"let s:ms.continue=0|redr",
+let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal input(s:formatPar("\n\n\\CKeyboard:
 \\nhjkl        Move cardinally
 \\nyubn        Move diagonally
@@ -515,47 +522,47 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'' To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner and can be closed by a click at the top left corner. This only works when ttymouse is set to xterm2 or sgr.
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red.
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
-\"j":"let s:ms.r+=1",
-\"q":"let s:ms.continue=0",
-\"jj":"let s:ms.r+=2",
-\"jjj":"let s:ms.r+=3",
-\"k":"let s:ms.r=s:ms.r>0? s:ms.r-1 : s:ms.r",
-\"kk":"let s:ms.r=s:ms.r>1? s:ms.r-2 : s:ms.r",
-\"kkk":"let s:ms.r=s:ms.r>2? s:ms.r-3 : s:ms.r",
-\"l":"let s:ms.c+=1",
-\"ll":"let s:ms.c+=2",
-\"lll":"let s:ms.c+=3",
-\"h":"let s:ms.c=s:ms.c>0? s:ms.c-1 : s:ms.c",
-\"hh":"let s:ms.c=s:ms.c>1? s:ms.c-2 : s:ms.c",
-\"hhh":"let s:ms.c=s:ms.c>2? s:ms.c-3 : s:ms.c",
-\"y":"let [s:ms.r,s:ms.c]=[s:ms.r>0? s:ms.r-1 : s:ms.r,s:ms.c>0? s:ms.c-1 : s:ms.c]",
-\"u":"let [s:ms.r,s:ms.c]=[s:ms.r>0? s:ms.r-1 : s:ms.r,s:ms.c+1]",
-\"b":"let [s:ms.r,s:ms.c]=[s:ms.r+1,s:ms.c>0? s:ms.c-1 : s:ms.c]",
-\"n":"let [s:ms.r,s:ms.c]=[s:ms.r+1,s:ms.c+1]",
-\"x":"if exists('s:ms.array[s:ms.c][s:ms.r]')|let @\"=s:ms.array[s:ms.c][s:ms.r]|let s:ms.array[s:ms.c][s:ms.r]=''|let s:ms.redr=1|en",
-\"p":"if s:ms.c>=len(s:ms.array)\n
-	\call extend(s:ms.array,eval('['.join(repeat(['[]'],s:ms.c+1-len(s:ms.array)),',').']'))\n
+\"j":"let s:ms__r+=1",
+\"q":"let s:ms__continue=0",
+\"jj":"let s:ms__r+=2",
+\"jjj":"let s:ms__r+=3",
+\"k":"let s:ms__r=s:ms__r>0? s:ms__r-1 : s:ms__r",
+\"kk":"let s:ms__r=s:ms__r>1? s:ms__r-2 : s:ms__r",
+\"kkk":"let s:ms__r=s:ms__r>2? s:ms__r-3 : s:ms__r",
+\"l":"let s:ms__c+=1",
+\"ll":"let s:ms__c+=2",
+\"lll":"let s:ms__c+=3",
+\"h":"let s:ms__c=s:ms__c>0? s:ms__c-1 : s:ms__c",
+\"hh":"let s:ms__c=s:ms__c>1? s:ms__c-2 : s:ms__c",
+\"hhh":"let s:ms__c=s:ms__c>2? s:ms__c-3 : s:ms__c",
+\"y":"let [s:ms__r,s:ms__c]=[s:ms__r>0? s:ms__r-1 : s:ms__r,s:ms__c>0? s:ms__c-1 : s:ms__c]",
+\"u":"let [s:ms__r,s:ms__c]=[s:ms__r>0? s:ms__r-1 : s:ms__r,s:ms__c+1]",
+\"b":"let [s:ms__r,s:ms__c]=[s:ms__r+1,s:ms__c>0? s:ms__c-1 : s:ms__c]",
+\"n":"let [s:ms__r,s:ms__c]=[s:ms__r+1,s:ms__c+1]",
+\"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
+\"p":"if s:ms__c>=len(s:ms__array)\n
+	\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
 \en\n
-\if s:ms.r>=len(s:ms.array[s:ms.c])\n
-	\call extend(s:ms.array[s:ms.c],repeat([''],s:ms.r+1-len(s:ms.array[s:ms.c])))\n
+\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+	\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
 \en\n
-\let s:ms.array[s:ms.c][s:ms.r]=@\"\n
-\let s:ms.redr=1\n",
-\"c":"let input=input((s:disp__str).\"\nChange: \",exists('s:ms.array[s:ms.c][s:ms.r]')? s:ms.array[s:ms.c][s:ms.r] : '')\n
+\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
+\let s:ms__redr=1\n",
+\"c":"let input=input((s:disp__str).\"\nChange: \",exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
 \if !empty(input)\n
- 	\if s:ms.c>=len(s:ms.array)\n
-		\call extend(s:ms.array,eval('['.join(repeat(['[]'],s:ms.c+1-len(s:ms.array)),',').']'))\n
+ 	\if s:ms__c>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
 	\en\n
-	\if s:ms.r>=len(s:ms.array[s:ms.c])\n
-		\call extend(s:ms.array[s:ms.c],repeat([''],s:ms.r+1-len(s:ms.array[s:ms.c])))\n
+	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
 	\en\n
-	\let s:ms.array[s:ms.c][s:ms.r]=strtrans(input)\n
-	\let s:ms.redr=1\n
+	\let s:ms__array[s:ms__c][s:ms__r]=strtrans(input)\n
+	\let s:ms__redr=1\n
 \en\n",
-\"g":'let s:ms.continue=2',
-\"z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms.redr,s:ms.rows,s:ms.cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
-\"I":'if s:ms.c<len(s:ms.array)|call insert(s:ms.array,[],s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." inserted"|en',
-\"D":'if s:ms.c<len(s:ms.array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms.array,s:ms.c)|let s:ms.redr=1|let s:ms.msg="Col ".(s:ms.c)." deleted"|en'}
+\"g":'let s:ms__continue=2',
+\"z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
+\"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
+\"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms__array,s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
