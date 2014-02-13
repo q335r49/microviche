@@ -429,7 +429,7 @@ fun! s:navMapKeyHandler(c)
         		let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
 				let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
 				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
-				call s:printMapDisp()
+				call s:ms__displayfunc()
 			en
 			let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
 		elseif g:TXBmsmsg[0]==3
@@ -442,7 +442,7 @@ fun! s:navMapKeyHandler(c)
 						let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
 						let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
 						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
-						call s:printMapDisp()
+						call s:ms__displayfunc()
 					en
 					let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
 				else
@@ -460,7 +460,7 @@ fun! s:navMapKeyHandler(c)
 						let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
 						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 					en
-					call s:printMapDisp()
+					call s:ms__displayfunc()
 				en
 			en
 		en
@@ -473,7 +473,7 @@ fun! s:navMapKeyHandler(c)
 				let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
 				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
 			en
-			call s:printMapDisp()
+			call s:ms__displayfunc()
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
@@ -498,9 +498,10 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__cols=(&columns-1)/s:mgridW
 	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
 	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
+	let s:ms__displayfunc=function('s:printMapDisp')
 	let [&more,&ls,&stal]=[0,0,0]
    	call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'),s:mgridW,s:mgridH,s:ms__rows)
-	call s:printMapDisp()
+	call s:ms__displayfunc()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
@@ -513,14 +514,16 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\ng <cr>      Goto block (and exit map)
 \\nI D         Insert / delete column
 \\nz           Adjust map block size
+\\nT           Toggle color
 \\nq           Quit
 \\n\\CMouse:
 \\ndoubleclick             Goto block
 \\ndrag                    Pan
-\\ntopleft corner click    Quit
+\\nclick at topleft corner Quit
 \\ndrag to topleft corner  Show map
-\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'' To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner and can be closed by a click at the top left corner. This only works when ttymouse is set to xterm2 or sgr.
-\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red.
+\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
+\\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
+\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the T command.
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"j":"let s:ms__r+=1",
 \"q":"let s:ms__continue=0",
@@ -532,6 +535,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
 \"lll":"let s:ms__c+=3",
+\"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
 \"h":"let s:ms__c=s:ms__c>0? s:ms__c-1 : s:ms__c",
 \"hh":"let s:ms__c=s:ms__c>1? s:ms__c-2 : s:ms__c",
 \"hhh":"let s:ms__c=s:ms__c>2? s:ms__c-3 : s:ms__c",
