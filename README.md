@@ -12,7 +12,7 @@ The textabyss is yet another solution to this problem. It presents a plane that 
 
 ## Installation
 
-It is usually safe just to download the single file nav.vim from the main page and source it:
+Install by downloading the single file nav.vim from the main page and source it:
 ```
 :source nav.vim
 ```
