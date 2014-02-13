@@ -350,14 +350,12 @@ fun! s:getMapDisp(map,w,h,H)
 		endfor
 		let strarray+=map(occ,'len(v:val)<mapl*a:w? v:val.s:pad[:mapl*a:w-len(v:val)-1]."\n" : v:val[:mapl*a:w-1]."\n"')
 	endfor
-	call add(colors,99999)
-	call add(colorv,'echoh NONE')
 	let s:disp__str=join(strarray,'')
 	let s:disp__selmap=selmap
     let s:disp__w=a:w
 	let s:disp__r=r
-	let s:disp__color=colors
-	let s:disp__colorv=colorv
+	let s:disp__color=add(colors,99999)
+	let s:disp__colorv=add(colorv,'echoh NONE')
 endfun
 
 fun! s:printMapDisp()
@@ -365,7 +363,7 @@ fun! s:printMapDisp()
 	let colorl=len(s:disp__color)
 	let p=0
 	redr!
-	if pos>0
+	if pos
 		if s:disp__color[0]!=0
 			exe s:disp__colorv[0]
 			echon s:disp__str[:s:disp__color[0]-1]
@@ -376,38 +374,34 @@ fun! s:printMapDisp()
 		endfor
 		exe s:disp__colorv[pos]
 		echon s:disp__str[s:disp__color[p]:sel-1]
-	elseif sel!=0
+	elseif sel
 		exe s:disp__colorv[0]
 		echon s:disp__str[:sel-1]
 	en
 	if notempty
-		let fullen=len(s:ms.array[s:ms.c][s:ms.r])
-		let fullen=(sel+fullen)%s:disp__r<sel%s:disp__r? fullen-(sel+fullen)%s:disp__r-1 : fullen
+		let endmark=len(s:ms.array[s:ms.c][s:ms.r])
+		let endmark=(sel+endmark)%s:disp__r<sel%s:disp__r? endmark-(sel+endmark)%s:disp__r-1 : endmark
 		echohl TXBmapSelection
-		echon s:ms.array[s:ms.c][s:ms.r][:fullen-1]
-		let fullen=sel+fullen
+		echon s:ms.array[s:ms.c][s:ms.r][:endmark-1]
+		let endmark=sel+endmark
 	else
-		let fullen=sel+s:disp__w
+		let endmark=sel+s:disp__w
 		echohl TXBmapSelectionEmpty
-		echon s:disp__str[sel : fullen-1]
+		echon s:disp__str[sel : endmark-1]
 	en
-    while p<colorl && s:disp__color[p]<fullen
+    while s:disp__color[p]<endmark
 		let p+=1
 	endwhile
-	let g:colors=s:disp__color
-	if p<colorl
+	exe s:disp__colorv[p]
+	echon s:disp__str[endmark :s:disp__color[p]-1]
+	for p in range(p+1,colorl-1)
 		exe s:disp__colorv[p]
-		echon s:disp__str[fullen :s:disp__color[p]-1]
-		for p in range(p+1,colorl-1)
-			exe s:disp__colorv[p]
-			echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
-		endfor
-		let fullen=s:disp__color[p][1]
-	en
+		echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
+	endfor
 	echon get(t:txb.gridnames,s:ms.c,'--') s:ms.r s:ms.msg
 	let s:ms.msg=''
 endfun
-fun! s:printMapDispOld()
+fun! s:printMapDispNoHL()
 	redr!
 	let [i,len,pos]=s:disp__selmap[s:ms.r-s:ms.roff][s:ms.c-s:ms.coff]
 	echon i? s:disp__str[0 : i-1] : ''
@@ -518,8 +512,8 @@ let s:mapdict={"\e":"let s:ms.continue=0|redr",
 \\ndrag                    Pan
 \\ntopleft corner click    Quit
 \\ndrag to topleft corner  Show map
-\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1''
-\\n\nFor navigating without the keyboard, the map can be activated from the main plane by a mouse drag action that ends at the top left corner, and can be closed by a click at the top left corner. As with all mouse commands, this only works when ttymouse is set to xterm2 or sgr.
+\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'' To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner and can be closed by a click at the top left corner. This only works when ttymouse is set to xterm2 or sgr.
+\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red.
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"j":"let s:ms.r+=1",
 \"q":"let s:ms.continue=0",
