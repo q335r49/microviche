@@ -18,4 +18,4 @@ Install by downloading the single file nav.vim from the main page and source it:
 ```
 Once sourced, press **F10** to begin. Help and a changelog are baked in (usually by pressing **F1**).
 
-Earlier releases can be found in the above vim.org webpage.
+The latest version may be somewhat unstable. Earlier releases can be found in the above vim.org webpage or under the releases tab.
