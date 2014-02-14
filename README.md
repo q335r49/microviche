@@ -13,5 +13,5 @@ The textabyss is yet another solution to this problem. It presents a plane that 
 
 ####Installation
 
-Download [nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open vim, and type `:source nav.vim`. Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+Download [nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org/), and type `:source nav.vim`. Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
 
