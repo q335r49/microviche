@@ -18,17 +18,18 @@
 "Grid panning animation step
 	let s:pansteph=9
 	let s:panstepv=2
-"Explanation of changed settings
-	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
-	se noequalalways                  "Needed for correct panning [Do not change]
-	se winwidth=1                     "Needed for correct panning [Do not change]
-	se winminwidth=0                  "Needed for correct panning [Do not change]
-	se sidescroll=1                   "Needed for smooth panning
-	se mouse=a                        "Enable mouse
-	se lazyredraw                     "Less redraws
-	se nostartofline                  "Prevents cursor from jumping to start of line when scrolling up and down
-	se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
-	se hidden                         "Suppresses error messages when modified buffer is panned offscreen
+
+"Changed setting:                  Used for:
+if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
+se noequalalways                  "Needed for correct panning [Do not change]
+se winwidth=1                     "Needed for correct panning [Do not change]
+se winminwidth=0                  "Needed for correct panning [Do not change]
+se sidescroll=1                   "Needed for smooth panning
+se mouse=a                        "Enable mouse
+se lazyredraw                     "Less redraws
+se nostartofline                  "Keeps cursor in same position when panning
+se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
+se hidden                         "Suppresses error messages when modified buffer is panned offscreen
 
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|else\|call <SID>initPlane()\|en<cr>'
@@ -213,6 +214,7 @@ fun! s:initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
+		let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -251,6 +253,7 @@ fun! s:initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
+		let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -275,14 +278,24 @@ fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	let possav=[bufnr('%')]+getpos('.')[1:]
 	if a:dx>0
 		call s:PanLeft(s:panSpeedMultiplier*get(s:panstep,a:dx,16))
 	elseif a:dx<0
 		call s:PanRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	en
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
-	call s:restoreCursPos(possav)
+	let win=bufwinnr(s:navCurPos[0])
+	if win==-1
+		exe t:txb.ix[bufname('')]<t:txb.ix[bufname(s:navCurPos[0])]? winnr('$')==1? "wincmd b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0"
+	elseif win==1
+		wincmd t
+		exe "norm! ".min([max([virtcol('.')-wincol()+1,s:navCurPos[2]]),virtcol('.')-wincol()+winwidth(0)])."|"
+	else
+		exe win.'wincmd w'
+		exe "norm! 0".min([max([1,s:navCurPos[2]]),winwidth(0)])."|"
+	en
+	exe s:navCurPos[1]<line('w0')? 'norm! H' : s:navCurPos[1]>line('w$')? 'norm! L' : s:navCurPos[1]
+	let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
 	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL))
 endfun
 
