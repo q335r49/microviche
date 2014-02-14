@@ -2,9 +2,6 @@
 "Global hotkey: press to begin.
 	let s:hotkeyName='<f10>'
 	let s:hotkeyRaw="\<f10>"
-"Grid panning animation step
-	let s:pansteph=9
-	let s:panstepv=2
 "Small grid: 1 split x s:sgridL lines
 	let s:sgridL=15
 "Big grid: s:bgridS splits x s:bgridL lines; Map grid: 1 split x s:bgridL lines
@@ -15,9 +12,12 @@
 "Map block default size (press z in map mode to change)
 	let s:mgridH=2
 	let s:mgridW=5
-"Map colors
-	hi! link TXBmapSelection Visual
-	hi! link TXBmapSelectionEmpty Search
+"Colors for map cursor
+	highlight! link TXBmapSelection Visual
+	highlight! link TXBmapSelectionEmpty Search
+"Grid panning animation step
+	let s:pansteph=9
+	let s:panstepv=2
 "Explanation of changed settings
 	if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
 	se noequalalways                  "Needed for correct panning [Do not change]
@@ -72,7 +72,7 @@ fun! s:printHelp()
 		\\n1.6    - Remove big grid, grid corners, shift entirely to map
 		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
-		\\n1.5.1  - Rather severe bug with map coloring
+		\\n1.5.1  - Fixed rather severe bug with map coloring
 		\\n1.5.0  - Colored labels
 		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
 		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
@@ -299,7 +299,7 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let TXBkyCmd.o='let s:cmdS.continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
+let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp(map,w,h,H)          
 	let mapl=len(a:map)
@@ -394,7 +394,7 @@ fun! s:printMapDisp()
 		echohl TXBmapSelectionEmpty
 		echon s:disp__str[sel : endmark-1]
 	en
-    while s:disp__color[p]<endmark
+	while s:disp__color[p]<endmark
 		let p+=1
 	endwhile
 	exe s:disp__colorv[p]
@@ -582,7 +582,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-	let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:cmdS.msg,s:cmdS.continue]=["Hidden Buffers Deleted",0]'
+	let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:cmdS__msg,s:cmdS__continue]=["Hidden Buffers Deleted",0]'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -702,28 +702,28 @@ fun! s:blockPan(dx,y,...)
 		let y+=y>0? -1 : y<0? 1 : 0
 	endwhile
 endfun
-let s:Y1='let s:cmdS.y=s:cmdS.y/s:sgridL*s:sgridL+s:sgridL|'
-let s:Ym1='let s:cmdS.y=max([1,s:cmdS.y/s:sgridL*s:sgridL-s:sgridL])|'
-	let TXBkyCmd.h='cal s:blockPan(-1,s:cmdS.y)'
-	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:cmdS.y)'
-	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:cmdS.y)'
-	let TXBkyCmd.l='cal s:blockPan(1,s:cmdS.y)'
-	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-1,s:cmdS.y)'
-	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(1,s:cmdS.y)'
-	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-1,s:cmdS.y)'
-	let TXBkyCmd.n=s:Y1.'cal s:blockPan(1,s:cmdS.y)'
+let s:Y1='let s:cmdS__y=s:cmdS__y/s:sgridL*s:sgridL+s:sgridL|'
+let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y/s:sgridL*s:sgridL-s:sgridL])|'
+	let TXBkyCmd.h='cal s:blockPan(-1,s:cmdS__y)'
+	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:cmdS__y)'
+	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:cmdS__y)'
+	let TXBkyCmd.l='cal s:blockPan(1,s:cmdS__y)'
+	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-1,s:cmdS__y)'
+	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(1,s:cmdS__y)'
+	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-1,s:cmdS__y)'
+	let TXBkyCmd.n=s:Y1.'cal s:blockPan(1,s:cmdS__y)'
 let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bgridS : (v:val-1)-(v:val-1)%s:bgridS) : v:val-v:val%s:bgridS")[0]'
 let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bgridS? 0 : v:val-v:val%s:bgridS+s:bgridS")[0]'
-let s:Y1='let s:cmdS.y=s:cmdS.y/s:bgridL*s:bgridL+s:bgridL|'
-let s:Ym1='let s:cmdS.y=max([1,s:cmdS.y%s:bgridL? s:cmdS.y-s:cmdS.y%s:bgridL : s:cmdS.y-s:cmdS.y%s:bgridL-s:bgridL])|'
-	let TXBkyCmd.H='cal s:blockPan('.s:DXm1.',s:cmdS.y,-1)'
-	let TXBkyCmd.J=s:Y1.'cal s:blockPan(0,s:cmdS.y)'
-	let TXBkyCmd.K=s:Ym1.'cal s:blockPan(0,s:cmdS.y)'
-	let TXBkyCmd.L='cal s:blockPan('.s:DX1.',s:cmdS.y,1)'
-	let TXBkyCmd.Y=s:Ym1.'cal s:blockPan('.s:DXm1.',s:cmdS.y,-1)'
-	let TXBkyCmd.U=s:Ym1.'cal s:blockPan('.s:DX1.',s:cmdS.y,1)'
-	let TXBkyCmd.B=s:Y1.'cal s:blockPan('.s:DXm1.',s:cmdS.y,-1)'
-	let TXBkyCmd.N=s:Y1.'cal s:blockPan('.s:DX1.',s:cmdS.y,1)'
+let s:Y1='let s:cmdS__y=s:cmdS__y/s:bgridL*s:bgridL+s:bgridL|'
+let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y%s:bgridL? s:cmdS__y-s:cmdS__y%s:bgridL : s:cmdS__y-s:cmdS__y%s:bgridL-s:bgridL])|'
+	let TXBkyCmd.H='cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
+	let TXBkyCmd.J=s:Y1.'cal s:blockPan(0,s:cmdS__y)'
+	let TXBkyCmd.K=s:Ym1.'cal s:blockPan(0,s:cmdS__y)'
+	let TXBkyCmd.L='cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
+	let TXBkyCmd.Y=s:Ym1.'cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
+	let TXBkyCmd.U=s:Ym1.'cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
+	let TXBkyCmd.B=s:Y1.'cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
+	let TXBkyCmd.N=s:Y1.'cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
 unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
 fun! s:gotoGridCorners(dx,dy)
@@ -773,22 +773,21 @@ fun! s:gotoGridCorners(dx,dy)
 	exe win==-1? 'return 100' : win."wincmd w"
 	exe eval(eval)
 endfun
-	let TXBkyCmd["\<c-y>"]='cal s:gotoGridCorners(-1,-1)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-u>"]='cal s:gotoGridCorners( 1,-1)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-b>"]='cal s:gotoGridCorners(-1, 1)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-n>"]='cal s:gotoGridCorners( 1, 1)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-h>"]='cal s:gotoGridCorners(-1, 0)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-l>"]='cal s:gotoGridCorners( 1, 0)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-j>"]='cal s:gotoGridCorners( 0, 1)|let s:cmdS.possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-k>"]='cal s:gotoGridCorners( 0,-1)|let s:cmdS.possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-y>"]='cal s:gotoGridCorners(-1,-1)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-u>"]='cal s:gotoGridCorners( 1,-1)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-b>"]='cal s:gotoGridCorners(-1, 1)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-n>"]='cal s:gotoGridCorners( 1, 1)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-h>"]='cal s:gotoGridCorners(-1, 0)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-l>"]='cal s:gotoGridCorners( 1, 0)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-j>"]='cal s:gotoGridCorners( 0, 1)|let s:cmdS__possav=s:saveCursPos()'
+	let TXBkyCmd["\<c-k>"]='cal s:gotoGridCorners( 0,-1)|let s:cmdS__possav=s:saveCursPos()'
 
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
  	let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
 	call s:blockPan(x,l0-l0%s:bgridL,dir)
 endfun
-	let TXBkyCmd['.']='let s:cmdS.possav=saveCursPos()|call s:snapToGrid()|let s:cmdS.continue=0'
-	let TXBkyCmd['.']='call s:snapToGrid()|let s:cmdS.continue=0'
+	let TXBkyCmd['.']='call s:snapToGrid()|let s:cmdS__continue=0'
 
 nmap <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nmap <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -830,27 +829,22 @@ fun! s:dochar()
 	call g:TXBkeyhandler(k)
 endfun
 
-fun! TXBdoCmd(...)
-	if a:0
-		let s:cmdS={'y':line('w0'),'continue':1,'msg':'','possav':(s:saveCursPos())}
-		exe get(g:TXBkyCmd,a:1,'let s:cmdS.msg="Press f1 for help"')
-		call s:restoreCursPos(s:cmdS.possav)
-		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(s:cmdS.msg)? join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL)) : s:cmdS.msg
-	en
-	if s:cmdS.continue
-		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(s:cmdS.msg)? join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL)) : s:cmdS.msg
-		let s:cmdS.msg=''
-		let g:TXBkeyhandler=function("s:doCmdKeyhandler")
-		call feedkeys("\<plug>TxbZ") 
-	en
+fun! TXBdoCmd(inicmd)
+   	let s:cmdS__y=line('w0')
+	let s:cmdS__continue=1
+	let s:cmdS__msg=''
+	let s:cmdS__possav=s:saveCursPos()
+	let g:TXBkeyhandler=function("s:doCmdKeyhandler")
+	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TXBkyCmd,a:c,'let s:cmdS.msg="Press f1 for help"')
-   	call s:restoreCursPos(s:cmdS.possav)
-	if s:cmdS.continue
-		call feedkeys(s:hotkeyRaw)
-	else
-		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(s:cmdS.msg)? join(t:txb.gridnames[s0 : s0+winnr('$')-1]).' _ '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL)) : s:cmdS.msg
+	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg="Press f1 for help"')
+   	call s:restoreCursPos(s:cmdS__possav)
+	if s:cmdS__continue
+		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(s:cmdS__msg)? join(t:txb.gridnames[s0 : s0+winnr('$')-1]).' _ '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL)) : s:cmdS__msg
+		call feedkeys("\<plug>TxbZ") 
+	elseif !empty(s:cmdS__msg)
+		ec s:cmdS__msg
 	en
 endfun
 
@@ -863,12 +857,12 @@ let TXBkyCmd.D="redr\n
 		\call TXBdeleteCol(ix)\n
 		\wincmd W\n
 		\call TXBload(t:txb)\n
-		\let s:cmdS.msg='col '.ix.' removed'\n
+		\let s:cmdS__msg='col '.ix.' removed'\n
 	\else\n
-		\let s:cmdS.msg='Current buffer not in plane; deletion failed'\n
+		\let s:cmdS__msg='Current buffer not in plane; deletion failed'\n
 	\en\n
 \en\n
-\let s:cmdS.continue=0"
+\let s:cmdS__continue=0"
 let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 \if ix!=-1\n
 	\redr\n
@@ -877,23 +871,23 @@ let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 	\if empty(error)\n
 		\try\n
 			\call TXBload(t:txb)\n
-			\let s:cmdS.msg='col '.(ix+1).' appended'\n
+			\let s:cmdS__msg='col '.(ix+1).' appended'\n
 		\catch\n
 			\call TXBdeleteCol(ix)\n
-			\let s:cmdS.msg='Error detected while loading plane: file append aborted'\n
+			\let s:cmdS__msg='Error detected while loading plane: file append aborted'\n
 		\endtry\n
 	\else\n
-		\let s:cmdS.msg='Error: '.error\n
+		\let s:cmdS__msg='Error: '.error\n
 	\en\n
 \else\n
-	\let s:cmdS.msg='Current buffer not in plane'\n
+	\let s:cmdS__msg='Current buffer not in plane'\n
 \en\n
-\let s:cmdS.continue=0"
-let TXBkyCmd["\e"]="let s:cmdS.continue=0"
-let TXBkyCmd.q="let s:cmdS.continue=0"
-let TXBkyCmd.r="call TXBload(t:txb)|redr|let s:cmdS.msg='(redrawn)'|let s:cmdS.continue=0"
-let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:cmdS.continue=0'
-let TXBkyCmd.E='call s:editSplitSettings()|let s:cmdS.continue=0'
+\let s:cmdS__continue=0"
+let TXBkyCmd["\e"]="let s:cmdS__continue=0"
+let TXBkyCmd.q="let s:cmdS__continue=0"
+let TXBkyCmd.r="call TXBload(t:txb)|redr|let s:cmdS__msg='(redrawn)'|let s:cmdS__continue=0"
+let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:cmdS__continue=0'
+let TXBkyCmd.E='call s:editSplitSettings()|let s:cmdS__continue=0'
 
 fun! <SID>initPlane(...)                                          
 	if &ttymouse==?"xterm"
