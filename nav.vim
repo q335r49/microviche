@@ -42,7 +42,7 @@ fun! s:printHelp()
 	\\nHJKLYUBN  - pan big grid    (".s:bgridS." splits x ".s:bgridL." lines)
 	\\n^hjklyubn - Cursor to edges and corners of current big grid
 	\\no         - Open map        (1 split x ".s:bgridL." lines)
-	\\nr         - redraw
+	\\nr         - Redraw
 	\\n.         - Snap to the current big grid
 	\\nD A E     - Delete split / Append split / Edit split settings
 	\\n<f1>      - Show this message
@@ -511,8 +511,8 @@ fun! s:navMap(array,c_ini,r_ini)
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal input(s:formatPar("\n\n\\CKeyboard:
-\\nhjkl        Move cardinally
-\\nyubn        Move diagonally
+\\nhjklyubn    1 block motions
+\\nHJKLYUBN    3 block motions
 \\nx p         Cut block / Put block
 \\nc i         Change block
 \\ng <cr>      Goto block (and exit map)
@@ -529,24 +529,40 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the T command.
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
-\"j":"let s:ms__r+=1",
 \"q":"let s:ms__continue=0",
-\"jj":"let s:ms__r+=2",
-\"jjj":"let s:ms__r+=3",
-\"k":"let s:ms__r=s:ms__r>0? s:ms__r-1 : s:ms__r",
-\"kk":"let s:ms__r=s:ms__r>1? s:ms__r-2 : s:ms__r",
-\"kkk":"let s:ms__r=s:ms__r>2? s:ms__r-3 : s:ms__r",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
 \"lll":"let s:ms__c+=3",
+\"h":"let s:ms__c=max([s:ms__c-1,0])",
+\"hh":"let s:ms__c=max([s:ms__c-2,0])",
+\"hhh":"let s:ms__c=max([s:ms__c-3,0])",
+\"j":"let s:ms__r+=1",
+\"jj":"let s:ms__r+=2",
+\"jjj":"let s:ms__r+=3",
+\"k":"let s:ms__r=max([s:ms__r-1,0])",
+\"kk":"let s:ms__r=max([s:ms__r-2,0])",
+\"kkk":"let s:ms__r=max([s:ms__r-3,0])",
+\"L":"let s:ms__c+=3",
+\"LL":"let s:ms__c+=6",
+\"LLL":"let s:ms__c+=9",
+\"H":"let s:ms__c=max([s:ms__c-3,0])",
+\"HH":"let s:ms__c=max([s:ms__c-6,0])",
+\"HHH":"let s:ms__c=max([s:ms__c-9,0])",
+\"J":"let s:ms__r+=3",
+\"JJ":"let s:ms__r+=6",
+\"JJJ":"let s:ms__r+=9",
+\"K":"let s:ms__r=max([s:ms__r-3,0])",
+\"KK":"let s:ms__r=max([s:ms__r-6,0])",
+\"KKK":"let s:ms__r=max([s:ms__r-9,0])",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
-\"h":"let s:ms__c=s:ms__c>0? s:ms__c-1 : s:ms__c",
-\"hh":"let s:ms__c=s:ms__c>1? s:ms__c-2 : s:ms__c",
-\"hhh":"let s:ms__c=s:ms__c>2? s:ms__c-3 : s:ms__c",
-\"y":"let [s:ms__r,s:ms__c]=[s:ms__r>0? s:ms__r-1 : s:ms__r,s:ms__c>0? s:ms__c-1 : s:ms__c]",
-\"u":"let [s:ms__r,s:ms__c]=[s:ms__r>0? s:ms__r-1 : s:ms__r,s:ms__c+1]",
-\"b":"let [s:ms__r,s:ms__c]=[s:ms__r+1,s:ms__c>0? s:ms__c-1 : s:ms__c]",
+\"y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),max([s:ms__c-1,0])]",
+\"u":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),s:ms__c+1]",
+\"b":"let [s:ms__r,s:ms__c]=[s:ms__r+1,max([s:ms__c-1,0])]",
 \"n":"let [s:ms__r,s:ms__c]=[s:ms__r+1,s:ms__c+1]",
+\"Y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-3,0]),max([s:ms__c-3,0])]",
+\"U":"let [s:ms__r,s:ms__c]=[max([s:ms__r-3,0]),s:ms__c+3]",
+\"B":"let [s:ms__r,s:ms__c]=[s:ms__r+3,max([s:ms__c-3,0])]",
+\"N":"let [s:ms__r,s:ms__c]=[s:ms__r+3,s:ms__c+3]",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
 \"p":"if s:ms__c>=len(s:ms__array)\n
 	\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
