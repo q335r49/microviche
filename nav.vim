@@ -301,13 +301,12 @@ endfun
 
 let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 let s:pad=repeat(' ',300)
-fun! s:getMapDisp(map)          
-	let mapl=len(a:map)
-	let s:disp__r=mapl*s:mgridW+1
+fun! s:getMapDisp()          
+	let s:disp__r=s:ms__cols*s:mgridW+1
 	let l=s:disp__r*s:mgridH
 	let templist=repeat([''],s:mgridH)
 	let last_entry_colored=copy(templist)
-	let s:disp__selmap=map(range(s:ms__rows),'repeat([0],mapl)')
+	let s:disp__selmap=map(range(s:ms__rows),'repeat([0],s:ms__cols)')
 	let strarray=[]
 	let s:disp__color=[]
 	let s:disp__colorv=[]
@@ -320,8 +319,9 @@ fun! s:getMapDisp(map)
 		exe let_occ
 		exe let_colorix
 		exe let_colorvix
-		for j in range(mapl)
-			if empty(a:map[j][i])
+		for j in range(s:ms__cols)
+			"if empty(a:map[j][i])
+			if !exists("s:ms__array[s:ms__coff+j][s:ms__roff+i]") || empty(s:ms__array[s:ms__coff+j][s:ms__roff+i])
 				let s:disp__selmap[i][j]=[i*l+j*s:mgridW,0]
 				continue
 			en
@@ -330,7 +330,7 @@ fun! s:getMapDisp(map)
 			while k<s:mgridH && len(occ[k])>=cell_border
 				let k+=1
 			endw
-			let parsed=split(a:map[j][i],'#')
+			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#')
 			if k==s:mgridH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
@@ -351,7 +351,7 @@ fun! s:getMapDisp(map)
 		endfor
 		exe extend_colors
 		exe extend_colorv
-		let strarray+=map(occ,'len(v:val)<mapl*s:mgridW? v:val.s:pad[:mapl*s:mgridW-len(v:val)-1]."\n" : v:val[:mapl*s:mgridW-1]."\n"')
+		let strarray+=map(occ,'len(v:val)<s:ms__cols*s:mgridW? v:val.s:pad[:s:ms__cols*s:mgridW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mgridW-1]."\n"')
 	endfor
 	let s:disp__str=join(strarray,'')
 	call add(s:disp__color,99999)
@@ -432,7 +432,7 @@ fun! s:navMapKeyHandler(c)
 			if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
         		let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
 				let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
-				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'))
+				call s:getMapDisp()
 				call s:ms__displayfunc()
 			en
 			let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
@@ -445,7 +445,7 @@ fun! s:navMapKeyHandler(c)
 					if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mgridH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mgridW]),0]
 						let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
-						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'))
+						call s:getMapDisp()
 						call s:ms__displayfunc()
 					en
 					let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mgridW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mgridH]
@@ -462,7 +462,7 @@ fun! s:navMapKeyHandler(c)
 					let [roffn,coffn]=[s:ms__r<s:ms__roff? s:ms__r : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__r-s:ms__rows+1 : s:ms__roff,s:ms__c<s:ms__coff? s:ms__c : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__c-s:ms__cols+1 : s:ms__coff]
 					if [s:ms__roff,s:ms__coff]!=[roffn,coffn] || s:ms__redr
 						let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
-						call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'))
+						call s:getMapDisp()
 					en
 					call s:ms__displayfunc()
 				en
@@ -475,7 +475,7 @@ fun! s:navMapKeyHandler(c)
 			let [roffn,coffn]=[s:ms__r<s:ms__roff? s:ms__r : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__r-s:ms__rows+1 : s:ms__roff,s:ms__c<s:ms__coff? s:ms__c : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__c-s:ms__cols+1 : s:ms__coff]
 			if [s:ms__roff,s:ms__coff]!=[roffn,coffn] || s:ms__redr
 				let [s:ms__roff,s:ms__coff,s:ms__redr]=[roffn,coffn,0]
-				call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"s:ms__array[".v:val."][v:val]\")? s:ms__array[".v:val."][v:val] : \"\"")'))
+				call s:getMapDisp()
 			en
 			call s:ms__displayfunc()
 			call feedkeys("\<plug>TxbY")
@@ -504,7 +504,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
 	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
 	let s:ms__displayfunc=function('s:printMapDisp')
-   	call s:getMapDisp(map(range(s:ms__coff,s:ms__coff+s:ms__cols-1),'map(range(s:ms__roff,s:ms__roff+s:ms__rows-1),"exists(\"a:array[".v:val."][v:val]\")? a:array[".v:val."][v:val] : \"\"")'))
+   	call s:getMapDisp()
 	call s:ms__displayfunc()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
