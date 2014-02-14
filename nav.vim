@@ -73,6 +73,7 @@ fun! s:printHelp()
 		\\n1.6    - Remove big grid, grid corners, shift entirely to map
 		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
+		\\n1.5.3  - Cursor during mouse panning should be more stable
 		\\n1.5.2  - Map optimizations
 		\\n1.5.1  - Fixed rather severe bug with map coloring
 		\\n1.5.0  - Colored labels
@@ -286,15 +287,13 @@ fun! s:navPlane(dx,dy)
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
 	let win=bufwinnr(s:navCurPos[0])
 	if win==-1
-		exe t:txb.ix[bufname('')]<t:txb.ix[bufname(s:navCurPos[0])]? winnr('$')==1? "wincmd b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0"
+		exe (t:txb.ix[bufname('')]<t:txb.ix[bufname(s:navCurPos[0])]? winnr('$')==1? "norm! \<c-w>b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0").(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
 	elseif win==1
-		wincmd t
-		exe "norm! ".min([max([virtcol('.')-wincol()+1,s:navCurPos[2]]),virtcol('.')-wincol()+winwidth(0)])."|"
+		exe "norm! \<c-w>t".min([max([virtcol('.')-wincol()+1,s:navCurPos[2]]),virtcol('.')-wincol()+winwidth(0)])."|".(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
 	else
 		exe win.'wincmd w'
-		exe "norm! 0".min([max([1,s:navCurPos[2]]),winwidth(0)])."|"
+		exe 'norm! 0'.min([max([1,s:navCurPos[2]]),winwidth(0)]).'|'.(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
 	en
-	exe s:navCurPos[1]<line('w0')? 'norm! H' : s:navCurPos[1]>line('w$')? 'norm! L' : s:navCurPos[1]
 	let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
 	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL))
 endfun
