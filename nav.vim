@@ -308,13 +308,13 @@ fun! s:getMapDisp()
 	let templist=repeat([''],s:mgridH)
 	let last_entry_colored=copy(templist)
 	let s:disp__selmap=map(range(s:ms__rows),'repeat([0],s:ms__cols)')
-	let strarray=[]
+	let dispLines=[]
 	let s:disp__color=[]
 	let s:disp__colorv=[]
-	let extend_colors='call extend(s:disp__color,'.join(map(templist,'"colorix[".v:key."]"'),'+').')'
+	let extend_color='call extend(s:disp__color,'.join(map(templist,'"colorix[".v:key."]"'),'+').')'
 	let extend_colorv='call extend(s:disp__colorv,'.join(map(templist,'"colorvix[".v:key."]"'),'+').')'
 	let let_colorix='let colorix=['.join(map(templist,'"[]"'),',').']'
-	let let_colorvix='let colorvix=['.join(map(templist,'"[]"'),',').']'
+	let let_colorvix=let_colorix[:8].'v'.let_colorix[9:]
 	let let_occ='let occ=['.repeat("'',",s:mgridH)[:-2].']'
 	for i in range(s:ms__rows)
 		exe let_occ
@@ -349,11 +349,11 @@ fun! s:getMapDisp()
 				let last_entry_colored[k]=0
 			en
 		endfor
-		exe extend_colors
+		exe extend_color
 		exe extend_colorv
-		let strarray+=map(occ,'len(v:val)<s:ms__cols*s:mgridW? v:val.s:pad[:s:ms__cols*s:mgridW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mgridW-1]."\n"')
+		let dispLines+=map(occ,'len(v:val)<s:ms__cols*s:mgridW? v:val.s:pad[:s:ms__cols*s:mgridW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mgridW-1]."\n"')
 	endfor
-	let s:disp__str=join(strarray,'')
+	let s:disp__str=join(dispLines,'')
 	call add(s:disp__color,99999)
 	call add(s:disp__colorv,'echoh NONE')
 endfun
@@ -866,6 +866,7 @@ fun! s:doCmdKeyhandler(c)
 	en
 endfun
 
+let TXBkyCmd[-1]='let s:cmdS__continue=0|call feedkeys("\<leftmouse>")'
 let TXBkyCmd.ini=""
 let TXBkyCmd.D="redr\n
 \let confirm=input(' < Really delete current column (y/n)? ')\n
