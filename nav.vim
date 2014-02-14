@@ -72,6 +72,7 @@ fun! s:printHelp()
 		\\n1.6    - Remove big grid, grid corners, shift entirely to map
 		\\n1.7    - Recompile split to match map
 		\\n\\CChangelog:
+		\\n1.5.2  - Map optimizations
 		\\n1.5.1  - Fixed rather severe bug with map coloring
 		\\n1.5.0  - Colored labels
 		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
@@ -320,7 +321,6 @@ fun! s:getMapDisp()
 		exe let_colorix
 		exe let_colorvix
 		for j in range(s:ms__cols)
-			"if empty(a:map[j][i])
 			if !exists("s:ms__array[s:ms__coff+j][s:ms__roff+i]") || empty(s:ms__array[s:ms__coff+j][s:ms__roff+i])
 				let s:disp__selmap[i][j]=[i*l+j*s:mgridW,0]
 				continue
@@ -609,14 +609,17 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 fun! s:gotoPos(col,row)
-	wincmd t
-	only
-	let name=get(t:txb.name,a:col,t:txb.name[0])
-	if name!=#expand('%')
+	let name=get(t:txb.name,a:col,-1)
+	if name==-1
+		echoerr "Split ".a:col." does not exist."
+		return
+	elseif name!=#expand('%')
+		wincmd t
+		only
 		exe 'e '.escape(name,' ')
+		call TXBload()
 	en
 	exe 'norm!' (a:row? a:row : 1).'zt'
-	call TXBload()
 endfun
 
 fun! s:blockPan(dx,y,...)
