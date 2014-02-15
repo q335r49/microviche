@@ -21,8 +21,8 @@ se winwidth=1                     "[Do not change] For correct panning
 se winminwidth=0                  "[Do not change] For correct panning
 se sidescroll=1                   "For smoother panning
 se nostartofline                  "Keeps cursor in the same position when panning
-se mouse=a                        "Enable mouse
-se lazyredraw                     "Less redraws
+se mouse=a                        "Enables mouse
+se lazyredraw                     "For less redraws
 se virtualedit=all                "Makes leftmost split aligns correctly
 se hidden                         "Suppress error messages when a modified buffer panns offscreen
 
@@ -289,7 +289,8 @@ fun! s:navPlane(dx,dy)
 		exe 'norm! 0'.min([max([1,s:navCurPos[2]]),winwidth(0)]).'|'.(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
 	en
 	let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
-	let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL))
+	"let s0
+  	echon t:txb.gridnames[t:txb.ix[bufname('')]] line('.')/s:bgridL
 endfun
 
 fun! s:getGridNames(len)
@@ -809,7 +810,8 @@ fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg="Press f1 for help"')
    	call s:restoreCursPos(s:cmdS__possav)
 	if s:cmdS__continue
-		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec empty(s:cmdS__msg)? join(t:txb.gridnames[s0 : s0+winnr('$')-1]).' _ '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL)) : s:cmdS__msg
+		"let s0=
+  		echon t:txb.gridnames[t:txb.ix[bufname('')]] line('.')/s:bgridL
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:cmdS__msg)
 		ec s:cmdS__msg
