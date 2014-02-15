@@ -230,7 +230,14 @@ fun! <SID>doDragSGR()
 		let k=[32,0,0]
 	elseif k[0]==0
 		nunmap <esc>[<
-        if k[1:]==[1,1] | call TXBdoCmd('o') | en
+        if k[1:]==[1,1]
+			call TXBdoCmd('o')
+		else
+			"let s0
+			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let t_r=line('.')/s:bgridL
+			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
@@ -272,7 +279,14 @@ fun! <SID>doDragXterm2()
 	endwhile
 	if k[0]==35
 		nunmap <esc>[M
-        if k[1:]==[33,33] | call TXBdoCmd('o') | en
+        if k[1:]==[33,33]
+			call TXBdoCmd('o')
+		else
+			"let s0
+			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let t_r=line('.')/s:bgridL
+			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
