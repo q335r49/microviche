@@ -1,38 +1,32 @@
-"Check https://github.com/q335r49/textabyss for most recent version
-"Global hotkey: press to begin.
-	let s:hotkeyName='<f10>'
-	let s:hotkeyRaw="\<f10>"
-"Small grid: 1 split x s:sgridL lines
-	let s:sgridL=15
-"Big grid: s:bgridS splits x s:bgridL lines; Map grid: 1 split x s:bgridL lines
-	let s:bgridS=3
-	let s:bgridL=45
-"Mouse panning speed (only works when &ttymouse==xterm2 or sgr)
-	let s:panSpeedMultiplier=2
-"Map block default size (press z in map mode to change)
-	let s:mgridH=2
-	let s:mgridW=5
-"Colors for map cursor
-	highlight! link TXBmapSelection Visual
-	highlight! link TXBmapSelectionEmpty Search
-"Grid panning animation step
-	let s:pansteph=9
-	let s:panstepv=2
+"Hosted at https://github.com/q335r49/textabyss
 
-"Changed setting:                  Used for:
-if &compatible|se nocompatible|en "Enable vim features, sets ttymouse [Do not change]
-se noequalalways                  "Needed for correct panning [Do not change]
-se winwidth=1                     "Needed for correct panning [Do not change]
-se winminwidth=0                  "Needed for correct panning [Do not change]
-se sidescroll=1                   "Needed for smooth panning
+nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call <SID>initPlane()\|en<cr>
+                                   "Load plane, activate keyboard commands
+let s:hotkeyName='<f10>'           "String for help files
+let s:sgridL=15                    "Lines panned with jk
+let s:bgridS=3                     "Splits panned with HL
+let s:bgridL=45                    "Lines panned with JK, also map grid height
+let s:panSpeedMultiplier=2         "Mouse panning speed, only works when ttymouse is xterm2 or sgr
+let s:mgridH=2                     "Map block display lines
+let s:mgridW=5                     "Map block display columns
+hi! link TXBmapSel Visual          "Highlight color for map cursor on label
+hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
+let s:pansteph=9                   "Keyboard panning animation step horizontal
+let s:panstepv=2                   "Keyboard panning animation step vertical
+
+"Changed internal settings:        Used for:
+if &compatible|se nocompatible|en "[Do not change] Enable vim features, sets ttymouse
+se noequalalways                  "[Do not change] For correct panning
+se winwidth=1                     "[Do not change] For correct panning
+se winminwidth=0                  "[Do not change] For correct panning
+se sidescroll=1                   "For smoother panning
+se nostartofline                  "Keeps cursor in the same position when panning
 se mouse=a                        "Enable mouse
 se lazyredraw                     "Less redraws
-se nostartofline                  "Keeps cursor in same position when panning
-se virtualedit=all                "Prevents for leftmost split from being drawn incorrectly
-se hidden                         "Suppresses error messages when modified buffer is panned offscreen
+se virtualedit=all                "Makes leftmost split aligns correctly
+se hidden                         "Suppress error messages when a modified buffer panns offscreen
 
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
-exe 'nn <silent> '.s:hotkeyName.' :if exists("t:txb")\|call TXBdoCmd("ini")\|else\|call <SID>initPlane()\|en<cr>'
 let TXBmsCmd={}
 let TXBkyCmd={}
 fun! s:printHelp()
@@ -41,7 +35,6 @@ fun! s:printHelp()
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
 	\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
 	\\nHJKLYUBN  - pan big grid    (".s:bgridS." splits x ".s:bgridL." lines)
-	\\n^hjklyubn - Cursor to edges and corners of current big grid
 	\\no         - Open map        (1 split x ".s:bgridL." lines)
 	\\nr         - Redraw
 	\\n.         - Snap to the current big grid
@@ -70,9 +63,10 @@ fun! s:printHelp()
 	elseif input==?'c'
 		let helpmsg="\n
 		\\n\\CRoadmap:
-		\\n1.6    - Remove big grid, grid corners, shift entirely to map
-		\\n1.7    - Recompile split to match map
+		\\n1.6    - Further map syntax for manipulating view more precisely
+		\\n1.7    - Automated way (On load?) to realign columns
 		\\n\\CChangelog:
+		\\n1.5.4  - Removed grid corners commands, removed need to define hotkeyraw
 		\\n1.5.3  - Cursor during mouse panning should be more stable
 		\\n1.5.2  - Map optimizations
 		\\n1.5.1  - Fixed rather severe bug with map coloring
@@ -397,12 +391,12 @@ fun! s:printMapDisp()
 	if notempty
 		let endmark=len(s:ms__array[s:ms__c][s:ms__r])
 		let endmark=(sel+endmark)%s:disp__r<sel%s:disp__r? endmark-(sel+endmark)%s:disp__r-1 : endmark
-		echohl TXBmapSelection
+		echohl TXBmapSel
 		echon s:ms__array[s:ms__c][s:ms__r][:endmark-1]
 		let endmark=sel+endmark
 	else
 		let endmark=sel+s:mgridW
-		echohl TXBmapSelectionEmpty
+		echohl TXBmapSelEmpty
 		echon s:disp__str[sel : endmark-1]
 	en
 	while s:disp__color[p]<endmark
@@ -424,11 +418,11 @@ fun! s:printMapDispNoHL()
 	if len
 		let len=len(s:ms__array[s:ms__c][s:ms__r])
 		let len=(i+len)%s:disp__r<i%s:disp__r? len-(i+len)%s:disp__r-1 : len
-		echohl TXBmapSelection
+		echohl TXBmapSel
 		echon s:ms__array[s:ms__c][s:ms__r][:len]
 	else
 		let len=s:mgridW
-		echohl TXBmapSelectionEmpty
+		echohl TXBmapSelEmpty
 		echon s:disp__str[i : i+len-1]
 	en
 	echohl NONE
@@ -755,62 +749,6 @@ let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y%s:bgridL? s:cmdS__y-s:cmdS__y%s:bgridL
 	let TXBkyCmd.B=s:Y1.'cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
 	let TXBkyCmd.N=s:Y1.'cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
 unlet s:DX1 s:DXm1 s:Y1 s:Ym1
-
-fun! s:gotoGridCorners(dx,dy)
-	if a:dy<0
-		let cursory=max([line('.')/s:bgridL*s:bgridL,1])
-		let desty=min([cursory,line('w0')])
-	elseif a:dy>0
-		let cursory=line('.')/s:bgridL*s:bgridL+s:bgridL-1
-		let desty=max([cursory-winheight(0),line('w0')])
-	else
-		let cursory=line('.')/s:bgridL*s:bgridL+s:bgridL/2
-		let desty=cursory>=line('.')? max([cursory-winheight(0),line('w0')]) : min([cursory,line('w0')])
-	en
-	let ix=get(t:txb.ix,expand('%'),-1)
-	if ix==-1 | return 300 | en
-	if a:dx<0
- 		let destix=ix/s:bgridS*s:bgridS
-		let eval='"norm! '.cursory.'G0"'
-	elseif a:dx>0
-		let destix=min([ix/s:bgridS*s:bgridS+s:bgridS-1,t:txb.len-1])
-		let eval='"norm! '.cursory.'Gg$"'
-	else
-    	let destix=min([ix-ix%s:bgridS+s:bgridS/2,t:txb.len-1])
-		let eval='"norm! '.cursory.'G".(winwidth(0)/2)."|"'
-	en
-	if destix<ix || destix==ix && winnr()==1
-		if winnr()-ix+destix==1 && winwidth(1)<t:txb.size[destix]
-		   	call s:blockPan(-1,desty)
-		elseif winnr()<=ix-destix
-			call s:blockPan(destix,desty,-1)
-		en
-	elseif destix>ix || destix==ix && winnr()==winnr('$')
-   		while t:txb.ix[bufname(winbufnr(winnr('$')))]<destix
-   			call s:PanRight(s:pansteph)
-   		endwhile
-		let win=bufwinnr(bufnr(t:txb.name[destix]))
-   		exe win==-1? 'return 200' : win."wincmd w"
-		if winnr()==winnr('$') && winwidth(0)<t:txb.size[destix]
-			while t:txb.size[destix]-winwidth(winnr('$'))>s:pansteph
-				call s:PanRight(s:pansteph)
-			endwhile
-			call s:PanRight(t:txb.size[destix]-winwidth(winnr('$')))
-		en
-		exe 'norm! '.desty.'zt'
-	en
-	let win=bufwinnr(bufnr(t:txb.name[destix]))
-	exe win==-1? 'return 100' : win."wincmd w"
-	exe eval(eval)
-endfun
-	let TXBkyCmd["\<c-y>"]='cal s:gotoGridCorners(-1,-1)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-u>"]='cal s:gotoGridCorners( 1,-1)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-b>"]='cal s:gotoGridCorners(-1, 1)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-n>"]='cal s:gotoGridCorners( 1, 1)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-h>"]='cal s:gotoGridCorners(-1, 0)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-l>"]='cal s:gotoGridCorners( 1, 0)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-j>"]='cal s:gotoGridCorners( 0, 1)|let s:cmdS__possav=s:saveCursPos()'
-	let TXBkyCmd["\<c-k>"]='cal s:gotoGridCorners( 0,-1)|let s:cmdS__possav=s:saveCursPos()'
 
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
