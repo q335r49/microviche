@@ -197,7 +197,9 @@ fun! s:initDragSGR()
 	if getchar()=="\<leftrelease>"
 		"let s0
 		if exists("t:txb")
-  			echon t:txb.gridnames[get(t:txb.ix,bufname(''))] line('.')/s:bgridL
+			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let t_r=line('.')/s:bgridL
+			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
 		en
 		exe "norm! \<leftmouse>\<leftrelease>"
 	elseif !exists('t:txb')
@@ -213,7 +215,7 @@ fun! s:initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
+		let s:nav_state=[bufnr(''),line('.'),virtcol('.'),-10,'']
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -240,7 +242,9 @@ fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		"let s0
 		if exists("t:txb")
-  			echon t:txb.gridnames[get(t:txb.ix,bufname(''))] line('.')/s:bgridL
+			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let t_r=line('.')/s:bgridL
+			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
 		en
 		exe "norm! \<leftmouse>\<leftrelease>"
 	elseif !exists('t:txb')
@@ -256,7 +260,7 @@ fun! s:initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
+		let s:nav_state=[bufnr(''),line('.'),virtcol('.'),-10,'']
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -287,18 +291,17 @@ fun! s:navPlane(dx,dy)
 		call s:PanRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	en
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
-	let win=bufwinnr(s:navCurPos[0])
+	let win=bufwinnr(s:nav_state[0])
 	if win==-1
-		exe (t:txb.ix[bufname('')]<t:txb.ix[bufname(s:navCurPos[0])]? winnr('$')==1? "norm! \<c-w>b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0").(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
+		exe (t:txb.ix[bufname('')]<s:nav_state[3]? winnr('$')==1? "norm! \<c-w>b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0").(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
 	elseif win==1
-		exe "norm! \<c-w>t".min([max([virtcol('.')-wincol()+1,s:navCurPos[2]]),virtcol('.')-wincol()+winwidth(0)])."|".(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
+		exe "norm! \<c-w>t".min([max([virtcol('.')-wincol()+1,s:nav_state[2]]),virtcol('.')-wincol()+winwidth(0)])."|".(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
 	else
 		exe win.'wincmd w'
-		exe 'norm! 0'.min([max([1,s:navCurPos[2]]),winwidth(0)]).'|'.(s:navCurPos[1]<line('w0')? 'H' : s:navCurPos[1]>line('w$')? 'L' : s:navCurPos[1].'G')
+		exe 'norm! 0'.min([max([1,s:nav_state[2]]),winwidth(0)]).'|'.(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
 	en
-	let s:navCurPos=[bufnr(''),line('.'),virtcol('.')]
-	"let s0
-  	echon t:txb.gridnames[t:txb.ix[bufname('')]] line('.')/s:bgridL
+	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
+    echon s:nav_state[5]
 endfun
 
 fun! s:getGridNames(len)
@@ -819,7 +822,9 @@ fun! s:doCmdKeyhandler(c)
    	call s:restoreCursPos(s:cmdS__possav)
 	if s:cmdS__continue
 		"let s0=
-  		echon t:txb.gridnames[t:txb.ix[bufname('')]] line('.')/s:bgridL
+		let t_ix=get(t:txb.ix,bufname(''),-1)
+		let t_r=line('.')/s:bgridL
+		echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:cmdS__msg)
 		ec s:cmdS__msg
