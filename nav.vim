@@ -833,7 +833,7 @@ fun! TXBdoCmd(inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg="Press f1 for help"')
-   	call s:restoreCursPos(s:cmdS__possav)
+	call s:updateCursPos()
 	if s:cmdS__continue
 		"let s0=
 		let t_ix=get(t:txb.ix,bufname(''),-1)
@@ -1132,6 +1132,28 @@ fun! s:restoreCursPos(possav)
    		exe min([max([line('w0'),a:possav[1]]),line('w$')])
 		exe winnr()==1? ("norm! ".min([max([virtcol('.')-wincol()+1,a:possav[2]+a:possav[3]]),virtcol('.')-wincol()+winwidth(0)])."|") : ("norm! 0".min([max([1,a:possav[2]+a:possav[3]]),winwidth(0)])."|")
 	en
+endfun
+fun! s:updateCursPos()
+	let win=bufwinnr(s:cmdS__possav[0])
+	if win==-1
+		let ix=[get(t:txb.ix,bufname(s:cmdS__possav[0]),-1),get(t:txb.ix,bufname(''),-1)]
+		if ix[0]!=-1 && ix[1]!=-1
+			if ix[0]>ix[1]
+				wincmd b
+				exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
+				exe winnr()==1? "" : "norm! 0g$"
+			else
+				wincmd t
+				exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
+				norm! g0
+			en
+		en
+	else
+		exe win.'wincmd w'
+   		exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
+		exe winnr()==1? ("norm! ".min([max([virtcol('.')-wincol()+1,s:cmdS__possav[2]+s:cmdS__possav[3]]),virtcol('.')-wincol()+winwidth(0)])."|") : ("norm! 0".min([max([1,s:cmdS__possav[2]+s:cmdS__possav[3]]),winwidth(0)])."|")
+	en
+	let s:cmdS__possav=[bufnr('%')]+getpos('.')[1:]
 endfun
 
 fun! s:PanLeft(N)
