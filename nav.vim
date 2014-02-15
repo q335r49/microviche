@@ -196,12 +196,12 @@ let TXBmsCmd.default=function("s:initDragDefault")
 fun! s:initDragSGR()
 	if getchar()=="\<leftrelease>"
 		"let s0
+		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
 			let t_ix=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
 			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
 		en
-		exe "norm! \<leftmouse>\<leftrelease>"
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
 		if &wrap && v:mouse_col%winwidth(0)==1
@@ -248,12 +248,12 @@ let TXBmsCmd.sgr=function("s:initDragSGR")
 fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		"let s0
+		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
 			let t_ix=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
 			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
 		en
-		exe "norm! \<leftmouse>\<leftrelease>"
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
 		if &wrap && v:mouse_col%winwidth(0)==1
