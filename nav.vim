@@ -1,5 +1,7 @@
 "Hosted at https://github.com/q335r49/textabyss
+if &compatible|se nocompatible|en "[Do not change] Enable vim features, sets ttymouse
 
+"User options
 nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call <SID>initPlane()\|en<cr>
                                    "Load plane, activate keyboard commands
 let s:hotkeyName='<f10>'           "String for help files
@@ -15,7 +17,6 @@ let s:pansteph=9                   "Keyboard panning animation step horizontal
 let s:panstepv=2                   "Keyboard panning animation step vertical
 
 "Changed internal settings:        Used for:
-if &compatible|se nocompatible|en "[Do not change] Enable vim features, sets ttymouse
 se noequalalways                  "[Do not change] For correct panning
 se winwidth=1                     "[Do not change] For correct panning
 se winminwidth=0                  "[Do not change] For correct panning
@@ -308,18 +309,22 @@ fun! s:navPlane(dx,dy)
 	en
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
 
-	let win=bufwinnr(s:nav_state[0])
-	if win!=-1
-		exe win.'winc w'
-		let offset=virtcol('.')-wincol()+1
-		let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
-		exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
-	elseif s:nav_state[3]>t:txb.ix[bufname('')]
-		winc b
-		exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	if a:dx<0
+		let win=bufwinnr(s:nav_state[0])
+		if win!=-1
+			exe win.'winc w'
+			let offset=virtcol('.')-wincol()+1
+			let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
+			exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
+		elseif s:nav_state[3]>t:txb.ix[bufname('')]
+			winc b
+			exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+		else
+			winc t
+			exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+		en
 	else
-		winc t
-		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+		 exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	en
 
 	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
@@ -1136,22 +1141,35 @@ fun! s:updateCursPos()
 	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 
+"	let win=bufwinnr(s:nav_state[0])
+"	if win!=-1
+"		exe win.'winc w'
+"		let offset=virtcol('.')-wincol()+1
+"		let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
+"		exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
+"	elseif s:nav_state[3]>t:txb.ix[bufname('')]
+"		winc b
+"		exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+"	else
+"		winc t
+"		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+"	en
+
 fun! s:PanLeft(N)
+	let c_bf=bufnr('')
+	let c_vc=virtcol('.')
 	let alignmentcmd="norm! ".line('w0')."zt"
-	let [extrashift,tcol]=[0,get(t:txb.ix,bufname(winbufnr(1)),-1)]
-	if tcol<0
-		throw bufname(winbufnr(1))." not contained in current plane: ".string(t:txb.name)
-	elseif a:N<&columns
+	let extrashift=0
+	let tcol=t:txb.ix[bufname(winbufnr(1))]
+	if a:N<&columns
 		while winwidth(winnr('$'))<=a:N
 			wincmd b
 			let extrashift=(winwidth(0)==a:N)
 			hide
 		endw
-	elseif a:N>0
+	else
 		wincmd t
 		only
-	else
-		return
 	en
 	if winwidth(0)!=&columns
 		wincmd t	
@@ -1191,10 +1209,31 @@ fun! s:PanLeft(N)
 		endwhile
 		let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+
+		let c_wn=bufwinnr(c_bf)
+		if c_wn==-1
+			winc b
+			norm! 0g$
+		elseif c_wn!=1
+			exe c_wn.'winc w'
+			if c_vc>=winwidth(0)
+				norm! 0g$
+			else
+				exe 'norm! '.c_vc.'|'
+			en
+		en
+
 	else
 		let loff=&wrap? -a:N-extrashift : virtcol('.')-wincol()-a:N-extrashift
 		if loff>=0
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
+
+			let c_wn=bufwinnr(c_bf)
+			if c_wn!==-1
+				winc b
+				norm! 0g$
+			en
+
 		else
 			let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 			while loff<=-2
@@ -1222,6 +1261,18 @@ fun! s:PanLeft(N)
 				let &scrollopt=t:txb.scrollopt
 				windo se wfw
 			en
+
+			let c_wn=bufwinnr(c_bf)
+			if c_wn!=-1
+				exe c_wn.'winc w'
+				if c_wn==winnr('$') && c_vc>=winwidth(0)
+					norm! 0g$
+				en
+			else
+				winc b
+				norm! 0g$
+			en
+
 		en
 	en
 	return extrashift
