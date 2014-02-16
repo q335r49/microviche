@@ -977,7 +977,6 @@ fun! s:makePlane(name,...)
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
 		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
-		let plane.scrollopt='ver,jump'
 		let [plane.ix,i]=[{},0]
 		let plane.map=[[]]
 		for e in plane.name
@@ -1112,7 +1111,7 @@ fun! TXBload(...)
 		en
 		wincmd h
 	endw
-	let &scrollopt=t:txb.scrollopt
+	se scrollopt=ver,jump
 	try
 	exe "silent norm! :syncbind\<cr>"
 	catch
@@ -1207,7 +1206,6 @@ fun! s:panLeft(N)
 			wincmd t
 			let tcol=nextcol
 			se wfw scrollopt=ver,jump
-			let &scrollopt=t:txb.scrollopt
 		endwhile
 		let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
@@ -1242,7 +1240,7 @@ fun! s:panLeft(N)
 			exe 'e '.escape(t:txb.name[tcol],' ')
 			exe alignmentcmd
 			exe t:txb.exe[tcol]
-			let &scrollopt=t:txb.scrollopt
+			se scrollopt=ver,jump
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
 			if t:txb.size[tcol]-loff<&columns-1
 				let spaceremaining=&columns-t:txb.size[tcol]+loff
@@ -1256,7 +1254,7 @@ fun! s:panLeft(N)
 					let spaceremaining-=t:txb.size[NextCol]+1
 					let NextCol=(NextCol+1)%len(t:txb.name)
 				endwhile
-				let &scrollopt=t:txb.scrollopt
+				se scrollopt=ver,jump
 				windo se wfw
 			en
 			let c_wn=bufwinnr(c_bf)
@@ -1320,7 +1318,7 @@ fun! s:panRight(N)
 		exe 'e '.escape(t:txb.name[tcol],' ')
 		exe alignmentcmd
 		exe t:txb.exe[tcol]
-		let &scrollopt=t:txb.scrollopt
+		se scrollopt=ver,jump
 		only
 		exe 'norm! 0'.(loff>0? loff.'zl' : '')
 	elseif N>0
@@ -1382,7 +1380,7 @@ fun! s:panRight(N)
 			wincmd b
 			norm! 0
 			let bcol=nextcol
-			let &scrollopt=t:txb.scrollopt
+			se scrollopt=ver,jump
 		endwhile
 		wincmd t
 		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
@@ -1414,7 +1412,7 @@ fun! s:panRight(N)
 			norm! 0
 			let spaceremaining-=t:txb.size[bcol]+1
 		endwhile
-		let &scrollopt=t:txb.scrollopt
+		se scrollopt=ver,jump
 		windo se wfw
 
 		let c_wn=bufwinnr(c_bf)
