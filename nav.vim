@@ -111,7 +111,7 @@ let TXBmsCmd.xterm=function("s:initDragXterm")
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! s:initDragDefault()
 	if exists('t:txb')
-		let possav=[bufnr('%')]+getpos('.')[1:]
+		call s:saveCursPos()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			return "keepj norm! \<lt>leftmouse>"
@@ -146,7 +146,7 @@ fun! s:initDragDefault()
 			endwhile
 		en
 		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).' _ '.join(range(line('w0')/s:bgridL,(line('w0')+winheight(0))/s:bgridL))
-		call s:restoreCursPos(possav)
+		call s:updateCursPos()
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -195,12 +195,11 @@ let TXBmsCmd.default=function("s:initDragDefault")
 
 fun! s:initDragSGR()
 	if getchar()=="\<leftrelease>"
-		"let s0
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
-			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -230,13 +229,15 @@ fun! <SID>doDragSGR()
 		let k=[32,0,0]
 	elseif k[0]==0
 		nunmap <esc>[<
+		if !exists('t:txb')
+			return
+		en
         if k[1:]==[1,1]
 			call TXBdoCmd('o')
 		else
-			"let s0
-			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
-			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -247,12 +248,11 @@ let TXBmsCmd.sgr=function("s:initDragSGR")
 
 fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
-		"let s0
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
-			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -279,13 +279,15 @@ fun! <SID>doDragXterm2()
 	endwhile
 	if k[0]==35
 		nunmap <esc>[M
+		if !exists('t:txb')
+			return
+		en
         if k[1:]==[33,33]
 			call TXBdoCmd('o')
 		else
-			"let s0
-			let t_ix=get(t:txb.ix,bufname(''),-1)
+			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:bgridL
-			echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -305,15 +307,21 @@ fun! s:navPlane(dx,dy)
 		call s:PanRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	en
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
+
 	let win=bufwinnr(s:nav_state[0])
-	if win==-1
-		exe (t:txb.ix[bufname('')]<s:nav_state[3]? winnr('$')==1? "norm! \<c-w>b" : "norm! \<c-w>b0g$" : "norm! \<c-w>tg0").(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
-	elseif win==1
-		exe "norm! \<c-w>t".min([max([virtcol('.')-wincol()+1,s:nav_state[2]]),virtcol('.')-wincol()+winwidth(0)])."|".(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
+	if win!=-1
+		exe win.'winc w'
+		let offset=virtcol('.')-wincol()+1
+		let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
+		exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
+	elseif s:nav_state[3]>t:txb.ix[bufname('')]
+		winc b
+		exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	else
-		exe win.'wincmd w'
-		exe 'norm! 0'.min([max([1,s:nav_state[2]]),winwidth(0)]).'|'.(s:nav_state[1]<line('w0')? 'H' : s:nav_state[1]>line('w$')? 'L' : s:nav_state[1].'G')
+		winc t
+		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	en
+
 	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
     echon s:nav_state[5]
 endfun
@@ -827,7 +835,7 @@ fun! TXBdoCmd(inicmd)
    	let s:cmdS__y=line('w0')
 	let s:cmdS__continue=1
 	let s:cmdS__msg=''
-	let s:cmdS__possav=s:saveCursPos()
+	call s:saveCursPos()
 	let g:TXBkeyhandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
@@ -835,10 +843,9 @@ fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg="Press f1 for help"')
 	call s:updateCursPos()
 	if s:cmdS__continue
-		"let s0=
-		let t_ix=get(t:txb.ix,bufname(''),-1)
+		let s0=get(t:txb.ix,bufname(''),-1)
 		let t_r=line('.')/s:bgridL
-		echon t:txb.gridnames[t_ix] t_r get(get(t:txb.map,t_ix,[]),t_r,'')
+		echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:cmdS__msg)
 		ec s:cmdS__msg
@@ -1100,7 +1107,7 @@ fun! TXBload(...)
 	endw
 	let &scrollopt=t:txb.scrollopt
 	try
-		exe "silent norm! :syncbind\<cr>"
+	exe "silent norm! :syncbind\<cr>"
 	catch
 	endtry
    	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
@@ -1110,50 +1117,23 @@ fun! TXBload(...)
 endfun
 
 fun! s:saveCursPos()
-	return [bufnr('%')]+getpos('.')[1:]
-endfun
-fun! s:restoreCursPos(possav)
-	let win=bufwinnr(a:possav[0])
-	if win==-1
-		let ix=[get(t:txb.ix,bufname(a:possav[0]),-1),get(t:txb.ix,bufname(''),-1)]
-		if ix[0]!=-1 && ix[1]!=-1
-			if ix[0]>ix[1]
-				wincmd b
-				exe min([max([line('w0'),a:possav[1]]),line('w$')])
-				exe winnr()==1? "" : "norm! 0g$"
-			else
-				wincmd t
-				exe min([max([line('w0'),a:possav[1]]),line('w$')])
-				norm! g0
-			en
-		en
-	else
-		exe win.'wincmd w'
-   		exe min([max([line('w0'),a:possav[1]]),line('w$')])
-		exe winnr()==1? ("norm! ".min([max([virtcol('.')-wincol()+1,a:possav[2]+a:possav[3]]),virtcol('.')-wincol()+winwidth(0)])."|") : ("norm! 0".min([max([1,a:possav[2]+a:possav[3]]),winwidth(0)])."|")
-	en
+	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 fun! s:updateCursPos()
-	let win=bufwinnr(s:cmdS__possav[0])
-	if win==-1
-		let ix=[get(t:txb.ix,bufname(s:cmdS__possav[0]),-1),get(t:txb.ix,bufname(''),-1)]
-		if ix[0]!=-1 && ix[1]!=-1
-			if ix[0]>ix[1]
-				wincmd b
-				exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
-				exe winnr()==1? "" : "norm! 0g$"
-			else
-				wincmd t
-				exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
-				norm! g0
-			en
-		en
+	let win=bufwinnr(s:cPos[0])
+	if win!=-1
+		exe win.'winc w'
+		let offset=virtcol('.')-wincol()+1
+		let width=offset+winwidth(0)-3
+		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]<offset? offset : width<=s:cPos[2]? width : s:cPos[2]).'|'
+	elseif t:txb.ix[bufname(s:cPos[0])]>t:txb.ix[bufname('')]
+		winc b
+		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
 	else
-		exe win.'wincmd w'
-   		exe min([max([line('w0'),s:cmdS__possav[1]]),line('w$')])
-		exe winnr()==1? ("norm! ".min([max([virtcol('.')-wincol()+1,s:cmdS__possav[2]+s:cmdS__possav[3]]),virtcol('.')-wincol()+winwidth(0)])."|") : ("norm! 0".min([max([1,s:cmdS__possav[2]+s:cmdS__possav[3]]),winwidth(0)])."|")
+		winc t
+		exe "norm! ".(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').'g0'
 	en
-	let s:cmdS__possav=[bufnr('%')]+getpos('.')[1:]
+	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 
 fun! s:PanLeft(N)
