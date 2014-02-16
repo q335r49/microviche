@@ -135,7 +135,7 @@ fun! s:initDragDefault()
 					else
 						let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 					en
-					let [x,xs]=x && nx? [x,nx>x? -s:nav(x-nx) : s:nav(x-nx)] : [x? x : nx,0]
+					let [x,xs]=x && nx? [x,s:nav(x-nx)] : [x? x : nx,0]
 					exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
 					let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 					redr
@@ -303,13 +303,14 @@ fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	if a:dx>0
-		call s:nav(-s:panSpeedMultiplier*get(s:panstep,a:dx,16))
-	elseif a:dx<0
-		call s:nav(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
-	en
-	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
+	call s:nav(-s:panSpeedMultiplier*a:dx)
+"	if a:dx>0
+"		call s:nav(-s:panSpeedMultiplier*get(s:panstep,a:dx,16))
+"	elseif a:dx<0
+"		call s:nav(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
+"	en
 	exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
 	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
     echon s:nav_state[5]
 endfun
@@ -1198,21 +1199,12 @@ fun! s:nav(N)
 				norm! 0g$
 			elseif c_wn!=1
 				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
-					norm! 0g$
-				else
-					exe 'norm! '.c_vc.'|'
-				en
+				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
 			en
 		else
 			let loff=&wrap? -N-extrashift : virtcol('.')-wincol()-N-extrashift
 			if loff>=0
-				exe 'norm! 0'.(loff>0? loff.'zl' : '')
-				let c_wn=bufwinnr(c_bf)
-				if c_wn!==-1
-					winc b
-					norm! 0g$
-				en
+				exe 'norm! '.(N+extrashift).(bufwinnr(c_bf)==-1? 'zhg$' : 'zh')
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
@@ -1243,16 +1235,13 @@ fun! s:nav(N)
 				let c_wn=bufwinnr(c_bf)
 				if c_wn!=-1
 					exe c_wn.'winc w'
-					if c_wn==winnr('$') && c_vc>=winwidth(0)
-						norm! 0g$
-					en
+					exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
 				else
-					winc b
 					norm! 0g$
 				en
 			en
 		en
-		return extrashift
+		return -extrashift
 	elseif a:N>0
 		let alignmentcmd="norm! ".line('w0')."zt"
 		let tcol=t:txb.ix[bufname(winbufnr(1))]
@@ -1300,7 +1289,7 @@ fun! s:nav(N)
 			se scrollopt=ver,jump
 			only
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
-		elseif N>0
+		else
 			if winwidth(1)==1
 				let c_wn=winnr()
 				wincmd t
@@ -1331,8 +1320,6 @@ fun! s:nav(N)
 			endw
 			let N+=extrashift
 			let loff+=N-shifted
-		else
-			return
 		en
 		let wf=winwidth(1)-N
 		if wf+N!=&columns
@@ -1364,21 +1351,15 @@ fun! s:nav(N)
 			wincmd t
 			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 			exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
 				norm! g0
 			elseif c_wn!=1
 				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
-					norm! 0g$
-				else
-					exe 'norm! '.c_vc.'|'
-				en
+				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
 			else
 				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
 			en
-
 		elseif &columns-t:txb.size[tcol]+loff>=2
 			let bcol=tcol
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
@@ -1393,7 +1374,6 @@ fun! s:nav(N)
 			endwhile
 			se scrollopt=ver,jump
 			windo se wfw
-
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
 				winc t
@@ -1409,11 +1389,9 @@ fun! s:nav(N)
 				winc t
 				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
 			en
-
 		else
 			let offset=loff-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
 				norm! g0
@@ -1427,8 +1405,9 @@ fun! s:nav(N)
 			else
 				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
 			en
-
 		en
 		return extrashift
 	en
 endfun
+
+let Nav=function("s:nav")
