@@ -67,6 +67,7 @@ fun! s:printHelp()
 		\\n1.6    - Further map syntax for manipulating view more precisely
 		\\n1.7    - Automated way (On load?) to realign columns
 		\\n\\CChangelog:
+		\\n1.5.5  - Optimize restore cursor position by having main panning functions preserve cursor position
 		\\n1.5.4  - Removed grid corners commands, removed need to define hotkeyraw
 		\\n1.5.3  - Cursor during mouse panning should be more stable
 		\\n1.5.2  - Map optimizations
@@ -134,7 +135,7 @@ fun! s:initDragDefault()
 					else
 						let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 					en
-					let [x,xs]=x && nx? [x,nx>x? -s:PanLeft(nx-x) : s:PanRight(x-nx)] : [x? x : nx,0]
+					let [x,xs]=x && nx? [x,nx>x? -s:panLeft(nx-x) : s:panRight(x-nx)] : [x? x : nx,0]
 					exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
 					let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 					redr
@@ -303,29 +304,30 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	if a:dx>0
-		call s:PanLeft(s:panSpeedMultiplier*get(s:panstep,a:dx,16))
+		call s:panLeft(s:panSpeedMultiplier*get(s:panstep,a:dx,16))
 	elseif a:dx<0
-		call s:PanRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
+		call s:panRight(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	en
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
+	exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 
-	if a:dx<0
-		let win=bufwinnr(s:nav_state[0])
-		if win!=-1
-			exe win.'winc w'
-			let offset=virtcol('.')-wincol()+1
-			let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
-			exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
-		elseif s:nav_state[3]>t:txb.ix[bufname('')]
-			winc b
-			exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-		else
-			winc t
-			exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-		en
-	else
-		 exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	en
+	"if a:dx<0
+	"	let win=bufwinnr(s:nav_state[0])
+	"	if win!=-1
+	"		exe win.'winc w'
+	"		let offset=virtcol('.')-wincol()+1
+	"		let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
+	"		exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
+	"	elseif s:nav_state[3]>t:txb.ix[bufname('')]
+	"		winc b
+	"		exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	"	else
+	"		winc t
+	"		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	"	en
+	"else
+	"	 exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	"en
 
 	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
     echon s:nav_state[5]
@@ -713,12 +715,12 @@ fun! s:blockPan(dx,y,...)
 			exe update_ydest
 			let buf0=winbufnr(1)
 			while winwidth(1)>s:pansteph
-				call s:PanRight(s:pansteph)
+				call s:panRight(s:pansteph)
 				exe pan_y
 				redr
 			endwhile
 			if winbufnr(1)==buf0
-				call s:PanRight(winwidth(1))
+				call s:panRight(winwidth(1))
 			en
 			while cury!=y_dest
 				exe pan_y
@@ -736,16 +738,16 @@ fun! s:blockPan(dx,y,...)
 			let buf0=winbufnr(1)
 			let ix=t:txb.ix[bufname(buf0)]
 			if winwidth(1)>=t:txb.size[ix]
-				call s:PanLeft(4)
+				call s:panLeft(4)
 				let buf0=winbufnr(1)
 			en
 			while winwidth(1)<t:txb.size[ix]-s:pansteph
-				call s:PanLeft(s:pansteph)
+				call s:panLeft(s:pansteph)
 				exe pan_y
 				redr
 			endwhile
 			if winbufnr(1)==buf0
-				call s:PanLeft(t:txb.size[ix]-winwidth(1))
+				call s:panLeft(t:txb.size[ix]-winwidth(1))
 			en
 			while cury!=y_dest
 				exe pan_y
@@ -1155,7 +1157,7 @@ endfun
 "		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 "	en
 
-fun! s:PanLeft(N)
+fun! s:panLeft(N)
 	let c_bf=bufnr('')
 	let c_vc=virtcol('.')
 	let alignmentcmd="norm! ".line('w0')."zt"
@@ -1209,7 +1211,6 @@ fun! s:PanLeft(N)
 		endwhile
 		let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-
 		let c_wn=bufwinnr(c_bf)
 		if c_wn==-1
 			winc b
@@ -1222,18 +1223,15 @@ fun! s:PanLeft(N)
 				exe 'norm! '.c_vc.'|'
 			en
 		en
-
 	else
 		let loff=&wrap? -a:N-extrashift : virtcol('.')-wincol()-a:N-extrashift
 		if loff>=0
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
-
 			let c_wn=bufwinnr(c_bf)
 			if c_wn!==-1
 				winc b
 				norm! 0g$
 			en
-
 		else
 			let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 			while loff<=-2
@@ -1261,7 +1259,6 @@ fun! s:PanLeft(N)
 				let &scrollopt=t:txb.scrollopt
 				windo se wfw
 			en
-
 			let c_wn=bufwinnr(c_bf)
 			if c_wn!=-1
 				exe c_wn.'winc w'
@@ -1272,20 +1269,19 @@ fun! s:PanLeft(N)
 				winc b
 				norm! 0g$
 			en
-
 		en
 	en
 	return extrashift
 endfun
 
-fun! s:PanRight(N)
+fun! s:panRight(N)
+	let c_bf=bufnr('')
+	let c_vc=virtcol('.')
 	let alignmentcmd="norm! ".line('w0')."zt"
-	let tcol=get(t:txb.ix,bufname(winbufnr(1)),-1)
-	let [bcol,loff,extrashift,N]=[get(t:txb.ix,bufname(winbufnr(winnr('$'))),-1),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+	let tcol=t:txb.ix[bufname(winbufnr(1))]
+	let [bcol,loff,extrashift,N]=[t:txb.ix[bufname(winbufnr(winnr('$')))],winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 	let nobotresize=0
-	if tcol<0 || bcol<0
-		throw (tcol<0? bufname(winbufnr(1)) : '').(bcol<0? ' '.bufname(winbufnr(winnr('$'))) : '')." not contained in current plane: ".string(t:txb.name)
-	elseif N>=&columns
+	if N>=&columns
 		if winwidth(1)==&columns
 			let loff+=&columns
 		else
@@ -1329,10 +1325,17 @@ fun! s:PanRight(N)
 		exe 'norm! 0'.(loff>0? loff.'zl' : '')
 	elseif N>0
 		if winwidth(1)==1
+			let c_wn=winnr()
 			wincmd t
 			hide
 			let N-=2
 			if N<=0
+				if c_wn!=1
+					exe (c_wn-1).'winc w'
+				else
+                	1winc w
+					norm! 0
+				en
 				return
 			en
 		en
@@ -1366,11 +1369,7 @@ fun! s:PanRight(N)
 			if winwidth(1)!=wf
 				exe 'vert res'.wf
 			en
-		else
-			wincmd t
 		en
-		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
-		exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 		while winwidth(winnr('$'))>=t:txb.size[bcol]+2
 			wincmd b
 			se nowfw scrollopt=jump
@@ -1385,6 +1384,24 @@ fun! s:PanRight(N)
 			let bcol=nextcol
 			let &scrollopt=t:txb.scrollopt
 		endwhile
+		wincmd t
+		let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
+		exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+
+		let c_wn=bufwinnr(c_bf)
+		if c_wn==-1
+			norm! g0
+		elseif c_wn!=1
+			exe c_wn.'winc w'
+			if c_vc>=winwidth(0)
+				norm! 0g$
+			else
+				exe 'norm! '.c_vc.'|'
+			en
+		else
+			exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+		en
+
 	elseif &columns-t:txb.size[tcol]+loff>=2
 		let bcol=tcol
 		let spaceremaining=&columns-t:txb.size[tcol]+loff
@@ -1399,9 +1416,43 @@ fun! s:PanRight(N)
 		endwhile
 		let &scrollopt=t:txb.scrollopt
 		windo se wfw
+
+		let c_wn=bufwinnr(c_bf)
+		if c_wn==-1
+			winc t
+			norm! g0
+		elseif c_wn!=1
+			exe c_wn.'winc w'
+			if c_vc>=winwidth(0)
+				norm! 0g$
+			else
+				exe 'norm! '.c_vc.'|'
+			en
+		else
+			winc t
+			exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+		en
+
 	else
 		let offset=loff-virtcol('.')+wincol()
 		exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+
+		let c_wn=bufwinnr(c_bf)
+		if c_wn==-1
+			norm! g0
+		elseif c_wn!=1
+			exe c_wn.'winc w'
+			if c_vc>=winwidth(0)
+				norm! 0g$
+			else
+				exe 'norm! '.c_vc.'|'
+			en
+		else
+			exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+		en
+
 	en
 	return extrashift
 endfun
+
+let PR=function('s:panRight')
