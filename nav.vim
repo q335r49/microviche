@@ -116,14 +116,14 @@ fun! s:initDragDefault()
 		call s:saveCursPos()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
-			return "keepj norm! \<lt>leftmouse>"
+			return "keepj norm! \<leftmouse>"
 		else
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
 					exe "norm! \<leftmouse>"
 					if !exists('t:txb')
-						return
+						return ''
 					en
 					let [b0,wrap]=[winbufnr(0),&wrap]
 					let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
@@ -156,7 +156,7 @@ fun! s:initDragDefault()
 		exe v:mouse_win."wincmd w"
 		if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
 			if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
-			return "keepj norm! \<lt>leftmouse>" | en
+			return "keepj norm! \<leftmouse>" | en
 		exe "norm! \<leftmouse>"
 		redr!
 		let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
@@ -171,7 +171,7 @@ fun! s:initDragDefault()
 				let c=getchar()
 			endwhile
 		else
-			return "keepj norm! \<lt>leftmouse>"
+			return "keepj norm! \<leftmouse>"
 		en
 		if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
 			let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
@@ -296,19 +296,14 @@ fun! <SID>doDragXterm2()
 	en
 	let s:prevCoord=k
 endfun
-let TXBmsCmd.xterm2=function("s:initDragXterm2")
+"let TXBmsCmd.xterm2=function("s:initDragXterm2")
 
-let s:panstep=[0,1,2,4,8,16,16]
+let s:panstep=[0,1,2,4,8,16]
 fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	call s:nav(-s:panSpeedMultiplier*a:dx)
-"	if a:dx>0
-"		call s:nav(-s:panSpeedMultiplier*get(s:panstep,a:dx,16))
-"	elseif a:dx<0
-"		call s:nav(s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
-"	en
+	call s:nav(a:dx>0? -s:panSpeedMultiplier*get(s:panstep,a:dx,16) : s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
 	exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
 	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
@@ -1123,20 +1118,6 @@ fun! s:updateCursPos()
 	en
 	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
-
-"	let win=bufwinnr(s:nav_state[0])
-"	if win!=-1
-"		exe win.'winc w'
-"		let offset=virtcol('.')-wincol()+1
-"		let width=offset+winwidth(0)>3? offset+winwidth(0)-3 : 1
-"		exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G').(s:nav_state[2]<offset? offset : width<=s:nav_state[2]? width : s:nav_state[2]).'|'
-"	elseif s:nav_state[3]>t:txb.ix[bufname('')]
-"		winc b
-"		exe (winnr('$')==1? 'norm! g$' : 'norm! 0g$').(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-"	else
-"		winc t
-"		exe "norm! g0".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-"	en
 
 fun! s:nav(N)
 	let c_bf=bufnr('')
