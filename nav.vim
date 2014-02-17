@@ -67,6 +67,7 @@ fun! s:printHelp()
 		\\n1.6    - Further map syntax for manipulating view more precisely
 		\\n1.7    - Automated way (On load?) to realign columns
 		\\n\\CChangelog:
+		\\n1.5.6  - Simple but serious bug in default panning
 		\\n1.5.5  - Optimize restore cursor position by having main panning functions preserve cursor position
 		\\n1.5.4  - Removed grid corners commands, removed need to define hotkeyraw
 		\\n1.5.3  - Cursor during mouse panning should be more stable
@@ -296,7 +297,7 @@ fun! <SID>doDragXterm2()
 	en
 	let s:prevCoord=k
 endfun
-"let TXBmsCmd.xterm2=function("s:initDragXterm2")
+let TXBmsCmd.xterm2=function("s:initDragXterm2")
 
 let s:panstep=[0,1,2,4,8,16]
 fun! s:panWin(dx,dy)
@@ -1105,10 +1106,15 @@ endfun
 fun! s:updateCursPos()
 	let win=bufwinnr(s:cPos[0])
 	if win!=-1
-		exe win.'winc w'
-		let offset=virtcol('.')-wincol()+1
-		let width=offset+winwidth(0)-3
-		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]<offset? offset : width<=s:cPos[2]? width : s:cPos[2]).'|'
+		if winnr('$')==1 || win==1
+			winc t
+			let offset=virtcol('.')-wincol()+1
+			let width=offset+winwidth(0)-3
+			exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]<offset? offset : width<=s:cPos[2]? width : s:cPos[2]).'|'
+		elseif win!=1
+			exe win.'winc w'
+			exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]>winwidth(win)? '0g$' : s:cPos[2].'|')
+		en
 	elseif t:txb.ix[bufname(s:cPos[0])]>t:txb.ix[bufname('')]
 		winc b
 		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
