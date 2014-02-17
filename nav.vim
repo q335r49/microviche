@@ -524,7 +524,7 @@ fun! s:doSyntax(com)
 	let marker=0 
 	let len(vcmd)=vcomL
 	let num=''
-	let com={'s':0,'r':0,'R':0,'h':0,'j':0,'k':0,'l':0,'C':0,'M':0}
+	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0}
 	while t<vcomL
 		if a:com[t]~='\d'
 			let num.=a:com[t]
@@ -536,7 +536,7 @@ fun! s:doSyntax(com)
 		en
 		let t+=1
 	endwhile
-	let shift=[com.C>0? 0 : com.s,com.M>0? 0 : com.r-com.R,com.l-com.h,com.j-com.k]
+	let shift=[com.C>0? 0 : com.s,com.M>0? 0 : com.r-com.R,com.l,com.j-com.k]
 	let shift[2]=shift[2]<0? 0 : shift2>winwidth(0)? winwidth(0)
 	exe 'norm! '.(shift[3]>0? shift[3].'j' : shift[3]<0? shift[3].'k' : '').(shift[2]>0? shift[2].'l' : '').(com.M>0? 'zz' : 'g')
 	if com.C>0
@@ -575,9 +575,9 @@ fun! s:navMap(array,c_ini,r_ini)
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal input(s:formatPar("\n\n\\CKeyboard:
-\\nhjklyubn    1 block motions
-\\nHJKLYUBN    3 block motions
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|se more|cal input(s:formatPar("\n\n\\CKeyboard:
+\\n\nhjklyubn    move 1 block
+\\nHJKLYUBN    move 3 blocks
 \\nx p         Cut block / Put block
 \\nc i         Change block
 \\ng <cr>      Goto block (and exit map)
@@ -585,15 +585,25 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\nz           Adjust map block size
 \\nT           Toggle color
 \\nq           Quit
-\\n\\CMouse:
-\\ndoubleclick             Goto block
+\\n\n\\CMouse:
+\\n\ndoubleclick             Goto block
 \\ndrag                    Pan
 \\nclick at topleft corner Quit
 \\ndrag to topleft corner  Show map
 \\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
+\\n\n\\CMap Label Syntax (Advanced)
+\\n\nMap labels can be used to color labels and to provide additional positioning options after jumping to the target grid. Syntax hints will can also optionally be shown during the change input dialogue. The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the T command.
-\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
+\\n\nBy default, the target grid will be shown with the cursor at the top left corner and the map block as the leftmost split. The commands following the second ''#'' character can change this. For example, ''^ Danger!#WarningMsg#CM'' will shift the view so that the cusor is at the very middle of the screen. The commands are:
+\\n    s      Pan left a split
+\\n    r      Pan down a line
+\\n    R      Pan up a line
+\\n    C      Center window at cursor horizontally
+\\n    M      Center window at cursor vertically
+\\n    jkl   Move the cursor as in vim 
+\\n\nThese commands work much like in normal mode. For example, ''^ Danger!##sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. Note that there is no option to pan right or to move the cusor left (''h'') because the default position is at the top left corner. Also, the view will never shift the cusor offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right.
+\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let &more=savmore',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
