@@ -224,9 +224,7 @@ fun! s:initDragSGR()
 	return ''
 endfun
 fun! <SID>doDragSGR()
-	let code=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
-	while getchar(0) isnot 0
-	endwhile
+	let code=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
 	let k=map(split(join(map(code,'type(v:val)? v:val : nr2char(v:val)'),''),';'),'str2nr(v:val)')
 	if len(k)<3
 		let k=[32,0,0]
@@ -246,6 +244,8 @@ fun! <SID>doDragSGR()
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
 	let s:prevCoord=k
+	while getchar(0) isnot 0
+	endwhile
 endfun
 let TXBmsCmd.sgr=function("s:initDragSGR")
 
@@ -278,8 +278,6 @@ fun! s:initDragXterm2()
 endfun
 fun! <SID>doDragXterm2()
 	let k=[getchar(0),getchar(0),getchar(0)]
-	while getchar(0) isnot 0
-	endwhile
 	if k[0]==35
 		nunmap <esc>[M
 		if !exists('t:txb')
@@ -296,6 +294,8 @@ fun! <SID>doDragXterm2()
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
 	let s:prevCoord=k
+	while getchar(0) isnot 0
+	endwhile
 endfun
 let TXBmsCmd.xterm2=function("s:initDragXterm2")
 
@@ -1396,5 +1396,3 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
-
-"au InsertEnter * let db_hist+=[reltime()]
