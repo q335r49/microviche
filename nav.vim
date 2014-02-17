@@ -217,7 +217,7 @@ fun! s:initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[bufnr(''),line('.'),virtcol('.'),-10,'']
+		let s:nav_state=[line('w0'),line('.'),-10,'']
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -270,7 +270,7 @@ fun! s:initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[bufnr(''),line('.'),virtcol('.'),-10,'']
+		let s:nav_state=[line('w0'),line('.'),-10,'']
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -305,10 +305,11 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -s:panSpeedMultiplier*get(s:panstep,a:dx,16) : s:panSpeedMultiplier*get(s:panstep,-a:dx,16))
-	exe "norm! ".(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	exe "norm! ".(a:dy>0? s:panSpeedMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:panSpeedMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : 'g')
-	let s:nav_state=[bufnr(''),line('.'),virtcol('.'),t:txb.ix[bufname('')],s:nav_state[3],s:nav_state[4]!=s:nav_state[3]? t:txb.gridnames[s:nav_state[3]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[3],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[5]]
-    echon s:nav_state[5]
+	let l0=max([1,a:dy>0? s:nav_state[0]-s:panSpeedMultiplier*get(s:panstep,a:dy,16) : s:nav_state[0]+s:panSpeedMultiplier*get(s:panstep,-a:dy,16)])
+	exe 'norm! '.l0.'zt'
+	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
+	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:bgridL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:bgridL,'') : s:nav_state[4]]
+    echon s:nav_state[4]
 endfun
 
 fun! s:getGridNames(len)
@@ -1395,3 +1396,5 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
+
+"au InsertEnter * let db_hist+=[reltime()]
