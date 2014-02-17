@@ -480,7 +480,10 @@ fun! s:navMapKeyHandler(c)
 					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
-						cal s:gotoPos(s:ms__c,s:bgridL*s:ms__r)
+						let vcom=s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
+						if !empty(vcom)
+							call s:doSyntax(vcom)
+						en
 						return
 					en
 					let s:ms__prevclick=[s:ms__r,s:ms__c]
@@ -507,16 +510,48 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
-			cal s:gotoPos(s:ms__c,s:bgridL*s:ms__r)
-			let ppm=get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
-			if !empty(ppm)
-				
+			let vcom=s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
+			if !empty(vcom)
+				call s:doSyntax(vcom)
 			en
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
 	en
 endfun
+
+fun! s:doSyntax(com)
+	let marker=0 
+	let len(vcmd)=vcomL
+	let num=''
+	let com={'s':0,'r':0,'R':0,'h':0,'j':0,'k':0,'l':0,'C':0,'M':0}
+	while t<vcomL
+		if a:com[t]~='\d'
+			let num.=a:com[t]
+		elseif has_key(com,a:com[t])
+			let com[a:com[t]]+=empty(num)? 1 : num
+		else
+			let cmdS__msg='"'.a:com[t].'" is not a recognized command, view positioning aborted.'
+			return
+		en
+		let t+=1
+	endwhile
+	let shift=[com.C>0? 0 : com.s,com.M>0? 0 : com.r-com.R,com.l-com.h,com.j-com.k]
+	let shift[2]=shift[2]<0? 0 : shift2>winwidth(0)? winwidth(0)
+	exe 'norm! '.(shift[3]>0? shift[3].'j' : shift[3]<0? shift[3].'k' : '').(shift[2]>0? shift[2].'l' : '').(com.M>0? 'zz' : 'g')
+	if com.C>0
+	   let shiftamt=&columns/2-wincol()
+	   call s:nav(shiftamt)
+	en
+	if shift[1]!=0
+		exe 'norm! '.(shift[1]>0? min([winline()-1,shift[1]])."\<c-e>" : min([winheight(0)-winline(),-shift[1]])."\<c-y>")
+	en
+	if shift[0]!=0
+		let shiftamt=map(range(s:ms__c-1,s:ms__c-com.s,-1),'t:txb.size[(v:val+t:txb.len)%t:txb.len]')
+		call s:nav(-min([shiftamt,&columns-wincol()]))
+	en
+endfun
+
 fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
@@ -658,14 +693,14 @@ fun! s:gotoPos(col,row)
 	let name=get(t:txb.name,a:col,-1)
 	if name==-1
 		echoerr "Split ".a:col." does not exist."
-		return
+		return 1
 	elseif name!=#expand('%')
 		wincmd t
 		only
 		exe 'e '.escape(name,' ')
 		call TXBload()
 	en
-	exe 'norm!' (a:row? a:row : 1).'zt'
+	exe 'norm!' (a:row? a:row : 1).'zt0'
 endfun
 
 fun! s:blockPan(dx,y,...)
