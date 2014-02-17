@@ -224,7 +224,7 @@ fun! s:initDragSGR()
 	return ''
 endfun
 fun! <SID>doDragSGR()
-	let code=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
+	let code=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
 	let k=map(split(join(map(code,'type(v:val)? v:val : nr2char(v:val)'),''),';'),'str2nr(v:val)')
 	if len(k)<3
 		let k=[32,0,0]
