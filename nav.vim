@@ -508,6 +508,10 @@ fun! s:navMapKeyHandler(c)
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 			cal s:gotoPos(s:ms__c,s:bgridL*s:ms__r)
+			let ppm=get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
+			if !empty(ppm)
+				
+			en
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
