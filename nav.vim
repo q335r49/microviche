@@ -1128,9 +1128,9 @@ endfun
 fun! s:nav(N)
 	let c_bf=bufnr('')
 	let c_vc=virtcol('.')
+	let alignmentcmd='norm! '.line('w0').'zt'
 	if a:N<0
 		let N=-a:N
-		let alignmentcmd="norm! ".line('w0')."zt"
 		let extrashift=0
 		let tcol=t:txb.ix[bufname(winbufnr(1))]
 		if N<&columns
@@ -1230,7 +1230,6 @@ fun! s:nav(N)
 		en
 		return -extrashift
 	elseif a:N>0
-		let alignmentcmd="norm! ".line('w0')."zt"
 		let tcol=t:txb.ix[bufname(winbufnr(1))]
 		let [bcol,loff,extrashift,N]=[t:txb.ix[bufname(winbufnr(winnr('$')))],winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 		let nobotresize=0
@@ -1396,5 +1395,3 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
-
-let Nav=function("s:nav")
