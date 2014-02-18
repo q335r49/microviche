@@ -575,34 +575,36 @@ fun! s:navMap(array,c_ini,r_ini)
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|se more|cal input(s:formatPar("\n\n\\CKeyboard:
-\\n\nhjklyubn    move 1 block
-\\nHJKLYUBN    move 3 blocks
-\\nx p         Cut block / Put block
-\\nc i         Change block
-\\ng <cr>      Goto block (and exit map)
-\\nI D         Insert / delete column
-\\nz           Adjust map block size
-\\nT           Toggle color
-\\nq           Quit
-\\n\n\\CMouse:
-\\n\ndoubleclick             Goto block
-\\ndrag                    Pan
-\\nclick at topleft corner Quit
-\\ndrag to topleft corner  Show map
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|se more|cal input(s:formatPar("\n\n\\CMap Help\n\nKeyboard:
+\\n\n    hjklyubn    move 1 block
+\\n    HJKLYUBN    move 3 blocks
+\\n    x p         Cut label / Put label
+\\n    c i         Change label
+\\n    g <cr>      Goto block (and exit map)
+\\n    I D         Insert / delete column
+\\n    z           Adjust map block size
+\\n    T           Toggle color
+\\n    q           Quit
+\\n\nMouse:
+\\n\n    doubleclick               Goto block
+\\n    drag                      Pan
+\\n    click at topleft corner   Quit
+\\n    drag to topleft corner    Show map
 \\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
 \\n\n\\CMap Label Syntax (Advanced)
-\\n\nMap labels can be used to color labels and to provide additional positioning options after jumping to the target grid. Syntax hints will can also optionally be shown during the change input dialogue. The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
-\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the T command.
-\\n\nBy default, the target grid will be shown with the cursor at the top left corner and the map block as the leftmost split. The commands following the second ''#'' character can change this. For example, ''^ Danger!#WarningMsg#CM'' will shift the view so that the cusor is at the very middle of the screen. The commands are:
-\\n    s      Pan left a split
-\\n    r      Pan down a line
-\\n    R      Pan up a line
-\\n    C      Center window at cursor horizontally
-\\n    M      Center window at cursor vertically
-\\n    jkl   Move the cursor as in vim 
-\\n\nThese commands work much like in normal mode. For example, ''^ Danger!##sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. Note that there is no option to pan right or to move the cusor left (''h'') because the default position is at the top left corner. Also, the view will never shift the cusor offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right.
+\\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints will can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
+\\n\nColoring:
+\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the ''T'' command.
+\\n\nPositioning:
+\\n\nBy default, the target grid will be shown with the cursor at the top left corner and the map block as the leftmost split. The commands following the second ''#'' character can change this. To shift the view but skip highlighting use two ''#'' characters. For example, ''^ Danger!##CM'' will [C]enter the cursor horizontally and put it in the [M]iddle of the screen. The full command list is:
+\\n\n    jkl    Move the cursor as in vim 
+\\n    s      shift view left 1 split
+\\n    r      Shift view down 1 row (1 line)
+\\n    R      Shift view up 1 Row (1 line)
+\\n    C      Shift view so that cursor is Centered horizontally
+\\n    M      Shift view so that cursor is at the vertical Middle of the screen
+\\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order does not matter. Shifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the default position is at the top left corner. 
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let &more=savmore',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
