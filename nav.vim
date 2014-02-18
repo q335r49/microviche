@@ -53,7 +53,7 @@ fun! s:printHelp()
 	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
 	\\n\nHorizontal splits aren't supported and may interfere with panning.
 	\\n\n\\CRecent Changes
-	\\n\n1.5.8     New help pager function to avoid terminates in vim's pager
+	\\n\n1.5.8     In house pager function to avoid terminates in vim's pager
 	\\n1.5.7     Eliminate random cursor jitter during panning
 	\\n1.5.6     Eliminate jitter in default panning
 	\\n1.5.5     Main nav function now preserves cursor position
@@ -439,10 +439,7 @@ fun! s:navMapKeyHandler(c)
 					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
-						let vcom=s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
-						if !empty(vcom)
-							call s:doSyntax(vcom)
-						en
+						call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,''))
 						return
 					en
 					let s:ms__prevclick=[s:ms__r,s:ms__c]
@@ -469,45 +466,40 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
-			let vcom=s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,'')
-			if !empty(vcom)
-				call s:doSyntax(vcom)
-			en
+			call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,''))
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
 	en
 endfun
 
-fun! s:doSyntax(com)
-	let marker=0 
-	let len(vcmd)=vcomL
+fun! s:doSyntax(stmt)
+	if empty(a:stmt)
+		return
+	en
 	let num=''
 	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0}
-	while t<vcomL
-		if a:com[t]~='\d'
-			let num.=a:com[t]
-		elseif has_key(com,a:com[t])
-			let com[a:com[t]]+=empty(num)? 1 : num
+	for t in range(len(a:stmt))
+		if a:stmt[t]=~'\d'
+			let num.=a:stmt[t]
+		elseif has_key(com,a:stmt[t])
+			let com[a:stmt[t]]+=empty(num)? 1 : num
+			let num=''
 		else
-			let cmdS__msg='"'.a:com[t].'" is not a recognized command, view positioning aborted.'
+			echoerr '"'.a:stmt[t].'" is not a recognized command, view positioning aborted.'
 			return
 		en
-		let t+=1
-	endwhile
-	let shift=[com.C>0? 0 : com.s,com.M>0? 0 : com.r-com.R,com.l,com.j-com.k]
-	let shift[2]=shift[2]<0? 0 : shift2>winwidth(0)? winwidth(0)
-	exe 'norm! '.(shift[3]>0? shift[3].'j' : shift[3]<0? shift[3].'k' : '').(shift[2]>0? shift[2].'l' : '').(com.M>0? 'zz' : 'g')
-	if com.C>0
-	   let shiftamt=&columns/2-wincol()
-	   call s:nav(shiftamt)
+	endfor
+	let shift=[com.s,com.M>0? 0 : com.r-com.R,com.l,com.j-com.k]
+	exe 'norm! '.(shift[3]>0? shift[3].'j' : shift[3]<0? shift[3].'k' : '').(shift[2]>winwidth(0)? 'g$' : shift[2]? shift[2].'l' : '').(com.M>0? 'zz' : 'g')
+	if com.C
+	   call s:nav(wincol()-&columns/2)
+	elseif com.s
+		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),&columns-wincol()]))
+		exe 'norm! '.wincol()
 	en
-	if shift[1]!=0
+	if shift[1]
 		exe 'norm! '.(shift[1]>0? min([winline()-1,shift[1]])."\<c-e>" : min([winheight(0)-winline(),-shift[1]])."\<c-y>")
-	en
-	if shift[0]!=0
-		let shiftamt=map(range(s:ms__c-1,s:ms__c-com.s,-1),'t:txb.size[(v:val+t:txb.len)%t:txb.len]')
-		call s:nav(-min([shiftamt,&columns-wincol()]))
 	en
 endfun
 
@@ -693,10 +685,10 @@ fun! s:gotoPos(col,row)
 		return 1
 	elseif name!=#expand('%')
 		wincmd t
-		only
 		exe 'e '.escape(name,' ')
-		call TXBload()
 	en
+	only
+	call TXBload()
 	exe 'norm!' (a:row? a:row : 1).'zt0'
 endfun
 
