@@ -575,7 +575,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|se more|cal input(s:formatPar("\n\n\\CMap Help\n\nKeyboard:
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|let [&ch,&more,&ls,&stal]=s:ms__settings|se more|cal input(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:bgridL." lines)
 \\n\n    hjklyubn                  move 1 block
 \\n    HJKLYUBN                  move 3 blocks
 \\n    x p                       Cut label / Put label
@@ -606,7 +606,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
 \\n\nShifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the original position is at the top left corner. 
-\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let &more=savmore',
+\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let [&more,&ls,&stal]=[0,0,0]|let &ch=&lines|let &more=savmore',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
