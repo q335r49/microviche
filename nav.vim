@@ -541,18 +541,18 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\n\\CAdvanced - Map Label Syntax
 \\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints will can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 \\n\nColoring:
-\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the ''T'' command.
+\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the ''T'' command.
 \\n\nPositioning:
-\\n\nBy default, the target grid will be shown with the cursor at the top left corner and the map block as the leftmost split. The commands following the second ''#'' character can change this. To shift the view but skip highlighting use two ''#'' characters. For example, ''^ Danger!##CM'' will [C]enter the cursor horizontally and put it in the [M]iddle of the screen. The full command list is:
+\\n\nBy default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second ''#'' character can change this. To shift the view but skip highlighting use two ''#'' characters. For example, ''^ Danger!##CM'' will [C]enter the cursor horizontally and put it in the [M]iddle of the screen. The full command list is:
 \\n\n    jkl    Move the cursor as in vim 
-\\n    s      shift view left 1 split
+\\n    s      Shift view left 1 split
 \\n    r      Shift view down 1 row (1 line)
 \\n    R      Shift view up 1 Row (1 line)
 \\n    C      Shift view so that cursor is Centered horizontally
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
-\\n\nShifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the original position is at the top left corner. 
-\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
+\\n\nShifting the view horizontally will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the cursor right edge."
+\,width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
@@ -656,7 +656,7 @@ fun! s:pager(list)
 	while continue
 		if pos!=next
 			let pos=next
-			echo join(a:list[pos : pos+&lines-1],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
+			redr|echo join(a:list[pos : pos+&lines-1],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
 		en
 		exe get(s:pagercom,getchar(),'')
 	endwhile
