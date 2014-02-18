@@ -83,11 +83,11 @@ Mouse commands only work when `ttymouse` is set to `xterm2` or `sgr`. When `ttym
 
 Syntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. The `#` character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 
-#####Coloring:
+#####Coloring
 
 Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command in map mode.
 
-#####Positioning:
+#####Positioning
 
 By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second `#` character can change this. To shift the view but skip highlighting use `##`. For example, `^ Danger!##CM` will *C*enter the cursor horizontally and put it in the *M*iddle of the screen. The full command list is:  
 
