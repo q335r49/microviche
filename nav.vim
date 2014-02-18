@@ -31,8 +31,9 @@ nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 let TXBmsCmd={}
 let TXBkyCmd={}
 fun! s:printHelp()
-	let helpmsg="\n\\CWelcome to Textabyss v1.5!\n
-	\\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
+	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.5!
+	\\n\\Cgithub.com/q335r49/textabyss
+	\\n\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
 	\\n\n    hjklyubn    pan 1 split x ".s:sgridL." line grids
 	\\n    HJKLYUBN    pan ".s:bgridS." splits x ".s:bgridL." line grids
@@ -42,66 +43,24 @@ fun! s:printHelp()
 	\\n    D A E       Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
-	\\n    ^X          Delete hidden buffers\n
-	\\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
-	\\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
-	\\nKeyboard commands can be accessed via the TXBdoCmd(key) function in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.\n
-	\\nHorizontal splits aren't supported and may interfere with panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
+	\\n    ^X          Delete hidden buffers
+	\\n\n\\CSettings
+	\\n\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
+	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. This will also save the map. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
+	\\nKeyboard commands can be accessed via the TXBdoCmd(key) function in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.
+	\\n\n\\CPotential Problems
+	\\n\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
+	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
+	\\n\nHorizontal splits aren't supported and may interfere with panning.
+	\\n\n\\CRecent Changes
+	\\n\n1.5.8     New help pager function to avoid terminates in vim's pager
+	\\n1.5.7     Eliminate random cursor jitter during panning
+	\\n1.5.6     Eliminate jitter in default panning
+	\\n1.5.5     Main nav function now preserves cursor position
+	\\n1.5.4     Removed grid corners commands, removed need to define hotkeyraw
+	\\n1.5.3     Cursor during mouse panning should be more stable"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	redr
-	let input=input(s:formatPar(helpmsg,width,(&columns-width)/2))
-	if input==?'m'
-		let helpmsg="\n\n\\C~\n\\C\"... into the abyss he slipped
-		\\n\\CEndless fathoms he fell
-		\\n\\CNe'er in homely hearth to linger
-		\\n\\CNor warm hand to grasp!\"\n\\C~\n
-		\\n    In a time when memory capacity is growing exponentially, memory storage and retrieval, especially when it comes to prose, still seems quite undeveloped. It makes very little sense, to me, to have a massive hard drive when, in terms of text, actual production might be on the order of kilobytes per year. Depending on how prolific you are as a writer, you may have hundreds or thousands of pages in mysteriously named folders on old hard drives. So the problem is one of organization, retreival, and accessibility rather than availability of space. There are various efforts in this regard, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month.\n
-		\\n    The textabyss is yet another solution to this problem. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 to 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.\n
-		\\n    A note about scrollbinding splits of uneven lengths -- I've tried to smooth over this process but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding, say, 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.\n
-		\\n\\RThanks for trying out Textabyss!\n\n\\RLeon, q335r49@gmail.com"
-		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
-	elseif input==?'c'
-		let helpmsg="\n
-		\\n\\CRoadmap:
-		\\n1.6    - Further map syntax for manipulating view more precisely
-		\\n1.7    - Automated way (On load?) to realign columns
-		\\n\\CChangelog:
-		\\n1.5.6  - Simple but serious bug in default panning
-		\\n1.5.5  - Optimize restore cursor position by having main panning functions preserve cursor position
-		\\n1.5.4  - Removed grid corners commands, removed need to define hotkeyraw
-		\\n1.5.3  - Cursor during mouse panning should be more stable
-		\\n1.5.2  - Map optimizations
-		\\n1.5.1  - Fixed rather severe bug with map coloring
-		\\n1.5.0  - Colored labels
-		\\n1.4.11 - Added mouse gesture (drag to topleft corner) to activate map
-		\\n1.4.10 - Replaced +,- zoom with prompt for block size in map
-		\\n1.4.9  - Better map mode highlighting
-		\\n1.4.7  - Removed map cell display
-		\\n1.4.5  - Map label display
-		\\n1.4.4  - Make sure xterm dragging doesn't interfere with clicking
-		\\n1.4.2  - Map drag for ttymouse=xterm
-		\\n1.4.1  - Map panning speed now 1 to 1
-		\\n1.4.0  - Mouse support for map
-		\\n1.3.17 - Code refactor, reduce global var 'pollution'
-		\\n1.3.14 - Cursor now responds to ttymouse setting without reloading plane
-		\\n1.3.13 - Prevent reloading of same split (and subsequent error message when changed)
-		\\n1.3.12 - Error checking for append column function (check for duplicate, bad file names)
-		\\n1.3.11 - 'se hidden' to prevent error messages
-		\\n1.3.10 - Support ttymouse=sgr
-		\\n1.3.9  - Allow drag splits to resize functionality when not in plane
-		\\n1.3.8  - File names can now contain spaces, help message about consistent starting directory
-		\\n1.3.7  - Grid system reworked & simplified, only small grids named
-		\\n1.3.6  - Map now corresponds to single split, not big grid splits
-		\\n1.3.5  - Monologue changed to focus on intention
-		\\n1.3.4  - Help message added to map, map supports cut / paste
-		\\n1.3.1  - Cursor remains visible during global hotkey. Known issue: bug in vim (fixed: 7.4.169) misdisplays cursor when using grid corner commands.
-		\\n1.3.0  - new mousepanning method that uses raw keycodes and allows for accelerated motions for ttymouse=xterm2
-		\\n1.2.8  - Snap to grid now snaps to the grid the cursor is currently in and not the one that occupies the majority of the screen
-		\\n1.2.6  - Ctrl-YUBNHJKL jumps to grid corners
-		\\n1.2.5  - Cursor won't move while panning\n"
-		cal input(s:formatPar(helpmsg,width,(&columns-width)/2))
-	en
+	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
@@ -575,7 +534,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|let [&ch,&more,&ls,&stal]=s:ms__settings|se more|cal input(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:bgridL." lines)
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:bgridL." lines)
 \\n\n    hjklyubn                  move 1 block
 \\n    HJKLYUBN                  move 3 blocks
 \\n    x p                       Cut label / Put label
@@ -592,7 +551,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    drag to topleft corner    Show map
 \\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
-\\n\n\\CMap Label Syntax (Advanced)
+\\n\n\\CAdvanced - Map Label Syntax
 \\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints will can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 \\n\nColoring:
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it on and off with the ''T'' command.
@@ -606,7 +565,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
 \\n\nShifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the original position is at the top left corner. 
-\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let [&more,&ls,&stal]=[0,0,0]|let &ch=&lines|let &more=savmore',
+\\n\n\\C(Press enter to continue)",width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
 \"ll":"let s:ms__c+=2",
@@ -679,6 +638,7 @@ endfun
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	let ret=[]
 	for k in range(len(pars))
 		if pars[k][0]==#'\'
 			let format=pars[k][1]
@@ -697,10 +657,34 @@ fun! s:formatPar(str,w,pad)
 			call add(seg,ix)
 		endw
 		call add(seg,len(pars[k])-1)
-		let pars[k]=pad.join(map(range(len(seg)/2),format==#'C'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : format==#'R'? 'bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : 'pars[k][seg[2*v:val]:seg[2*v:val+1]]'),"\n".pad) 
+		let ret+=map(range(len(seg)/2),format==#'C'? 'pad.bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : format==#'R'? 'pad.bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : 'pad.pars[k][seg[2*v:val]:seg[2*v:val+1]]')
 	endfor
-	return join(pars,"\n")
+	return ret
 endfun
+
+fun! s:pager(list)
+	let more=&more
+	se nomore
+	let [pos,next,bot,continue]=[-1,0,max([len(a:list)-&lines+1,0]),1]
+	while continue
+		if pos!=next
+			let pos=next
+			echo join(a:list[pos : pos+&lines-1],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
+		en
+		exe get(s:pagercom,getchar(),'')
+	endwhile
+	redr
+	let &more=more
+endfun
+let s:pagercom={113:'let continue=0',27:'let continue=0',
+\32:'let next=pos+&lines/2<bot? pos+&lines/2 : bot',
+\100:'let next=pos+&lines/2<bot? pos+&lines/2 : bot',
+\106:'let next=pos<bot? pos+1 : pos',
+\107:'let next=pos>0? pos-1 : pos',
+\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
+\117:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
+\103:'let next=0',
+\71:'let next=bot'}
 
 fun! s:gotoPos(col,row)
 	let name=get(t:txb.name,a:col,-1)
@@ -1448,3 +1432,6 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
+
+
+let HelpP=function('s:pager')
