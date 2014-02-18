@@ -9,7 +9,7 @@ In a time when memory capacity is growing exponentially, memory organization, es
 The textabyss is yet another solution. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out this plane. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.
 
 #####Installation
-Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/d3c8beca6af7d65489a25b3984e823dd2e38f63e/nav.vim), open vim, and type `:source nav.vim`. Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/d3c8beca6af7d65489a25b3984e823dd2e38f63e/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
 
 #####Roadmap
 **1.7** Change map background color based on depth >:-)  
@@ -20,7 +20,7 @@ Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/t
 Help can also be accessed within the script, usually by pressing **F1** after **F10** or when the map is shown.
 
 #####Startup
-Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/d3c8beca6af7d65489a25b3984e823dd2e38f63e/nav.vim), open vim, and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files or, say, `pl*` for `pl1`, `plb`, `planetary.txt`, etc.. You can also start with a single file and use **F10,A** to append additional splits.
+Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/d3c8beca6af7d65489a25b3984e823dd2e38f63e/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files or, say, `pl*` for `pl1`, `plb`, `planetary.txt`, etc.. You can also start with a single file and use **F10,A** to append additional splits.
 
 Once loaded, use the mouse to pan or press **F10** followed by:  
 
