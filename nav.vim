@@ -31,7 +31,7 @@ nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 let TXBmsCmd={}
 let TXBkyCmd={}
 fun! s:printHelp()
-	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.5!
+	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.6!
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
@@ -1419,6 +1419,3 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
-
-
-let HelpP=function('s:pager')
