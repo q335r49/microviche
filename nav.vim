@@ -34,19 +34,19 @@ fun! s:printHelp()
 	let helpmsg="\n\\CWelcome to Textabyss v1.5!\n
 	\\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
-	\\nhjklyubn  - pan small grid  (1 split x ".s:sgridL." lines)
-	\\nHJKLYUBN  - pan big grid    (".s:bgridS." splits x ".s:bgridL." lines)
-	\\no         - Open map        (1 split x ".s:bgridL." lines)
-	\\nr         - Redraw
-	\\n.         - Snap to the current big grid
-	\\nD A E     - Delete split / Append split / Edit split settings
-	\\n<f1>      - Show this message
-	\\nq <esc>   - Abort
-	\\n^X        - Delete hidden buffers (eg, if too many are loaded from panning)\n
+	\\n\n    hjklyubn    pan 1 split x ".s:sgridL." line grids
+	\\n    HJKLYUBN    pan ".s:bgridS." splits x ".s:bgridL." line grids
+	\\n    o           Open map (map grid: 1 split x ".s:bgridL." lines)
+	\\n    r           Redraw
+	\\n    .           Snap to the current big grid
+	\\n    D A E       Delete split / Append split / Edit split settings
+	\\n    <f1>        Show this message
+	\\n    q <esc>     Abort
+	\\n    ^X          Delete hidden buffers\n
 	\\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
 	\\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
 	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
-	\\nKeyboard commands can be accessed via the TXBdoCmd(key) in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.\n
+	\\nKeyboard commands can be accessed via the TXBdoCmd(key) function in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.\n
 	\\nHorizontal splits aren't supported and may interfere with panning. \n\nPress enter to continue ... (or input 'm' for a monologue, 'c' for changelog)"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	redr
@@ -576,15 +576,15 @@ fun! s:navMap(array,c_ini,r_ini)
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let savmore=&more|se more|cal input(s:formatPar("\n\n\\CMap Help\n\nKeyboard:
-\\n\n    hjklyubn    move 1 block
-\\n    HJKLYUBN    move 3 blocks
-\\n    x p         Cut label / Put label
-\\n    c i         Change label
-\\n    g <cr>      Goto block (and exit map)
-\\n    I D         Insert / delete column
-\\n    z           Adjust map block size
-\\n    T           Toggle color
-\\n    q           Quit
+\\n\n    hjklyubn                  move 1 block
+\\n    HJKLYUBN                  move 3 blocks
+\\n    x p                       Cut label / Put label
+\\n    c i                       Change label
+\\n    g <cr>                    Goto block (and exit map)
+\\n    I D                       Insert / delete column
+\\n    z                         Adjust map block size
+\\n    T                         Toggle color
+\\n    q                         Quit
 \\n\nMouse:
 \\n\n    doubleclick               Goto block
 \\n    drag                      Pan
@@ -604,7 +604,8 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    R      Shift view up 1 Row (1 line)
 \\n    C      Shift view so that cursor is Centered horizontally
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
-\\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order does not matter. Shifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the default position is at the top left corner. 
+\\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
+\\n\nShifting the view will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target grid to the far right. Note that there is no option to pan right or to move the cusor left (''h'') for this reason, since the original position is at the top left corner. 
 \\n\n\\C(Press enter to continue)",width,(&columns-width)/2))|let &more=savmore',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
