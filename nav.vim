@@ -490,16 +490,11 @@ fun! s:doSyntax(stmt)
 			return
 		en
 	endfor
-	let shift=[com.s,com.M>0? 0 : com.r-com.R,com.l,com.j-com.k]
-	exe 'norm! '.(shift[3]>0? shift[3].'j' : shift[3]<0? shift[3].'k' : '').(shift[2]>winwidth(0)? 'g$' : shift[2]? shift[2].'l' : '').(com.M>0? 'zz' : 'g')
+	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'l' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
 	if com.C
 	   call s:nav(wincol()-&columns/2)
 	elseif com.s
 		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),&columns-wincol()]))
-		exe 'norm! '.wincol()
-	en
-	if shift[1]
-		exe 'norm! '.(shift[1]>0? min([winline()-1,shift[1]])."\<c-e>" : min([winheight(0)-winline(),-shift[1]])."\<c-y>")
 	en
 endfun
 
