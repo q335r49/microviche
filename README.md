@@ -26,8 +26,8 @@ Once loaded, use the mouse to pan or press **F10** followed by:
 
 Key | Action
 ----- | -----
-**hjklyubn** | pan 1 split x 15 line grids
-**HJKLYUBN** | pan 3 splits x 45 line grids
+**hjklyubn** | Pan 1 split x 15 line grids
+**HJKLYUBN** | Pan 3 splits x 45 line grids
 **o** | Open map (map grid: 1 split x 45 lines)
 **r** | Redraw
 **.** | Snap to the current big grid
@@ -40,9 +40,7 @@ Key | Action
 
 If dragging the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
-Setting your viminfo to save global variables (`:set viminfo+=!`) is recommended as the plane will be suggested on **F10** the next time you run vim. This will also save the map. You can also manually restore via `:let BACKUP=t:txb` and `:call TXBload(BACKUP)`.
-
-Keyboard commands can be accessed via the `TXBdoCmd(key)` function in order to integrate textabyss into your workflow. For example `nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>` will activate the map with a double-click.
+Setting your viminfo to save global variables `:set viminfo+=!` is recommended as the plane will be suggested on **F10** the next time you run vim. This will also save the map.
 
 #####Potential Problems
 
@@ -52,14 +50,28 @@ Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this ov
 
 Horizontal splits aren't supported and may interfere with panning.
 
+#####Advanced -- Script Functions
+The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
+
+You can manually restore via `TXBload()`: 
+```
+:let BACKUP=deepcopy(t:txb)  "get current state snapshot
+:let BACKUP=t:txb            "get plane
+:call TXBload(BACKUP)        "load plane
+```
+Keyboard commands can be accessed via `TXBdoCmd()`. For example, the following mapping will activate the map with a doubleclick
+```
+nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
+```
+
 ###Map Mode Help
 
 Each map grid is 1 split x 45 lines
 
 Key | Action
 --- | ---
-**hjklyubn** | move 1 block
-**HJKLYUBN** | move 3 blocks
+**hjklyubn** | Move 1 block
+**HJKLYUBN** | Move 3 blocks
 **x p** | Cut label / Put label
 **c i** | Change label
 **g <cr>** | Goto block (and exit map)
