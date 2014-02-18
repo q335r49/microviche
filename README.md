@@ -64,7 +64,7 @@ Keyboard commands can be accessed via `TXBdoCmd()`. For example, the following m
 nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
 ```
 
-###Map Mode Help
+####Map Mode
 
 Each map grid is 1 split x 45 lines
 
@@ -91,7 +91,7 @@ Mouse clicks are associated with the very first letter of the label, so it might
 
 Mouse commands only work when `ttymouse` is set to `xterm2` or `sgr`. When `ttymouse` is `xterm`, a limited set of features will work.
 
-###Advanced - Map Label Syntax
+####Advanced - Map Label Syntax
 
 Syntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. The `#` character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 
