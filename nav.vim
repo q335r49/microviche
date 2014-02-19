@@ -843,9 +843,9 @@ fun! <SID>getmouse()
 	else
 		let g:TXBmsmsg=[0,0,0]
 	en
+	call g:TXBkeyhandler(-1)	
 	while getchar(0) isnot 0
 	endwhile
-	call g:TXBkeyhandler(-1)	
 endfun
 fun! s:dochar()
 	let [k,c]=['',getchar()]
