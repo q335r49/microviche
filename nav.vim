@@ -283,8 +283,8 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let s:pad=repeat(' ',300)
 fun! s:getMapDisp()          
+	let pad=repeat(' ',&columns+20)
 	let s:disp__r=s:ms__cols*s:mgridW+1
 	let l=s:disp__r*s:mgridH
 	let templist=repeat([''],s:mgridH)
@@ -321,7 +321,7 @@ fun! s:getMapDisp()
 				let occ[k]=occ[k][:cell_border-2].parsed[0]
 				let s:disp__selmap[i][j]=[i*l+k*s:disp__r+cell_border-1,len(parsed[0])]
 			else
-				let [s:disp__selmap[i][j],occ[k]]=len(occ[k])<j*s:mgridW? [[i*l+k*s:disp__r+j*s:mgridW,1],occ[k].s:pad[:j*s:mgridW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp__r+j*s:mgridW+(len(occ[k])%s:mgridW),1],occ[k].parsed[0]]
+				let [s:disp__selmap[i][j],occ[k]]=len(occ[k])<j*s:mgridW? [[i*l+k*s:disp__r+j*s:mgridW,1],occ[k].pad[:j*s:mgridW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp__r+j*s:mgridW+(len(occ[k])%s:mgridW),1],occ[k].parsed[0]]
 			en
 			if len(parsed)>1
 				call extend(colorix[k],[s:disp__selmap[i][j][0],s:disp__selmap[i][j][0]+len(parsed[0])])
@@ -338,7 +338,7 @@ fun! s:getMapDisp()
 		endfor
 		exe extend_color
 		exe extend_colorv
-		let dispLines+=map(occ,'len(v:val)<s:ms__cols*s:mgridW? v:val.s:pad[:s:ms__cols*s:mgridW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mgridW-1]."\n"')
+		let dispLines+=map(occ,'len(v:val)<s:ms__cols*s:mgridW? v:val.pad[:s:ms__cols*s:mgridW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mgridW-1]."\n"')
 	endfor
 	let s:disp__str=join(dispLines,'')
 	call add(s:disp__color,99999)
@@ -502,6 +502,9 @@ endfun
 
 let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 fun! s:navMap(array,c_ini,r_ini)
+
+	let s:ms__num='01'
+
 	let curspos=[line('.')%s:bgridL,col('.')-1]
 	let s:ms__posmes=(curspos!=[0,0])? "\nhint: ".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will position cursor at current position after jump' : ''
 	let s:ms__initbk=[a:r_ini,a:c_ini]
@@ -560,25 +563,26 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\nShifting the view horizontally will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the cursor right edge."
 \,width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
-\"l":"let s:ms__c+=1",
-\"h":"let s:ms__c=max([s:ms__c-1,0])",
-\"j":"let s:ms__r+=1",
-\"k":"let s:ms__r=max([s:ms__r-1,0])",
-\"L":"let s:ms__c+=3",
-\"H":"let s:ms__c=max([s:ms__c-3,0])",
-\"J":"let s:ms__r+=3",
-\"K":"let s:ms__r=max([s:ms__r-3,0])",
-\"0":"let s:ms__c=s:ms__coff",
+\"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
+\"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
+\"j":"let s:ms__r+=s:ms__num|let s:ms__num='01'",
+\"k":"let s:ms__r=max([s:ms__r-s:ms__num,0])|let s:ms__num='01'",
+\"y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-s:ms__num,0]),max([s:ms__c-s:ms__num,0])]|let s:ms__num='01'",
+\"u":"let [s:ms__r,s:ms__c]=[max([s:ms__r-s:ms__num,0]),s:ms__c+s:ms__num]|let s:ms__num='01'",
+\"b":"let [s:ms__r,s:ms__c]=[s:ms__r+s:ms__num,max([s:ms__c-s:ms__num,0])]|let s:ms__num='01'",
+\"n":"let [s:ms__r,s:ms__c]=[s:ms__r+s:ms__num,s:ms__c+s:ms__num]|let s:ms__num='01'",
+\"1":"let s:ms__num=s:ms__num is '01'? '1' : s:ms__num>98? s:ms__num : s:ms__num.'1'",
+\"2":"let s:ms__num=s:ms__num is '01'? '2' : s:ms__num>98? s:ms__num : s:ms__num.'2'",
+\"3":"let s:ms__num=s:ms__num is '01'? '3' : s:ms__num>98? s:ms__num : s:ms__num.'3'",
+\"4":"let s:ms__num=s:ms__num is '01'? '4' : s:ms__num>98? s:ms__num : s:ms__num.'4'",
+\"5":"let s:ms__num=s:ms__num is '01'? '5' : s:ms__num>98? s:ms__num : s:ms__num.'5'",
+\"6":"let s:ms__num=s:ms__num is '01'? '6' : s:ms__num>98? s:ms__num : s:ms__num.'6'",
+\"7":"let s:ms__num=s:ms__num is '01'? '7' : s:ms__num>98? s:ms__num : s:ms__num.'7'",
+\"8":"let s:ms__num=s:ms__num is '01'? '8' : s:ms__num>98? s:ms__num : s:ms__num.'8'",
+\"9":"let s:ms__num=s:ms__num is '01'? '9' : s:ms__num>98? s:ms__num : s:ms__num.'9'",
+\"0":"let [s:ms__c,s:ms__num]=s:ms__num is '01'? [s:ms__coff,s:ms__num] : [s:ms__c,s:ms__num>998? s:ms__num : s:ms__num.'0']",
 \"$":"let s:ms__c=s:ms__coff+s:ms__cols-1",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
-\"y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),max([s:ms__c-1,0])]",
-\"u":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),s:ms__c+1]",
-\"b":"let [s:ms__r,s:ms__c]=[s:ms__r+1,max([s:ms__c-1,0])]",
-\"n":"let [s:ms__r,s:ms__c]=[s:ms__r+1,s:ms__c+1]",
-\"Y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-3,0]),max([s:ms__c-3,0])]",
-\"U":"let [s:ms__r,s:ms__c]=[max([s:ms__r-3,0]),s:ms__c+3]",
-\"B":"let [s:ms__r,s:ms__c]=[s:ms__r+3,max([s:ms__c-3,0])]",
-\"N":"let [s:ms__r,s:ms__c]=[s:ms__r+3,s:ms__c+3]",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
 \"p":"if s:ms__c>=len(s:ms__array)\n
 	\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
@@ -588,7 +592,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \en\n
 \let s:ms__array[s:ms__c][s:ms__r]=@\"\n
 \let s:ms__redr=1\n",
-\"c":"let input=input(s:disp__str.(exists('s:show_syntax_help')? 'label text#highlight group#post jump positioning commands\n   jkl  move cursor                 s    shift one split left\n   r    shift one row down          R    shift one row up\n   C    center cursor horizontally  M    center cursor vertically' : '').([s:ms__r,s:ms__c]==s:ms__initbk? s:ms__posmes : '').'\nChange (type \"##hint\" for syntax hints): ',exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
+\"c":"let input=input(s:disp__str.(exists('s:show_syntax_help')? 'label text#highlight group#post jump positioning commands\n   jkl  move cursor                 s    shift one split left\n   r    shift one row down          R    shift one row up\n   C    center cursor horizontally  M    center cursor vertically' : '').([s:ms__r,s:ms__c]==s:ms__initbk? s:ms__posmes : '').'\nChange (type \"##hint\" to toggle syntax hints): ',exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
 \if !empty(input)\n
 	\if input==?'##hint'\n
 		\if exists('s:show_syntax_help')\n

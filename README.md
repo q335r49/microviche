@@ -70,8 +70,8 @@ Each map grid is 1 split x 45 lines
 
 Key | Action
 --- | ---
-**hjklyubn** | Move 1 block
-**HJKLYUBN** | Move 3 blocks
+**hjkl** | left / right / up / down\*
+**yubn** | leftup / leftdown / rightup / rightdown\*
 **0 $** | Beginning / end of line
 **x p** | Cut label / Put label
 **c i** | Change label
@@ -80,6 +80,7 @@ Key | Action
 **Z** | Adjust map block size
 **T** | Toggle color
 **q** | Quit
+*The movement keys take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.
 
 Mouse | Action
 --- | --- 
@@ -102,7 +103,7 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 #####Positioning
 
-Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began in the previous split, so you would actualy like jumping to this heading to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began in the previous split, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
 
 Syntax | Action
 --- | ---
