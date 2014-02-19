@@ -72,11 +72,12 @@ Key | Action
 --- | ---
 **hjklyubn** | Move 1 block
 **HJKLYUBN** | Move 3 blocks
+**0 $** | Beginning / end of line
 **x p** | Cut label / Put label
 **c i** | Change label
 **g <cr>** | Goto block (and exit map)
 **I D** | Insert / delete column
-**z** | Adjust map block size
+**Z** | Adjust map block size
 **T** | Toggle color
 **q** | Quit
 

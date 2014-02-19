@@ -509,6 +509,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__prevcoord=[0,0,0]
 	let s:ms__array=a:array
 	let s:ms__msg=''
+	let s:ms__num=''
 	let s:ms__r=a:r_ini
 	let s:ms__c=a:c_ini
 	let s:ms__continue=1
@@ -531,7 +532,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    c i                       Change label
 \\n    g <cr>                    Goto block (and exit map)
 \\n    I D                       Insert / delete column
-\\n    z                         Adjust map block size
+\\n    Z                         Adjust map block size
 \\n    T                         Toggle color
 \\n    q                         Quit
 \\n\nMouse:
@@ -558,29 +559,15 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \,width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=1",
-\"ll":"let s:ms__c+=2",
-\"lll":"let s:ms__c+=3",
 \"h":"let s:ms__c=max([s:ms__c-1,0])",
-\"hh":"let s:ms__c=max([s:ms__c-2,0])",
-\"hhh":"let s:ms__c=max([s:ms__c-3,0])",
 \"j":"let s:ms__r+=1",
-\"jj":"let s:ms__r+=2",
-\"jjj":"let s:ms__r+=3",
 \"k":"let s:ms__r=max([s:ms__r-1,0])",
-\"kk":"let s:ms__r=max([s:ms__r-2,0])",
-\"kkk":"let s:ms__r=max([s:ms__r-3,0])",
 \"L":"let s:ms__c+=3",
-\"LL":"let s:ms__c+=6",
-\"LLL":"let s:ms__c+=9",
 \"H":"let s:ms__c=max([s:ms__c-3,0])",
-\"HH":"let s:ms__c=max([s:ms__c-6,0])",
-\"HHH":"let s:ms__c=max([s:ms__c-9,0])",
 \"J":"let s:ms__r+=3",
-\"JJ":"let s:ms__r+=6",
-\"JJJ":"let s:ms__r+=9",
 \"K":"let s:ms__r=max([s:ms__r-3,0])",
-\"KK":"let s:ms__r=max([s:ms__r-6,0])",
-\"KKK":"let s:ms__r=max([s:ms__r-9,0])",
+\"0":"let s:ms__c=s:ms__coff",
+\"$":"let s:ms__c=s:ms__coff+s:ms__cols-1",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
 \"y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),max([s:ms__c-1,0])]",
 \"u":"let [s:ms__r,s:ms__c]=[max([s:ms__r-1,0]),s:ms__c+1]",
@@ -611,7 +598,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\let s:ms__redr=1\n
 \en\n",
 \"g":'let s:ms__continue=2',
-\"z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
+\"Z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
 \"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms__array,s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en'}
 let s:mapdict.i=s:mapdict.c
