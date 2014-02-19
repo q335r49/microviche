@@ -283,7 +283,6 @@ fun! s:getGridNames(len)
 	en
 endfun
 
-let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 let s:pad=repeat(' ',300)
 fun! s:getMapDisp()          
 	let s:disp__r=s:ms__cols*s:mgridW+1
@@ -313,7 +312,7 @@ fun! s:getMapDisp()
 			while k<s:mgridH && len(occ[k])>=cell_border
 				let k+=1
 			endw
-			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#')
+			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#',1)
 			if k==s:mgridH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
@@ -501,7 +500,11 @@ fun! s:doSyntax(stmt)
 	en
 endfun
 
+let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 fun! s:navMap(array,c_ini,r_ini)
+	let curspos=[line('.')%s:bgridL,col('.')-1]
+	let s:ms__posmes=(curspos!=[0,0])? "\nhint: ".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will position cursor at current position after jump' : ''
+	let s:ms__initbk=[a:r_ini,a:c_ini]
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
 		let &ch=&lines
@@ -509,7 +512,6 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__prevcoord=[0,0,0]
 	let s:ms__array=a:array
 	let s:ms__msg=''
-	let s:ms__num=''
 	let s:ms__r=a:r_ini
 	let s:ms__c=a:c_ini
 	let s:ms__continue=1
@@ -586,16 +588,25 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \en\n
 \let s:ms__array[s:ms__c][s:ms__r]=@\"\n
 \let s:ms__redr=1\n",
-\"c":"let input=input((s:disp__str).\"\nChange: \",exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
+\"c":"let input=input(s:disp__str.(exists('s:show_syntax_help')? 'label text#highlight group#post jump positioning commands\n   jkl  move cursor                 s    shift one split left\n   r    shift one row down          R    shift one row up\n   C    center cursor horizontally  M    center cursor vertically' : '').([s:ms__r,s:ms__c]==s:ms__initbk? s:ms__posmes : '').'\nChange (type \"##hint\" for syntax hints): ',exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
 \if !empty(input)\n
- 	\if s:ms__c>=len(s:ms__array)\n
-		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+	\if input==?'##hint'\n
+		\if exists('s:show_syntax_help')\n
+			\unlet s:show_syntax_help\n
+		\else\n
+			\let s:show_syntax_help=1\n
+		\en\n
+		\exe s:mapdict.c\n
+	\else\n
+		\if s:ms__c>=len(s:ms__array)\n
+			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+		\en\n
+		\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+			\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+		\en\n
+		\let s:ms__array[s:ms__c][s:ms__r]=strtrans(input)\n
+		\let s:ms__redr=1\n
 	\en\n
-	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
-		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
-	\en\n
-	\let s:ms__array[s:ms__c][s:ms__r]=strtrans(input)\n
-	\let s:ms__redr=1\n
 \en\n",
 \"g":'let s:ms__continue=2',
 \"Z":'let s:mgridW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mgridW)])])|let s:mgridH=min([10,max([1,input("\nBlock height (1-10): ",s:mgridH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mgridH,(&columns-1)/s:mgridW]',
