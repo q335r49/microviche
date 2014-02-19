@@ -50,7 +50,7 @@ Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this ov
 
 Horizontal splits aren't supported and may interfere with panning.
 
-#####Advanced -- Script Functions
+#####Advanced -- Scripting Functions
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
 
 You can manually restore via `TXBload()`: 
@@ -94,27 +94,25 @@ Mouse commands only work when `ttymouse` is set to `xterm2` or `sgr`. When `ttym
 
 ####Advanced - Map Label Syntax
 
-Syntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. The `#` character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
+Syntax is provided for map labels in order to specify (1) colors and (2) additional positioning after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
 
 #####Coloring
 
-Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command in map mode.
+Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command in map mode. See `:help highlight` for information on how to define highlight groups.
 
 #####Positioning
 
-By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second `#` character can change this. To shift the view but skip highlighting use `##`. For example, `^ Danger!##CM` will *C*enter the cursor horizontally and put it in the *M*iddle of the screen. The full command list is:  
+Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began in the previous split, so you would actualy like jumping to this heading to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
 
 Syntax | Action
 --- | ---
-**jkl** | Move the cursor as in vim
+**j k l** | Move the cursor as in vim
 **s** | Shift view left 1 Split
 **r** | Shift view down 1 row (1 line)
 **R** | Shift view up 1 Row (1 line)
 **C** | Shift view so that cursor is Centered horizontally
 **M** | Shift view so that cursor is at the vertical Middle of the screen
 
-These commands work much like normal mode commands. For example, `^ Danger!#WarningMsg#sjjj` or `^ Danger!#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
+These commands work much like normal mode commands. For example, `* Heading#WarningMsg#sjjj` or `* Heading#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor right edge.
 
-Shifting the view horizontally will never cause the cursor to move offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the cursor right edge.
-
-Note that when a movement is defined, the snap to grid command **F10**,**.** will follow the motion defined by the block the cursor is in.
+That when a movement is defined for a block, the snap to grid command (**F10**,**.**) will execute that motion.
