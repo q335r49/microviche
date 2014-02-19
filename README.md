@@ -26,16 +26,16 @@ Once loaded, use the mouse to pan or press **F10** followed by:
 
 Key | Action
 ----- | -----
-**hjkl** | Pan left / down / up / right*
+**hjkl** | Pan left (1 split) / down (15 lines) / up / right*
 **yubn** | Pan upleft / downleft / upright / downright*
 **o** | Open map
 **r** | Redraw
-**.** | Snap to map grid
+**.** | Snap to map grid (1 split x 45 lines)
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Show this message
 **q ESC** | Abort
 **^X** | Delete hidden buffers
-_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines._
+_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99._
 
 #####Settings
 
