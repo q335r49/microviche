@@ -32,10 +32,10 @@ Key | Action
 **r** | Redraw
 **.** | Snap to map grid (1 split x 45 lines)
 **D A E** | Delete split / Append split / Edit split settings
-**F1** | Show this message
+**F1** | Help
 **q ESC** | Abort
 **^X** | Delete hidden buffers
-_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99._
+_\* The movement keys take counts. Eg, 3j will move down 3 grids. The count is capped at 99._
 
 #####Settings
 
@@ -79,10 +79,10 @@ Key | Action
 **c i** | Change label
 **g <cr>** | Go to block and exit map
 **I D** | Insert / Delete column
-**Z** | Zoom: adjust map block
+**Z** | Zoom: adjust map block size
 **T** | Toggle color
 **q** | Quit
-_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99._
+_\* The movement keys take counts. Eg, 3j will move down 3 rows. The count is capped at 99._
 
 Mouse | Action
 --- | --- 
@@ -110,12 +110,11 @@ Suppose you have just named a map block after a heading in the text, but the act
 Syntax | Action
 --- | ---
 **j k l** | Move cursor down / up / right
+**r R** | Shift view down / up 1 Row (1 line)
 **s** | Shift view left 1 Split
-**r** | Shift view down 1 row (1 line)
-**R** | Shift view up 1 Row (1 line)
-**C** | Shift view so that cursor is Centered horizontally
-**M** | Shift view so that cursor is at the Middle line of the screen
+**C** | Shift view to Center cursor horizontally (overrides s)
+**M** | Shift view so cursor is at the Middle line (overrides r,R)
 
-These commands work much like normal mode commands. For example, `* Heading#WarningMsg#sjjj` or `* Heading#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor to the right edge.
+These commands work much like normal mode commands. For example, `* Heading##sjjjM` or `* Heading##s3jM` will shift the view left by one split, move the cursor down 3 lines, then vertically center the cursor. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor to the right edge.
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.
