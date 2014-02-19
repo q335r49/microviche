@@ -1,12 +1,12 @@
 # textabyss
-A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
+_A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
 
 ![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
 
-#####Purpose
-In a time when memory capacity is growing exponentially, memory organization, especially when it comes to prose, seems quite underdeveloped. Text production even on the order of kilobytes per year may still seem quite unmanageable. Depending on how prolific you are, you may have hundreds or thousands of pages sitting in mysteriously named folders on old hard drives. There are various efforts to remedy this situation including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month. 
+#####Intro
+In a time when memory capacity is growing exponentially, memory organization, especially when it comes to prose, seems quite underdeveloped. Text production even on the order of kilobytes per year may still seem quite unmanageable. Depending on how prolific you are, you may have hundreds or thousands of pages sitting in mysteriously named folders on old hard drives. There are various efforts to remedy this situation, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month. 
 
-The textabyss is yet another solution. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out this plane. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over both indexing and hyperlinked or hierarchical organizing.
+The textabyss is yet another solution. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out this plane. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 #####Installation
 Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/55fca856308ddae5df5cfe3efa7739a741a97462/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
@@ -28,14 +28,14 @@ Key | Action
 ----- | -----
 **hjkl** | Pan left / down / up / right*
 **yubn** | Pan upleft / downleft / upright / downright*
-**o** | Open map (map grid: 1 split x 45 lines)
+**o** | Open map
 **r** | Redraw
 **.** | Snap to map grid
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Show this message
 **q ESC** | Abort
 **^X** | Delete hidden buffers
-\* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
+_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines._
 
 #####Settings
 
@@ -47,7 +47,7 @@ Setting your viminfo to save global variables `:set viminfo+=!` is recommended a
 
 Ensuring a consistent starting directory is important because relative names are remembered (use `:cd ~/PlaneDir` to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.
 
-Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
+Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G in normal mode to go to the last non-blank line rather than the very last line.
 
 Horizontal splits aren't supported and may interfere with panning.
 
@@ -82,7 +82,7 @@ Key | Action
 **Z** | Adjust map block size
 **T** | Toggle color
 **q** | Quit
-\* The movement keys take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.
+_\* The movement keys take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99._
 
 Mouse | Action
 --- | --- 
@@ -105,7 +105,7 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 #####Positioning
 
-Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began in the previous split, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began earlier, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
 
 Syntax | Action
 --- | ---
@@ -114,8 +114,8 @@ Syntax | Action
 **r** | Shift view down 1 row (1 line)
 **R** | Shift view up 1 Row (1 line)
 **C** | Shift view so that cursor is Centered horizontally
-**M** | Shift view so that cursor is at the vertical Middle of the screen
+**M** | Shift view so that cursor is at the Middle line of the screen
 
-These commands work much like normal mode commands. For example, `* Heading#WarningMsg#sjjj` or `* Heading#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor right edge.
+These commands work much like normal mode commands. For example, `* Heading#WarningMsg#sjjj` or `* Heading#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor to the right edge.
 
-That when a movement is defined for a block, the snap to grid command (**F10**,**.**) will execute that motion.
+When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.
