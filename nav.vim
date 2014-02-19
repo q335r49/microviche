@@ -34,7 +34,7 @@ fun! s:printHelp()
 	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.6!
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
-	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:\n
+	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
     \\n    hjkl        Pan left / down / up / right*
     \\n    yubn        Pan upleft / downleft / upright / downright*
 	\\n    o           Open map (map grid: 1 split x ".s:bgridL." lines)
@@ -531,8 +531,10 @@ fun! s:navMap(array,c_ini,r_ini)
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:bgridL." lines)
-\\n\n    hjkl                      move 1 block cardinally*
+\\n    hjkl                      move 1 block cardinally*
 \\n    yubn                      move 1 block diagonally*
+\\n    0 $                       Beginning / end of line
+\\n    H M L                     Top / middle / bottom of screen
 \\n    x p                       Cut label / Put label
 \\n    c i                       Change label
 \\n    g <cr>                    Goto block (and exit map)
@@ -542,7 +544,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    q                         Quit
 \\n*The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.
 \\n\nMouse:
-\\n\n    doubleclick               Goto block
+\\n    doubleclick               Goto block
 \\n    drag                      Pan
 \\n    click at topleft corner   Quit
 \\n    drag to topleft corner    Show map
@@ -583,6 +585,9 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"9":"let s:ms__num=s:ms__num is '01'? '9' : s:ms__num>98? s:ms__num : s:ms__num.'9'",
 \"0":"let [s:ms__c,s:ms__num]=s:ms__num is '01'? [s:ms__coff,s:ms__num] : [s:ms__c,s:ms__num>998? s:ms__num : s:ms__num.'0']",
 \"$":"let s:ms__c=s:ms__coff+s:ms__cols-1",
+\"H":"let s:ms__r=s:ms__roff",
+\"M":"let s:ms__r=s:ms__roff+s:ms__rows/2",
+\"L":"let s:ms__r=s:ms__roff+s:ms__rows-1",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
 \"p":"if s:ms__c>=len(s:ms__array)\n

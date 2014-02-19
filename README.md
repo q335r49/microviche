@@ -74,6 +74,7 @@ Key | Action
 **hjkl** | left / right / up / down\*
 **yubn** | leftup / leftdown / rightup / rightdown\*
 **0 $** | Beginning / end of line
+**H L M** | Top / Middle / Bottom of screen
 **x p** | Cut label / Put label
 **c i** | Change label
 **g <cr>** | Goto block (and exit map)
