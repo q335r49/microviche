@@ -52,13 +52,11 @@ fun! s:printHelp()
 	\\n\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
 	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
 	\\n\nHorizontal splits aren't supported and may interfere with panning.
-	\\n\n\\CRecent Changes
-	\\n\n1.5.8     In house pager function to avoid terminates in vim's pager
+	\\n\n\\CRecent Changes\n
+	\\n1.6.0     Map positioning syntax added
+	\\n1.5.8     s:pager function to avoid bug in vim's pager
 	\\n1.5.7     Eliminate random cursor jitter during panning
-	\\n1.5.6     Eliminate jitter in default panning
-	\\n1.5.5     Main nav function now preserves cursor position
-	\\n1.5.4     Removed grid corners commands, removed need to define hotkeyraw
-	\\n1.5.3     Cursor during mouse panning should be more stable"
+	\\n1.5.4     Removed grid corners commands"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
@@ -332,6 +330,11 @@ fun! s:getMapDisp()
 				let last_entry_colored[k]=1
 			else
 				let last_entry_colored[k]=0
+			en
+		endfor
+		for z in range(s:mgridH)
+			if !empty(colorix[z]) && colorix[z][-1]%s:disp__r<colorix[z][-2]%s:disp__r
+				let colorix[z][-1]-=colorix[z][-1]%s:disp__r
 			en
 		endfor
 		exe extend_color
