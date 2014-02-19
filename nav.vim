@@ -34,9 +34,9 @@ fun! s:printHelp()
 	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.6!
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hotkeyName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hotkeyName."A to append additional splits.\n
-	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:
-	\\n\n    hjklyubn    pan 1 split x ".s:sgridL." line grids
-	\\n    HJKLYUBN    pan ".s:bgridS." splits x ".s:bgridL." line grids
+	\\nOnce loaded, use the mouse to pan or press ".s:hotkeyName." followed by:\n
+    \\n    hjkl        Pan left / down / up / right*
+    \\n    yubn        Pan upleft / downleft / upright / downright*
 	\\n    o           Open map (map grid: 1 split x ".s:bgridL." lines)
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
@@ -44,6 +44,7 @@ fun! s:printHelp()
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
 	\\n    ^X          Delete hidden buffers
+	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
 	\\n\n\\CSettings
 	\\n\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
 	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hotkeyName." the next time you run vim. This will also save the map. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
@@ -53,6 +54,7 @@ fun! s:printHelp()
 	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
 	\\n\nHorizontal splits aren't supported and may interfere with panning.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.1     Movement commands (map and plane) now take counts
 	\\n1.6.0     Map positioning syntax added
 	\\n1.5.8     s:pager function to avoid bug in vim's pager
 	\\n1.5.7     Eliminate random cursor jitter during panning
@@ -502,9 +504,7 @@ endfun
 
 let TXBkyCmd.o='let s:cmdS__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:bgridL)'
 fun! s:navMap(array,c_ini,r_ini)
-
 	let s:ms__num='01'
-
 	let curspos=[line('.')%s:bgridL,col('.')-1]
 	let s:ms__posmes=(curspos!=[0,0])? "\nhint: ".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will position cursor at current position after jump' : ''
 	let s:ms__initbk=[a:r_ini,a:c_ini]
@@ -531,8 +531,8 @@ fun! s:navMap(array,c_ini,r_ini)
 endfun
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:bgridL." lines)
-\\n\n    hjklyubn                  move 1 block
-\\n    HJKLYUBN                  move 3 blocks
+\\n\n    hjkl                      move 1 block cardinally*
+\\n    yubn                      move 1 block diagonally*
 \\n    x p                       Cut label / Put label
 \\n    c i                       Change label
 \\n    g <cr>                    Goto block (and exit map)
@@ -540,6 +540,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    Z                         Adjust map block size
 \\n    T                         Toggle color
 \\n    q                         Quit
+\\n*The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.
 \\n\nMouse:
 \\n\n    doubleclick               Goto block
 \\n    drag                      Pan
@@ -775,29 +776,26 @@ fun! s:blockPan(dx,y,...)
 		let y+=y>0? -1 : y<0? 1 : 0
 	endwhile
 endfun
-let s:Y1='let s:cmdS__y=s:cmdS__y/s:sgridL*s:sgridL+s:sgridL|'
-let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y/s:sgridL*s:sgridL-s:sgridL])|'
-	let TXBkyCmd.h='cal s:blockPan(-1,s:cmdS__y)'
-	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:cmdS__y)'
-	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:cmdS__y)'
-	let TXBkyCmd.l='cal s:blockPan(1,s:cmdS__y)'
-	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-1,s:cmdS__y)'
-	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(1,s:cmdS__y)'
-	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-1,s:cmdS__y)'
-	let TXBkyCmd.n=s:Y1.'cal s:blockPan(1,s:cmdS__y)'
-let s:DXm1='map([t:txb.ix[bufname(winbufnr(1))]],"winwidth(1)<=t:txb.size[v:val]? (v:val==0? t:txb.len-t:txb.len%s:bgridS : (v:val-1)-(v:val-1)%s:bgridS) : v:val-v:val%s:bgridS")[0]'
-let s:DX1='map([t:txb.ix[bufname(winbufnr(1))]],"v:val>=t:txb.len-t:txb.len%s:bgridS? 0 : v:val-v:val%s:bgridS+s:bgridS")[0]'
-let s:Y1='let s:cmdS__y=s:cmdS__y/s:bgridL*s:bgridL+s:bgridL|'
-let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y%s:bgridL? s:cmdS__y-s:cmdS__y%s:bgridL : s:cmdS__y-s:cmdS__y%s:bgridL-s:bgridL])|'
-	let TXBkyCmd.H='cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
-	let TXBkyCmd.J=s:Y1.'cal s:blockPan(0,s:cmdS__y)'
-	let TXBkyCmd.K=s:Ym1.'cal s:blockPan(0,s:cmdS__y)'
-	let TXBkyCmd.L='cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
-	let TXBkyCmd.Y=s:Ym1.'cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
-	let TXBkyCmd.U=s:Ym1.'cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
-	let TXBkyCmd.B=s:Y1.'cal s:blockPan('.s:DXm1.',s:cmdS__y,-1)'
-	let TXBkyCmd.N=s:Y1.'cal s:blockPan('.s:DX1.',s:cmdS__y,1)'
-unlet s:DX1 s:DXm1 s:Y1 s:Ym1
+let s:Y1='let s:cmdS__y=s:cmdS__y/s:sgridL*s:sgridL+s:cmdS__num*s:sgridL|'
+let s:Ym1='let s:cmdS__y=max([1,s:cmdS__y/s:sgridL*s:sgridL-s:cmdS__num*s:sgridL])|'
+	let TXBkyCmd.h='cal s:blockPan(-s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.l='cal s:blockPan(s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+	let TXBkyCmd.n=s:Y1.'cal s:blockPan(s:cmdS__num,s:cmdS__y)|let s:cmdS__num="01"'
+let TXBkyCmd.1="let s:cmdS__num=s:cmdS__num is '01'? '1' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'1'"
+let TXBkyCmd.2="let s:cmdS__num=s:cmdS__num is '01'? '2' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'2'"
+let TXBkyCmd.3="let s:cmdS__num=s:cmdS__num is '01'? '3' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'3'"
+let TXBkyCmd.4="let s:cmdS__num=s:cmdS__num is '01'? '4' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'4'"
+let TXBkyCmd.5="let s:cmdS__num=s:cmdS__num is '01'? '5' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'5'"
+let TXBkyCmd.6="let s:cmdS__num=s:cmdS__num is '01'? '6' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'6'"
+let TXBkyCmd.7="let s:cmdS__num=s:cmdS__num is '01'? '7' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'7'"
+let TXBkyCmd.8="let s:cmdS__num=s:cmdS__num is '01'? '8' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'8'"
+let TXBkyCmd.9="let s:cmdS__num=s:cmdS__num is '01'? '9' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'9'"
+let TXBkyCmd.0="let s:cmdS__num=s:cmdS__num is '01'? '01' : s:cmdS__num>98? s:cmdS__num : s:cmdS__num.'1'"
 
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
@@ -854,6 +852,7 @@ fun! s:dochar()
 endfun
 
 fun! TXBdoCmd(inicmd)
+	let s:cmdS__num='01'
    	let s:cmdS__y=line('w0')
 	let s:cmdS__continue=1
 	let s:cmdS__msg=''
