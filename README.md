@@ -116,3 +116,5 @@ Syntax | Action
 These commands work much like normal mode commands. For example, `^ Danger!#WarningMsg#sjjj` or `^ Danger!#WarningMsg#s3j` will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
 
 Shifting the view horizontally will never cause the cursor to move offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the cursor right edge.
+
+Note that when a movement is defined, the snap to grid command **F10**,**.** will follow the motion defined by the block the cursor is in.

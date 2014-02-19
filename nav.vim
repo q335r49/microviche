@@ -441,7 +441,7 @@ fun! s:navMapKeyHandler(c)
 					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mgridW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
-						call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,''))
+						call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
 						return
 					en
 					let s:ms__prevclick=[s:ms__r,s:ms__c]
@@ -468,7 +468,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
-			call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#'),2,''))
+			call s:doSyntax(s:gotoPos(s:ms__c,s:bgridL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
@@ -494,7 +494,7 @@ fun! s:doSyntax(stmt)
 	endfor
 	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'l' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
 	if com.C
-	   call s:nav(wincol()-&columns/2)
+		call s:nav(wincol()-&columns/2)
 	elseif com.s
 		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),&columns-wincol()]))
 	en
@@ -545,7 +545,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
 \\n\n\\CAdvanced - Map Label Syntax
-\\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints will can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
+\\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
 \\n\nColoring:
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the ''T'' command.
 \\n\nPositioning:
@@ -683,9 +683,10 @@ fun! s:gotoPos(col,row)
 		wincmd t
 		exe 'e '.escape(name,' ')
 	en
+	norm! 0
 	only
 	call TXBload()
-	exe 'norm!' (a:row? a:row : 1).'zt0'
+	exe 'norm!' (a:row? a:row : 1).'zt'
 endfun
 
 fun! s:blockPan(dx,y,...)
@@ -796,10 +797,17 @@ unlet s:DX1 s:DXm1 s:Y1 s:Ym1
 
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
- 	let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
-	call s:blockPan(x,l0-l0%s:bgridL,dir)
+	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:bgridL,''),'#',1),2,'')
+	if !empty(poscom)
+		let error=s:gotoPos(ix,l0-l0%s:bgridL)
+		call s:doSyntax(error? '' : poscom)
+		call s:saveCursPos()
+	else
+ 		let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
+		call s:blockPan(x,l0-l0%s:bgridL,dir)
+	en
 endfun
-	let TXBkyCmd['.']='call s:snapToGrid()|let s:cmdS__continue=0'
+let TXBkyCmd['.']='call s:snapToGrid()|let s:cmdS__continue=0'
 
 nmap <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nmap <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -850,12 +858,13 @@ fun! TXBdoCmd(inicmd)
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg="Press f1 for help"')
+	exe get(g:TXBkyCmd,a:c,'let s:cmdS__msg=" Press f1 for help"')
 	call s:updateCursPos()
 	if s:cmdS__continue
 		let s0=get(t:txb.ix,bufname(''),-1)
 		let t_r=line('.')/s:bgridL
-		echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
+		echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'') s:cmdS__msg
+		let s:cmdS__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:cmdS__msg)
 		ec s:cmdS__msg
