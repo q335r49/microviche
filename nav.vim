@@ -76,8 +76,15 @@ fun! s:initDragDefault()
 		call s:saveCursPos()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
+			call s:updateCursPos()
+			let s0=get(t:txb.ix,bufname(winbufnr(v:mouse_win)),-1)
+			let t_r=v:mouse_lnum/s:mapL
+			echon t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 			return "keepj norm! \<leftmouse>"
 		else
+			let s0=get(t:txb.ix,bufname(''),-1)
+			let t_r=line('.')/s:mapL
+			let ecstr=t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -87,7 +94,6 @@ fun! s:initDragDefault()
 					en
 					let [b0,wrap]=[winbufnr(0),&wrap]
 					let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
-					let s0=t:txb.ix[bufname(winbufnr(1))]|let ecstr=join(t:txb.gridnames[s0 : s0+winnr('$')-1]).'  '.join(range(line('w0')/s:mapL,(line('w0')+winheight(0))/s:mapL))
 				else
 					if wrap
 						exe "norm! \<leftmouse>"
@@ -107,8 +113,10 @@ fun! s:initDragDefault()
 				endwhile
 			endwhile
 		en
-		let s0=t:txb.ix[bufname(winbufnr(1))]|redr|ec join(t:txb.gridnames[s0 : s0+winnr('$')-1]).' _ '.join(range(line('w0')/s:mapL,(line('w0')+winheight(0))/s:mapL))
 		call s:updateCursPos()
+		let s0=get(t:txb.ix,bufname(''),-1)
+		let t_r=line('.')/s:mapL
+		echon t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -161,7 +169,7 @@ fun! s:initDragSGR()
 		if exists("t:txb")
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -197,7 +205,7 @@ fun! <SID>doDragSGR()
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -214,7 +222,7 @@ fun! s:initDragXterm2()
 		if exists("t:txb")
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -247,7 +255,7 @@ fun! <SID>doDragXterm2()
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')
+			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -267,7 +275,7 @@ fun! s:navPlane(dx,dy)
 	let l0=max([1,a:dy>0? s:nav_state[0]-s:mouseMultiplier*get(s:panstep,a:dy,16) : s:nav_state[0]+s:mouseMultiplier*get(s:panstep,-a:dy,16)])
 	exe 'norm! '.l0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'') : s:nav_state[4]]
+	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]
     echon s:nav_state[4]
 endfun
 
@@ -883,7 +891,7 @@ fun! s:doCmdKeyhandler(c)
 	if s:kc__continue
 		let s0=get(t:txb.ix,bufname(''),-1)
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'') s:kc__msg
+		echon t:txb.gridnames[s0] t_r empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)

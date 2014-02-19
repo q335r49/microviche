@@ -4,12 +4,12 @@ _A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on
 ![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
 
 #####Intro
-In a time when memory capacity is growing exponentially, memory organization, especially when it comes to prose, seems quite underdeveloped. Text production even on the order of kilobytes per year may still seem quite unmanageable. Depending on how prolific you are, you may have hundreds or thousands of pages sitting in mysteriously named folders on old hard drives. There are various efforts to remedy this situation, including desktop indexing and personal wikis. It might not even be a bad idea to simply print out and keep as a hard copy everything written over the course of a month. 
+Even as memory capacity grows exponentially, memory organization, especially when it comes to prose, seems quite underdeveloped. Text production even on the order of kilobytes per year may seem quite unmanageable. You may have hundreds or thousands of pages sitting in mysteriously named folders on old hard drives. There are various efforts to remedy this situation, including desktop indexing and personal wikis. It might not even be a bad idea to print out and keep as a hard copy everything written over the course of a month. 
 
 The textabyss is yet another solution. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out this plane. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 #####Installation
-Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/55fca856308ddae5df5cfe3efa7739a741a97462/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/55fca856308ddae5df5cfe3efa7739a741a97462/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab. Also need GUI colors...
 
 #####Roadmap
 **1.7** Change map background color based on depth >:-)  
@@ -17,10 +17,12 @@ Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/t
 **1.9** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines
 
 ##Help
-Help can also be accessed within the script, usually by pressing **F1** after **F10** or when the map is shown.
+Help can also be accessed from within the script, usually by pressing **F1** after **F10** or when the map is shown.
 
 #####Startup
-Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/55fca856308ddae5df5cfe3efa7739a741a97462/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files or, say, `pl*` for `pl1`, `plb`, `planetary.txt`, etc.. You can also start with a single file and use **F10,A** to append additional splits.
+Download [the latest stable version of nav.vim](https://raw.github.com/q335r49/textabyss/55fca856308ddae5df5cfe3efa7739a741a97462/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file).
+
+Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files or, say, `pl*` for `pl1`, `plb`, `planetary.txt`, etc.. You can also start with a single file and use **F10,A** to append additional splits.
 
 Once loaded, use the mouse to pan or press **F10** followed by:  
 
@@ -28,8 +30,8 @@ Key | Action
 ----- | -----
 **h j k l** | Pan left 1 split / down 15 lines / up / right*
 **y u b n** | Pan upleft / downleft / upright / downright*
-**o** | Open map
 **r** | Redraw
+**o** | Open map
 **.** | Snap to map grid (1 split x 45 lines)
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Help
@@ -38,7 +40,6 @@ Key | Action
 _\* The movement keys take counts. Eg, 3j will move down 3 grids. The count is capped at 99._
 
 #####Settings
-
 If dragging the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
 Setting your viminfo to save global variables `:set viminfo+=!` is recommended as the plane will be suggested on **F10** the next time you run vim. This will also save the map.
