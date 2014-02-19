@@ -35,8 +35,8 @@ fun! s:printHelp()
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hkName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hkName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hkName." followed by:
-    \\n    hjkl        Pan left / down / up / right*
-    \\n    yubn        Pan upleft / downleft / upright / downright*
+    \\n    h j k l     Pan left / down / up / right*
+    \\n    y u b n     Pan upleft / downleft / upright / downright*
 	\\n    o           Open map (map grid: 1 split x ".s:mapL." lines)
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
@@ -529,16 +529,19 @@ fun! s:navMap(array,c_ini,r_ini)
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
+let s:last_yanked_is_column=0
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:mapL." lines)
-\\n    hjkl                      move 1 block cardinally*
-\\n    yubn                      move 1 block diagonally*
+\\n    h j k l                   move 1 block cardinally*
+\\n    y u b n                   move 1 block diagonally*
 \\n    0 $                       Beginning / end of line
-\\n    H M L                     Top / middle / bottom of screen
-\\n    x p                       Cut label / Put label
+\\n    H M L                     High / Middle / Low of screen
+\\n    x                         clear and obtain cell
+\\n    o O                       obtain cell / Obtain column
+\\n    P                         Put obtained cell or column
 \\n    c i                       Change label
 \\n    g <cr>                    Goto block (and exit map)
-\\n    I D                       Insert / delete column
+\\n    I D                       Insert / Delete and obtain column
 \\n    Z                         Adjust map block size
 \\n    T                         Toggle color
 \\n    q                         Quit
@@ -558,8 +561,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\nBy default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second ''#'' character can change this. To shift the view but skip highlighting use two ''#'' characters. For example, ''^ Danger!##CM'' will [C]enter the cursor horizontally and put it in the [M]iddle of the screen. The full command list is:
 \\n\n    jkl    Move the cursor as in vim 
 \\n    s      Shift view left 1 split
-\\n    r      Shift view down 1 row (1 line)
-\\n    R      Shift view up 1 Row (1 line)
+\\n    r R    Shift view down / up 1 row (1 line)
 \\n    C      Shift view so that cursor is Centered horizontally
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
@@ -590,14 +592,23 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"L":"let s:ms__r=s:ms__roff+s:ms__rows-1",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
-\"p":"if s:ms__c>=len(s:ms__array)\n
-	\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
-\en\n
-\if s:ms__r>=len(s:ms__array[s:ms__c])\n
-	\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
-\en\n
-\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
-\let s:ms__redr=1\n",
+\"o":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__msg=' Cell obtained'|let s:last_yanked_is_column=0|en",
+\"P":"if s:last_yanked_is_column\n
+	\if s:ms__c>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+	\en\n
+	\call insert(s:ms__array,s:copied_column,s:ms__c)\n
+	\let s:ms__redr=1\n
+\else\n
+	\if s:ms__c>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+	\en\n
+	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+	\en\n
+	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
+	\let s:ms__redr=1\n
+\en",
 \"c":"let input=input(s:disp__str.(exists('s:show_syntax_help')? 'label text#highlight group#post jump positioning commands\n   jkl  move cursor                 s    shift one split left\n   r    shift one row down          R    shift one row up\n   C    center cursor horizontally  M    center cursor vertically' : '').([s:ms__r,s:ms__c]==s:ms__initbk? s:ms__posmes : '').'\nChange (type \"##hint\" to toggle syntax hints): ',exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
 \if !empty(input)\n
 	\if input==?'##hint'\n
@@ -621,7 +632,8 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"g":'let s:ms__continue=2',
 \"Z":'let s:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mBlockW)])])|let s:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",s:mBlockH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mBlockH,(&columns-1)/s:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
-\"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|call remove(s:ms__array,s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en'}
+\"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:ms__array,s:ms__c)|let s:last_yanked_is_column=1|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en',
+\"O":'let s:copied_column=s:ms__c<len(s:ms__array)? deepcopy(s:ms__array[s:ms__c]) : []|let s:ms__msg=" Col ".(s:ms__c)." Obtained"|let s:last_yanked_is_column=1'}
 let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 

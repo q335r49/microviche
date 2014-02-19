@@ -26,8 +26,8 @@ Once loaded, use the mouse to pan or press **F10** followed by:
 
 Key | Action
 ----- | -----
-**hjkl** | Pan left 1 split / down 15 lines / up / right*
-**yubn** | Pan upleft / downleft / upright / downright*
+**h j k l** | Pan left 1 split / down 15 lines / up / right*
+**y u b n** | Pan upleft / downleft / upright / downright*
 **o** | Open map
 **r** | Redraw
 **.** | Snap to map grid (1 split x 45 lines)
@@ -71,14 +71,16 @@ Each map grid is 1 split x 45 lines
 
 Key | Action
 --- | ---
-**hjkl** | left / right / up / down\*
-**yubn** | leftup / leftdown / rightup / rightdown\*
+**h j k l** | left / right / up / down\*
+**y u b n** | leftup / leftdown / rightup / rightdown\*
 **0 $** | Beginning / end of line
 **H L M** | High / Middle / Low of screen
-**x p** | Cut label / Put label
+**x** | Clear (and obtain) cell
+**o O** | obtain cell / Obtain column
+**P** | Put obtained cell or column
 **c i** | Change label
 **g <cr>** | Go to block and exit map
-**I D** | Insert / Delete column
+**I D** | Insert / Delete (and obtain) column
 **Z** | Zoom: adjust map block size
 **T** | Toggle color
 **q** | Quit
