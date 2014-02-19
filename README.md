@@ -26,7 +26,7 @@ Once loaded, use the mouse to pan or press **F10** followed by:
 
 Key | Action
 ----- | -----
-**hjkl** | Pan left (1 split) / down (15 lines) / up / right*
+**hjkl** | Pan left 1 split / down 15 lines / up / right*
 **yubn** | Pan upleft / downleft / upright / downright*
 **o** | Open map
 **r** | Redraw
@@ -74,26 +74,26 @@ Key | Action
 **hjkl** | left / right / up / down\*
 **yubn** | leftup / leftdown / rightup / rightdown\*
 **0 $** | Beginning / end of line
-**H L M** | Top / Middle / Bottom of screen
+**H L M** | High / Middle / Low of screen
 **x p** | Cut label / Put label
 **c i** | Change label
-**g <cr>** | Goto block (and exit map)
-**I D** | Insert / delete column
-**Z** | Adjust map block size
+**g <cr>** | Go to block and exit map
+**I D** | Insert / Delete column
+**Z** | Zoom: adjust map block
 **T** | Toggle color
 **q** | Quit
 _\* The movement keys take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99._
 
 Mouse | Action
 --- | --- 
-**doubleclick** | Goto block
+**doubleclick** | Go to block
 **drag** | Pan
 **click at topleft corner** | Quit
 **drag to topleft corner** | Show map
 
 Mouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1', so you can aim your mouse at the '+'. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 
-Mouse commands only work when `ttymouse` is set to `xterm2` or `sgr`. When `ttymouse` is `xterm`, a limited set of features will work.
+Mouse commands only work when `ttymouse` is set to `xterm`, `xterm2` or `sgr`. When `ttymouse` is `xterm`, a limited set of features will work.
 
 ####Advanced - Map Label Syntax
 
@@ -105,7 +105,7 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 #####Positioning
 
-Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began earlier, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading is halfway down the block. Furthermore, this heading occurs in the middle of a train of thought that began earlier, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but commands following the second `#` can change this. (To reposition the view but skip highlighting use `##`.) For example, in this case, we might want to use `* Heading##s25j` to shift the view left one split and move the cursor down 25 lines. The complete list of commands is:
 
 Syntax | Action
 --- | ---
