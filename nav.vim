@@ -39,7 +39,7 @@ fun! s:printHelp()
 	\\n    HJKLYUBN    pan ".s:bgridS." splits x ".s:bgridL." line grids
 	\\n    o           Open map (map grid: 1 split x ".s:bgridL." lines)
 	\\n    r           Redraw
-	\\n    .           Snap to the current big grid
+	\\n    .           Snap to map grid
 	\\n    D A E       Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
@@ -803,7 +803,7 @@ fun! s:snapToGrid()
 		call s:doSyntax(error? '' : poscom)
 		call s:saveCursPos()
 	else
- 		let [x,dir]=winnr()>ix%s:bgridS+1? [ix-ix%s:bgridS,1] : winnr()==ix%s:bgridS+1 && t:txb.size[ix-ix%s:bgridS]<=winwidth(1)? [0,0] : [ix-ix%s:bgridS,-1]
+ 		let [x,dir]=winnr()>1? [ix,1] : winnr()==1 && t:txb.size[ix]<=winwidth(1)? [0,0] : [ix,-1]
 		call s:blockPan(x,l0-l0%s:bgridL,dir)
 	en
 endfun

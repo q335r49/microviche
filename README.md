@@ -30,7 +30,7 @@ Key | Action
 **HJKLYUBN** | Pan 3 splits x 45 line grids
 **o** | Open map (map grid: 1 split x 45 lines)
 **r** | Redraw
-**.** | Snap to the current big grid
+**.** | Snap to map grid
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Show this message
 **q ESC** | Abort
@@ -106,7 +106,7 @@ Suppose you have just named a map block after a heading in the text, but the act
 
 Syntax | Action
 --- | ---
-**j k l** | Move the cursor as in vim
+**j k l** | Move cursor down / up / right
 **s** | Shift view left 1 Split
 **r** | Shift view down 1 row (1 line)
 **R** | Shift view up 1 Row (1 line)
