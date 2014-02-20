@@ -9,7 +9,7 @@ Even as memory capacity grows exponentially, memory organization, especially whe
 The textabyss is yet another solution. It presents a plane that one can append to endlessly with very little overhead. It provides means to navigate and, either at the moment of writing or retrospectively, map out this plane. Ideally, you would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 #####Installation
-Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. If the latest version is causing problems, earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab. Also need GUI colors...
+Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. If the latest version is causing problems, earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
 
 #####Roadmap
 **1.7** Change map background color based on depth >:-)  
@@ -117,9 +117,10 @@ Syntax | Action
 **s** | Shift view left 1 Split
 **C** | Shift view to Center cursor horizontally (overrides s)
 **M** | Shift view so cursor is at the Middle line (overrides r,R)
+**W** | Virtual window width (see below)
 
 These commands work much like normal mode commands. For example, `* Heading##sjjjM` or `* Heading##s3jM` will shift the view left by one split, move the cursor down 3 lines, then vertically center the cursor.
 
-By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by including the `W` command, which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `5s30W` to shift only up to the point where 30 columns of the split are visible (and usually less than that).
+By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by the `W` command, which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `5s30W` to shift only up to the point where 30 columns of the split are visible (and usually less than that).
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.
