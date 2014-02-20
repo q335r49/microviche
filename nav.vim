@@ -65,7 +65,7 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
-fun! TXBrealignBuffer(confirm)
+fun! TXBrealign(confirm)
 	let view=winsaveview()
 	1
 	while search('^txb:','W')
@@ -81,7 +81,7 @@ fun! TXBrealignBuffer(confirm)
 			let insertions=mark-line('.')
 			let nonblanklines=filter(getline(line('.')-insertions,line('.')-1),"v:val!~'\s*'")
 			if !empty(nonblanklines)
-				echoerr join(nonblanklines,"\n")."\n\nNot enough blank lines to realign marker"
+				echoerr join(nonblanklines,"\n")."\n\nNot enough blank lines to realign current marker (realign abborted)"
 				return
 			elseif !confirm || confirm && input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 				exe 'norm! kd'.(insertions==1? 'd' : insertions-1).'kj'
@@ -239,31 +239,6 @@ let TXBmsCmd.sgr=function("s:initDragSGR")
 
 fun! s:initDragXterm()
 	return "norm! \<leftmouse>"
-	let pos=getpos('.')
- 	let curpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
-	ec curpos
-	while getchar()!="\<leftrelease>"
-	endwhile
-	exe "norm! \<leftmouse>"
- 	let newpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
-	ec newpos
-	return ''
-	if curpos==newpos
-		return ''
-	elseif !exists('t:txb')
-		if newpos[2]==curpos[2]
-			exe 'norm! '.(curpos[0]>newpos[0]? (curpos[0]-newpos[0])."\<c-e>" : curpos[0]<newpos[0]? (newpos[0]-curpos[0])."\<c-y>" : "").(curpos[1]>newpos[1]? (curpos[1]-newpos[1])."zl" : curpos[1]<newpos[1]? (newpos[1]-curpos[1])."zh" : "g")
-		en
-		call setpos('.',pos)
-	else       
-		return ''
-		let abs_cx=join(map(range(1,curpos[2]-1),'winwidth(v:val)')+curpos[1]
-		let abs_nx=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
-
-		let abs_cy=curpos[1]
-		let abs_ny=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
-	en
-	return ''
 endfun
 let TXBmsCmd.xterm=function("s:initDragXterm")
 
@@ -553,7 +528,7 @@ fun! s:doSyntax(stmt)
 			return
 		en
 	endfor
-	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'l' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
+	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
 	if com.C
 		call s:nav(wincol()-&columns/2)
 	elseif com.s
@@ -564,8 +539,8 @@ endfun
 let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__num='01'
-	let curspos=[line('.')%s:mapL,col('.')-1]
-	let s:ms__posmes=(curspos!=[0,0])? "\nhint: ".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will position cursor at current position after jump' : ''
+	let curspos=[line('.')%s:mapL,virtcol('.')-1]
+	let s:ms__posmes=(curspos!=[0,0])? "\n(".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will set jump target at cursor position)' : ''
 	let s:ms__initbk=[a:r_ini,a:c_ini]
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
