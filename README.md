@@ -100,7 +100,7 @@ Mouse commands only work when `ttymouse` is set to `xterm`, `xterm2` or `sgr`. W
 
 ####Advanced - Map Label Syntax
 
-Syntax is provided for map labels in order to specify (1) colors and (2) additional positioning after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
+Special commands are included to (1) specify label color and (2) how the screen should be positioned after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
 
 #####Coloring
 
@@ -118,6 +118,8 @@ Syntax | Action
 **C** | Shift view to Center cursor horizontally (overrides s)
 **M** | Shift view so cursor is at the Middle line (overrides r,R)
 
-These commands work much like normal mode commands. For example, `* Heading##sjjjM` or `* Heading##s3jM` will shift the view left by one split, move the cursor down 3 lines, then vertically center the cursor. Note that `s` will never cause the cursor to move offscreen: for example, `45s` will not actually pan left 45 splits but only enough to push the cursor to the right edge.
+These commands work much like normal mode commands. For example, `* Heading##sjjjM` or `* Heading##s3jM` will shift the view left by one split, move the cursor down 3 lines, then vertically center the cursor.
+
+By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by including the `W` command, which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `5s30W` to shift only up to the point where 30 columns of the split are visible (and usually less than that).
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.

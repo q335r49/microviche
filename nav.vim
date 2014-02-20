@@ -490,7 +490,7 @@ fun! s:doSyntax(stmt)
 		return
 	en
 	let num=''
-	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0}
+	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0}
 	for t in range(len(a:stmt))
 		if a:stmt[t]=~'\d'
 			let num.=a:stmt[t]
@@ -506,7 +506,7 @@ fun! s:doSyntax(stmt)
 	if com.C
 		call s:nav(wincol()-&columns/2)
 	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),&columns-wincol()]))
+		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),!com.B? &columns-winwidth(0) : &columns>com.B? &columns-com.W : 0]))
 	en
 endfun
 
@@ -572,8 +572,9 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    r R    Shift view down / up 1 row (1 line)
 \\n    C      Shift view so that cursor is Centered horizontally
 \\n    M      Shift view so that cursor is at the vertical Middle of the screen
+\\n    W      Determines maximum s shift (see below)
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
-\\n\nShifting the view horizontally will never cause the cursor to move offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the cursor right edge."
+\\n\nBy default, ''s'' won''t move the split offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by including the ''W'' command, which specifies a ''virtual width''. For example, ''30W'' means that the width of the split is treated as though it were 30 columns. This would cause ''2s30W'' to shift only up to the point where 30 columns of the split are visible (and usually less than that)."
 \,width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
