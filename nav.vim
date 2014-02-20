@@ -546,7 +546,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    H M L                     High / Middle / Low of screen
 \\n    x                         clear and obtain cell
 \\n    o O                       obtain cell / Obtain column
-\\n    P                         Put obtained cell or column
+\\n    p P                       Put obtained cell or column
 \\n    c i                       Change label
 \\n    g <cr>                    Goto block (and exit map)
 \\n    I D                       Insert / Delete and obtain column
@@ -601,6 +601,22 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"T":"let s:ms__displayfunc=s:ms__displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
 \"o":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__msg=' Cell obtained'|let s:last_yanked_is_column=0|en",
+\"p":"if s:last_yanked_is_column\n
+	\if s:ms__c+1>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+2-len(s:ms__array)),',').']'))\n
+	\en\n
+	\call insert(s:ms__array,s:copied_column,s:ms__c+1)\n
+	\let s:ms__redr=1\n
+\else\n
+	\if s:ms__c>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+	\en\n
+	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+	\en\n
+	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
+	\let s:ms__redr=1\n
+\en",
 \"P":"if s:last_yanked_is_column\n
 	\if s:ms__c>=len(s:ms__array)\n
 		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
@@ -1166,6 +1182,7 @@ fun! s:saveCursPos()
 	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 fun! s:updateCursPos()
+
 	let win=bufwinnr(s:cPos[0])
 	if win!=-1
 		if winnr('$')==1 || win==1

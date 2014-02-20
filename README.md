@@ -78,7 +78,7 @@ Key | Action
 **H L M** | High / Middle / Low of screen
 **x** | Clear (and obtain) cell
 **o O** | obtain cell / Obtain column
-**P** | Put obtained cell or column
+**p P** | Put obtained cell or column
 **c i** | Change label
 **g <cr>** | Go to block and exit map
 **I D** | Insert / Delete (and obtain) column
