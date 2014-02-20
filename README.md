@@ -74,7 +74,7 @@ Note that, as above, mouse commands only work when `ttymouse` is set to, `xterm2
 
 ##Advanced
 
-#####Potential Problems
+####Potential Problems
 
 Ensuring a consistent starting directory is important because relative names are remembered (use `:cd ~/PlaneDir` to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.
 
@@ -82,7 +82,7 @@ Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this ov
 
 Horizontal splits aren't supported and may interfere with panning.
 
-###Map Label Syntax
+####Map Label Syntax
 
 Special commands are included to (1) specify label color and (2) how the screen should be positioned after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
 
@@ -109,7 +109,7 @@ By default, `s` won't move the split offscreen. For example, `45s` will not actu
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.
 
-#####Scripting Functions
+####Scripting Functions
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
 
 You can manually restore via `TXBload()`: 
