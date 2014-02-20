@@ -65,6 +65,32 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
+fun! TXBrealignBuffer(confirm)
+	let view=winsaveview()
+	1
+	while search('^txb:','W')
+		let mark=getline('.')[4:]
+		if mark<=0
+			continue
+		elseif mark<line('.')
+			let insertions=line('.')-mark
+			if confirm && input('Insert '.insertions.' line here (y/n)?','y')==?'y' || !confirm
+				exe 'norm! '.insertions.'Oj'
+			en
+		elseif mark>line('.')
+			let insertions=mark-line('.')
+			let nonblanklines=filter(getline(line('.')-insertions,line('.')-1),"v:val!~'\s*'")
+			if !empty(nonblanklines)
+				echoerr join(nonblanklines,"\n")."\n\nNot enough blank lines to realign marker"
+				return
+			elseif !confirm || confirm && input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+				exe 'norm! kd'.(insertions==1? 'd' : insertions-1).'kj'
+			en
+		en
+	endwhile
+	call winrestview(view)
+endfun
+
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! s:initDragDefault()
 	if exists('t:txb')
@@ -213,29 +239,30 @@ let TXBmsCmd.sgr=function("s:initDragSGR")
 
 fun! s:initDragXterm()
 	return "norm! \<leftmouse>"
-	exe "norm! \<leftmouse>"
-	let curline=winline()
+	let pos=getpos('.')
  	let curpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
+	ec curpos
 	while getchar()!="\<leftrelease>"
 	endwhile
+	exe "norm! \<leftmouse>"
  	let newpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
-	let newline=winline()
+	ec newpos
+	return ''
 	if curpos==newpos
 		return ''
 	elseif !exists('t:txb')
 		if newpos[2]==curpos[2]
-			exe "norm! \<leftmouse>"
 			exe 'norm! '.(curpos[0]>newpos[0]? (curpos[0]-newpos[0])."\<c-e>" : curpos[0]<newpos[0]? (newpos[0]-curpos[0])."\<c-y>" : "").(curpos[1]>newpos[1]? (curpos[1]-newpos[1])."zl" : curpos[1]<newpos[1]? (newpos[1]-curpos[1])."zh" : "g")
 		en
+		call setpos('.',pos)
 	else       
-		return '' 
+		return ''
 		let abs_cx=join(map(range(1,curpos[2]-1),'winwidth(v:val)')+curpos[1]
 		let abs_nx=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
 
 		let abs_cy=curpos[1]
 		let abs_ny=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
 	en
-
 	return ''
 endfun
 let TXBmsCmd.xterm=function("s:initDragXterm")
