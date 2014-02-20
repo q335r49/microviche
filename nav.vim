@@ -530,7 +530,7 @@ fun! s:doSyntax(stmt)
 	if com.C
 		call s:nav(wincol()-&columns/2)
 	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),!com.B? &columns-winwidth(0) : &columns>com.B? &columns-com.W : 0]))
+		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
 	en
 endfun
 
