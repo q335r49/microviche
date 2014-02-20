@@ -17,9 +17,7 @@ Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabys
 **1.9** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines
 
 ##Guide
-Note that this information can also be accessed from within the script, usually by pressing **F1** after **F10** or when the map is shown.
-
-Start by downloading [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), opening [vim](http://www.vim.org), and typing `:source nav.vim` (or wherever you downloaded the file).
+Note that this information can also be accessed from within the script, usually by pressing **F1** after **F10** or when the map is shown. Start by downloading [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), opening [vim](http://www.vim.org), and typing `:source nav.vim` (or wherever you downloaded the file).
 
 Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `pl*` for `pl1`, `plb`, `planetary.txt`, etc.. You can also name a single file and then use **F10,A** to append additional splits later on.
 
@@ -36,7 +34,7 @@ Key | Action
 **F1** | Help
 **q ESC** | Abort
 **^X** | Delete hidden buffers
-_\* The movement keys will take a count (capped a 99), For example, 3j is the same as jjj._
+_\* Movement keys take a count (capped a 99), For example, 3j is the same as jjj._
 
 If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
@@ -61,9 +59,9 @@ Key | Action
 **Z** | Zoom: adjust map block size
 **T** | Toggle color
 **q** | Quit
-_\* The movement keys will take a count (capped a 99), For example, 3j is the same as jjj._
+_\* Movement keys take a count (capped a 99), For example, 3j is the same as jjj._
 
-You can also use the mouse to pan. Mouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1', so you have something to aim at. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner. To summarize:
+You can also use the mouse to pan. Mouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1', so you have something to aim at. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner and can be closed by a click at the top left corner. To summarize:
 
 Mouse | Action
 --- | --- 
@@ -75,6 +73,14 @@ Mouse | Action
 Note that, as above, mouse commands only work when `ttymouse` is set to, `xterm2` or `sgr`. Unlike for plane navigation, a limited set of features work when `ttymouse` is `xterm`.
 
 ##Advanced
+
+#####Potential Problems
+
+Ensuring a consistent starting directory is important because relative names are remembered (use `:cd ~/PlaneDir` to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.
+
+Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G in normal mode to go to the last non-blank line rather than the very last line.
+
+Horizontal splits aren't supported and may interfere with panning.
 
 ###Map Label Syntax
 
@@ -102,14 +108,6 @@ These commands work much like normal mode commands. For example, `* Heading##sjj
 By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by the `W` command, which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `5s30W` to shift only up to the point where 30 columns of the split are visible (and usually less than that).
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command.
-
-#####Potential Problems
-
-Ensuring a consistent starting directory is important because relative names are remembered (use `:cd ~/PlaneDir` to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.
-
-Regarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G in normal mode to go to the last non-blank line rather than the very last line.
-
-Horizontal splits aren't supported and may interfere with panning.
 
 #####Scripting Functions
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
