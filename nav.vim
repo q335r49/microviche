@@ -65,11 +65,6 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
-fun! s:initDragXterm() "Placeholder; xterm not supported
-	return "norm! \<leftmouse>"
-endfun
-let TXBmsCmd.xterm=function("s:initDragXterm")
-
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! s:initDragDefault()
 	if exists('t:txb')
@@ -215,6 +210,35 @@ fun! <SID>doDragSGR()
 	endwhile
 endfun
 let TXBmsCmd.sgr=function("s:initDragSGR")
+
+fun! s:initDragXterm()
+	return "norm! \<leftmouse>"
+	exe "norm! \<leftmouse>"
+	let curline=winline()
+ 	let curpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
+	while getchar()!="\<leftrelease>"
+	endwhile
+ 	let newpos=[v:mouse_lnum, v:mouse_col, v:mouse_win]
+	let newline=winline()
+	if curpos==newpos
+		return ''
+	elseif !exists('t:txb')
+		if newpos[2]==curpos[2]
+			exe "norm! \<leftmouse>"
+			exe 'norm! '.(curpos[0]>newpos[0]? (curpos[0]-newpos[0])."\<c-e>" : curpos[0]<newpos[0]? (newpos[0]-curpos[0])."\<c-y>" : "").(curpos[1]>newpos[1]? (curpos[1]-newpos[1])."zl" : curpos[1]<newpos[1]? (newpos[1]-curpos[1])."zh" : "g")
+		en
+	else       
+		return '' 
+		let abs_cx=join(map(range(1,curpos[2]-1),'winwidth(v:val)')+curpos[1]
+		let abs_nx=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
+
+		let abs_cy=curpos[1]
+		let abs_ny=join(map(range(1,newpos[2]-1),'winwidth(v:val)')+newpos[1]
+	en
+
+	return ''
+endfun
+let TXBmsCmd.xterm=function("s:initDragXterm")
 
 fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
