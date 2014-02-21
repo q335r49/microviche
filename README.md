@@ -34,12 +34,12 @@ Also, setting your viminfo to save global variables `:set viminfo+=!` is recomme
 
 ####The Map
 
-The following **F10** commands are related to the map:
+The following commands, accessed via **F10**, relate to the map:
 
 Key | Action
 --- | --- 
 **o** | Open map (map block = **1 split x 45 lines**)
-**.** | Snap to map (make split fully visible and align top line with grid edge)
+**.** | Snap to map grid (make split fully visible and align top line with grid edge)
 
 One navigates the map much as is vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
 
