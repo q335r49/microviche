@@ -19,8 +19,8 @@ Once the files are loaded, you can pan using the mouse or by pressing **F10** fo
 
 Key | Action
 ----- | -----
-**h j k l\*** | Pan left (1 split) / down (15 lines) / up / right
-**y u b n\*** | Pan upleft / downleft / upright / downright
+**h j k l*** | Pan left (1 split) / down (15 lines) / up / right
+**y u b n*** | Pan upleft / downleft / upright / downright
 **r** | Redraw
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Help
@@ -39,14 +39,14 @@ The following commands, accessed via **F10**, relate to the map:
 Key | Action
 --- | --- 
 **o** | Open map (map block = **1 split x 45 lines**)
-**.** | Snap to map grid (make split fully visible and align top line with grid edge)
+**.** | Snap to map grid
 
-One navigates the map much as is vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
+You can navigate the map much as in vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar mnemonics. The complete list of commands is:
 
 Key | Action
 --- | ---
-**h j k l** | left / right / up / down\*
-**y u b n** | leftup / leftdown / rightup / rightdown\*
+**h j k l*** | left / right / up / down
+**y u b n*** | leftup / leftdown / rightup / rightdown
 **0 $** | Beginning / end of line
 **H L M** | High / Middle / Low of screen
 **x** | Clear (and obtain) cell
@@ -128,5 +128,5 @@ nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
 
 ##Roadmap
 **1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
-**1.8** Gradients
+**1.8** Gradients  
 **1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
