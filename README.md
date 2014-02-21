@@ -13,22 +13,24 @@ _Note that this information can be accessed from within the script, usually by p
 
 Start by downloading [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), opening [vim](http://www.vim.org), and typing `:source nav.vim` (or wherever you downloaded the file).  
 
-Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10,A**
+Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
 Once the files are loaded, you can pan using the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The full list of commands is:  
 
 Key | Action
 ----- | -----
-**h j k l** | Pan left (1 split) / down (15 lines) / up / right*
-**y u b n** | Pan upleft / downleft / upright / downright*
+**h j k l\*** | Pan left (1 split) / down (15 lines) / up / right
+**y u b n\*** | Pan upleft / downleft / upright / downright
 **r** | Redraw
 **o** | Open map (each map block is 1 split x 45 lines)
-**s** | Snap to map grid
+**.** | Snap to map grid
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Help
 **q ESC** | Abort
 **^X** | Delete hidden buffers
 _\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
+
+Snap to map grid, **F10 .**, simply makes sure the split is not partially hidden and aligns the top line with a multiple of 45. (It will also follow any [special positioning syntax](#position))
 
 If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
@@ -36,7 +38,7 @@ Also, setting your viminfo to save global variables `:set viminfo+=!` is recomme
 
 ####The Map
 
-Press **F10,o** to open the map. The map is split into grids representing **1 split x 45 lines** of the plane and is navigated much like vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
+Press **F10 o** to open the map. The map is split into grids representing **1 split x 45 lines** of the plane and is navigated much like vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
 
 Key | Action
 --- | ---
@@ -105,7 +107,7 @@ These commands work much like normal mode commands. For example, `* Heading##sjj
 
 By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are still visible (and usually less than that).
 
-When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command instead of position the split to the far left.
+When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of position the split to the far left.
 
 ####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
