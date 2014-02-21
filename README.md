@@ -22,15 +22,11 @@ Key | Action
 **h j k l\*** | Pan left (1 split) / down (15 lines) / up / right
 **y u b n\*** | Pan upleft / downleft / upright / downright
 **r** | Redraw
-**o** | Open map (each map block is 1 split x 45 lines)
-**.** | Snap to map grid
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Help
 **q ESC** | Abort
 **^X** | Delete hidden buffers
 _\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
-
-Snap to map grid, **F10 .**, simply makes sure the split is not partially hidden and aligns the top line with a multiple of 45. (It will also follow any [special positioning syntax](#position))
 
 If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
@@ -38,7 +34,14 @@ Also, setting your viminfo to save global variables `:set viminfo+=!` is recomme
 
 ####The Map
 
-Press **F10 o** to open the map. The map is split into grids representing **1 split x 45 lines** of the plane and is navigated much like vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
+The following **F10** commands are related to the map:
+
+Key | Action
+--- | --- 
+**o** | Open map (map block = **1 split x 45 lines**)
+**.** | Snap to map (make split fully visible and align top line with grid edge)
+
+One navigates the map much as is vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
 
 Key | Action
 --- | ---
@@ -92,7 +95,7 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 #####Position
 
-Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j). The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j). The complete list of commands is:
 
 Syntax | Action
 --- | ---
@@ -107,7 +110,7 @@ These commands work much like normal mode commands. For example, `* Heading##sjj
 
 By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are still visible (and usually less than that).
 
-When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of position the split to the far left.
+When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
 
 ####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
