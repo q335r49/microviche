@@ -19,7 +19,7 @@ Once the files are loaded, you can pan using the mouse or by pressing **F10** fo
 
 Key | Action
 ----- | -----
-**h j k l** | Pan left 1 split / down 15 lines / up / right*
+**h j k l** | Pan left (1 split) / down (15 lines) / up / right*
 **y u b n** | Pan upleft / downleft / upright / downright*
 **r** | Redraw
 **o** | Open map
@@ -36,7 +36,7 @@ Also, setting your viminfo to save global variables `:set viminfo+=!` is recomme
 
 ####The Map
 
-Press **F10,o** to open the map. The map is split into grids representing **1 split x 45 lines** or the plane and is navigated much like vim, via *h*, *i*, *k*, *l*. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
+Press **F10,o** to open the map. The map is split into grids representing **1 split x 45 lines** of the plane and is navigated much like vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
 
 Key | Action
 --- | ---
@@ -55,7 +55,7 @@ Key | Action
 **q** | Quit
 _\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
 
-You can also use the mouse to pan and select. Mouse clicks are associated with the location of the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1'. To allow mouse-only navigation, the map can be activated with a mouse drag that ends at the top left corner and closed with a click at the top left corner. To summarize:
+You can also use the mouse to pan and select. Mouse clicks are associated with the location of the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1'. Mouse-only navigation is possible: the map can be activated with a mouse drag that ends at the top left corner and closed with a click at the top left corner. To summarize:
 
 Mouse | Action
 --- | --- 
@@ -70,11 +70,11 @@ Note that, as above, mouse commands only work when `ttymouse` is set to, `xterm2
 
 ####Directories
 
-Ensuring a consistent starting directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent. If you find yourself constantly needing to swith directories, consider adding an autocommand (`:help autocommand`) to switch back to some fixed directory when in the plane tab.
+Ensuring a consistent starting directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent. If you find yourself constantly needing to swith directories, consider adding an autocommand (see `:help autocommand`) to switch back to some fixed directory when in the plane tab.
 
-####Misaligned splits at the end of file
+####Misaligned splits at end of file
 
-When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another, more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that one is never working at the end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line.)
+When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that you are never working at the very end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line.)
 
 ####Horizontal Splits
 
@@ -82,11 +82,11 @@ Horizontal splits aren't supported and may interfere with panning.
 
 ####Map Label Syntax
 
-Special commands may be given in the label to (1) specify color and (2) how the screen should be positioned after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
+Special commands may be given in the label to specify (1) the color and (2) how the screen should be positioned after jumping to the target block. The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
 
 #####Color
 
-Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command in map mode. See `:help highlight` for information on how to define highlight groups.
+Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command (while in map mode). See `:help highlight` for information on how to define highlight groups.
 
 #####Position
 
@@ -101,9 +101,9 @@ Syntax | Action
 **M** | Shift view so cursor is at the Middle line (overrides r,R)
 **W** | Virtual window width (see below)
 
-These commands work much like normal mode commands. For example, `* Heading##sjjjM`, `* Heading##s3jM`, `* Heading##M3js will all accomplish the same task of shifting the view left by one split, moving the cursor down 3 lines, and vertically centering the cursor.
+These commands work much like normal mode commands. For example, `* Heading##sjjjM`, `* Heading##s3jM`, and `* Heading##M3js` all accomplish the same task of shifting the view left by one split, moving the cursor down 3 lines, and vertically centering the cursor.
 
-By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by the `W` command, which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are visible (and usually less than that).
+By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are still visible (and usually less than that).
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command instead of position the split to the far left.
 

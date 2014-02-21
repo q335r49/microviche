@@ -894,15 +894,25 @@ let TXBkyCmd.9="let s:kc__num=s:kc__num is '01'? '9' : s:kc__num>98? s:kc__num :
 let TXBkyCmd.0="let s:kc__num=s:kc__num is '01'? '01' : s:kc__num>98? s:kc__num : s:kc__num.'1'"
 
 fun! s:snapToGrid()
-	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
+	let [ix,l0,vc]=[t:txb.ix[expand('%')],line('.'),wincol()]
+	let y=l0>s:mapL? l0-l0%s:mapL : 1
 	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'#',1),2,'')
 	if !empty(poscom)
-		let error=s:gotoPos(ix,l0-l0%s:mapL)
-		call s:doSyntax(error? '' : poscom)
+		call s:doSyntax(s:gotoPos(ix,y)? '' : poscom)
 		call s:saveCursPos()
-	else
- 		let [x,dir]=winnr()>1? [ix,1] : winnr()==1 && t:txb.size[ix]<=winwidth(1)? [0,0] : [ix,-1]
-		call s:blockPan(x,l0-l0%s:mapL,dir)
+	elseif winnr()!=winnr('$')
+		exe 'norm! '.y.'zt0'
+		exe 'norm! '.l0.'G'.vc.'|'
+		call TXBload()
+	elseif t:txb.size[ix]>&columns
+		only
+		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
+	elseif winwidth(0)<txb.size[ix]
+		call nav(winwidth(0)-txb.size[ix]) 
+		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
+	elseif winwidth(0)>txb.size[ix]
+		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
+		call TXBload()
 	en
 endfun
 let TXBkyCmd['.']='call s:snapToGrid()|let s:kc__continue=0|call s:updateCursPos()' 
@@ -1134,22 +1144,17 @@ fun! TXBload(...)
 		call <SID>initPlane()
 		return
 	en
-	let [col0,win0]=[get(t:txb.ix,bufname(""),a:0? -1 : -2),winnr()]
-	if col0==-2
-		ec "Current buffer not registered in in plane, use ".s:hkName."A to add"
-		return
-	elseif col0==-1
-		let col0=0
-		only
-		let name=t:txb.name[0]
-		if name!=#expand('%')
-			exe 'e '.escape(name,' ')
-		en
-	en
+	let [col0,win0]=[t:txb.ix[bufname("")],winnr()]
 	let pos=[bufnr('%'),line('w0')]
-	exe winnr()!=1? "norm! mt0" : "norm! mt"
+	exe winnr()==1? "norm! mt" : "norm! mt0"
 	let alignmentcmd="norm! 0".pos[1]."zt"
 	se scrollopt=jump
+	if winnr()==1 && !&wrap
+		let offset=virtcol('.')-wincol()
+		if offset<t:txb.size[col0]
+			exe (t:txb.size[col0]-offset).'winc|'
+		en
+	en
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0,0]
 	let remain=split0
 	while remain>=1
@@ -1157,7 +1162,7 @@ fun! TXBload(...)
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
-	let [colb,remain,colsRight]=[col0%t:txb.len,&columns-(split0>0? split0+1+t:txb.size[col0] : min([winwidth(1),t:txb.size[col0]])),1]
+	let [colb,remain,colsRight]=[col0,&columns-(split0>0? split0+1+t:txb.size[col0] : min([winwidth(1),t:txb.size[col0]])),1]
 	while remain>=2
 		let remain-=t:txb.size[colb]+1
 		let colb=(colb+1)%t:txb.len
