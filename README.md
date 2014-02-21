@@ -1,14 +1,14 @@
 # textabyss
-_A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
+>A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
 
 ![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
 
 >Memory organization, especially when it comes to prose, still seems quite underdeveloped today. Text production on the order of even kilobytes per year may seem unmanageable, often leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss is another effort along those lines. It provides a plane that one can append to as needed, as well as means to navigate and preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
-#####Installation
-Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+##Installation
+Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
 
-#####Roadmap
+##Roadmap
 **1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
 **1.8** Change map background color based on depth >:-)  
 **1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
@@ -81,7 +81,7 @@ Ensuring a consistent starting directory is important because relative names are
 
 When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another, more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that one is never working at the end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line.)
 
-####Horizontal SPlits
+####Horizontal Splits
 
 Horizontal splits aren't supported and may interfere with panning.
 
