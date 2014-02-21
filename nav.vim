@@ -35,8 +35,8 @@ fun! s:printHelp()
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hkName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hkName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hkName." followed by:
-    \\n    h j k l     Pan left / down / up / right*
-    \\n    y u b n     Pan upleft / downleft / upright / downright*
+	\\n    h j k l     Pan left / down / up / right*
+	\\n    y u b n     Pan upleft / downleft / upright / downright*
 	\\n    o           Open map (map grid: 1 split x ".s:mapL." lines)
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
@@ -934,9 +934,9 @@ fun! <SID>getmouse()
 	else
 		let g:TXBmsmsg=[0,0,0]
 	en
-	call g:TXBkeyhandler(-1)	
 	while getchar(0) isnot 0
 	endwhile
+	call g:TXBkeyhandler(-1)	
 endfun
 fun! s:dochar()
 	let [k,c]=['',getchar()]

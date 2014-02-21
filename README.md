@@ -46,7 +46,7 @@ Key | Action
 **H L M** | High / Middle / Low of screen
 **x** | Clear (and obtain) cell
 **o O** | obtain cell / Obtain column
-**p P** | Put obtained content before / after
+**p P** | Put obtained content after / before
 **c i** | Change label
 **g <cr>** | Go to block and exit map
 **I D** | Insert / Delete (and obtain) column
