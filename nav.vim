@@ -65,30 +65,58 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
-fun! TXBrealign(confirm)
-	let view=winsaveview()
+fun! TXBrealign(interactive)
+	let restore_exe='norm! '.line('w0').'zt'.line('.').'j'.virtcol('.').'|'
 	1
-	while search('^txb:','W')
-		let mark=getline('.')[4:]
-		if mark<=0
-			continue
-		elseif mark<line('.')
-			let insertions=line('.')-mark
-			if confirm && input('Insert '.insertions.' line here (y/n)?','y')==?'y' || !confirm
-				exe 'norm! '.insertions.'Oj'
+	if a:interactive
+	   	let [cul,&cul]=[&cul,1]
+		let line=search('^txb:','W')
+		while line
+			redr
+			let mark=getline('.')[4:]
+			if mark<=0
+				continue
+			elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
+				exe 'norm! '.(mark-line)."O\ej"
+			elseif mark<line
+				let insertions=line-mark
+				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
+				if !empty(g:nonblanklines)
+					echo "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
+					break
+				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+				en
 			en
-		elseif mark>line('.')
-			let insertions=mark-line('.')
-			let nonblanklines=filter(getline(line('.')-insertions,line('.')-1),"v:val!~'\s*'")
-			if !empty(nonblanklines)
-				echoerr join(nonblanklines,"\n")."\n\nNot enough blank lines to realign current marker (realign abborted)"
-				return
-			elseif !confirm || confirm && input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
-				exe 'norm! kd'.(insertions==1? 'd' : insertions-1).'kj'
+			let line=search('^txb:','W')
+		endwhile
+	  	let &cul=cul
+		echon "\rRealign complete        "
+	else
+		se scrollopt=jump
+		let line=search('^txb:','W')
+		while line
+			let mark=getline('.')[4:]
+			if mark<=0
+				continue
+			elseif mark>line
+				exe 'norm! '.(mark-line)."O\ej"
+			elseif mark<line
+				let insertions=line-mark
+				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
+				if !empty(g:nonblanklines)
+					echo "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
+					break
+				else
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+				en
 			en
-		en
-	endwhile
-	call winrestview(view)
+			let line=search('^txb:','W')
+			let line=search('^txb:','W')
+		endwhile
+		se scrollopt=ver,jump
+	en
+	exe restore_exe
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
