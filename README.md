@@ -1,17 +1,12 @@
 # textabyss
->A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
-
-![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
-
+>_A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
+>
+>![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
+>
 >Memory organization, especially when it comes to prose, still seems quite underdeveloped today. Text production on the order of even kilobytes per year may seem unmanageable, often leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss is another effort along those lines. It provides a plane that one can append to as needed, as well as means to navigate and preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 ##Installation
 Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
-
-##Roadmap
-**1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
-**1.8** Change map background color based on depth >:-)  
-**1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
 
 ##Guide
 _Note that this information can be accessed from within the script, usually by pressing **F1**, either after pressing **F10** or when the map is shown._
@@ -126,3 +121,7 @@ Keyboard commands can be accessed via `TXBdoCmd()`. For example, the following m
 nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
 ```
 
+##Roadmap
+**1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
+**1.8** Change map background color based on depth >:-)  
+**1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
