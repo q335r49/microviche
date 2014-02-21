@@ -3,22 +3,22 @@ _A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on
 
 ![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
 
->Memory organization, especially when it comes to prose, still seems quite underdeveloped today. Text production on the order of even kilobytes per year may seem unmanageable often leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control, textabyss is another effort along those lines. It provides plane that one can append to endlessly, as well as means to navigate and map out this plane. Ideally, one would be able to scan over the map and easily access writings from last night, a month ago, or even 5 or 10 years earlier. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
+>Memory organization, especially when it comes to prose, still seems quite underdeveloped today. Text production on the order of even kilobytes per year may seem unmanageable, often leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss is another effort along those lines. It provides a plane that one can append to as needed, as well as means to navigate and preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 #####Installation
-Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim`, or wherever you downloaded the file. Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
 
 #####Roadmap
-**1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines
+**1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
 **1.8** Change map background color based on depth >:-)  
 **1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
 
 ##Guide
-_Note that this information can be accessed from within the script, usually by pressing **F1** after **F10** or when the map is shown._
+_Note that this information can be accessed from within the script, usually by pressing **F1**, either after pressing **F10** or when the map is shown._
 
 Start by downloading [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), opening [vim](http://www.vim.org), and typing `:source nav.vim` (or wherever you downloaded the file).  
 
-Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `plane*` for files beginning with plane. You can also name a single file and append additional splits as needed with **F10,A**
+Once sourced, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10,A**
 
 Once the files are loaded, you can pan using the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The full list of commands is:  
 
@@ -33,7 +33,7 @@ Key | Action
 **F1** | Help
 **q ESC** | Abort
 **^X** | Delete hidden buffers
-_\* Movement keys take a count (capped a 99), For example, 3j is the same as jjj._
+_\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
 
 If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
 
@@ -41,7 +41,7 @@ Also, setting your viminfo to save global variables `:set viminfo+=!` is recomme
 
 ####The Map
 
-Press **F10,o** to open the map. Each map grid is 1 split x 45 lines and is navigated much like in vim itself. Some basic cutting and pasting options are also provided. The complete list of commands is:
+Press **F10,o** to open the map. The map is split into grids representing **1 split x 45 lines** or the plane and is navigated much like vim, via *h*, *i*, *k*, *l*. Some basic cutting and pasting options are also provided under the familiar keys. The complete list of commands is:
 
 Key | Action
 --- | ---
@@ -51,16 +51,16 @@ Key | Action
 **H L M** | High / Middle / Low of screen
 **x** | Clear (and obtain) cell
 **o O** | obtain cell / Obtain column
-**p P** | Put obtained cell or column
+**p P** | Put obtained content before / after
 **c i** | Change label
 **g <cr>** | Go to block and exit map
 **I D** | Insert / Delete (and obtain) column
-**Z** | Zoom: adjust map block size
+**Z** | Zoom (adjust map block size)
 **T** | Toggle color
 **q** | Quit
-_\* Movement keys take a count (capped a 99), For example, 3j is the same as jjj._
+_\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
 
-You can also use the mouse to pan and select. Mouse clicks are associated with the location of the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner and can be closed by a click at the top left corner. To summarize:
+You can also use the mouse to pan and select. Mouse clicks are associated with the location of the very first letter of the label, so it might be helpful to prepend a marker, eg, '+ Chapter 1'. To allow mouse-only navigation, the map can be activated with a mouse drag that ends at the top left corner and closed with a click at the top left corner. To summarize:
 
 Mouse | Action
 --- | --- 
@@ -73,11 +73,15 @@ Note that, as above, mouse commands only work when `ttymouse` is set to, `xterm2
 
 ##Advanced
 
-####Potential Problems
+####Directories
 
-Ensuring a consistent starting directory is important because relative names are remembered (use `:cd ~/PlaneDir` to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.
+Ensuring a consistent starting directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent. If you find yourself constantly needing to swith directories, consider adding an autocommand (`:help autocommand`) to switch back to some fixed directory when in the plane tab.
 
-When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another, more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that one is never working at the end of a particularly long split. (It might then be helpful, in that case, to remap G in normal mode to go to the last non-blank line rather than the very last line.)
+####Misaligned splits at the end of file
+
+When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another, more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that one is never working at the end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line.)
+
+####Horizontal SPlits
 
 Horizontal splits aren't supported and may interfere with panning.
 
@@ -108,7 +112,7 @@ By default, `s` won't move the split offscreen. For example, `45s` will not actu
 
 When movement syntax is defined for a block, snap to grid (**F10**,**.**) will execute that command instead of position the split to the far left.
 
-####Scripting Functions
+####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
 
 You can manually restore via `TXBload()`: 
