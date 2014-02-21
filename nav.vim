@@ -894,7 +894,7 @@ let TXBkyCmd.9="let s:kc__num=s:kc__num is '01'? '9' : s:kc__num>98? s:kc__num :
 let TXBkyCmd.0="let s:kc__num=s:kc__num is '01'? '01' : s:kc__num>98? s:kc__num : s:kc__num.'1'"
 
 fun! s:snapToGrid()
-	let [ix,l0,vc]=[t:txb.ix[expand('%')],line('.'),wincol()]
+	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
 	let y=l0>s:mapL? l0-l0%s:mapL : 1
 	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'#',1),2,'')
 	if !empty(poscom)
@@ -902,16 +902,15 @@ fun! s:snapToGrid()
 		call s:saveCursPos()
 	elseif winnr()!=winnr('$')
 		exe 'norm! '.y.'zt0'
-		exe 'norm! '.l0.'G'.vc.'|'
 		call TXBload()
 	elseif t:txb.size[ix]>&columns
 		only
-		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
-	elseif winwidth(0)<txb.size[ix]
-		call nav(winwidth(0)-txb.size[ix]) 
-		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
-	elseif winwidth(0)>txb.size[ix]
-		exe 'norm! '.y.'zt0'.l0.'G'.vc.'|'
+		exe 'norm! '.y.'zt0'
+	elseif winwidth(0)<t:txb.size[ix]
+		call s:nav(-winwidth(0)+t:txb.size[ix]) 
+		exe 'norm! '.y.'zt0'
+	elseif winwidth(0)>t:txb.size[ix]
+		exe 'norm! '.y.'zt0'
 		call TXBload()
 	en
 endfun

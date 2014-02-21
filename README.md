@@ -22,8 +22,8 @@ Key | Action
 **h j k l** | Pan left (1 split) / down (15 lines) / up / right*
 **y u b n** | Pan upleft / downleft / upright / downright*
 **r** | Redraw
-**o** | Open map
-**.** | Snap to map grid (1 split x 45 lines)
+**o** | Open map (each map block is 1 split x 45 lines)
+**s** | Snap to map grid
 **D A E** | Delete split / Append split / Edit split settings
 **F1** | Help
 **q ESC** | Abort
@@ -123,5 +123,5 @@ nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
 
 ##Roadmap
 **1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
-**1.8** Change map background color based on depth >:-)  
+**1.8** Gradients
 **1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
