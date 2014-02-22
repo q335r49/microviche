@@ -7,8 +7,8 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	                                   "Load plane, activate keyboard commands
 	let s:hkName='<f10>'               "The name of the above key, used for help files
 	let s:panL=15                      "Lines panned with jk
-	let s:mouseMultiplier=2            "Doubles, triples, etc. mouse panning speed (only works when ttymouse is xterm2 or sgr)
 	let [s:aniStepH,s:aniStepV]=[9,2]  "Keyboard pan animation step horizontal / vertical (higher pans faster)
+	let s:mouseAcc=[0,1,2,4,7,10,15,21,24,27]       "mouse moves N -> pan mouseAcc[N]
 
 "Map settings
 	let s:mapL=45                      "Map grid corresponds to 1 split x s:mapL lines
@@ -52,7 +52,12 @@ fun! s:printHelp()
 	\\n\n\\CPotential Problems
 	\\n\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
 	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
-	\\n\nHorizontal splits aren't supported and may interfere with panning.
+	\\n\nHorizontal splits aren't supported and may interfere with panning.\n
+	\\n\\CAdvanced\n
+	\\nLine Anchors\n
+	\\n    ^L          Insert line anchor
+	\\n    ^A          Align all text anchors in split\n
+    \\nSuppose you want to go back and insert a block of text at the top of a split. But this would have the unfortunate side effect of misalining everything below it. The line anchor tries to address this issue. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. One can insert it manually or via the **F10 ^L** command. Assuming there are sufficient blank lines , realigning the split with **F10 ^A** will remove (or insert) /preceding/ blank lines in order to restore the line anchor to the correct position. In this case, one can insert a line anchor at the lower portion of text, proceed with the insertion, and then realign afterwards. The realign command will never remove non-blank lines. If the realigning process finds that there are insufficient blank lines to realign the anchor, it will abort with an error message.
 	\\n\n\\CRecent Changes\n
 	\\n1.6.1     Movement commands (map and plane) now take counts
 	\\n1.6.0     Map positioning syntax added
@@ -65,6 +70,8 @@ endfun
 
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
+let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
+let TXBkyCmd["\<c-a>"]=":call TXBrealign(1)\<cr>"
 fun! TXBrealign(interactive)
 	let restore_exe='norm! '.line('w0').'zt'.line('.').'j'.virtcol('.').'|'
 	1
@@ -82,8 +89,9 @@ fun! TXBrealign(interactive)
 				let insertions=line-mark
 				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
 				if !empty(g:nonblanklines)
-					echo "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
-					break
+					echoerr "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
+	  				let &cul=cul
+					return
 				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -105,8 +113,9 @@ fun! TXBrealign(interactive)
 				let insertions=line-mark
 				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
 				if !empty(g:nonblanklines)
-					echo "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
-					break
+					echoerr "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
+					se scrollopt=ver,jump
+					return
 				else
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -320,13 +329,12 @@ fun! <SID>doDragXterm2()
 endfun
 let TXBmsCmd.xterm2=function("s:initDragXterm2")
 
-let s:panstep=[0,1,2,4,8,16]
 fun! s:panWin(dx,dy)
-	exe "norm! ".(a:dy>0? s:mouseMultiplier*get(s:panstep,a:dy,16)."\<c-y>" : a:dy<0? s:mouseMultiplier*get(s:panstep,-a:dy,16)."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
+	exe "norm! ".(a:dy>0? get(s:mouseAcc,a:dy,s:mouseAcc[-1])."\<c-y>" : a:dy<0? get(s:mouseAcc,-a:dy,s:mouseAcc[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	call s:nav(a:dx>0? -s:mouseMultiplier*get(s:panstep,a:dx,16) : s:mouseMultiplier*get(s:panstep,-a:dx,16))
-	let l0=max([1,a:dy>0? s:nav_state[0]-s:mouseMultiplier*get(s:panstep,a:dy,16) : s:nav_state[0]+s:mouseMultiplier*get(s:panstep,-a:dy,16)])
+	call s:nav(a:dx>0? -get(s:mouseAcc,a:dx,s:mouseAcc[-1]) : get(s:mouseAcc,-a:dx,s:mouseAcc[-1]))
+	let l0=max([1,a:dy>0? s:nav_state[0]-get(s:mouseAcc,a:dy,s:mouseAcc[-1]) : s:nav_state[0]+get(s:mouseAcc,-a:dy,s:mouseAcc[-1])])
 	exe 'norm! '.l0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]

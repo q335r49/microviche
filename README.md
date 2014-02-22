@@ -28,7 +28,7 @@ Key | Action
 **^X** | Delete hidden buffers
 _\* Movement keys take a count (capped a 99). For example, 3j is the same as jjj._
 
-If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. Most other modes should work but the panning speed multiplier will be disabled. `xterm` does not report dragging and will disable mouse panning entirely.
+If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. `xterm` does not report dragging and will disable mouse panning entirely. Most other modes should work but the panning speed will always match the mouse speed.
 
 Also, setting your viminfo to save global variables `:set viminfo+=!` is recommended as the plane will be suggested on **F10** the next time you run vim. This means you don't have to type the file pattern again. You also need to enable this setting to save the map, below.
 
@@ -41,7 +41,7 @@ Key | Action
 **o** | Open map (map block = **1 split x 45 lines**)
 **.** | Snap to map grid
 
-You can navigate the map much as in vim, via **h**, **i**, **k**, **l**. Some basic cutting and pasting options are also provided under the familiar mnemonics. The complete list of commands is:
+You can navigate the map much as in vim, via **h**, **j**, **k**, **l**. Some basic block manipulation commands are also provided under the familiar vim mnemonics. The complete list of commands is:
 
 Key | Action
 --- | ---
@@ -111,6 +111,14 @@ These commands work much like normal mode commands. For example, `* Heading##sjj
 By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are still visible (and usually less than that).
 
 When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
+
+#####Line Anchors
+Key | Action
+--- | ---
+**^L** | Insert line anchor
+**^A** | Align all text anchors in split
+
+Suppose you want to go back and insert a block of text at the top of a split. But this would have the unfortunate side effect of misalining everything below it. The line anchor tries to address this issue. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. One can insert it manually or via the **F10 ^L** command. Assuming there are sufficient blank lines , realigning the split with **F10 ^A** will remove (or insert) /preceding/ blank lines in order to restore the line anchor to the correct position. In this case, one can insert a line anchor at the lower portion of text, proceed with the insertion, and then realign afterwards. The realign command will never remove non-blank lines. If the realigning process finds that there are insufficient blank lines to realign the anchor, it will abort with an error message.
 
 ####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
