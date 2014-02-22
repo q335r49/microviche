@@ -19,7 +19,7 @@ Once the files are loaded, you can pan using the mouse or by pressing **F10** fo
 
 Key | Action
 ----- | -----
-**h j k l*** | Pan left (1 split) / down (15 lines) / up / right
+**h j k l*** | Pan left **1 split** / down **15 lines** / up / right
 **y u b n*** | Pan upleft / downleft / upright / downright
 **r** | Redraw
 **D A E** | Delete split / Append split / Edit split settings

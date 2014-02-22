@@ -16,6 +16,10 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
 
+"Optional settings (comment / uncomment to toggle)
+	au VimResized * call TXBload()     "Redraw on resize
+	
+
 "Reasons for changing internal settings:
 	se noequalalways                  "[Do not change] Needed for correct panning
 	se winwidth=1                     "[Do not change] Needed for correct panning
@@ -1133,8 +1137,7 @@ fun! TXBload(...)
 	if a:0
 		let t:txb=a:1
 	elseif !exists("t:txb")
-		ec "\n> No plane initialized..."
-		call <SID>initPlane()
+		ec "No plane initialized..."
 		return
 	en
 	let [col0,win0]=[t:txb.ix[bufname("")],winnr()]
