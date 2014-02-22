@@ -70,61 +70,48 @@ endfun
 let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
 
 let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
-let TXBkyCmd["\<c-a>"]=":call TXBrealign(1)\<cr>"
-fun! TXBrealign(interactive)
-	let restore_exe='norm! '.line('w0').'zt'.line('.').'j'.virtcol('.').'|'
+let TXBkyCmd["\<c-a>"]=":call TXBanchor(1)\<cr>"
+fun! TXBanchor(interactive)
+	let restoreView='norm! '.line('w0').'zt'.line('.').'j'.virtcol('.').'|'
+	let line=search('^txb:','W')
 	1
 	if a:interactive
 	   	let [cul,&cul]=[&cul,1]
-		let line=search('^txb:','W')
 		while line
 			redr
 			let mark=getline('.')[4:]
-			if mark<=0
-				continue
+			if mark<line && mark>0
+				let insertions=line-mark
+				if empty(filter(getline(mark,line-1),'v:val=~''\S'''))
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+	  				let &cul=cul
+					throw "Not enough blank lines to restore current marker!"
+				en
 			elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
 				exe 'norm! '.(mark-line)."O\ej"
-			elseif mark<line
-				let insertions=line-mark
-				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
-				if !empty(g:nonblanklines)
-					echoerr "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
-	  				let &cul=cul
-					return
-				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-				en
 			en
 			let line=search('^txb:','W')
 		endwhile
 	  	let &cul=cul
-		echon "\rRealign complete        "
 	else
-		se scrollopt=jump
-		let line=search('^txb:','W')
 		while line
 			let mark=getline('.')[4:]
-			if mark<=0
-				continue
+			if mark<line && mark>=0
+				let insertions=line-mark
+				if empty(filter(getline(mark,line-1),'v:val=~''\S'''))
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+				else
+					throw "Not enough blank lines to restore current marker!"
+				en
 			elseif mark>line
 				exe 'norm! '.(mark-line)."O\ej"
-			elseif mark<line
-				let insertions=line-mark
-				let g:nonblanklines=filter(getline(mark,line-1),'v:val=~''\S''')
-				if !empty(g:nonblanklines)
-					echoerr "Non-blank lines: \n".join(g:nonblanklines," / ")."\nNot enough blank lines to realign current marker (realign abborted)"
-					se scrollopt=ver,jump
-					return
-				else
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-				en
 			en
 			let line=search('^txb:','W')
-			let line=search('^txb:','W')
 		endwhile
-		se scrollopt=ver,jump
 	en
-	exe restore_exe
+	exe restoreView
+	echon "\rRealign complete: " expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')

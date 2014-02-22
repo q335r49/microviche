@@ -112,7 +112,7 @@ By default, `s` won't move the split offscreen. For example, `45s` will not actu
 
 When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
 
-#####Line Anchors
+####Line Anchors
 Key | Action
 --- | ---
 **^L** | Insert line anchor
@@ -135,6 +135,5 @@ nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
 ```
 
 ##Roadmap
-**1.7** Commands to realign grid when editing pushes text down and misaligns the splits by deleting blank lines  
-**1.8** Gradients  
-**1.9** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
+**1.7** Gradients  
+**1.8** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
