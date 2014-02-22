@@ -79,7 +79,7 @@ Ensuring a consistent starting directory is important because relative names are
 
 ####Misaligned splits at end of file
 
-When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that you are never working at the very end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line.)
+When at the bottom of a split much longer than its neighbors, desyncing may occur -- ie, the lines may become misaligned. You can press r to redraw when this happens. Another more permanent solution is to pad about 500 or 1000 blank lines to the end of every split so that you are never working at the very end of a particularly long split. (It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line -- see the source code for this option.)
 
 ####Horizontal Splits
 

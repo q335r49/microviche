@@ -18,7 +18,8 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 
 "Optional settings (comment / uncomment to toggle)
 	au VimResized * call TXBload()     "Redraw on resize
-	
+"	no <expr> G s:TXBG(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
+"	no <expr> gg s:TXBgg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
 
 "Reasons for changing internal settings:
 	se noequalalways                  "[Do not change] Needed for correct panning
@@ -31,6 +32,14 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	se virtualedit=all                "Makes leftmost split aligns correctly
 	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
 
+fun! s:TXBG(count)
+	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
+	return (mode=='no'? "\<esc>0".v:operator : mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '$' : '')
+endfun
+fun! s:TXBgg(count)
+	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')-1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','Wb')? line('.') : 1]
+	return (mode=='no'? "\<esc>$".v:operator :  mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '0' : '')
+endfun
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -86,11 +95,11 @@ fun! TXBanchor(interactive)
 			let mark=getline('.')[4:]
 			if mark<line && mark>0
 				let insertions=line-mark
-				if empty(filter(getline(mark,line-1),'v:val=~''\S'''))
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+				if prevnonblank(line-1)>=mark
 	  				let &cul=cul
 					throw "Not enough blank lines to restore current marker!"
+				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
 			elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
 				exe 'norm! '.(mark-line)."O\ej"
@@ -103,10 +112,10 @@ fun! TXBanchor(interactive)
 			let mark=getline('.')[4:]
 			if mark<line && mark>=0
 				let insertions=line-mark
-				if empty(filter(getline(mark,line-1),'v:val=~''\S'''))
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-				else
+				if prevnonblank(line-1)>=mark
 					throw "Not enough blank lines to restore current marker!"
+				else
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
 			elseif mark>line
 				exe 'norm! '.(mark-line)."O\ej"
