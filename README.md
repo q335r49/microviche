@@ -50,8 +50,7 @@ Key | Action
 **0 $** | Beginning / end of line
 **H L M** | High / Middle / Low of screen
 **x** | Clear (and obtain) cell
-**o O** | obtain cell / Obtain column
-**p P** | Put obtained content after / before
+**o O p P** | obtain cell / Obtain column / Put obtained after / before
 **c i** | Change label
 **g <cr>** | Go to block and exit map
 **I D** | Insert / Delete (and obtain) column
@@ -132,8 +131,3 @@ You can manually restore via `TXBload()`:
 Keyboard commands can be accessed via `TXBdoCmd()`. For example, the following mapping will activate the map with a doubleclick
 ```
 nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
-```
-
-##Roadmap
-**1.7** Gradients  
-**1.8** minimap - option to allow map to take up small area of screen, have panning follow map navigation  
