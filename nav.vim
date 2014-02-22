@@ -48,7 +48,6 @@ fun! s:printHelp()
 	\\n\n\\CSettings
 	\\n\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
 	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hkName." the next time you run vim. This will also save the map. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
-	\\nKeyboard commands can be accessed via the TXBdoCmd(key) function in order to integrate textabyss into your workflow. For example 'nmap <2-leftmouse> :call TXBdoCmd(\"o\")<cr>' will activate the map with a double-click.
 	\\n\n\\CPotential Problems
 	\\n\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
 	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
@@ -56,14 +55,14 @@ fun! s:printHelp()
 	\\n\\CAdvanced\n
 	\\nLine Anchors\n
 	\\n    ^L          Insert line anchor
-	\\n    ^A          Align all text anchors in split\n
-    \\nSuppose you want to go back and insert a block of text at the top of a split. But this would have the unfortunate side effect of misalining everything below it. The line anchor tries to address this issue. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. One can insert it manually or via the **F10 ^L** command. Assuming there are sufficient blank lines , realigning the split with **F10 ^A** will remove (or insert) /preceding/ blank lines in order to restore the line anchor to the correct position. In this case, one can insert a line anchor at the lower portion of text, proceed with the insertion, and then realign afterwards. The realign command will never remove non-blank lines. If the realigning process finds that there are insufficient blank lines to realign the anchor, it will abort with an error message.
+	\\n    ^A          Align all text anchors in split
+	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.2     Line anchors
 	\\n1.6.1     Movement commands (map and plane) now take counts
 	\\n1.6.0     Map positioning syntax added
 	\\n1.5.8     s:pager function to avoid bug in vim's pager
-	\\n1.5.7     Eliminate random cursor jitter during panning
-	\\n1.5.4     Removed grid corners commands"
+	\\n1.5.7     Eliminate random cursor jitter during panning"
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
