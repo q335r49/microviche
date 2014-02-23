@@ -1180,7 +1180,18 @@ fun! TXBload(...)
 		ec "No plane initialized..."
 		return
 	en
-	let [col0,win0]=[t:txb.ix[bufname("")],winnr()]
+	let [col0,win0]=[get(t:txb.ix,bufname(""),a:0? -1 : -2),winnr()]
+	if col0==-2
+		ec "Current buffer not registered in in plane, use ".s:hkName."A to add"
+		return
+	elseif col0==-1
+		let col0=0
+		only
+		let name=t:txb.name[0]
+		if name!=#expand('%')
+			exe 'e '.escape(name,' ')
+		en
+	en
 	let pos=[bufnr('%'),line('w0')]
 	exe winnr()==1? "norm! mt" : "norm! mt0"
 	let alignmentcmd="norm! 0".pos[1]."zt"
