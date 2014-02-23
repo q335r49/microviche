@@ -1,16 +1,15 @@
 # textabyss
-##Intro
-Textabyss is a **pannable**, **zoomable** 2D text plane written in [vim](http://www.vim.org) script for working on large amounts of text. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
-
 ![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
-
-Text production on the order of even kilobytes per year may often seem unmanageable, leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss offers yet another. It provides a plane that can be appended to as needed as well as means to navigate and either preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning, and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
+* The idea behind textabyss is simple: a _pannable_, _zoomable_, and _expandable_ plane for working on large amounts of text. It is implemented as a script for [vim](http://www.vim.org).
+* **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
+* It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, taking margin notes, and brainstorming.
+* It supports both mouse and keyboard, and features a color map.
 
 ##Installation
-Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
+Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and install by typing `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**.
 
-##Guide
-_Help can be accessed in script usually by pressing **F1**, either after pressing **F10** or when the map is shown._
+##Commands
+_Help can be accessed in script, usually by pressing **F1**, either after pressing **F10** or when the map is shown._
 
 Once installed, press **F10** to begin. You will be prompted for a file pattern. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
@@ -36,7 +35,7 @@ Key | Action
 **o** | Open map (map block = **1 split x 45 lines**)
 **.** | Snap to map grid
 
-You can navigate the map much as in vim, via **h**, **j**, **k**, **l**. Some basic block manipulation commands are also provided under the familiar vim mnemonics. The complete list of commands is:
+You can navigate the map much as in vim, via **h**, **j**, **k**, **l**. Some basic block manipulation commands are also provided under the familiar vim mnemonics. The complete list of commands in map mode is:
 
 Key | Action
 --- | ---
@@ -65,7 +64,7 @@ Mouse | Action
 
 Note that, as above, mouse commands only work when `ttymouse` is set to `xterm2` or `sgr`. Unlike for plane navigation, a limited set of features will still work when `ttymouse` is `xterm`.
 
-##Advanced
+##Issues
 
 ####Mousing Problems
 If the mouse doesn't pan, try `:set ttymouse=sgr` or `:set ttymouse=xterm2`. `xterm` does not report dragging and so is unsupported. Most other modes should work but might take a speed penalty.
@@ -82,6 +81,8 @@ When at the bottom of a split much longer than its neighbors, desyncing may occu
 ####Horizontal Splits
 
 Horizontal splits aren't supported and may interfere with panning.
+
+##Advanced
 
 ####Map Label Syntax
 
