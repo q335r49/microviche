@@ -1,9 +1,10 @@
 # textabyss
->_A pannable, zoomable 2D text plane for [vim](http://www.vim.org) for working on a lifetime's worth of prose. Navigate with the mouse, keyboard, or via a map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
->
->![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
->
->Text production on the order of even kilobytes per year may often seem unmanageable, leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss offers yet another. It provides a plane that can be appended to as needed as well as means to navigate and either preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning, and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
+##Intro
+Textabyss is a **pannable**, **zoomable** 2D text plane written in [vim](http://www.vim.org) script for working on large amounts of text. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
+
+![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
+
+Text production on the order of even kilobytes per year may often seem unmanageable, leading to the buildup of hundreds or thousands of pages in mysteriously named folders. Solutions like desktop indexing and personal wikis provide some measure of control; textabyss offers yet another. It provides a plane that can be appended to as needed as well as means to navigate and either preemptively or retroactively map out this plane. Ideally, one would be able to access recent additions simply by panning, and writings from potentially years earlier by scanning the map. It presents some unique advantages over indexing, hyperlinking, and hierarchical organizing.
 
 ##Installation
 Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and type `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**. Earlier releases can be found at [vim.org/scripts](http://www.vim.org/scripts/script.php?script_id=4835) or under the releases tab.
