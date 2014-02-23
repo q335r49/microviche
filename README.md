@@ -105,7 +105,7 @@ Syntax | Action
 **M** | Shift view so cursor is at the Middle line (overrides r,R)
 **W** | Virtual window width (see below)
 
-These commands work much like normal mode commands. For example, `* Heading##sjjjM`, `* Heading##s3jM`, and `* Heading##M3js` all accomplish the same task of shifting the view left by one split, moving the cursor down 3 lines, and vertically centering the cursor.
+The order of the commands do not matter: for example, `* Heading##sjjjM`, `* Heading##s3jM`, and `* Heading##M3js` all accomplish the same task of shifting the view left by one split, moving the cursor down 3 lines, and vertically centering the cursor. A typical use case is `* Heading##20jCM`, which would just put the cursor on the 20th line and that line at the direct center of the screen.
 
 By default, `s` won't move the split offscreen. For example, `45s` will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would cause `2s30W` to shift 2 splits, but only up to the point where 30 columns of the split are still visible (and usually less than that).
 
