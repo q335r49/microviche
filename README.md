@@ -83,7 +83,7 @@ Syntax | Action
 
 The order of the commands do not matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view.
 
-`W` changes the behvior of the `s` command. By default, `s` won't move the split offscreen, but only enough to push the target split to the right edge. So, for example, `45s` won't actually shift the view left 45 splits. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would mean that `2s30W` would either shift 2 splits or up to the point where 30 columns of the split are still visible.
+`W` changes the behavior of the `s` command. By default, `s` won't move the split offscreen, but only enough to push the target split to the right edge. So, for example, `45s` won't actually shift the view left 45 splits. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would mean that `2s30W` would either shift 2 splits or up to the point where 30 columns of the split are still visible.
 
 When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
 

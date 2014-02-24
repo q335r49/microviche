@@ -16,14 +16,15 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
 
-"Some ease of use mappings (comment / uncomment to toggle)
-"	no <expr> G s:TXBG(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
-"	no <expr> gg s:TXBgg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
+"Some ease of use mappings -- (un)comment to toggle
+"	no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
+"	no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
 
 "Reasons for changing internal settings:
 	se noequalalways                  "[Do not change] Needed for correct panning
 	se winwidth=1                     "[Do not change] Needed for correct panning
 	se winminwidth=0                  "[Do not change] Needed For correct panning
+	se viminfo+=!                     "Needed to save map and plane in between sessions
 	se sidescroll=1                   "Smoother panning
 	se nostartofline                  "Keeps cursor in the same position when panning
 	se mouse=a                        "Enables mouse
@@ -39,7 +40,7 @@ augroup TXB
 		au VimResized * call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()'))
 	en
 augroup END
-fun! <sid>centerCursor(row,col)
+fun! <SID>centerCursor(row,col)
 	if !exists('t:txb') | return | en
 	let restoreView='norm! '.virtcol('.').'|'
 	call TXBload()
@@ -48,11 +49,11 @@ fun! <sid>centerCursor(row,col)
 	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
 endfun
 
-fun! s:TXBG(count)
+fun! <SID>G(count)
 	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
 	return (mode=='no'? "\<esc>0".v:operator : mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '$' : '')
 endfun
-fun! s:TXBgg(count)
+fun! <SID>gg(count)
 	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')-1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','Wb')? line('.') : 1]
 	return (mode=='no'? "\<esc>$".v:operator :  mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '0' : '')
 endfun
