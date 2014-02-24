@@ -1,7 +1,5 @@
-# textabyss
-![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/ta2.gif)     .     ![Map](https://raw.github.com/q335r49/textabyss/gh-pages/images/tamap.png)
-* The idea behind textabyss is simple: a _pannable_, _zoomable_, and _expandable_ plane for working on large amounts of text. It is implemented as a script for [vim](http://www.vim.org).
-* **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
+![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif)
+Textabyss is a **pannable**, **zoomable** plane for working on large amounts of text. It is implemented as a script for [vim](http://www.vim.org). 
 * It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, taking margin notes, and brainstorming.
 * It supports both mouse and keyboard, and features a color map.
 
