@@ -4,21 +4,19 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 
 "Plane settings
 	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call <SID>initPlane()\|en<cr>
-	                                   "Load plane, activate keyboard commands
-	let s:hkName='<f10>'               "The name of the above key, used for help files
+	                                   "Hotkey to load plane and activate keyboard commands
+	let s:hkName='<f10>'               "The name of the above key (used for help files)
 	let s:panL=15                      "Lines panned with jk
 	let [s:aniStepH,s:aniStepV]=[9,2]  "Keyboard pan animation step horizontal / vertical (higher pans faster)
-	let s:mouseAcc=[0,1,2,4,7,10,15,21,24,27]       "mouse moves N -> pan mouseAcc[N]
-
+	let s:mouseAcc=[0,1,2,4,7,10,15,21,24,27]       "for every N steps mouse moves, pan mouseAcc[N] steps
 "Map settings
 	let s:mapL=45                      "Map grid corresponds to 1 split x s:mapL lines
 	let [s:mBlockH,s:mBlockW]=[2,5]    "Map grid displayed as s:mBlockH lines x s:mBlockW columns
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
-
-"Some ease of use mappings -- (un)comment to toggle
-"	no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
-"	no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
+"Optional mappings -- (un)comment to toggle
+	"no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
+	"no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
 
 "Reasons for changing internal settings:
 	se noequalalways                  "[Do not change] Needed for correct panning
@@ -97,7 +95,72 @@ fun! s:printHelp()
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
-let TXB_PREVPAT=exists('TXB_PREVPAT')? TXB_PREVPAT : ''
+fun! <SID>initPlane(...)                                          
+	if !a:0
+		if &ttymouse==?"xterm"
+			echom "WARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging. Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
+			echom "WARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'. Your current setting is: ".&ttymouse
+		en
+		if v:version < 703 || v:version==703 && !has('patch30')
+			echom "WARNING: Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions."
+			echom "    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
+		en
+		let arg=exists('g:TXB') && type(g:TXB)==4? g:TXB : exists('TXB_PREVPAT')? g:TXB_PREVPAT : ''
+	else
+		let arg=a:1
+	en
+	let plane=type(arg)==1? s:makePlane(arg) : type(arg)==4? arg : {'name':''}
+	if !empty(plane.name)
+		ec a:0? "\nPattern matches:" : type(arg)==4? "\nPrevious plane had:" : "\nPrevious pattern matched:"
+		let curbufix=index(plane.name,expand('%'))
+		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
+		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
+		ec "(Press ENTER to load, ESC to try something else, or F1 for help)"
+		let c=getchar()
+	elseif a:0
+		ec "\n    (No matches found)"
+		let c=0
+	else
+		let c=0
+	en
+	if c==13 || c==10
+		if curbufix==-1 | tabe | en
+		let g:TXB=plane
+		if type(arg)==1
+			let g:TXB_PREVPAT=arg
+		en
+		call TXBload(plane)
+	elseif c is "\<f1>"
+		call s:printHelp() 
+	else
+		let input=input("> Enter file pattern or type HELP: ", exists('g:TXB_PREVPAT')? g:TXB_PREVPAT : '')
+		if input==?'help'
+			call s:printHelp()
+		elseif !empty(input)
+			call <SID>initPlane(input)
+		en
+	en
+endfun
+fun! s:makePlane(name,...)
+	let plane={}
+	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	if plane.name is 'INV'
+     	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
+	else
+		let plane.len=len(plane.name)
+		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
+		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
+		let [plane.ix,i]=[{},0]
+		let plane.map=[[]]
+		for e in plane.name
+			let [plane.ix[e],i]=[i,i+1]
+		endfor
+		let plane.gridnames=s:getGridNames(plane.len+50)
+		return plane
+	en
+endfun
+
 
 let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
 let TXBkyCmd["\<c-a>"]=":call TXBanchor(1)\<cr>"
@@ -1044,42 +1107,6 @@ let TXBkyCmd.r="call TXBload(t:txb)|redr|let s:kc__msg='(redrawn)'|let s:kc__con
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
 
-fun! <SID>initPlane(...)                                          
-	if &ttymouse==?"xterm"
-		echoerr "Warning: ttymouse is set to 'xterm', which doesn't report mouse dragging. Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
-	elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-   		echoerr "Warning: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'. Your current setting is: ".&ttymouse
-	en
-	let preventry=a:0 && a:1 isnot 0? a:1 : exists("g:TXB") && type(g:TXB)==4? g:TXB : exists("g:TXB_PREVPAT")? g:TXB_PREVPAT : ''
-	let plane=type(preventry)==1? s:makePlane(preventry) : type(preventry)==4? preventry : {'name':''}
-	if !empty(plane.name)
-		ec "\n" (a:0 && a:1 isnot 0? "This" : "Previous") (type(preventry)==4? "plane has:" : "pattern matches:")
-		let curbufix=index(plane.name,expand('%'))
-		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
-		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
-		ec "(Press ENTER to load, ESC to try something else, or F1 for help)"
-		let c=getchar()
-	else
-		let c=0
-	en
-	if c==13 || c==10
-		if curbufix==-1 | tabe | en
-		let [g:TXB,g:TXB_PREVPAT]=[plane,type(preventry)==1? preventry : g:TXB_PREVPAT]
-		call TXBload(plane)
-	elseif c is "\<f1>"
-		call s:printHelp() 
-	else
-		let input=input("> Enter file pattern or type HELP: ", g:TXB_PREVPAT)
-		if empty(input)
-			redr|ec "(aborted)"
-		elseif input==?'help'
-			call s:printHelp()
-		else
-			call <SID>initPlane(input)
-		en
-	en
-endfun
-
 fun! s:editSplitSettings()
    	let ix=get(t:txb.ix,expand('%'),-1)
 	if ix==-1
@@ -1108,25 +1135,6 @@ fun! s:editSplitSettings()
 			endfor
 		en
 		call TXBload(t:txb)
-	en
-endfun
-
-fun! s:makePlane(name,...)
-	let plane={}
-	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
-	if plane.name is 'INV'
-     	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
-	else
-		let plane.len=len(plane.name)
-		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
-		let [plane.ix,i]=[{},0]
-		let plane.map=[[]]
-		for e in plane.name
-			let [plane.ix[e],i]=[i,i+1]
-		endfor
-		let plane.gridnames=s:getGridNames(plane.len+50)
-		return plane
 	en
 endfun
 
