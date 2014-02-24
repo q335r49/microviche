@@ -3,7 +3,7 @@
 
 **Install** by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.vim)** the latest version of nav.vim, opening vim, and typing `:source ~/Downloads/nav.vim` (or wherever you downloaded the file).
 
-**Help** is available in script by typing `help` at the prompt (before loading plane), by pressing **F10 F1** (after loading plane), or **F1** in map mode.
+**Help** is available in script, typically by pressing **F1** after pressing *F10** or in map mode.
 
 ###The Plane
 
