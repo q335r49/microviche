@@ -13,10 +13,10 @@ Once the plane is shown, move around either by dragging the mouse or by pressing
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-**h j k l*** | Pan left **1 split** / down **15 lines** / up / right | | **F1** | Help
-**y u b n*** | Pan upleft / downleft / upright / downright | | **A D E** | Append split / Delete split / Edit split
+**h j k l** | Pan left **1 split** / down **15 lines** / up / right[\*] | | **F1** | Help
+**y u b n** | Pan upleft / downleft / upright / downright[\*] | | **A D E** | Append split / Delete split / Edit split
 | **r**  | Redraw    | | **^X**| Delete hidden buffers
-|**o** | Open map | | **q Esc** | Abort
+|**o** | Open map | | **q esc** | Abort
 |**.** | Snap to map grid | | | 
 _\* Movements take a count (capped at 99). For example, 3j is the same as jjj._  
 
