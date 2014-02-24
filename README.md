@@ -9,36 +9,36 @@ Install by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.v
 
 Press **F10** to bring up a prompt that reads `Enter file pattern or type HELP:`. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
-Once the plane is shown, move around either by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The full list of commands accessed via **F10** is: 
+Once the plane is shown, move around either by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The complete list of commands accessed via **F10** is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 **h j k l*** | Pan left **1 split** / down **15 lines** / up / right | | **F1** | Help
 **y u b n*** | Pan upleft / downleft / upright / downright | | **A D E** | Append split / Delete split / Edit split
-| **r**  | redraw    | | **^X**| Delete hidden buffers
-|**o** | Open map (map block = **1 split x 45 lines**) | | **q Esc** | Abort
+| **r**  | Redraw    | | **^X**| Delete hidden buffers
+|**o** | Open map | | **q Esc** | Abort
 |**.** | Snap to map grid | | | 
 _\* Movements take a count (capped at 99). For example, 3j is the same as jjj._  
 
 ###The Map
 
-Press **F10 o** to access the map. You can navigate the map by dragging the mouse or via **h**, **j**, **k**, **l**. Some basic map manipulation commands are also provided under familiar vim mnemonics. The complete list of commands in map mode:
+Press **F10 o** to access the map. Each map cell corresponds to **1 split** (column) x **45 lines** in the plane. Navigate the map by dragging the mouse or via **h**, **j**, **k**, **l**. The complete list of commands in map mode:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-**h j k l*** | left / right / up / down | | **c i** | Change label
-**y u b n*** | leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
+**h j k l*** | Left / right / up / down | | **c i** | Change label
+**y u b n*** | Leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
 **0 $** | Start / end of line | | **I D** | Insert / Delete (and obtain) column
 **H M L** | High / Middle / Low of screen | | **Z** | Zoom (adjust map block size)
 **x** | Clear (and obtain) cell | | **T** | Toggle color
-**o O p P** | obtain (cell / column) / Put (after / before) | | **F1** | Help
-**q**| quit | | |
+**o O p P** | Obtain (cell / column) / Put (after / before) | | **F1** | Help
+**q**| Quit | | |
 _\* Movements take a count (capped at 99). For example, 3j is the same as jjj._  
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
 **doubleclick** | Go to block | | **click at topleft corner** | Quit
-**drag** | Pan | | **drag to topleft corner** | (while in plane) Show map
+**drag** | Pan | | **drag to topleft corner** | (While in plane) Show map
 
 ###Issues
 
