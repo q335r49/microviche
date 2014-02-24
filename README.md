@@ -1,7 +1,9 @@
-![Panning](https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif)
-Textabyss is a **pannable**, **zoomable** plane for working on large amounts of text. It is implemented as a script for [vim](http://www.vim.org). 
-* It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, taking margin notes, and brainstorming.
-* It supports both mouse and keyboard, and features a color map.
+
+<p align="center">
+  <img scr="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
+</p>
+
+Textabyss is a **pannable**, **zoomable** plane for working on large amounts of text, implemented as a script for [vim](http://www.vim.org). It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. **[Check out the youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**_
 
 ##Installation
 Download [the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim), open [vim](http://www.vim.org), and install by typing `:source nav.vim` (or wherever you downloaded the file). Once sourced, press **F10** to begin. Help is baked in, usually by pressing **F1** after **F10**.
