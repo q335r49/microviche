@@ -3,13 +3,13 @@
 
 **Install** by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.vim)** the latest version of nav.vim, opening vim, and typing `:source ~/Downloads/nav.vim` (or wherever you downloaded the file).
 
-**Help** is available in script, typically by pressing **F1** after pressing *F10** or in map mode.
+**Help** is available in script, typically by pressing **F1** after pressing **F10** or in map mode.
 
 ###The Plane
 
-Press **F10** to bring up a prompt that reads `Enter file pattern or type HELP:`. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
+Press **F10** to bring up the prompt `Enter file pattern or type HELP:`. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
-Once the plane is shown, move around either by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The complete list of commands accessed via **F10** is: 
+Once the plane is shown, move around by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The complete list of commands accessed via **F10** is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
@@ -18,22 +18,22 @@ Key | Action | | Key | Action
  **r**  | Redraw    | | **^X**| Delete hidden buffers
 **o** | Open map | | **q esc** | Abort
 **.** | Snap to map grid | | | 
-_\* hjklyubn take a count, capped at 99. For example, 3j is the same as jjj._  
+_\* The hjklyubn keys take a count, capped at 99. For example, 3j is the same as jjj._  
 
 ###The Map
 
-Press **F10 o** to access the map. Each map cell corresponds to **1 split** (column) x **45 lines** in the plane. Navigate the map by dragging the mouse or via **h**, **j**, **k**, **l**. The complete list of commands in map mode:
+Press **F10 o** to access the map. Each map cell corresponds to **1 split** (column) x **45 lines** in the plane. Navigate the map by dragging the mouse or via **h**, **j**, **k**, **l**. The complete list of commands in map mode is:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-**h j k l*** | Left / right / up / down | | **c i** | Change label
-**y u b n*** | Leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
+**h j k l** | Left / right / up / down | | **c i** | Change label
+**y u b n** | Leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
 **0 $** | Start / end of line | | **I D** | Insert / Delete (and obtain) column
 **H M L** | High / Middle / Low of screen | | **Z** | Zoom (adjust map block size)
 **x** | Clear (and obtain) cell | | **T** | Toggle color
 **o O p P** | Obtain (cell / column) / Put (after / before) | | **F1** | Help
 **q**| Quit | | |
-_\* hjklyubn take a count, capped at 99. For example, 3j is the same as jjj._  
+_\* The hjklyubn keys take a count, capped at 99. For example, 3j is the same as jjj._  
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
@@ -43,7 +43,7 @@ Mouse | Action | | Mouse | Action
 ###Troubleshooting
 
 ####Mousing Problems
-If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Most other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be truncated), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
+If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
 ####Saving
 The plane and map are saved in the `viminfo` file. The script automatically sets the viminfo to save global variables via `:set viminfo+=!`. The saved plane will be suggested on **F10** the next time you run vim. Note that this will work only for vim versions **7.3.30** and higher, as that is the patch that enables vim to save dictionary variables. You can create backups by backing up your `viminfo` file via `:wviminfo viminfo-backup`.
@@ -66,11 +66,11 @@ The `#` character is reserved to mark syntax regions and, unfortunately, can nev
 
 #####Color
 
-Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the **T** command while in map mode. See `:help highlight` for information on how to define highlight groups.
+Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger!#WarningMsg` should color the label bright red. You can toggle coloring on and off with the **T** command while in map mode. See `:help highlight` for information on how to define highlight groups.
 
 #####Position
 
-Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j). The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j), or perhaps just `* Heading##20jCM` to put that line in the center screen column (C) and the middle line of the screen (L). The complete list of commands is:
 
 Syntax | Action
 --- | ---
@@ -83,7 +83,7 @@ Syntax | Action
 
 The order of the commands do not matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view.
 
-By default, `s` won't move the split offscreen, but only enough to push the target split to the right edge. So, for example, `45s` won't actually shift the view left 45 splits. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would mean that `2s30W` would either shift 2 splits or up to the point where 30 columns of the split are still visible.
+`W` changes the behvior of the `s` command. By default, `s` won't move the split offscreen, but only enough to push the target split to the right edge. So, for example, `45s` won't actually shift the view left 45 splits. This behavior can be modified with the `W` command which specifies a 'virtual width'. For example, `30W` means that the width of the split is treated as though it were 30 columns. This would mean that `2s30W` would either shift 2 splits or up to the point where 30 columns of the split are still visible.
 
 When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
 
