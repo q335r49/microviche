@@ -16,7 +16,7 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
 
-"Optional settings (comment / uncomment to toggle)
+"Some ease of use mappings (comment / uncomment to toggle)
 "	no <expr> G s:TXBG(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
 "	no <expr> gg s:TXBgg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
 
@@ -31,37 +31,22 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	se virtualedit=all                "Makes leftmost split aligns correctly
 	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
 
-if v:version > 703 || v:version==703 && has("patch748")
-	augroup TXB
-		au!
+augroup TXB
+	au!
+	if v:version > 703 || v:version==703 && has("patch748")
 		au VimResized * call <SID>centerCursor(screenrow(),screencol())
-	augroup END
-	fun! <sid>centerCursor(row,col)
-		if exists('t:txb')
-			let restoreView='norm! '.virtcol('.').'|'
-			call TXBload()
-			let pan_y=-(a:row-&lines/2)/2 
-			call s:nav((a:col-&columns/2)/2)
-			exe pan_y>0? 'norm! '.pan_y."\<c-y>" : 'norm! '.(-pan_y)."\<c-e>"
-			exe restoreView
-		en
-	endfun
-else
-	augroup TXB
-		au!
-		au VimResized * call <SID>centerCursor()
-	augroup END
-	fun! <sid>centerCursor()
-		if exists('t:txb')
-			let restoreView='norm! '.virtcol('.').'|'
-			call TXBload()
-			let pan_y=-(winline()-&lines/2)/2 
-			call s:nav(((winnr()==1? wincol() : eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+'))+winnr()-1+wincol())-&columns/2)/2)
-			exe pan_y>0? 'norm! '.pan_y."\<c-y>" : 'norm! '.(-pan_y)."\<c-e>"
-			exe restoreView
-		en
-	endfun
-en
+	else
+		au VimResized * call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()'))
+	en
+augroup END
+fun! <sid>centerCursor(row,col)
+	if !exists('t:txb') | return | en
+	let restoreView='norm! '.virtcol('.').'|'
+	call TXBload()
+	call s:nav(a:col/2-&columns/4)
+	let dy=&lines/4-a:row/2
+	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
+endfun
 
 fun! s:TXBG(count)
 	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
