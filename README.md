@@ -93,7 +93,7 @@ Key | Action
 **F10 ^L** | Insert line anchor
 **F10 ^A** | Align all anchors in split
 
-Line anchors try to address the issue where inserting text at the top of a split misaligns everything below. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
+Line anchors try to address the issue where insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
 
 ####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
