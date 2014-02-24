@@ -1,74 +1,52 @@
-<img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/> TEXTABYSS is a **pannable**, **zoomable** plane for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
+#textabyss
+<img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/> ... is a **pannable**, **zoomable** plane for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=QTIaI_kI_X8).**
 
 Install by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.vim)** the latest version of nav.vim, opening vim, and typing `:source ~/Downloads/nav.vim` (or wherever you downloaded the file).
 
-###Commands
-_Help can be accessed in script, usually by pressing **F10 F1** or **F1** in map mode._
+**HELP** is available in script by typing `help` at the prompt (before loading plane), by pressing **F10 F1** (after loading plane), or **F1** in map mode.
 
-Press **F10** to bring up a file pattern prompt. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
+###The Plane
 
-Once the plane is shown, move around either by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The full list of commands (press **F10** to access): 
+Press **F10** to bring up a prompt that reads `Enter file pattern or type HELP:`. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
-Key | Movement
------ | -----
-**h j k l** | Pan left **1 split** / down **15 lines** / up / right
-**y u b n** | Pan upleft / downleft / upright / downright
-_Movements take a count (capped at 99). For example, 3j is the same as jjj._  
+Once the plane is shown, move around either by dragging the mouse or by pressing **F10** followed by the standard vim keys **h**, **j**, **k**, and **l**. The full list of commands accessed via **F10** is: 
 
-Key | Command
----- | ----
-**r** | Redraw
-**D A E** | Delete split / Append split / Edit split settings
-**F1** | Help
-**q ESC** | Abort
-**^X** | Delete hidden buffers
+Key | Action | | Key | Action
+----- | ----- | --- | --- | ---
+**h j k l*** | Pan left **1 split** / down **15 lines** / up / right | | **F1** | Help
+**y u b n*** | Pan upleft / downleft / upright / downright | | **A D E** | Append split / Delete split / Edit split
+| **r**  | redraw    | | **^X**| Delete hidden buffers
+|**o** | Open map (map block = **1 split x 45 lines**) | | **q Esc** | Abort
+|**.** | Snap to map grid | | | 
+_\* Movements take a count (capped at 99). For example, 3j is the same as jjj._  
 
-The following commands relate to the map:
+###The Map
 
-Key | Command
---- | --- 
-**o** | Open map (map block = **1 split x 45 lines**)
-**.** | Snap to map grid
+Press **F10 o** to access the map. You can navigate the map by dragging the mouse or via **h**, **j**, **k**, **l**. Some basic map manipulation commands are also provided under familiar vim mnemonics. The complete list of commands in map mode:
 
-####The Map
+Key | Action | | Key | Action
+--- | --- | --- | --- | ---
+**h j k l*** | left / right / up / down | | **c i** | Change label
+**y u b n*** | leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
+**0 $** | Start / end of line | | **I D** | Insert / Delete (and obtain) column
+**H M L** | High / Middle / Low of screen | | **Z** | Zoom (adjust map block size)
+**x** | Clear (and obtain) cell | | **T** | Toggle color
+**o O p P** | obtain (cell / column) / Put (after / before) | | **F1** | Help
+**q**| quit | | |
+_\* Movements take a count (capped at 99). For example, 3j is the same as jjj._  
 
-You can navigate the map much as in vim, via **h**, **j**, **k**, **l**. Some basic map manipulation commands are also provided under familiar vim mnemonics. The complete list of commands in map mode:
-
-Key | Movement
---- | ---
-**h j k l*** | left / right / up / down
-**y u b n*** | leftup / leftdown / rightup / rightdown
-**0 $** | Start / end of line
-**H M L** | High / Middle / Low of screen
-_Some movements take a count (capped at 99). For example, 3j is the same as jjj._
-
-Key | Command
---- | ---
-**x** | Clear (and obtain) cell
-**o O p P** | obtain cell / Obtain column / Put obtained after / before
-**c i** | Change label
-**g <cr>** | Go to block and exit map
-**I D** | Insert / Delete (and obtain) column
-**Z** | Zoom (adjust map block size)
-**T** | Toggle color
-**q** | Quit
-
-You can also use the mouse:
-
-Mouse | Action
---- | --- 
-**doubleclick** | Go to block
-**drag** | Pan
-**click at topleft corner** | Quit
-**drag to topleft corner** | Show map
+Mouse | Action | | Mouse | Action
+--- | --- | --- | --- | ---
+**doubleclick** | Go to block | | **click at topleft corner** | Quit
+**drag** | Pan | | **drag to topleft corner** | (while in plane) Show map
 
 ###Issues
 
 ####Mousing Problems
-If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` (eg, `:set ttymouse=sgr`). `xterm` doesn't report dragging and so is unsupported. Most other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be truncated), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
+If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Most other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be truncated), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
 ####Saving
-The plane and map are saved in the your `viminfo` file, so you must set your viminfo to save global variables (`:set viminfo+=!`) for this to work. The saved plane will be suggested on **F10** the next time you run vim. Note that this will work only for vim v7.3.030 and higher. 
+The plane and map are saved in the `viminfo` file. The script automatically sets the viminfo to save global variables via `:set viminfo+=!`. The saved plane will be suggested on **F10** the next time you run vim. Note that this will work only for vim versions **7.3.30** and higher, as that is the patch that enables vim to save dictionary variables. You can create backups by backing up your `viminfo` file via `:wviminfo viminfo-backup`.
 
 ####Directories
 Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
@@ -84,7 +62,7 @@ Horizontal splits aren't supported and may interfere with panning.
 
 ####Map Label Syntax
 
-The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself. The general syntax is `Map Label#optional highlight group#optional positioning command`
+The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself. The general syntax is: `Map Label#optional highlight group#optional positioning command`
 
 #####Color
 
@@ -112,19 +90,20 @@ When movement syntax is defined for a block, snap to grid (**F10 .**) will execu
 ####Line Anchors
 Key | Action
 --- | ---
-**^L** | Insert line anchor
-**^A** | Align all anchors in split
+**F10 ^L** | Insert line anchor
+**F10 ^A** | Align all anchors in split
 
 Line anchors try to address the issue where inserting text at the top of a split misaligns everything below. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
 
 ####Scripting interface
 The plane itself can be accessed via the `t:txb` variable when in the tab where the plane is loaded.
 
-You can manually restore via `TXBload()`: 
+You can manually restore via `TXBload(plane)`: 
 ```
+:let COPY=deepcopy(t:txb)    "make a copy
 :let BACKUP=t:txb            "get plane
 :call TXBload(BACKUP)        "load plane
 ```
-Keyboard commands can be accessed via `TXBdoCmd()`. For example, the following mapping will activate the map with a doubleclick
+Keyboard commands can be accessed via `TXBdoCmd(key)`. For example, the following mapping will activate the map with a doubleclick
 ```
 nmap <2-leftmouse> :if exists("t:txb")\| call TXBdoCmd("o") \| en<cr>`
