@@ -40,7 +40,7 @@ Mouse | Action | | Mouse | Action
 **doubleclick** | Go to block | | **click at topleft corner** | Quit
 **drag** | Pan | | **drag to topleft corner** | (While in plane) Show map
 
-###Issues
+###Troubleshooting
 
 ####Mousing Problems
 If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Most other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be truncated), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
