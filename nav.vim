@@ -110,17 +110,6 @@ fun! s:printHelp()
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
-fun! TXBdeleteCol(index)
-	call remove(t:txb.name,a:index)	
-	call remove(t:txb.size,a:index)	
-	call remove(t:txb.exe,a:index)	
-	let t:txb.len=len(t:txb.name)
-	let [t:txb.ix,i]=[{},0]
-	for e in t:txb.name
-		let [t:txb.ix[e],i]=[i,i+1]
-	endfor
-endfun
-
 fun! <SID>initPlane(...)                                          
 	let filtered=[]
 	if !a:0
@@ -1176,7 +1165,7 @@ let TXBkyCmd.D="redr\n
 \if confirm==?'y'\n
 	\let ix=get(t:txb.ix,expand('%'),-1)\n
 	\if ix!=-1\n
-		\call TXBdeleteCol(ix)\n
+		\call s:deleteSplit(ix)\n
 		\wincmd W\n
 		\call TXBload(t:txb)\n
 		\let s:kc__msg='col '.ix.' removed'\n
@@ -1195,7 +1184,7 @@ let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 			\call TXBload(t:txb)\n
 			\let s:kc__msg='col '.(ix+1).' appended'\n
 		\catch\n
-			\call TXBdeleteCol(ix)\n
+			\call s:deleteSplit(ix)\n
 			\let s:kc__msg='Error detected while loading plane: file append aborted'\n
 		\endtry\n
 	\else\n
@@ -1242,6 +1231,16 @@ fun! s:editSplitSettings()
 	en
 endfun
 
+fun! s:deleteSplit(index)
+	call remove(t:txb.name,a:index)	
+	call remove(t:txb.size,a:index)	
+	call remove(t:txb.exe,a:index)	
+	let t:txb.len=len(t:txb.name)
+	let [t:txb.ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb.ix[e],i]=[i,i+1]
+	endfor
+endfun
 fun! s:appendSplit(index,file,...)
 	if empty(a:file)
 		return 'File name is empty'
