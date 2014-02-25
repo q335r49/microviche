@@ -62,7 +62,8 @@ Horizontal splits aren't supported and may interfere with panning.
 
 ####Map Label Syntax
 
-The `#` character is reserved to mark syntax regions and, unfortunately, can never be used in the label itself. The general syntax is: `Map Label#optional highlight group#optional positioning command`
+The general syntax is: `Map Label#optional highlight group#optional positioning command`.
+`#` is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
 
 #####Color
 
@@ -72,14 +73,11 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j), or perhaps just `* Heading##20jCM` to put that line in the center screen column (C) and the middle line of the screen (L). The complete list of commands is:
 
-Syntax | Action
---- | ---
-**j k l** | Move cursor down / up / right
-**r R** | Shift view down / up 1 Row (1 line)
-**s** | Shift view left 1 Split
-**C** | Shift view to Center cursor horizontally (overrides s)
-**M** | Shift view so cursor is at the Middle line (overrides r,R)
-**W** | Virtual window width (see below)
+Syntax | Action | | Syntax | Action
+--- | --- | --- | --- | ---
+**j k l** | Move cursor down / up / right | |**C** | Shift view to Center cursor horizontally (overrides s)
+**r R** | Shift view down / up 1 Row (1 line) | |**M** | Shift view so cursor is at the Middle line (overrides r,R)
+**s** | Shift view left 1 Split | |**W** | Virtual window width (see below)
 
 The order of the commands do not matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view.
 

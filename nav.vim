@@ -14,9 +14,8 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	let [s:mBlockH,s:mBlockW]=[2,5]    "Map grid displayed as s:mBlockH lines x s:mBlockW columns
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
-"Optional mappings -- (un)comment to toggle
-	"no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
-	"no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
+"Optional components -- uncomment to activate
+	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
 
 "Reasons for changing internal settings:
 	se noequalalways                  "[Do not change] Needed for correct panning
@@ -29,6 +28,20 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	se lazyredraw                     "Less redraws
 	se virtualedit=all                "Makes leftmost split aligns correctly
 	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
+
+if exists('s:option_remap_G_gg') && s:option_remap_G_gg==1
+	fun! <SID>G(count)
+		let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
+		return (mode=='no'? "\<esc>0".v:operator : mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '$' : '')
+	endfun
+	fun! <SID>gg(count)
+		let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')-1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','Wb')? line('.') : 1]
+		return (mode=='no'? "\<esc>$".v:operator :  mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '0' : '')
+	endfun
+	no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
+	no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
+	unlet s:option_remap_G_gg
+endif
 
 augroup TXB
 	au!
@@ -47,14 +60,6 @@ fun! <SID>centerCursor(row,col)
 	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
 endfun
 
-fun! <SID>G(count)
-	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
-	return (mode=='no'? "\<esc>0".v:operator : mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '$' : '')
-endfun
-fun! <SID>gg(count)
-	let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')-1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','Wb')? line('.') : 1]
-	return (mode=='no'? "\<esc>$".v:operator :  mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '0' : '')
-endfun
 nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -86,6 +91,7 @@ fun! s:printHelp()
 	\\n    ^A          Align all text anchors in split
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.4     Center and redraw on zoom
 	\\n1.6.2     Line anchors
 	\\n1.6.1     Movement commands (map and plane) now take counts
 	\\n1.6.0     Map positioning syntax added
@@ -98,25 +104,41 @@ endfun
 fun! <SID>initPlane(...)                                          
 	if !a:0
 		if &ttymouse==?"xterm"
-			echom "WARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging. Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+			echom "WARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging."
+			echom "    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-			echom "WARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'. Your current setting is: ".&ttymouse
+			echom "WARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'."
+			echom "    Your current setting is: ".&ttymouse
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
 			echom "WARNING: Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions."
 			echom "    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
-		let arg=exists('g:TXB') && type(g:TXB)==4? g:TXB : exists('TXB_PREVPAT')? g:TXB_PREVPAT : ''
+       	if exists('g:TXB') && type(g:TXB)==4
+			let plane=g:TXB
+			let msg="\nRestore last session (map and plane)? (ENTER / ESC / F1 for help)"
+
+			"account for deleted files
+
+		elseif exists('TXB_PREVPAT')
+        	let plane=s:makePlane(g:TXB_PREVPAT)
+			let msg="\nUse last used pattern '".g:TXB_PREVPAT."'? (ENTER / ESC / F1 for help)"
+		else
+			let plane={'name':''}
+		en
 	else
-		let arg=a:1
+		let plane=s:makePlane(a:1)
+		let msg="\nUse current pattern '".a:1."'? (ENTER / ESC / F1 for help)"
 	en
-	let plane=type(arg)==1? s:makePlane(arg) : type(arg)==4? arg : {'name':''}
 	if !empty(plane.name)
-		ec a:0? "\nPattern matches:" : type(arg)==4? "\nPrevious plane had:" : "\nPrevious pattern matched:"
 		let curbufix=index(plane.name,expand('%'))
-		ec join(map(copy(plane.name),'(curbufix==v:key? " -> " : "    ").v:val'),"\n")
-		ec " ..." plane.len "files to be loaded in" (curbufix!=-1? "THIS tab" : "NEW tab")
-		ec "(Press ENTER to load, ESC to try something else, or F1 for help)"
+		if curbufix==-1
+			ec "\n  " join(plane.name,"\n   ") msg
+		else
+			let displist=copy(plane.name)
+			let displist[curbufix].=' (current file)'
+			ec "\n  " join(displist,"\n   ") "\n(Plane will be loaded in current tab)" msg
+		en
 		let c=getchar()
 	elseif a:0
 		ec "\n    (No matches found)"
@@ -127,14 +149,14 @@ fun! <SID>initPlane(...)
 	if c==13 || c==10
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
-		if type(arg)==1
-			let g:TXB_PREVPAT=arg
+		if a:0
+			let g:TXB_PREVPAT=a:1
 		en
 		call TXBload(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	else
-		let input=input("> Enter file pattern or type HELP: ", exists('g:TXB_PREVPAT')? g:TXB_PREVPAT : '')
+		let input=input("> Enter file pattern or type HELP: ")
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
@@ -142,9 +164,10 @@ fun! <SID>initPlane(...)
 		en
 	en
 endfun
+
 fun! s:makePlane(name,...)
 	let plane={}
-	let plane.name=type(a:name)==1? map(split(glob(a:name)),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	let plane.name=type(a:name)==1? map(filter(split(glob(a:name),"\n"),'!isdirectory(v:val)'),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
 	if plane.name is 'INV'
      	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
 	else
@@ -160,7 +183,6 @@ fun! s:makePlane(name,...)
 		return plane
 	en
 endfun
-
 
 let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
 let TXBkyCmd["\<c-a>"]=":call TXBanchor(1)\<cr>"
