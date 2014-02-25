@@ -57,7 +57,7 @@ You can then restore via either:
 :call TXBload(BACKUP01) "load backup in new tab  
 :let g:TXB=BACKUP01     "overwrite currently saved plane, load on F10
 ```
-The main difference is that the latter will check for invalid file names, while the former will load the plane as-is, producing errrors if files are invalid, such as through deletions.
+The latter method is recommended as it will check for invalid file names (eg, if some of the files have been deleted).
 
 Alternatively, you can save a snapshot of the viminfo via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
 

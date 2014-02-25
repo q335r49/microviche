@@ -90,13 +90,14 @@ fun! s:printHelp()
 	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
 	\\nYou can then restore via either:
 	\\n    :call TXBload(BACK01)       \"load in a new tab, or ...
-	\\n    :let g:TXB=BACK01           \"overwrite saved plane and load on ".s:hkName."\n
+	\\n    :let g:TXB=BACK01           \"overwrite saved plane and load on ".s:hkName."
+	\\nThe latter method is recommended since it will check for invalid file names (eg, if some files of the files have been deleted).\n
 	\\nAlternatively, you can save a snapshot of the viminfo via:
 	\\n    :wviminfo viminfo-backup-01\n
 	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
-	\\n--- Line Anchors ---\n
+	\\n--- Line Anchors ---
 	\\n    ^L          Insert line anchor
-	\\n    ^A          Align all text anchors in split
+	\\n    ^A          Align all text anchors in split\n
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
 	\\n1.6.5     Lots of initialization fixes
@@ -256,9 +257,9 @@ fun! s:makePlane(name,...)
 endfun
 
 let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
-let TXBkyCmd["\<c-a>"]=":call TXBanchor(1)\<cr>"
-fun! TXBanchor(interactive)
-	let restoreView='norm! '.line('w0').'zt'.line('.').'j'.virtcol('.').'|'
+let TXBkyCmd["\<c-a>"]=":call s:anchor(1)\<cr>"
+fun! s:anchor(interactive)
+	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
 	let line=search('^txb:','W')
 	1
 	if a:interactive
