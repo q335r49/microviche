@@ -147,15 +147,12 @@ fun! <SID>initPlane(...)
 			else
 				let msg="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
 			en
-		elseif exists('TXB_PREVPAT')
-        	let plane=s:makePlane(g:TXB_PREVPAT)
-			let msg="\nUse last used pattern '".g:TXB_PREVPAT."'?\n -> Type ENTER / ESC / F1 for help:"
 		else
 			let plane={'name':''}
 		en
 	else
 		let plane=s:makePlane(a:1)
-		if a:0 && exists('g:TXB') && type(g:TXB)==4
+		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\nWARNING: The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 		else
 			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
@@ -183,9 +180,6 @@ fun! <SID>initPlane(...)
 		if c==79
 			if curbufix==-1 | tabe | en
 			let g:TXB=plane
-			if a:0
-				let g:TXB_PREVPAT=a:1
-			en
 			call TXBload(plane)
 		elseif c is "\<f1>"
 			call s:printHelp() 
@@ -201,9 +195,6 @@ fun! <SID>initPlane(...)
 		if c==82
 			if curbufix==-1 | tabe | en
 			let g:TXB=plane
-			if a:0
-				let g:TXB_PREVPAT=a:1
-			en
 			call TXBload(plane)
 		elseif c is "\<f1>"
 			call s:printHelp() 
@@ -218,9 +209,6 @@ fun! <SID>initPlane(...)
     elseif c==13 || c==10
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
-		if a:0
-			let g:TXB_PREVPAT=a:1
-		en
 		call TXBload(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
