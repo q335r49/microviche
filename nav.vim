@@ -122,7 +122,7 @@ fun! <SID>initPlane(...)
 			let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
+			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
        	if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -154,7 +154,7 @@ fun! <SID>initPlane(...)
 	else
 		let plane=s:makePlane(a:1)
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
 		else
 			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
@@ -215,8 +215,8 @@ fun! s:makePlane(name,...)
 	en
 endfun
 
-let TXBkyCmd["\<c-l>"]=":call setline('.','txb:'.line('.'))\<cr>"
-let TXBkyCmd["\<c-a>"]=":call s:anchor(1)\<cr>"
+let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0"
+let TXBkyCmd["\<c-a>"]="call s:anchor(1)|let s:kc__continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
 	let line=search('^txb:','W')
