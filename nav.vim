@@ -85,16 +85,14 @@ fun! s:printHelp()
 	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
 	\\n\\CAdvanced\n
 	\\n--- Saving Planes ---\n
-	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (:set viminfo+=!) when the script is loaded. The saved plane is suggested when you press ".s:hkName.".\n
-	\\nTo manually save a snapshot of the current plane in the current viminfo, navigate to the tab containing the plane and try:
-	\\n    :let BACKUP01=deepcopy(t:txb)\n
+	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in CAPS is set automatically when the script is loaded. The saved plane is suggested when you press ".s:hkName.".\n
+	\\nTo manually save a snapshot of the current plane, navigate to the tab containing the plane and try:
+	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
 	\\nYou can then restore via either:
-	\\n    :call TXBload(BACKUP01)
-	\\nwhich loads the backup in a new tab (this allows for having more than one plane open at once), or:
-	\\n    :let g:TXB=BACKUP01     
-	\\nwhich would overwrite the currently saved plane and load the backup the next time you press ".s:hkName."\n
+	\\n    :call TXBload(BACK01)       \"load in a new tab, or ...
+	\\n    :let g:TXB=BACK01           \"overwrite saved plane and load on ".s:hkName."\n
 	\\nAlternatively, you can save a snapshot of the viminfo via:
-	\\n    :wviminfo viminfo-backup-01
+	\\n    :wviminfo viminfo-backup-01\n
 	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
 	\\n--- Line Anchors ---\n
 	\\n    ^L          Insert line anchor
