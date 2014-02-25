@@ -54,19 +54,10 @@ To manually save a snapshot of the current plane in the current viminfo, navigat
 ```
 You can then restore via either:  
 ```
-:call TXBload(BACKUP01)
-```
-which loads the backup in a new tab (this allows for having more than one plane open at once), or:  
-```
-:let g:TXB=BACKUP01     
-```
-which would overwrite the currently saved plane and load the backup the next time you press **F10**
+:call TXBload(BACKUP01) "load backup in a new tab (this allows for having more than one plane open at once), or:  
+:let g:TXB=BACKUP01     "overwrite currently saved plane, load on F10
 
-Alternatively, you can save a snapshot of the viminfo via:
-```
-:wviminfo viminfo-backup-01
-```
-You can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
+Alternatively, you can save a snapshot of the viminfo via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the backup.
 
 ####Directories
 Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
