@@ -45,8 +45,28 @@ Mouse | Action | | Mouse | Action
 ####Mousing Problems
 If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
-####Saving
-The plane and map are saved in the `viminfo` file. The script automatically sets the viminfo to save global variables via `:set viminfo+=!`. The saved plane will be suggested on **F10** the next time you run vim. You can create backups by backing up your `viminfo` file via `:wviminfo viminfo-backup`.
+####Saving Planes
+The script uses the viminfo file (`:help viminfo`) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (`:set viminfo+=!`) when the script is loaded. The saved plane is suggested on **F10**.
+
+To manually save a snapshot of the current plane in the current viminfo, navigate to the tab containing the plane and try:  
+```
+:let BACKUP01=deepcopy(t:txb)\n
+```
+You can then restore via either:  
+```
+:call TXBload(BACKUP01)
+```
+which loads the backup in a new tab (this allows for having more than one plane open at once), or:  
+```
+:let g:TXB=BACKUP01     
+```
+which would overwrite the currently saved plane and load the backup the next time you press **F10**
+
+Alternatively, you can save a snapshot of the viminfo via:
+```
+:wviminfo viminfo-backup-01
+```
+You can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
 
 ####Directories
 Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.

@@ -85,7 +85,7 @@ fun! s:printHelp()
 	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
 	\\n\\CAdvanced\n
 	\\n--- Saving Planes ---\n
-	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (:set viminfo+=!) when the script is loaded.\n
+	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (:set viminfo+=!) when the script is loaded. The saved plane is suggested when you press ".s:hkName.".\n
 	\\nTo manually save a snapshot of the current plane in the current viminfo, navigate to the tab containing the plane and try:
 	\\n    :let BACKUP01=deepcopy(t:txb)\n
 	\\nYou can then restore via either:
