@@ -114,17 +114,15 @@ endfun
 fun! <SID>initPlane(...)                                          
 	let filtered=[]
 	if !a:0
+		let msg=''
 		let [more,&more]=[&more,0]
 		if &ttymouse==?"xterm"
-			echom "WARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging."
-			echom "    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+			let msg.="\nWARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-			echom "WARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'."
-			echom "    Your current setting is: ".&ttymouse
+			let msg.="\nWARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			echom "WARNING: Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions."
-			echom "    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
+			let msg.="\nWARNING: Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
        	if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -141,7 +139,7 @@ fun! <SID>initPlane(...)
 				for e in plane.name
 					let [plane.ix[e],j]=[j,j+1]
 				endfor
-				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
+				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
             	let msg.="\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\nRestore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
 				let confirm_keys=[82]
