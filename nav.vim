@@ -78,19 +78,30 @@ fun! s:printHelp()
 	\\n    q <esc>     Abort
 	\\n    ^X          Delete hidden buffers
 	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
-	\\n\n\\CSettings
-	\\n\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.\n
-	\\nSetting your viminfo to save global variables (:set viminfo+=!) is recommended as the plane will be suggested on ".s:hkName." the next time you run vim. This will also save the map. You can also manually restore via ':let BACKUP=t:txb' and ':call TXBload(BACKUP)'.\n
-	\\n\n\\CPotential Problems
-	\\n\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
-	\\n\nHorizontal splits aren't supported and may interfere with panning.\n
+	\\n\n\\CTroubleshooting
+	\\n\nMOUSE\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.
+	\\n\nDIRECTORIES\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
+	\\nSCROLLBIND DESYNC\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
+	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
 	\\n\\CAdvanced\n
-	\\nLine Anchors\n
+	\\n--- Saving Planes ---\n
+	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (:set viminfo+=!) when the script is loaded.\n
+	\\nTo manually save a snapshot of the current plane in the current viminfo, navigate to the tab containing the plane and try:
+	\\n    :let BACKUP01=deepcopy(t:txb)\n
+	\\nYou can then restore via either:
+	\\n    :call TXBload(BACKUP01)
+	\\nwhich loads the backup in a new tab (this allows for having more than one plane open at once), or:
+	\\n    :let g:TXB=BACKUP01     
+	\\nwhich would overwrite the currently saved plane and load the backup the next time you press ".s:hkName."\n
+	\\nAlternatively, you can save a snapshot of the viminfo via:
+	\\n    :wviminfo viminfo-backup-01
+	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
+	\\n--- Line Anchors ---\n
 	\\n    ^L          Insert line anchor
 	\\n    ^A          Align all text anchors in split
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.5     Lots of initialization fixes
 	\\n1.6.4     Center and redraw on zoom
 	\\n1.6.2     Line anchors
 	\\n1.6.1     Movement commands (map and plane) now take counts
@@ -143,7 +154,7 @@ fun! <SID>initPlane(...)
 					let [plane.ix[e],j]=[j,j+1]
 				endfor
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
-            	let msg.="\n\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+            	let msg.="\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\nRestore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
 			else
 				let msg="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
@@ -157,8 +168,7 @@ fun! <SID>initPlane(...)
 	else
 		let plane=s:makePlane(a:1)
 		if a:0 && exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n\nWARNING: The saved plane and map will be OVERWRITTEN if you use a new file pattern."
-			let msg.="\n    Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let msg ="\nWARNING: The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 		else
 			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
 		en
