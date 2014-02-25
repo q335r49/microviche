@@ -46,18 +46,19 @@ Mouse | Action | | Mouse | Action
 If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
 ####Saving Planes
-The script uses the viminfo file (`:help viminfo`) to save plane and map data. The option to save global variables in all caps (eg, 'BACKUP01') is set automatically (`:set viminfo+=!`) when the script is loaded. The saved plane is suggested on **F10**.
+The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in all caps is set automatically when the script is loaded, via `:set viminfo+=!`. The saved plane is then suggested on **F10**.
 
-To manually save a snapshot of the current plane in the current viminfo, navigate to the tab containing the plane and try:  
+To manually save a snapshot, navigate to the tab containing the plane and try:  
 ```
-:let BACKUP01=deepcopy(t:txb)\n
+:let BACKUP01=deepcopy(t:txb) "Make sure name is in CAPS
 ```
 You can then restore via either:  
 ```
-:call TXBload(BACKUP01) "load backup in a new tab (this allows for having more than one plane open at once), or:  
+:call TXBload(BACKUP01) "load backup in new tab  
 :let g:TXB=BACKUP01     "overwrite currently saved plane, load on F10
+```
 
-Alternatively, you can save a snapshot of the viminfo via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the backup.
+Alternatively, you can save a snapshot of the viminfo via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
 
 ####Directories
 Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
