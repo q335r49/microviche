@@ -111,7 +111,7 @@ fun! s:printHelp()
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
-fun! <SID>initPlane(...)                                          
+fun! <SID>initPlane(...)
 	let filtered=[]
 	if !a:0
 		let msg=''
@@ -124,7 +124,7 @@ fun! <SID>initPlane(...)
 		if v:version < 703 || v:version==703 && !has('patch30')
 			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
-       	if exists('g:TXB') && type(g:TXB)==4
+		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
 			for i in range(plane.len-1,0,-1)
 				if !filereadable(plane.name[i])
@@ -140,7 +140,7 @@ fun! <SID>initPlane(...)
 					let [plane.ix[e],j]=[j,j+1]
 				endfor
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
-            	let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
 				let confirm_keys=[82]
 			else
@@ -200,7 +200,7 @@ fun! s:makePlane(name,...)
 	let plane={}
 	let plane.name=type(a:name)==1? map(filter(split(glob(a:name),"\n"),'filereadable(v:val)'),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
 	if plane.name is 'INV'
-     	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
+		throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
 	else
 		let plane.len=len(plane.name)
 		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
@@ -229,7 +229,7 @@ fun! s:anchor(interactive)
 			if mark<line && mark>0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
-	  				let &cul=cul
+					let &cul=cul
 					throw "Not enough blank lines to restore current marker!"
 				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
@@ -390,7 +390,7 @@ fun! <SID>doDragSGR()
 		if !exists('t:txb')
 			return
 		en
-        if k[1:]==[1,1]
+		if k[1:]==[1,1]
 			call TXBdoCmd('o')
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
@@ -445,7 +445,7 @@ fun! <SID>doDragXterm2()
 		if !exists('t:txb')
 			return
 		en
-        if k[1:]==[33,33]
+		if k[1:]==[33,33]
 			call TXBdoCmd('o')
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
@@ -470,7 +470,7 @@ fun! s:navPlane(dx,dy)
 	exe 'norm! '.l0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
 	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]
-    echon s:nav_state[4]
+	echon s:nav_state[4]
 endfun
 
 fun! s:getGridNames(len)
@@ -481,7 +481,7 @@ fun! s:getGridNames(len)
 		return array1
 	elseif a:len<=powers[0]+powers[1]
 		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
-   	else
+	else
 		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
 		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]'))
 	en
@@ -520,7 +520,7 @@ fun! s:getMapDisp()
 			if k==s:mBlockH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
-	                let colorix[k][-1]-=len(occ[k])-(cell_border-1)
+					let colorix[k][-1]-=len(occ[k])-(cell_border-1)
 				en
 				let occ[k]=occ[k][:cell_border-2].parsed[0]
 				let s:disp__selmap[i][j]=[i*l+k*s:disp__r+cell_border-1,len(parsed[0])]
@@ -557,7 +557,7 @@ fun! s:printMapDisp()
 	if sel
 		if sel>s:disp__color[0]
 			if s:disp__color[0]
-       			exe s:disp__colorv[0]
+				exe s:disp__colorv[0]
 				echon s:disp__str[0 : s:disp__color[0]-1]
 			en
 			let p=1
@@ -569,7 +569,7 @@ fun! s:printMapDisp()
 			exe s:disp__colorv[p]
 			echon s:disp__str[s:disp__color[p-1]:sel-1]
 		else
-   		 	exe s:disp__colorv[0]
+		 	exe s:disp__colorv[0]
 			echon s:disp__str[:sel-1]
 		en
 	en
@@ -621,7 +621,7 @@ fun! s:navMapKeyHandler(c)
 			let s:ms__prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-        		let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mBlockW]),0]
+				let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mBlockW]),0]
 				let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
 				call s:getMapDisp()
 				call s:ms__displayfunc()
@@ -726,7 +726,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
 	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
 	let s:ms__displayfunc=function('s:printMapDisp')
-   	call s:getMapDisp()
+	call s:getMapDisp()
 	call s:ms__displayfunc()
 	let g:TXBkeyhandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
@@ -871,7 +871,7 @@ fun! s:formatPar(str,w,pad)
 	for k in range(len(pars))
 		if pars[k][0]==#'\'
 			let format=pars[k][1]
-   			let pars[k]=pars[k][(format=='\'? 1 : 2):]
+			let pars[k]=pars[k][(format=='\'? 1 : 2):]
 		else
 			let format=''
 		en
@@ -935,7 +935,7 @@ fun! s:blockPan(dx,y,...)
 	let absolute_x=exists('a:1')? a:1 : 0
 	let dir=absolute_x? absolute_x : a:dx
 	let y=a:y>cury?  (a:y-cury-1)/s:panL+1 : a:y<cury? -(cury-a:y-1)/s:panL-1 : 0
-   	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:panL.'*'.s:panL.'+'.s:panL : 'let y_dest=!y? cury : cury>'.s:panL.'? (cury-1)/'.s:panL.'*'.s:panL.' : 1'
+	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.s:panL.'*'.s:panL.'+'.s:panL : 'let y_dest=!y? cury : cury>'.s:panL.'? (cury-1)/'.s:panL.'*'.s:panL.' : 1'
 	let pan_y=(y>=0? 'let cury=cury+'.s:aniStepV.'<y_dest? cury+'.s:aniStepV.' : y_dest' : 'let cury=cury-'.s:aniStepV.'>y_dest? cury-'.s:aniStepV.' : y_dest')."\n
 		\if cury>line('$')\n
 			\let longlinefound=0\n
@@ -1098,7 +1098,7 @@ endfun
 
 fun! TXBdoCmd(inicmd)
 	let s:kc__num='01'
-   	let s:kc__y=line('w0')
+	let s:kc__y=line('w0')
 	let s:kc__continue=1
 	let s:kc__msg=''
 	call s:saveCursPos()
@@ -1161,18 +1161,18 @@ let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
 
 fun! s:editSplitSettings()
-   	let ix=get(t:txb.ix,expand('%'),-1)
+	let ix=get(t:txb.ix,expand('%'),-1)
 	if ix==-1
 		ec " Error: Current buffer not in plane"
 	else
 		redr
 		let input=input('Column width: ',t:txb.size[ix])
 		if empty(input) | return | en
-    	let t:txb.size[ix]=input
-    	let input=input("Autoexecute on load: ",t:txb.exe[ix])
+		let t:txb.size[ix]=input
+		let input=input("Autoexecute on load: ",t:txb.exe[ix])
 		if empty(input) | return | en
 		let t:txb.exe[ix]=input
-    	let input=input('Column position (0-'.(t:txb.len-1).'): ',ix)
+		let input=input('Column position (0-'.(t:txb.len-1).'): ',ix)
 		if empty(input) | return | en
 		let newix=input
 		if newix>=0 && newix<t:txb.len && newix!=ix
@@ -1325,7 +1325,7 @@ fun! TXBload(...)
 	exe "silent norm! :syncbind\<cr>"
 	catch
 	endtry
-   	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
+	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
 	if len(t:txb.gridnames)<t:txb.len
 		let t:txb.gridnames=s:getGridNames(t:txb.len+50)
 	en
