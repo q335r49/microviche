@@ -144,21 +144,25 @@ fun! <SID>initPlane(...)
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
             	let msg.="\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\nRestore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
+				let confirm_keys=[82]
 			else
 				let msg="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
+				let confirm_keys=[10,13]
 			en
 		else
 			let plane={'name':''}
+			let confirm_keys=[]
 		en
 	else
 		let plane=s:makePlane(a:1)
 		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\nWARNING: The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let confirm_keys=[79]
 		else
 			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
+			let confirm_keys=[10,13]
 		en
 	en
-
 	if !empty(plane.name) || !empty(filtered)
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
@@ -175,38 +179,7 @@ fun! <SID>initPlane(...)
 	else
 		let c=0
 	en
-
-	if a:0 && exists('g:TXB') && type(g:TXB)==4
-		if c==79
-			if curbufix==-1 | tabe | en
-			let g:TXB=plane
-			call TXBload(plane)
-		elseif c is "\<f1>"
-			call s:printHelp() 
-		else
-			let input=input("> Enter file pattern or type HELP: ")
-			if input==?'help'
-				call s:printHelp()
-			elseif !empty(input)
-				call <SID>initPlane(input)
-			en
-		en
-	elseif !empty(filtered)
-		if c==82
-			if curbufix==-1 | tabe | en
-			let g:TXB=plane
-			call TXBload(plane)
-		elseif c is "\<f1>"
-			call s:printHelp() 
-		else
-			let input=input("> Enter file pattern or type HELP: ")
-			if input==?'help'
-				call s:printHelp()
-			elseif !empty(input)
-				call <SID>initPlane(input)
-			en
-		en
-    elseif c==13 || c==10
+	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
 		call TXBload(plane)
