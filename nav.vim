@@ -101,8 +101,21 @@ fun! s:printHelp()
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
+fun! TXBdeleteCol(index)
+	call remove(t:txb.name,a:index)	
+	call remove(t:txb.size,a:index)	
+	call remove(t:txb.exe,a:index)	
+	let t:txb.len=len(t:txb.name)
+	let [t:txb.ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb.ix[e],i]=[i,i+1]
+	endfor
+endfun
+
 fun! <SID>initPlane(...)                                          
+	let filtered=[]
 	if !a:0
+		let [more,&more]=[&more,0]
 		if &ttymouse==?"xterm"
 			echom "WARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging."
 			echom "    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
@@ -115,29 +128,50 @@ fun! <SID>initPlane(...)
 			echom "    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
        	if exists('g:TXB') && type(g:TXB)==4
-			let plane=g:TXB
-			let msg="\nRestore last session (map and plane)? (ENTER / ESC / F1 for help)"
-
-			"account for deleted files
-
+			let plane=deepcopy(g:TXB)
+			for i in range(plane.len-1,0,-1)
+				if !filereadable(plane.name[i])
+					call add(filtered,remove(plane.name,i))
+					call remove(plane.size,i)	
+					call remove(plane.exe,i)	
+				en
+			endfor
+			if !empty(filtered)
+				let plane.len=len(plane.name)
+				let [plane.ix,j]=[{},0]
+				for e in plane.name
+					let [plane.ix[e],j]=[j,j+1]
+				endfor
+				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
+            	let msg.="\n\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\nRestore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
+			else
+				let msg="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
+			en
 		elseif exists('TXB_PREVPAT')
         	let plane=s:makePlane(g:TXB_PREVPAT)
-			let msg="\nUse last used pattern '".g:TXB_PREVPAT."'? (ENTER / ESC / F1 for help)"
+			let msg="\nUse last used pattern '".g:TXB_PREVPAT."'?\n -> Type ENTER / ESC / F1 for help:"
 		else
 			let plane={'name':''}
 		en
 	else
 		let plane=s:makePlane(a:1)
-		let msg="\nUse current pattern '".a:1."'? (ENTER / ESC / F1 for help)"
+		if a:0 && exists('g:TXB') && type(g:TXB)==4
+			let msg ="\n\nWARNING: The saved plane and map will be OVERWRITTEN if you use a new file pattern."
+			let msg.="\n    Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+		else
+			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
+		en
 	en
-	if !empty(plane.name)
+
+	if !empty(plane.name) || !empty(filtered)
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
-			ec "\n  " join(plane.name,"\n   ") msg
+			ec "\n  " join(plane.name,"\n   ") "\n ---- " plane.len "file(s) ----" msg
 		else
 			let displist=copy(plane.name)
 			let displist[curbufix].=' (current file)'
-			ec "\n  " join(displist,"\n   ") "\n(Plane will be loaded in current tab)" msg
+			ec "\n  " join(displist,"\n   ") "\n ----" plane.len "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
 	elseif a:0
@@ -146,7 +180,44 @@ fun! <SID>initPlane(...)
 	else
 		let c=0
 	en
-	if c==13 || c==10
+
+	if a:0 && exists('g:TXB') && type(g:TXB)==4
+		if c==79
+			if curbufix==-1 | tabe | en
+			let g:TXB=plane
+			if a:0
+				let g:TXB_PREVPAT=a:1
+			en
+			call TXBload(plane)
+		elseif c is "\<f1>"
+			call s:printHelp() 
+		else
+			let input=input("> Enter file pattern or type HELP: ")
+			if input==?'help'
+				call s:printHelp()
+			elseif !empty(input)
+				call <SID>initPlane(input)
+			en
+		en
+	elseif !empty(filtered)
+		if c==82
+			if curbufix==-1 | tabe | en
+			let g:TXB=plane
+			if a:0
+				let g:TXB_PREVPAT=a:1
+			en
+			call TXBload(plane)
+		elseif c is "\<f1>"
+			call s:printHelp() 
+		else
+			let input=input("> Enter file pattern or type HELP: ")
+			if input==?'help'
+				call s:printHelp()
+			elseif !empty(input)
+				call <SID>initPlane(input)
+			en
+		en
+    elseif c==13 || c==10
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
 		if a:0
@@ -163,11 +234,14 @@ fun! <SID>initPlane(...)
 			call <SID>initPlane(input)
 		en
 	en
+	if exists('more')
+		let &more=more
+	en
 endfun
 
 fun! s:makePlane(name,...)
 	let plane={}
-	let plane.name=type(a:name)==1? map(filter(split(glob(a:name),"\n"),'!isdirectory(v:val)'),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
+	let plane.name=type(a:name)==1? map(filter(split(glob(a:name),"\n"),'filereadable(v:val)'),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
 	if plane.name is 'INV'
      	throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
 	else
@@ -1177,16 +1251,6 @@ fun! s:appendSplit(index,file,...)
 	if len(t:txb.gridnames)<t:txb.len
 		let t:txb.gridnames=s:getGridNames(t:txb.len+50)
 	endif
-endfun
-fun! TXBdeleteCol(index)
-	call remove(t:txb.name,a:index)	
-	call remove(t:txb.size,a:index)	
-	call remove(t:txb.exe,a:index)	
-	let t:txb.len=len(t:txb.name)
-	let [t:txb.ix,i]=[{},0]
-	for e in t:txb.name
-		let [t:txb.ix[e],i]=[i,i+1]
-	endfor
 endfun
 
 fun! TXBload(...)
