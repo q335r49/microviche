@@ -117,12 +117,12 @@ fun! <SID>initPlane(...)
 		let msg=''
 		let [more,&more]=[&more,0]
 		if &ttymouse==?"xterm"
-			let msg.="\nWARNING: ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+			let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-			let msg.="\nWARNING: For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
+			let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\nWARNING: Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
+			let msg.="\n**WARNING**\n    Your Vim version < 7.3.30, which means that the plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
 		en
        	if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -140,11 +140,11 @@ fun! <SID>initPlane(...)
 					let [plane.ix[e],j]=[j,j+1]
 				endfor
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
-            	let msg.="\nWARNING: Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-				let msg.="\nRestore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
+            	let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
 				let confirm_keys=[82]
 			else
-				let msg="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
+				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
 				let confirm_keys=[10,13]
 			en
 		else
@@ -154,7 +154,7 @@ fun! <SID>initPlane(...)
 	else
 		let plane=s:makePlane(a:1)
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\nWARNING: The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving the old plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
 		else
 			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
