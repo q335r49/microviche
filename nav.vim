@@ -3,7 +3,7 @@
 if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
 
 "Plane settings
-	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call <SID>initPlane()\|en<cr>
+	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call TXBinitPlane(0)\|en<cr>
 	                                   "Hotkey to load plane and activate keyboard commands
 	let s:hkName='<f10>'               "The name of the above key (used for help files)
 	let s:panL=15                      "Lines panned with jk
@@ -54,7 +54,7 @@ augroup END
 fun! <SID>centerCursor(row,col)
 	if !exists('t:txb') | return | en
 	let restoreView='norm! '.virtcol('.').'|'
-	call TXBload()
+	call s:load()
 	call s:nav(a:col/2-&columns/4)
 	let dy=&lines/4-a:row/2
 	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
@@ -88,10 +88,8 @@ fun! s:printHelp()
 	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in CAPS is set automatically when the script is loaded. The saved plane is suggested when you press ".s:hkName.".\n
 	\\nTo manually save a snapshot of the current plane, navigate to the tab containing the plane and try:
 	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
-	\\nYou can then restore via either:
-	\\n    :call TXBload(BACK01)       \"load in a new tab, or ...
-	\\n    :let g:TXB=BACK01           \"overwrite saved plane and load on ".s:hkName."
-	\\nThe latter method is recommended since it will check for invalid file names (eg, if some files of the files have been deleted).\n
+	\\nYou can then restore via:
+	\\n    :call TXBinitPlane(BACK01)\n
 	\\nAlternatively, you can save a snapshot of the viminfo via:
 	\\n    :wviminfo viminfo-backup-01\n
 	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
@@ -111,11 +109,11 @@ fun! s:printHelp()
 	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
 endfun
 
-fun! <SID>initPlane(...)
+fun! TXBinitPlane(seed)
 	let filtered=[]
-	if !a:0
+	let [more,&more]=[&more,0]
+	if a:seed is 0
 		let msg=''
-		let [more,&more]=[&more,0]
 		if &ttymouse==?"xterm"
 			let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
@@ -148,18 +146,45 @@ fun! <SID>initPlane(...)
 				let confirm_keys=[10,13]
 			en
 		else
-			let plane={'name':''}
+			let plane=s:makePlane('')
 			let confirm_keys=[]
 		en
-	else
-		let plane=s:makePlane(a:1)
+	elseif type(a:seed)==4
+   		let plane=a:seed
+		for i in range(plane.len-1,0,-1)
+			if !filereadable(plane.name[i])
+				call add(filtered,remove(plane.name,i))
+				call remove(plane.size,i)	
+				call remove(plane.exe,i)	
+			en
+		endfor
+		if !empty(filtered)
+			let plane.len=len(plane.name)
+			let [plane.ix,j]=[{},0]
+			for e in plane.name
+				let [plane.ix[e],j]=[j,j+1]
+			endfor
+			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
+			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane:"
+			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / F1 for help: "
+			let confirm_keys=[76]
+		else
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane."
+			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / F1 for help:"
+			let confirm_keys=[76]
+		en
+	elseif type(a:seed)==1
+		let plane=s:makePlane(a:seed)
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
 		else
-			let msg="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
+			let msg ="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
 			let confirm_keys=[10,13]
 		en
+	else
+		throw "Argument must be dictionary plane or string filepattern"
 	en
 	if !empty(plane.name) || !empty(filtered)
 		let curbufix=index(plane.name,expand('%'))
@@ -171,7 +196,7 @@ fun! <SID>initPlane(...)
 			ec "\n  " join(displist,"\n   ") "\n ----" plane.len "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
-	elseif a:0
+	elseif a:seed isnot 0
 		ec "\n    (No matches found)"
 		let c=0
 	else
@@ -180,7 +205,7 @@ fun! <SID>initPlane(...)
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
-		call TXBload(plane)
+		call s:load(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	else
@@ -188,7 +213,7 @@ fun! <SID>initPlane(...)
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
-			call <SID>initPlane(input)
+			call TXBinitPlane(input)
 		en
 	en
 	if exists('more')
@@ -926,7 +951,7 @@ fun! s:gotoPos(col,row)
 	en
 	norm! 0
 	only
-	call TXBload()
+	call s:load()
 	exe 'norm!' (a:row? a:row : 1).'zt'
 endfun
 
@@ -1042,7 +1067,7 @@ fun! s:snapToGrid()
 		call s:saveCursPos()
 	elseif winnr()!=winnr('$')
 		exe 'norm! '.y.'zt0'
-		call TXBload()
+		call s:load()
 	elseif t:txb.size[ix]>&columns
 		only
 		exe 'norm! '.y.'zt0'
@@ -1051,7 +1076,7 @@ fun! s:snapToGrid()
 		exe 'norm! '.y.'zt0'
 	elseif winwidth(0)>t:txb.size[ix]
 		exe 'norm! '.y.'zt0'
-		call TXBload()
+		call s:load()
 	en
 endfun
 let TXBkyCmd['.']='call s:snapToGrid()|let s:kc__continue=0|call s:updateCursPos()' 
@@ -1127,7 +1152,7 @@ let TXBkyCmd.D="redr\n
 	\if ix!=-1\n
 		\call s:deleteSplit(ix)\n
 		\wincmd W\n
-		\call TXBload(t:txb)\n
+		\call s:load(t:txb)\n
 		\let s:kc__msg='col '.ix.' removed'\n
 	\else\n
 		\let s:kc__msg='Current buffer not in plane; deletion failed'\n
@@ -1141,7 +1166,7 @@ let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 	\let error=s:appendSplit(ix,file)\n
 	\if empty(error)\n
 		\try\n
-			\call TXBload(t:txb)\n
+			\call s:load(t:txb)\n
 			\let s:kc__msg='col '.(ix+1).' appended'\n
 		\catch\n
 			\call s:deleteSplit(ix)\n
@@ -1156,7 +1181,7 @@ let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\e"]="let s:kc__continue=0"
 let TXBkyCmd.q="let s:kc__continue=0"
-let TXBkyCmd.r="call TXBload(t:txb)|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
+let TXBkyCmd.r="call s:load(t:txb)|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
 
@@ -1187,7 +1212,7 @@ fun! s:editSplitSettings()
 				let [t:txb.ix[e],i]=[i,i+1]
 			endfor
 		en
-		call TXBload(t:txb)
+		call s:load(t:txb)
 	en
 endfun
 
@@ -1220,7 +1245,7 @@ fun! s:appendSplit(index,file,...)
 	endif
 endfun
 
-fun! TXBload(...)
+fun! s:load(...)
 	if a:0
 		let t:txb=a:1
 	elseif !exists("t:txb")
