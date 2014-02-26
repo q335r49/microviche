@@ -42,43 +42,37 @@ Mouse | Action | | Mouse | Action
 
 ###Troubleshooting
 
-####Mouse problems
-If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
+**Mouse problems** - If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
-####Directories
-Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
+**Directories** - Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
 
-####Misaligned splits
-When you scroll past the end of a split because one split is much longer than its neighbors, the splits may become misaligned. You can press r to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are never working at the very end of a particularly long split. It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line -- you can uncomment a few lines in the source code for this option.
+**Misaligned splits** - When you scroll past the end of a split because one split is much longer than its neighbors, the splits may become misaligned. You can press r to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are never working at the very end of a particularly long split. It might be helpful, in that case, to remap **G** in vim's normal mode to go to the last non-blank line rather than the very last line -- you can uncomment a few lines in the source code for this option.
 
-####Horizontal splits
-
-Horizontal splits aren't supported and may interfere with panning.
+**Horizontal splits** - Horizontal splits aren't supported and may interfere with panning.
 
 ###Advanced features
 
 ####Map syntax
 
-The general syntax map labels is is: `Label text#optional highlight group#optional positioning command`.
-`#` is reserved to mark syntax regions and, unfortunately, can never be used in the label itself.
+The syntax for map labels is: `Label text#optional color#optional position`. Note that `#` is reserved for this purpose and can never be used in the label itself.
 
-**Color** - A label can be colored via the syntax `label_text#highlight group`. For example, `^ Danger!#WarningMsg` should color the label bright red. See `:help highlight` for information on how to define highlight groups.
+To **color** a label you must specify a highlight group: see `:help highlight` for details. For example, `^ Danger!#WarningMsg` should color the label bright red. Try `:hi` for a list of currently defined highlights.
 
-**Position** - Suppose you want to name a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text so you'd like to show the previous split as well. Jumping to the target grid will typically put the cursor at the top left corner and the split at the leftmost point, but positioning commands can move it from this default position.
+Specifying **position** is a bit more elaborate. Suppose you want to name a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text so you'd like to show the previous split as well. Jumping to the target grid will typically put the cursor at the top left corner and the split at the leftmost point, but positioning commands can move it from this default position.
 
-For example, in the above case we might use `* Heading##s20j` to shift the view left one split (`s`) and move the cursor down 20 lines (`20j`). Or perhaps just `* Heading##20jCM` to center that split (`C`) and scroll so that the cursor line is at the middle of the screen (`M`). The complete list of commands is:
+For example, in the above case we might use `* Heading##s20j` to shift the view left one split (`s`) and move the cursor down 20 lines (`20j`). Or perhaps just `* Heading##20jCM`: **C**enter that split and scroll so that 20th line is at the **M**iddle of the screen. 
+
+Note that the order of the commands doesn't matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view. The complete list of commands is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
 **j k l**|Cursor down / up / right| |**W** | Virtual window width (see below)
-**r R**|Shift view down / up 1 Row| |**M** | Center cursor vertically (override r,R)
-**s**|Shift view left 1 Split| |**C** | Center split horizontally (override s)
-
-The order of the commands don't matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view.
+**r R**|Shift view down / up 1 Row| |**M** | Center cursor vertically (override **r R**)
+**s**|Shift view left 1 Split| |**C** | Center split horizontally (override **s**)
 
 Specify a virtual with with `W` in order to change the behavior of `s` and `C`. By default, `s` won't move the split off screen but only enough to push the target split to the right edge. Specifying, for example, `15W` means that the width of the split is treated as though it were 15 columns. This would mean that `5s15W` would shift up to the point where the split's left border is 15 columns from the right edge of the screen. Likewise, `C` would center the split as though it were of width `W`.
 
-When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
+Note that when movement syntax is defined for a block, "Snap to grid" (**F10 .**) will execute that movement instead of its usual function.
 
 ####Line anchors
 Key | Action
@@ -94,7 +88,7 @@ The script uses the viminfo file to save plane and map data, see `:help viminfo`
 To manually save a snapshot (make sure name is in ALL CAPS):
 ```
     :let BACKUP01=deepcopy(t:txb)  "evoke in tab containing plane
-    :call TXBinitPlane(BACKUP01)   "evoke in any tab
+    :call TXBinitPlane(BACKUP01)   "evoke anywhere
 ```
 
 Alternatively, you can save a snapshot of the viminfo file via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
