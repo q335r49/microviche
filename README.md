@@ -45,20 +45,6 @@ Mouse | Action | | Mouse | Action
 ####Mouse problems
 If the mouse doesn't work, try setting `ttymouse` to `sgr` or `xterm2` via `:set ttymouse=sgr`. `xterm` doesn't report dragging and so is unsupported. Other modes should work but might take a speed penalty. Only `sgr`, `xterm2`, and `xterm` are supported in map mode. Note that in map mode mouse clicks are associated with the very first letter of the label (which will never be hidden), so it might be helpful to prepend a marker, eg, '+ Chapter 1'.
 
-####Saving the plane
-The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in all caps is set automatically when the script is loaded, via `:set viminfo+=!`. The saved plane is then suggested on **F10**.
-
-To manually save a snapshot, go to the tab containing the plane and try: 
-```
-    :let BACKUP01=deepcopy(t:txb)  "make sure name is in ALL CAPS
-```
-... and to load:
-```
-    :call TXBinitPlane(BACKUP01)
-```
-
-Alternatively, you can save a snapshot of the viminfo via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
-
 ####Directories
 Ensuring a consistent directory is important because relative names are remembered (use `:cd directory` to switch directories). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory should be ok. If you find yourself constantly needing to swicth directories, consider adding an autocommand (see `:help autocommand`) to switch back to the plane directory when in the plane tab.
 
@@ -101,3 +87,14 @@ Key | Action
 **F10 ^A** | Align all anchors in split
 
 Line anchors try to address the issue where insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
+
+####Saving the plane
+The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in all caps is set automatically when the script is loaded via the command `:set viminfo+=!`. The saved plane is then suggested on **F10**.
+
+To manually save a snapshot (make sure name is in ALL CAPS):
+```
+    :let BACKUP01=deepcopy(t:txb)  "evoke in tab containing plane
+    :call TXBinitPlane(BACKUP01)   "evoke in any tab
+```
+
+Alternatively, you can save a snapshot of the viminfo file via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
