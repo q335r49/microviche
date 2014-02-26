@@ -180,7 +180,7 @@ fun! TXBinitPlane(seed)
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
 		else
-			let msg ="\nUse current pattern '".a:1."'?\n -> Type ENTER / ESC / F1 for help:"
+			let msg ="\nUse current pattern '".a:seed."'?\n -> Type ENTER / ESC / F1 for help:"
 			let confirm_keys=[10,13]
 		en
 	else
