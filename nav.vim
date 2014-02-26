@@ -698,7 +698,7 @@ fun! s:doSyntax(stmt)
 	endfor
 	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
 	if com.C
-		call s:nav(wincol()-&columns/2)
+		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
 	elseif com.s
 		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
 	en
@@ -760,15 +760,15 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n\nColoring:
 \\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the ''T'' command.
 \\n\nPositioning:
-\\n\nBy default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second ''#'' character can change this. To shift the view but skip highlighting use two ''#'' characters. For example, ''^ Danger!##CM'' will [C]enter the cursor horizontally and put it in the [M]iddle of the screen. The full command list is:
-\\n\n    jkl    Move the cursor as in vim 
+\\n\nBy default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second ''#'' character can change this. To set the view but skip highlighting use ''##''. For example, ''^ Danger!##CM'' will [C]enter the split horizontally and put the cursor line in the [M]iddle of the screen. The full command list is:\n
+\\n    jkl    Cursor up / down / right
 \\n    s      Shift view left 1 split
-\\n    r R    Shift view down / up 1 row (1 line)
-\\n    C      Shift view so that cursor is Centered horizontally
-\\n    M      Shift view so that cursor is at the vertical Middle of the screen
-\\n    W      Determines maximum s shift (see below)
+\\n    r R    Shift view down / up 1 row
+\\n    C      Shift view so that split is Centered horizontally
+\\n    M      Shift view so that cursor is at Middle screenline
+\\n    W      Virtual split width (see below)
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
-\\n\nBy default, ''s'' won''t move the split offscreen. For example, ''45s'' will not actually pan left 45 splits but only enough to push the target split to the right edge. This behavior can be modified by including the ''W'' command, which specifies a ''virtual width''. For example, ''30W'' means that the width of the split is treated as though it were 30 columns. This would cause ''2s30W'' to shift only up to the point where 30 columns of the split are visible (and usually less than that)."
+\\n\n''W'' changes the behavior of ''C'' and ''s''. By default, ''s'' won''t move the split offscreen, so, for example, ''45s'' will not actually pan left 45 splits but only enough to push the target split to the right edge. ''W'' specifies a ''virtual width'': for example, ''15W'' means that the width of the split is treated as though it were 15 columns, which would mean ''45s15W'' would shift up to the point where only 15 columns of the split are visible. Likewise, ''C'' will center the split as though it were of width ''W''"
 \,width,(&columns-width)/2))',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
