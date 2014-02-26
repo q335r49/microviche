@@ -84,7 +84,9 @@ Color a label via the syntax `label_text#highlightgroup`. For example, `^ Danger
 
 #####Position
 
-Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.) For example, in the above case we would use `* Heading##s20j` to shift the view left one split (s) and move the cursor down 20 lines (20j), or perhaps just `* Heading##20jCM` to put that line in the center screen column (C) and the middle line of the screen (M). The complete list of commands is:
+Suppose you have just named a map block after a heading in the text, but the actual heading occurs halfway down the block. Furthermore, this heading is the second column in a larger block of text, so you would like to show the previous split as well. By default, jumping to the target grid will put the cursor at the top left corner and the split at the leftmost position, but positioning commands can alter this. These commands follow the second `#` in a label. (To reposition the view but skip highlighting use `##`.)
+
+For example, in the above case we might use `* Heading##s20j` to shift the view left one split (`s`) and move the cursor down 20 lines (`20j`). Or perhaps just `* Heading##20jCM` to center that split (`C`) and scroll so that the cursor line is at the middle of the screen (`M`). The complete list of commands is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
@@ -94,7 +96,7 @@ Syntax | Action | | Syntax | Action
 
 The order of the commands do not matter: for example, `* Heading##jMjsj`, `* Heading##s3jM`, and `* Heading##M3js` all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view.
 
-`W` changes the behavior of the `s` and `C` command. By default, `s` won't move the split offscreen, but only enough to push the target split to the right edge. So, for example, `45s` won't actually shift the view left 45 splits. This behavior can be modified with the `W` command which specifies a 'virtual width': for example, `15W` means that the width of the split is treated as though it were 30 columns. This would mean that `45s15W` would shift up to the point where only 15 columns of the split are still visible. Likewise, `C` would center the split as though it were of width `W`.
+Specify a virtual with with `W` in order to change the behavior of `s` and `C`. By default, `s` won't move the split off screen but only enough to push the target split to the right edge. Specifying, for example, `15W` means that the width of the split is treated as though it were 15 columns. This would mean that `5s15W` would shift up to the point where the split's left border is 15 columns from the right edge of the screen. Likewise, `C` would center the split as though it were of width `W`.
 
 When movement syntax is defined for a block, snap to grid (**F10 .**) will execute that command instead of its usual function.
 
