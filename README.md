@@ -1,9 +1,7 @@
 #Textabyss
 <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/> ... is a **pannable**, **zoomable** plane for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
-**Install** by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.vim)** the latest version of nav.vim, opening vim, and typing `:source ~/Downloads/nav.vim` (or wherever you downloaded the file).
-
-**Help** is available from within the script, typically by pressing **F1** after pressing **F10** or in map mode.
+**Install** by **[downloading](https://raw.github.com/q335r49/textabyss/master/nav.vim)** the latest version of nav.vim, opening vim, and typing `:source ~/Downloads/nav.vim` (or wherever your download directory is). The documentation below is also available from within the script, typically by pressing **F1** after pressing **F10** or while in map mode.
 
 ###Navigating the plane
 
@@ -27,7 +25,7 @@ Press **F10 o** to access the map. Each map cell corresponds to **1 split** (col
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 **h j k l** | Left / right / up / down | | **c i** | Change label
-**y u b n** | Leftup / leftdown / rightup / rightdown | | **g <cr>** | Go to block and exit map
+**y u b n** | Leftup / leftdown / rightup / rightdown | | **g enter** | Goto block and exit map
 **0 $** | Start / end of line | | **I D** | Insert / Delete (and obtain) column
 **H M L** | High / Middle / Low of screen | | **Z** | Zoom (adjust map block size)
 **x** | Clear (and obtain) cell | | **T** | Toggle color
@@ -66,13 +64,13 @@ Note that the order of the commands doesn't matter: for example, `* Heading##jMj
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-**j k l**|Cursor down / up / right| |**W** | Virtual window width (see below)
+**j k l**|Cursor down / up / right| |**W** | Virtual split width (see below)
 **r R**|Shift view down / up 1 Row| |**M** | Center cursor vertically (override **r R**)
 **s**|Shift view left 1 Split| |**C** | Center split horizontally (override **s**)
 
-Specify a virtual with with `W` in order to change the behavior of `s` and `C`. By default, `s` won't move the split off screen but only enough to push the target split to the right edge. Specifying, for example, `15W` means that the width of the split is treated as though it were 15 columns. This would mean that `5s15W` would shift up to the point where the split's left border is 15 columns from the right edge of the screen. Likewise, `C` would center the split as though it were of width `W`.
+Specify a virtual width with `W` in order to change the behavior of `s` or `C`. By default, `s` won't move the split off screen but only enough to push the target split to the right edge. Specifying, for example, `15W` means that the width of the split is treated as though it were 15 columns. This would mean that `5s15W` would at most shift up to the point where the split's left border is 15 columns from the right edge of the screen. Likewise, `C` would center the split as though it were of width `W`.
 
-Note that when movement syntax is defined for a block, "Snap to grid" (**F10 .**) will execute that movement instead of its usual function.
+Note that when movement syntax is defined for a block, "Snap to grid" (**F10 .**) will execute that movement instead.
 
 ####Line anchors
 Key | Action
@@ -83,12 +81,12 @@ Key | Action
 Line anchors try to address the issue where insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
 
 ####Saving the plane
-The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in all caps is set automatically when the script is loaded via the command `:set viminfo+=!`. The saved plane is then suggested on **F10**.
+The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command `:set viminfo+=!`. The saved plane is then suggested on **F10** the next time you start vim.
 
 To manually save a snapshot (make sure name is in ALL CAPS):
 ```
-    :let BACKUP01=deepcopy(t:txb)  "evoke in tab containing plane
-    :call TXBinitPlane(BACKUP01)   "evoke anywhere
+    :let BACKUP_01=deepcopy(t:txb)  "evoke in tab containing plane
+    :call TXBinitPlane(BACKUP_01)   "evoke anywhere
 ```
 
 Alternatively, you can save a snapshot of the viminfo file via `:wviminfo viminfo-backup-01`. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
