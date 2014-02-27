@@ -11,7 +11,6 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	let s:mouseAcc=[0,1,2,4,7,10,15,21,24,27]       "for every N steps mouse moves, pan mouseAcc[N] steps
 "Map settings
 	let s:mapL=45                      "Map grid corresponds to 1 split x s:mapL lines
-	let [s:mBlockH,s:mBlockW]=[2,5]    "Map grid displayed as s:mBlockH lines x s:mBlockW columns
 	hi! link TXBmapSel Visual          "Highlight color for map cursor on label
 	hi! link TXBmapSelEmpty Search     "Highlight color for map cursor on empty grid
 "Optional components -- uncomment to activate
@@ -731,6 +730,8 @@ endfun
 
 let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
+	let s:mBlockH=exists('t:txb.mBlockH')? t:txb.mBlockH : 2
+	let s:mBlockW=exists('t:txb.mBlockW')? t:txb.mBlockW : 5
 	let s:ms__num='01'
 	let curspos=[line('.')%s:mapL,virtcol('.')-1]
 	let s:ms__posmes=(curspos!=[0,0])? "\n(".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will set jump target at cursor position)' : ''
@@ -874,7 +875,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\en\n
 \en\n",
 \"g":'let s:ms__continue=2',
-\"Z":'let s:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mBlockW)])])|let s:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",s:mBlockH)])])|let [s:ms__redr,s:ms__rows,s:ms__cols]=[1,(&ch-1)/s:mBlockH,(&columns-1)/s:mBlockW]',
+\"Z":'let s:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mBlockW)])])|let s:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",s:mBlockH)])])|let [t:txb.mBlockH,t:txb.mBlockW,s:ms__redr,s:ms__rows,s:ms__cols]=[s:mBlockH,s:mBlockW,1,(&ch-1)/s:mBlockH,(&columns-1)/s:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
 \"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:ms__array,s:ms__c)|let s:last_yanked_is_column=1|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en',
 \"O":'let s:copied_column=s:ms__c<len(s:ms__array)? deepcopy(s:ms__array[s:ms__c]) : []|let s:ms__msg=" Col ".(s:ms__c)." Obtained"|let s:last_yanked_is_column=1'}
