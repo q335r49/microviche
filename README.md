@@ -73,12 +73,12 @@ Specify a virtual width with `W` in order to change the behavior of `s` or `C`. 
 Note that when movement syntax is defined for a block, "Snap to grid" (**F10 .**) will execute that movement instead.
 
 ####Line anchors
-Key | Action
---- | ---
-**F10 ^L** | Insert line anchor
-**F10 ^A** | Align all anchors in split
+Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
 
-Line anchors try to address the issue where insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The align command starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown.
+After pressing *F10*, the following commands manipulate line anchors:  
+Key | Action | | Key | Action
+--- | --- | --- | --- | ---
+`^L` | Insert line anchor | | `^A` | Align anchors in split
 
 ####Saving the plane
 The script uses the viminfo file to save plane and map data, see `:help viminfo`. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command `:set viminfo+=!`. The saved plane is then suggested on **F10** the next time you start vim.
