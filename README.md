@@ -13,8 +13,8 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 **hjkl** | Pan left **1 split** / down **15 lines** / up / right | | **F1** | Help
 **yubn** | Pan upleft / downleft / upright / downright | | **A D E** | Append split / Delete split / Edit split
- **r**  | Redraw    | | **^X**| Delete hidden buffers
-**o** | Open map | | **q esc** | Abort
+ **r**  | Redraw    | | `^X`| Delete hidden buffers
+**o** | Open map | | **q** `esc` | Abort
 **.** | Snap to map grid | | | 
 _\* The hjklyubn keys take a count, capped at 99. For example, 3j is the same as jjj._  
 
@@ -25,12 +25,12 @@ Press **F10 o** to access the map. Each map cell corresponds to **1 split** (col
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 **h j k l** | Left / right / up / down | | **c i** | Change label
-**y u b n** | Leftup / leftdown / rightup / rightdown | | **g enter** | Goto block and exit map
+**y u b n** | Leftup / leftdown / rightup / rightdown | | **g** `enter` | Goto block and exit map
 **0 $** | Start / end of line | | **I D** | Insert / Delete (and obtain) column
 **H M L** | High / Middle / Low of screen | | **Z** | Zoom (adjust map block size)
 **x** | Clear (and obtain) cell | | **T** | Toggle color
-**o O p P** | Obtain (cell / column) / Put (after / before) | | **F1** | Help
-**q**| Quit | | |
+**o O** | Obtain (cell / column)| | **F1** |Help
+**p P** | Put obtained (after / before)| |**q**|Quit 
 _\* The hjklyubn keys take a count, capped at 99. For example, 3j is the same as jjj._  
 
 Mouse | Action | | Mouse | Action
