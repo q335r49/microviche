@@ -85,15 +85,12 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `Ctrl-L` | Insert line anchor | | `Ctrl-A` | Align anchors in split
 
-####Saving the plane
+####Saving and Restoring
 The script uses the viminfo file to save plane and map data, see <samp>&nbsp;:help viminfo&nbsp;</samp>. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
 
-To manually save a snapshot, navigate to the tab containing plane and evoke:
+To manually save and restore (make sure name is in ALL CAPS):
 
-<samp>&nbsp;&nbsp;&nbsp;:let BACKUP_01=deepcopy(t:txb)  "make sure name is in ALL CAPS</samp>
-
-And to restore (evoke from anywhere):
-
-<samp>&nbsp;&nbsp;&nbsp;:call TXBinitPlane(BACKUP_01)</samp>
+<samp>&nbsp;&nbsp;&nbsp;:let BACKUP_01=deepcopy(t:txb)  "evoke from tab containing plane</samp>  
+<samp>&nbsp;&nbsp;&nbsp;:call TXBinitPlane(BACKUP_01)   "evoke from anywhere</samp>
 
 Alternatively, you can save a snapshot of the viminfo file via <samp>&nbsp;:wviminfo viminfo-backup-01&nbsp;</samp>. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.
