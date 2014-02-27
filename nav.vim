@@ -801,6 +801,10 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
 \"j":"let s:ms__r+=s:ms__num|let s:ms__num='01'",
 \"k":"let s:ms__r=max([s:ms__r-s:ms__num,0])|let s:ms__num='01'",
+\"\<right>":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
+\"\<left>":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
+\"\<down>":"let s:ms__r+=s:ms__num|let s:ms__num='01'",
+\"\<up>":"let s:ms__r=max([s:ms__r-s:ms__num,0])|let s:ms__num='01'",
 \"y":"let [s:ms__r,s:ms__c]=[max([s:ms__r-s:ms__num,0]),max([s:ms__c-s:ms__num,0])]|let s:ms__num='01'",
 \"u":"let [s:ms__r,s:ms__c]=[max([s:ms__r-s:ms__num,0]),s:ms__c+s:ms__num]|let s:ms__num='01'",
 \"b":"let [s:ms__r,s:ms__c]=[s:ms__r+s:ms__num,max([s:ms__c-s:ms__num,0])]|let s:ms__num='01'",
@@ -943,6 +947,8 @@ let s:pagercom={113:'let continue=0',27:'let continue=0',
 \117:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
 \103:'let next=0',
 \71:'let next=bot'}
+let s:pagercom["\<up>"]=s:pagercom.107
+let s:pagercom["\<down>"]=s:pagercom.106
 
 fun! s:gotoPos(col,row)
 	let name=get(t:txb.name,a:col,-1)
@@ -1061,6 +1067,10 @@ let TXBkyCmd.7="let s:kc__num=s:kc__num is '01'? '7' : s:kc__num>98? s:kc__num :
 let TXBkyCmd.8="let s:kc__num=s:kc__num is '01'? '8' : s:kc__num>98? s:kc__num : s:kc__num.'8'"
 let TXBkyCmd.9="let s:kc__num=s:kc__num is '01'? '9' : s:kc__num>98? s:kc__num : s:kc__num.'9'"
 let TXBkyCmd.0="let s:kc__num=s:kc__num is '01'? '01' : s:kc__num>98? s:kc__num : s:kc__num.'1'"
+let TXBkyCmd["\<up>"]=TXBkyCmd.k
+let TXBkyCmd["\<down>"]=TXBkyCmd.j
+let TXBkyCmd["\<left>"]=TXBkyCmd.h
+let TXBkyCmd["\<right>"]=TXBkyCmd.l
 
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
