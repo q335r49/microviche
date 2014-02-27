@@ -55,7 +55,7 @@ Mouse | Action | | Mouse | Action
 <dl>
 
 ##Advanced 
-### Coloring and Positioning
+#### Coloring and Positioning
 The **#** character is reserved for syntax and can't be used in the label text. The complete syntax is:
 
 <samp>&nbsp;Text#color(optional)#position(optional)&nbsp;</samp>.
@@ -74,7 +74,7 @@ By default, <samp>&nbsp;s&nbsp;</samp> will never shift the split offscreen rega
 
 Note that when movement syntax is defined for a block, 'snap to grid' `F10``.` will execute that movement instead.
 
-###Anchoring Lines
+####Anchoring Lines
 Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
 
 The following commands (after pressing `F10`)  manipulate line anchors:
@@ -83,7 +83,7 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `Ctrl-L` | Insert line anchor | | `Ctrl-A` | Align anchors in split
 
-###Saving and Restoring
+####Saving and Restoring
 The script uses the viminfo file to save plane and map data, see <samp>&nbsp;:help viminfo&nbsp;</samp>. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
 
 To manually save and restore (make sure name is in ALL CAPS):
