@@ -1,13 +1,14 @@
 #Textabyss
 <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/> ... **is a pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
-**[Install by downloading the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)**, opening vim, and typing <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. The documentation below is also available within the script by pressing `F10``F1` or `F1` while in map mode.
-
-###Navigating the plane
+###Starting up
+**[Install by downloading the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)**, opening vim, and typing <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
 Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
 
-Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. The complete list of commands (access by pressing `F10` first) is: 
+###Navigating the plane
+
+Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys also take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
@@ -16,11 +17,10 @@ Key | Action | | Key | Action
 `r`  | Redraw    | | `Ctrl-X`| Delete hidden buffers
 `o` | Open map | | `q` `esc` | Abort
 `.` | Snap to map grid | | | 
-_\* Each step is **15 lines** and **1 split**. Panning keys take a count, capped at 99. For example,_ `F10``3``j` _is the same as_ `F10``j``j``j`.
 
 ###Using the map
 
-Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
+Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
@@ -31,7 +31,6 @@ Key | Action | | Key | Action
 `x` | Clear and obtain cell | | `T` | Toggle color
 `o` `O` | Obtain cell / column| | `F1` |Help
 `p` `P` | Put obtained after / before| |`q`|Quit 
-_\* The hjklyubn keys take a count, capped at 99. For example,_ `3``j` _is the same as_ `j``j``j`.  
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
@@ -52,7 +51,7 @@ Mouse | Action | | Mouse | Action
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
 
-#Advanced features
+#Advanced
 
 ###Coloring and Positioning
 
