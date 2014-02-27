@@ -2,7 +2,7 @@
 <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/> ... **is a pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
 ###Starting up
-**[Install by downloading the latest version of nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)**, opening vim, and typing
+**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type:
 
 <samp>&nbsp;&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
