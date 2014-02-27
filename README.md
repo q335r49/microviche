@@ -13,26 +13,26 @@ Once in the plane, move around by dragging the mouse or by pressing `F10` follow
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`  | Pan left / down / up / right | |`←``↓``↑``→` | Pan left / down / up / right
-`y``u``b``n` | Pan upleft / downleft / upright / downright | | `A` `D` `E` | Append split / Delete split / Edit split
+`h``j``k``l`| ← ↓ ↑ → | | `F1` | Help
+`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` `E` | Append / Delete / Edit split
 `r`  | Redraw    | | `Ctrl-X`| Delete hidden buffers
 `o` | Open map | | `q` `esc` | Abort
-`.` | Snap to map grid | | `F1` | Help
-_\* Each pan step is **15 lines** and **1 split**. Panning keys take a count, capped at 99. For example,_ `F10``3``j` _is the same as_ `F10``j``j``j`.
+`.` | Snap to map grid | | | 
+_\* Each step is **15 lines** and **1 split**. Panning keys take a count, capped at 99. For example,_ `F10``3``j` _is the same as_ `F10``j``j``j`.
 
 ###Using the map
 
-Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. Navigate the map by dragging the mouse or via `←``↓``↑``→` / `h``j``k``l`. The complete list of commands in map mode is:
+Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l` | Left / right / up / down | | `c` `i` | Change label
-`y``u``b``n` | Leftup / leftdown / rightup / rightdown | | `g` `enter` | Goto block and exit map
-`0` `$` | Start / end of line | | `I` `D` | Insert / Delete (and obtain) column
-`H` `M` `L` | High / Middle / Low of screen | | `Z` | Zoom (adjust map block size)
-`x` | Clear (and obtain) cell | | `T` | Toggle color
-`o` `O` | Obtain (cell / column)| | `F1` |Help
-`p` `P` | Put obtained (after / before)| |`q`|Quit 
+`h``j``k``l` | ← ↓ ↑ → | | `c` `i` | Change label
+`y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | Goto block and exit map
+`0` `$` | Start / End of row | | `I` `D` | Insert / Delete and obtain column
+`H` `M` `L` | High / Middle / Low row | | `Z` | Adjust map block size (Zoom)
+`x` | Clear and obtain cell | | `T` | Toggle color
+`o` `O` | Obtain cell / column| | `F1` |Help
+`p` `P` | Put obtained after / before| |`q`|Quit 
 _\* The hjklyubn keys take a count, capped at 99. For example,_ `3``j` _is the same as_ `j``j``j`.  
 
 Mouse | Action | | Mouse | Action
