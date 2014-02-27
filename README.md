@@ -56,7 +56,9 @@ Mouse | Action | | Mouse | Action
 
 ##Advanced 
 ### Color and Position <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-map.png" width="400" height="150" alt="animation"/>
-The syntax for map labels is: <samp>&nbsp;Label text#optional color#optional position&nbsp;</samp>. Note that <samp>&nbsp;#&nbsp;</samp> is reserved for this purpose and can never be used in the label itself.
+The syntax for map labels takes the form (note that **#** is reserved for this purpose and can never be used in the label text):
+
+<samp>&nbsp;Label text#optional color#optional position&nbsp;</samp>.
 
 Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
