@@ -22,7 +22,7 @@ _\* Each pan step is **15 lines** and **1 split**. Panning keys take a count, ca
 
 ###Using the map
 
-Press `F10``o` to access the map. Each map cell corresponds to **1 split** (column) x **45 lines** in the plane. Navigate the map by dragging the mouse or via `←``↓``↑``→` / `h``j``k``l`. The complete list of commands in map mode is:
+Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. Navigate the map by dragging the mouse or via `←``↓``↑``→` / `h``j``k``l`. The complete list of commands in map mode is:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
