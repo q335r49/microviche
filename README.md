@@ -37,7 +37,7 @@ _\* The hjklyubn keys take a count, capped at 99. For example,_ `3``j` _is the s
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
-`click`|Select block||`doubleclick`|Goto block and exit map
+`click`|Select block||`click``click`|Goto block and exit map
 `drag` | Pan | | `drag` to top left corner | (While in plane) Show map
 `click` at top left corner|Exit map|||
 
