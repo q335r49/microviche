@@ -62,11 +62,7 @@ The **#** character is reserved for syntax and can't be used in the label text. 
 
 Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
-Positioning is a bit more elaborate. Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading, but the default behavior puts the split at the leftmost point and the cursor in the top left corner.
-
-Positioning commands can move the view and the cursor. For example, in the above case we might use <samp>&nbsp;Heading##s20j&nbsp;</samp> to shift the view left one split (<samp>&nbsp;s&nbsp;</samp>) and move the cursor down 20 lines (<samp>&nbsp;20j&nbsp;</samp>). Or perhaps just <samp>&nbsp;Heading##20jCM&nbsp;</samp>: **C**enter that split and scroll so that 20th line is at the **M**iddle of the screen. 
-
-Note that the order of the commands doesn't matter: for example, <samp>&nbsp;Heading##jMjsj&nbsp;</samp>, <samp>&nbsp;Heading##s3jM&nbsp;</samp>, and <samp>&nbsp;Heading##M3js&nbsp;</samp> all do the same thing: shift the view left one split, move the cursor down 3 lines, and vertically center the view. The complete list of commands is:
+Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading. The default behavior puts the split at the leftmost point and the cursor in the top left corner but positioning commands can change this. For example, in the above case we might use <samp>&nbsp;Heading##s20j&nbsp;</samp> to shift the view left one split (<samp>&nbsp;s&nbsp;</samp>) and move the cursor down 20 lines (<samp>&nbsp;20j&nbsp;</samp>). Or perhaps just <samp>&nbsp;Heading##20jCM&nbsp;</samp>: **C**enter that split and scroll so that 20th line is at the **M**iddle of the screen. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
@@ -74,14 +70,14 @@ Syntax | Action | | Syntax | Action
 <samp>r R</samp>|Shift view down / up 1 Row| |<samp>M</samp> | Center cursor vertically (override <samp>r R</samp>)
 <samp>s</samp>|Shift view left 1 Split| |<samp>C</samp> | Center split horizontally (override <samp>s</samp>)
 
-Specify a virtual width with <samp>&nbsp;W&nbsp;</samp> in order to change the behavior of <samp>&nbsp;s&nbsp;</samp> or <samp>&nbsp;C&nbsp;</samp>. By default, <samp>&nbsp;s&nbsp;</samp> won't move the split off screen but only enough to push the target split to the right edge. However, specifying, for example, <samp>&nbsp;15W&nbsp;</samp> tells the parser to handle the split as though it were 15 columns wide. This would mean that <samp>&nbsp;5s15W&nbsp;</samp> would at most shift up to the point where the split's left border is 15 columns from the right edge of the screen. Likewise, <samp>&nbsp;C&nbsp;</samp> would center the split as though it were of width <samp>&nbsp;W&nbsp;</samp>.
+By default, <samp>&nbsp;s&nbsp;</samp> will never shift the split offscreen regardless of count. But specifying <samp>&nbsp;15W&nbsp;</samp> would allow <samp>&nbsp;s&nbsp;</samp> to shift all but 15 columns offscreen. Likewise, <samp>&nbsp;C&nbsp;</samp> would center the split as though it were of width <samp>&nbsp;W&nbsp;</samp>.
 
-Note that when movement syntax is defined for a block, "Snap to grid" `F10``.` will execute that movement instead.
+Note that when movement syntax is defined for a block, 'snap to grid' `F10``.` will execute that movement instead.
 
 ###Anchoring Lines
 Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
 
-After pressing `F10`, the following commands manipulate line anchors:
+The following commands (after pressing `F10`)  manipulate line anchors:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
