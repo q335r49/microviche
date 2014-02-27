@@ -39,7 +39,6 @@ Mouse | Action | | Mouse | Action
 `click`\*|Select block||`click``click`|Goto block and exit map
 `drag` | Pan | | `drag` to top left corner | (While in plane) Show map
 `click` at top left corner|Exit map|||
-_\*Clicks are associated with the first letter of the label_
 
 ###Troubleshooting
 
