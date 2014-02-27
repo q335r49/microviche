@@ -2,14 +2,14 @@
 <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
 is a **pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
-###Start up
+####Start up
 **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type:
 
 <samp>&nbsp;&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
 Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
 
-###Navigating the plane
+####Navigating the plane
 
 Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
 
@@ -21,7 +21,7 @@ Key | Action | | Key | Action
 `o` | Open map | | `q` `esc` | Abort
 `.` | Snap to map grid | | | 
 
-###Using the map
+####Using the map
 
 Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
@@ -41,8 +41,7 @@ Mouse | Action | | Mouse | Action
 `drag` | Pan | | `drag` to top left corner | (While in plane) Show map
 `click` at top left corner|Exit map|||
 
-###Troubleshooting
-
+####Troubleshooting
 <dl>
 <dt>Mouse problems</dt>
 <dd>If the mouse doesn't work, try setting <samp>&nbsp;'ttymouse'&nbsp;</samp> to <samp>&nbsp;sgr&nbsp;</samp> or <samp>&nbsp;xterm2&nbsp;</samp> via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. <samp>&nbsp;xterm&nbsp;</samp> is unsupported. Other modes should work but might take a speed penalty. Only <samp>&nbsp;sgr&nbsp;</samp>, <samp>&nbsp;xterm2&nbsp;</samp>, and <samp>&nbsp;xterm&nbsp;</samp> are supported in map mode.
