@@ -7,7 +7,7 @@
 
 Press **F10** to bring up the prompt `Enter file pattern or type HELP:`. You can try `*` for all files in the directory or, say, `plane*` for files beginning with 'plane'. You can also name a single file and later append additional splits as needed with **F10 A**
 
-Once in the plane, move around by dragging the mouse or by pressing **F10** followed by **h**, **j**, **k**, ord **l**. The complete list of commands accessed via **F10** is: 
+Once in the plane, move around by dragging the mouse or by pressing **F10** followed by **h**, **j**, **k**, or **l**. The complete list of commands accessed via **F10** is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
@@ -75,7 +75,8 @@ Note that when movement syntax is defined for a block, "Snap to grid" (**F10 .**
 ####Line anchors
 Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
 
-After pressing *F10*, the following commands manipulate line anchors:  
+After pressing *F10*, the following commands manipulate line anchors:
+
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `^L` | Insert line anchor | | `^A` | Align anchors in split
