@@ -52,15 +52,15 @@ Mouse | Action | | Mouse | Action
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
 
-###Advanced features
+#Advanced features
 
-####Map syntax
+###Coloring and Positioning
 
 The syntax for map labels is: <samp>&nbsp;Label text#optional color#optional position&nbsp;</samp>. Note that <samp>&nbsp;#&nbsp;</samp> is reserved for this purpose and can never be used in the label itself.
 
-To **color** a label you must specify a highlight group: see <samp>&nbsp;:help highlight&nbsp;</samp> for details. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Try <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
+Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
-Specifying **position** is a bit more elaborate. Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading, but the default behavior puts the split at the leftmost point and the cursor in the top left corner.
+Positioning is a bit more elaborate. Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading, but the default behavior puts the split at the leftmost point and the cursor in the top left corner.
 
 Positioning commands can move the view and the cursor. For example, in the above case we might use <samp>&nbsp;Heading##s20j&nbsp;</samp> to shift the view left one split (<samp>&nbsp;s&nbsp;</samp>) and move the cursor down 20 lines (<samp>&nbsp;20j&nbsp;</samp>). Or perhaps just <samp>&nbsp;Heading##20jCM&nbsp;</samp>: **C**enter that split and scroll so that 20th line is at the **M**iddle of the screen. 
 
@@ -76,7 +76,7 @@ Specify a virtual width with <samp>&nbsp;W&nbsp;</samp> in order to change the b
 
 Note that when movement syntax is defined for a block, "Snap to grid" `F10``.` will execute that movement instead.
 
-####Line anchors
+###Anchoring Lines
 Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form <samp>&nbsp;txb:[current line]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
 
 After pressing `F10`, the following commands manipulate line anchors:
@@ -85,7 +85,7 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `Ctrl-L` | Insert line anchor | | `Ctrl-A` | Align anchors in split
 
-####Saving and Restoring
+###Saving and Restoring
 The script uses the viminfo file to save plane and map data, see <samp>&nbsp;:help viminfo&nbsp;</samp>. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
 
 To manually save and restore (make sure name is in ALL CAPS):
