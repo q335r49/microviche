@@ -920,16 +920,19 @@ endfun
 fun! s:pager(list)
 	let more=&more
 	se nomore
+	let ch=&ch
+	let &ch=&ch<&lines-4? &lines-4 : &ch
 	let [pos,next,bot,continue]=[-1,0,max([len(a:list)-&lines+1,0]),1]
 	while continue
 		if pos!=next
 			let pos=next
-			redr|echo join(a:list[pos : pos+&lines-1],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
+			redr!|echo join(a:list[pos : pos+&lines-6],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
 		en
 		exe get(s:pagercom,getchar(),'')
 	endwhile
 	redr
 	let &more=more
+	let &ch=ch
 endfun
 let s:pagercom={113:'let continue=0',27:'let continue=0',
 \32:'let next=pos+&lines/2<bot? pos+&lines/2 : bot',
