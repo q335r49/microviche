@@ -5,9 +5,7 @@
 
 ###Navigating the plane
 
-Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>
-
-You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
+Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
 
 Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. The complete list of commands (access by pressing `F10` first) is: 
 
