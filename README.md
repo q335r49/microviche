@@ -55,7 +55,7 @@ Mouse | Action | | Mouse | Action
 <dl>
 
 ##Advanced 
-### Color and Position <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-map.png" width="400" height="150" alt="animation"/>
+### Coloring and Positioning
 The **#** character is reserved for syntax and can't be used in the label text. The complete syntax is:
 
 <samp>&nbsp;Text#color(optional)#position(optional)&nbsp;</samp>.
