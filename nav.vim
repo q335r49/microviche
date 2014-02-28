@@ -955,6 +955,8 @@ let s:pagercom={113:'let continue=0',
 \71:'let next=bot'}
 let s:pagercom["\<up>"]=s:pagercom.107
 let s:pagercom["\<down>"]=s:pagercom.106
+let s:pagercom["\<left>"]=s:pagercom.98
+let s:pagercom["\<right>"]=s:pagercom.32
 let s:pagercom.100=s:pagercom.32
 let s:pagercom.117=s:pagercom.98
 let s:pagercom.27=s:pagercom.113
