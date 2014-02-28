@@ -3,7 +3,7 @@
 if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
 
 "Plane settings
-	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call TXBinitPlane(0)\|en<cr>
+	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call TXBinit(0)\|en<cr>
 	                                   "Hotkey to load plane and activate keyboard commands
 	let s:hkName='<f10>'               "The name of the above key (used for help files)
 	let s:panL=15                      "Lines panned with jk
@@ -45,13 +45,12 @@ endif
 augroup TXB
 	au!
 	if v:version > 703 || v:version==703 && has("patch748")
-		au VimResized * call <SID>centerCursor(screenrow(),screencol())
+		au VimResized * if exists('t:txb') | call <SID>centerCursor(screenrow(),screencol()) | en
 	else
-		au VimResized * call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()'))
+		au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	en
 augroup END
 fun! <SID>centerCursor(row,col)
-	if !exists('t:txb') | return | en
 	let restoreView='norm! '.virtcol('.').'|'
 	call s:load()
 	call s:nav(a:col/2-&columns/4)
@@ -59,11 +58,14 @@ fun! <SID>centerCursor(row,col)
 	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
 endfun
 
-nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 let TXBmsCmd={}
 let TXBkyCmd={}
+nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+
+let s:help_bookmark=0
 fun! s:printHelp()
-	let helpmsg="\n\n\n\\CWelcome to Textabyss v1.6!
+	let width=&columns>80? min([&columns-10,80]) : &columns-2
+	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.6!
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".s:hkName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hkName."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".s:hkName." followed by:
@@ -88,7 +90,7 @@ fun! s:printHelp()
 	\\nTo manually save a snapshot of the current plane, navigate to the tab containing the plane and try:
 	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
 	\\nYou can then restore via:
-	\\n    :call TXBinitPlane(BACK01)\n
+	\\n    :call TXBinit(BACK01)\n
 	\\nAlternatively, you can save a snapshot of the viminfo via:
 	\\n    :wviminfo viminfo-backup-01\n
 	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
@@ -103,12 +105,10 @@ fun! s:printHelp()
 	\\n1.6.1     Movement commands (map and plane) now take counts
 	\\n1.6.0     Map positioning syntax added
 	\\n1.5.8     s:pager function to avoid bug in vim's pager
-	\\n1.5.7     Eliminate random cursor jitter during panning"
-	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	call s:pager(s:formatPar(helpmsg,width,(&columns-width)/2))
+	\\n1.5.7     Eliminate random cursor jitter during panning",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
-fun! TXBinitPlane(seed)
+fun! TXBinit(seed)
 	let filtered=[]
 	let [more,&more]=[&more,0]
 	if a:seed is 0
@@ -119,7 +119,7 @@ fun! TXBinitPlane(seed)
 			let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the g:TXB variable as a string."
+			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the t:txb variable as a string."
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -212,12 +212,10 @@ fun! TXBinitPlane(seed)
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
-			call TXBinitPlane(input)
+			call TXBinit(input)
 		en
 	en
-	if exists('more')
-		let &more=more
-	en
+	let &more=more
 endfun
 
 fun! s:makePlane(name,...)
@@ -734,7 +732,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mBlockW=exists('t:txb.mBlockW')? t:txb.mBlockW : 5
 	let s:ms__num='01'
 	let curspos=[line('.')%s:mapL,virtcol('.')-1]
-	let s:ms__posmes=(curspos!=[0,0])? "\n(".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will set jump target at cursor position)' : ''
+		let s:ms__posmes=(curspos!=[0,0])? "\n(".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will set jump target at cursor position)' : ''
 	let s:ms__initbk=[a:r_ini,a:c_ini]
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
@@ -758,8 +756,9 @@ fun! s:navMap(array,c_ini,r_ini)
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:last_yanked_is_column=0
+let s:map_bookmark=0
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|cal s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:mapL." lines)
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".s:mapL." lines)
 \\n    h j k l                   move 1 block cardinally*
 \\n    y u b n                   move 1 block diagonally*
 \\n    0 $                       Beginning / end of line
@@ -795,7 +794,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    W      Virtual split width (see below)
 \\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
 \\n\n''W'' changes the behavior of ''C'' and ''s''. By default, ''s'' won''t move the split offscreen, so, for example, ''45s'' will not actually pan left 45 splits but only enough to push the target split to the right edge. ''W'' specifies a ''virtual width'': for example, ''15W'' means that the width of the split is treated as though it were 15 columns, which would mean ''45s15W'' would shift up to the point where only 15 columns of the split are visible. Likewise, ''C'' will center the split as though it were of width ''W''"
-\,width,(&columns-width)/2))',
+\,width,(&columns-width)/2),s:map_bookmark)',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
 \"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
@@ -921,34 +920,44 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-fun! s:pager(list)
-	let more=&more
-	se nomore
-	let ch=&ch
-	let &ch=&ch<&lines-4? &lines-4 : &ch
-	let [pos,next,bot,continue]=[-1,0,max([len(a:list)-&lines+1,0]),1]
+fun! s:pager(list,start)
+	let [more,ch]=[&more,&ch]
+	let [&more,&ch]=[0,&lines]
+	let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
+	let next=a:start<0? 0 : a:start>bot? bot : a:start
 	while continue
 		if pos!=next
 			let pos=next
-			redr!|echo join(a:list[pos : pos+&lines-6],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
+			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
 		en
 		exe get(s:pagercom,getchar(),'')
 	endwhile
 	redr
-	let &more=more
-	let &ch=ch
+	let [&more,&ch]=[more,ch]
+	return pos
 endfun
-let s:pagercom={113:'let continue=0',27:'let continue=0',
-\32:'let next=pos+&lines/2<bot? pos+&lines/2 : bot',
-\100:'let next=pos+&lines/2<bot? pos+&lines/2 : bot',
-\106:'let next=pos<bot? pos+1 : pos',
+let s:pagercom={113:'let continue=0',
+\32:"let t=&lines/2\n
+	\while pos<bot && t>0\n
+		\let pos=pos+1\n
+		\let next=pos\n
+		\let t-=1\n
+		\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+	\endw",
+\106:"if pos<bot\n
+		\let pos=pos+1\n
+		\let next=pos\n
+		\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+	\en",
 \107:'let next=pos>0? pos-1 : pos',
 \98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
-\117:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
 \103:'let next=0',
 \71:'let next=bot'}
 let s:pagercom["\<up>"]=s:pagercom.107
 let s:pagercom["\<down>"]=s:pagercom.106
+let s:pagercom.100=s:pagercom.32
+let s:pagercom.117=s:pagercom.98
+let s:pagercom.27=s:pagercom.113
 
 fun! s:gotoPos(col,row)
 	let name=get(t:txb.name,a:col,-1)

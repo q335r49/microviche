@@ -86,6 +86,6 @@ Key | Action | | Key | Action
 To manually save and restore (make sure name is in ALL CAPS):
 
 <samp>&nbsp;&nbsp;&nbsp;:let BACKUP_01=deepcopy(t:txb)&nbsp;"evoke from tab containing plane</samp>  
-<samp>&nbsp;&nbsp;&nbsp;:call TXBinitPlane(BACKUP_01)&nbsp;&nbsp;"evoke from anywhere</samp>
+<samp>&nbsp;&nbsp;&nbsp;:call TXBinit(BACKUP_01)&nbsp;&nbsp;"evoke from anywhere</samp>
 
 Alternatively, you can save a snapshot of the viminfo file, <samp>&nbsp;:wviminfo viminfo-backup-01&nbsp;</samp>, and then restore it by quitting vim and replacing your current viminfo file with the snapshot.</dd>
