@@ -53,9 +53,7 @@ Mouse | Action | | Mouse | Action
 
 ##Advanced 
 #### Coloring and Positioning
-In the map label, the **#** character is reserved for syntax and can't be used in the label text. The complete syntax is:
-
-<samp>&nbsp;Label text#color(optional)#position(optional)&nbsp;</samp>.
+The map label syntax is:<samp>&nbsp;&nbsp;Label text#optional color#optional position&nbsp;</samp>.
 
 Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
