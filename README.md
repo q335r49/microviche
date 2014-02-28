@@ -3,9 +3,7 @@
 is a **pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
 ####Start up
-**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type:
-
-<samp>&nbsp;&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
+**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type: <samp>&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
 Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
 
@@ -33,7 +31,7 @@ Key | Action | | Key | Action
 `H` `M` `L` | High / Middle / Low row | | `Z` | Adjust map block size (Zoom)
 `x` | Clear and obtain cell | | `T` | Toggle color
 `o` `O` | Obtain cell / column| | `F1` |Help
-`p` `P` | Put obtained after / before| |`q`|Quit 
+`p` `P` | Put obtained after / before| |`q` `esc`|Quit 
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
@@ -44,7 +42,7 @@ Mouse | Action | | Mouse | Action
 ####Troubleshooting
 <dl>
 <dt>Mouse problems</dt>
-<dd>If the mouse doesn't work, try setting <samp>&nbsp;'ttymouse'&nbsp;</samp> to <samp>&nbsp;sgr&nbsp;</samp> or <samp>&nbsp;xterm2&nbsp;</samp> via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. <samp>&nbsp;xterm&nbsp;</samp> is unsupported. Other modes should work but might take a speed penalty. Only <samp>&nbsp;sgr&nbsp;</samp>, <samp>&nbsp;xterm2&nbsp;</samp>, and <samp>&nbsp;xterm&nbsp;</samp> are supported in map mode.
+<dd>If the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work.
 <dt>Directories</dt>
 <dd>Since relative paths are used, switching working directories will cause problems. Adding files not in the working directory should be ok. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab.</dd>
 <dt>Misaligned splits</dt>
@@ -55,9 +53,9 @@ Mouse | Action | | Mouse | Action
 
 ##Advanced 
 #### Coloring and Positioning
-The **#** character is reserved for syntax and can't be used in the label text. The complete syntax is:
+In the map label, the **#** character is reserved for syntax and can't be used in the label text. The complete syntax is:
 
-<samp>&nbsp;Text#color(optional)#position(optional)&nbsp;</samp>.
+<samp>&nbsp;Label text#color(optional)#position(optional)&nbsp;</samp>.
 
 Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
