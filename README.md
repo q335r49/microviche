@@ -5,7 +5,7 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 ####Start up
 **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type: <samp>&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
-Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed with `F10``A`
+Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed.
 
 ####Navigating the plane
 
