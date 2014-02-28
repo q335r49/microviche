@@ -1,12 +1,12 @@
 #Textabyss
 <img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
-is a **pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose, but it also works well for note taking, planning out projects, margin comments, and brainstorming. It supports both the mouse and keyboard, and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
+is a **pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[vim](http://www.vim.org)**. It is primarily intended as an archive for prose but also works well for note taking, planning, margin notes, and brainstorming. It supports both the mouse and keyboard and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
 
 <dl>
 <dt>Installation and Startup</dt>
-<dd>**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type: <samp>&nbsp;&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
+<dd>**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
 
-Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed.</dd>
+Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and append others as needed.</dd>
 
 <dt>Navigating the plane</dt>
 <dd>Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
@@ -41,7 +41,7 @@ Mouse | Action | | Mouse | Action
 </dd>
 ####Troubleshooting
 <dl>
-<dt>Mouse problems</dt>
+<dt>Mouse</dt>
 <dd>If the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work.
 <dt>Directories</dt>
 <dd>Since relative paths are used, switching working directories will cause problems. Adding files not in the working directory should be ok. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab.</dd>
@@ -62,7 +62,7 @@ Suppose you want to name a map block after a heading in the text that occurs hal
 <samp>&nbsp;&nbsp;Heading##s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
 <samp>&nbsp;&nbsp;Heading##20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
 
-Note that when movement is defined for a block, `F10``.` *snap to grid* will execute that movement instead. The complete syntax is:
+Note that when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
