@@ -69,7 +69,7 @@ Syntax | Action | | Syntax | Action
 
 By default, <samp>&nbsp;s&nbsp;</samp> will never shift the split offscreen regardless of count. But specifying <samp>&nbsp;15W&nbsp;</samp> would allow <samp>&nbsp;s&nbsp;</samp> to shift all but 15 columns offscreen. Likewise, <samp>&nbsp;C&nbsp;</samp> would center the split as though it were of width <samp>&nbsp;W&nbsp;</samp>.
 
-Note that when movement syntax is defined for a block, 'snap to grid' `F10``.` will execute that movement instead.
+Note that when movement syntax is defined for a block, `F10``.` 'snap to grid' will execute that movement instead.
 
 ####Anchoring Lines
 Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
