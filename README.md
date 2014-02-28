@@ -9,37 +9,35 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 Press `F10` to bring up the prompt <samp>&nbsp;>&nbsp;Enter file pattern or type HELP:&nbsp;</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and later append additional splits as needed.</dd>
 
 <dt>Navigating the plane</dt>
-
 <dd>Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`| ← ↓ ↑ → | | `F1` | Help
-`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` `E` | Append / Delete / Edit split
-`r`  | Redraw    | | `Ctrl-X`| Delete hidden buffers
-`o` | Open map | | `q` `esc` | Abort
-`.` | Snap to map grid | | | 
+`h``j``k``l`| ← ↓ ↑ → | | `F1` | *help*
+`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` | *append / delete split*
+`r`  | *redraw*    | | `E`|*edit split settings* 
+`o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
+`.` | *snap to map grid* | |`q` `esc` | *abort*
 </dd>
 
 <dt>Using the map</dt>
-
 <dd>Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l` | ← ↓ ↑ → | | `c` `i` | Change label
-`y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | Goto block and exit map
-`0` `$` | Start / End of row | | `I` `D` | Insert / Delete and obtain column
-`H` `M` `L` | High / Middle / Low row | | `Z` | Adjust map block size (Zoom)
-`x` | Clear and obtain cell | | `T` | Toggle color
-`o` `O` | Obtain cell / column| | `F1` |Help
-`p` `P` | Put obtained after / before| |`q` `esc`|Quit 
+`h``j``k``l` | ← ↓ ↑ → | | `c` `i` | *edit label*
+`y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | *goto block* 
+`0` `$` | *start / end of row* | | `I` `D` | *insert / delete and obtain column*
+`H` `M` `L` | *high / middle / low row* | | `Z` | *adjust map block size (Zoom)*
+`x` | *clear and obtain cell* | | `T` | *toggle color*
+`o` `O` | *obtain cell / column*| | `F1` |*help*
+`p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
-`click`|Select block||`click``click`|Goto block and exit map
-`drag` | Pan | | `drag` to top left corner | (While in plane) Show map
-`click` top left corner|Exit map|||
+`click`|*select block*||`click``click`|*goto block*
+`drag` | *pan* | | `drag` to top left corner | *(in plane) show map*
+`click` top left corner|*exit map*|||
 </dd>
 ####Troubleshooting
 <dl>
@@ -55,39 +53,39 @@ Mouse | Action | | Mouse | Action
 
 ####Advanced 
 <dt>Coloring and Positioning</dt>
-<dd>The map label syntax is:<samp>&nbsp;&nbsp;Label text#optional color#optional position&nbsp;</samp>.
+<dd>The map label syntax is:<samp>&nbsp;Label text#optional highlight#optional position</samp>.
 
-Color a label by specifying a highlight group. For example, <samp>&nbsp;Danger#WarningMsg&nbsp;</samp> should color the label bright red. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
+Color a label by specifying a highlight group, eg, <samp>&nbsp;Danger#WarningMsg</samp>. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
 
-Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading. The default behavior puts the split at the leftmost point and the cursor in the top left corner but positioning commands can change this. For example, in the above case we might use <samp>&nbsp;Heading##s20j&nbsp;</samp> to shift the view left one split (<samp>&nbsp;s&nbsp;</samp>) and move the cursor down 20 lines (<samp>&nbsp;20j&nbsp;</samp>). Or perhaps just <samp>&nbsp;Heading##20jCM&nbsp;</samp>: **C**enter that split and scroll so that 20th line is at the **M**iddle of the screen. The complete syntax is:
+Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. So you'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default position (topleft corner in the leftmost split, respectively). For example:
+
+<samp>&nbsp;&nbsp;Heading##s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
+<samp>&nbsp;&nbsp;Heading##20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
+
+Note that when movement is defined for a block, `F10``.` *snap to grid* will execute that movement instead. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|Cursor down / up / right| |<samp>W</samp> | Virtual split width (see below)
-<samp>r R</samp>|Shift view down / up 1 Row| |<samp>M</samp> | Center cursor vertically (override <samp>r R</samp>)
-<samp>s</samp>|Shift view left 1 Split| |<samp>C</samp> | Center split horizontally (override <samp>s</samp>)
-
-By default, <samp>&nbsp;s&nbsp;</samp> will never shift the split offscreen regardless of count. But specifying <samp>&nbsp;15W&nbsp;</samp> would allow <samp>&nbsp;s&nbsp;</samp> to shift all but 15 columns offscreen. Likewise, <samp>&nbsp;C&nbsp;</samp> would center the split as though it were of width <samp>&nbsp;W&nbsp;</samp>.
-
-Note that when movement syntax is defined for a block, `F10``.` 'snap to grid' will execute that movement instead.
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W\*</samp> | *virtual split width*
+<samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
+<samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
+_\*By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
 </dd>
 
-<dt>Anchoring Lines<dt>
-<dd>Line anchors address the fact that insertions at a higher line misalign lower lines. A line anchor is simply a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. The realigning process starts from the top of the split and attempts to restore all displaced anchors by removing or inserting blank lines immediately before it. If there aren't enough blank lines to remove an error message will be shown and the process aborted.
-
-The following commands (after pressing `F10`)  manipulate line anchors:
+<dt>Anchoring Lines</dt>
+<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands (after pressing `F10`)  manipulate anchors:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`Ctrl-L` | Insert line anchor | | `Ctrl-A` | Align anchors in split
+`Ctrl-L` | *insert anchor* | | `Ctrl-A` | *re-anchor split*
 </dd>
 
 <dt>Saving and Restoring</dt>
-<dd>The script uses the viminfo file to save plane and map data, see <samp>&nbsp;:help viminfo&nbsp;</samp>. The option to save global variables in ALL CAPS is set automatically when the script is loaded via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
+<dd>The script uses the viminfo file to save plane and map data. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
 
 To manually save and restore (make sure name is in ALL CAPS):
 
 <samp>&nbsp;&nbsp;&nbsp;:let BACKUP_01=deepcopy(t:txb)&nbsp;"evoke from tab containing plane</samp>  
 <samp>&nbsp;&nbsp;&nbsp;:call TXBinitPlane(BACKUP_01)&nbsp;&nbsp;"evoke from anywhere</samp>
 
-Alternatively, you can save a snapshot of the viminfo file via <samp>&nbsp;:wviminfo viminfo-backup-01&nbsp;</samp>. You can then restore it by quitting vim and replacing your current viminfo file with the snapshot.</dd>
+Alternatively, you can save a snapshot of the viminfo file, <samp>&nbsp;:wviminfo viminfo-backup-01&nbsp;</samp>, and then restore it by quitting vim and replacing your current viminfo file with the snapshot.</dd>
