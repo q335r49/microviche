@@ -23,9 +23,15 @@ Key | Action | | Key | Action
 <dt>Using the map</dt>
 <dd>Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
+Mouse | Action | | Mouse | Action
+--- | --- | --- | --- | ---
+`click`|*select block*||`click``click`|*goto block*
+`drag` | *pan* | | `drag` to top left corner | *(in plane) show map*
+`click` top left corner|*exit map*|||
+
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l` | ← ↓ ↑ → | | `c`\* | *change label*
+`h``j``k``l` | ← ↓ ↑ → | | `c` | *change label (see below)*
 `y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | *goto block* 
 `0` `$` | *start / end of row* | | `I` `D` | *insert / delete and obtain column*
 `H` `M` `L` | *high / middle / low row* | | `Z` | *adjust map block size (Zoom)*
@@ -33,14 +39,13 @@ Key | Action | | Key | Action
 `o` `O` | *obtain cell / column*| | `F1` |*help*
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
-\* When **c**hanging a label, you are also prompted for the highlight and position.
+<dt>(Optional) Label color and position
+<dd>When `c`hanging a label, you are also prompted for a highlight group and a position. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights. Positioning is more elaborate:
 
-Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
+Say you want to label heading that occurs halfway down the block and as the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default positions (topleft corner in the leftmost split, respectively). For example:
 
-Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. So you'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default position (topleft corner in the leftmost split, respectively). For example:
-
-<samp>&nbsp;&nbsp;Heading##s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
-<samp>&nbsp;&nbsp;Heading##20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
+<samp>&nbsp;&nbsp;s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
+<samp>&nbsp;&nbsp;20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
 
 Note that when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
 
@@ -49,15 +54,9 @@ Syntax | Action | | Syntax | Action
 <samp>j k l</samp>|*cursor down / up / right*| |<samp>W\*</samp> | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-_\*By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
+\* By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15.
 </dd>
 
-Mouse | Action | | Mouse | Action
---- | --- | --- | --- | ---
-`click`|*select block*||`click``click`|*goto block*
-`drag` | *pan* | | `drag` to top left corner | *(in plane) show map*
-`click` top left corner|*exit map*|||
-</dd>
 ####Troubleshooting
 <dl>
 <dt>Mouse</dt>
