@@ -25,13 +25,32 @@ Key | Action | | Key | Action
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l` | ← ↓ ↑ → | | `c` `i` | *edit label*
+`h``j``k``l` | ← ↓ ↑ → | | `c`\* | *change label*
 `y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | *goto block* 
 `0` `$` | *start / end of row* | | `I` `D` | *insert / delete and obtain column*
 `H` `M` `L` | *high / middle / low row* | | `Z` | *adjust map block size (Zoom)*
 `x` | *clear and obtain cell* | | `T` | *toggle color*
 `o` `O` | *obtain cell / column*| | `F1` |*help*
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
+
+\* When **c**hanging a label, you are also prompted for the highlight and position.
+
+Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
+
+Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. So you'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default position (topleft corner in the leftmost split, respectively). For example:
+
+<samp>&nbsp;&nbsp;Heading##s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
+<samp>&nbsp;&nbsp;Heading##20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
+
+Note that when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
+
+Syntax | Action | | Syntax | Action
+--- | --- | --- | --- | ---
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W\*</samp> | *virtual split width*
+<samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
+<samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
+_\*By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
+</dd>
 
 Mouse | Action | | Mouse | Action
 --- | --- | --- | --- | ---
@@ -52,26 +71,6 @@ Mouse | Action | | Mouse | Action
 <dl>
 
 ####Advanced 
-<dt>Coloring and Positioning</dt>
-<dd>The map label syntax is:<samp>&nbsp;Label text#optional highlight#optional position</samp>.
-
-Color a label by specifying a highlight group, eg, <samp>&nbsp;Danger#WarningMsg</samp>. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights.
-
-Suppose you want to name a map block after a heading in the text that occurs halfway down the block and is the second column in a larger block of text. So you'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default position (topleft corner in the leftmost split, respectively). For example:
-
-<samp>&nbsp;&nbsp;Heading##s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
-<samp>&nbsp;&nbsp;Heading##20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
-
-Note that when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
-
-Syntax | Action | | Syntax | Action
---- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W\*</samp> | *virtual split width*
-<samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
-<samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-_\*By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
-</dd>
-
 <dt>Anchoring Lines</dt>
 <dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands (after pressing `F10`)  manipulate anchors:
 

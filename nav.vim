@@ -538,7 +538,7 @@ fun! s:getMapDisp()
 			while k<s:mBlockH && len(occ[k])>=cell_border
 				let k+=1
 			endw
-			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#',1)
+			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],"\t",1)
 			if k==s:mBlockH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
@@ -599,7 +599,7 @@ fun! s:printMapDisp()
 		let endmark=len(s:ms__array[s:ms__c][s:ms__r])
 		let endmark=(sel+endmark)%s:disp__r<sel%s:disp__r? endmark-(sel+endmark)%s:disp__r-1 : endmark
 		echohl TXBmapSel
-		echon s:ms__array[s:ms__c][s:ms__r][:endmark-1]
+		echon tr(s:ms__array[s:ms__c][s:ms__r][:endmark-1],"\t",'&')
 		let endmark=sel+endmark
 	else
 		let endmark=sel+s:mBlockW
@@ -667,7 +667,7 @@ fun! s:navMapKeyHandler(c)
 					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mBlockW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
-						call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
+						call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),"\t",1),2,''))
 						return
 					en
 					let s:ms__prevclick=[s:ms__r,s:ms__c]
@@ -694,7 +694,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
-			call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
+			call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),"\t",1),2,''))
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
@@ -731,8 +731,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mBlockH=exists('t:txb.mBlockH')? t:txb.mBlockH : 2
 	let s:mBlockW=exists('t:txb.mBlockW')? t:txb.mBlockW : 5
 	let s:ms__num='01'
-	let curspos=[line('.')%s:mapL,virtcol('.')-1]
-		let s:ms__posmes=(curspos!=[0,0])? "\n(".(curspos[0]? curspos[0].'j' : '').(curspos[1]? curspos[1].'l' : '').' will set jump target at cursor position)' : ''
+    let s:ms__posmes=(line('.')%s:mapL? line('.')%s:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '')
 	let s:ms__initbk=[a:r_ini,a:c_ini]
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
@@ -766,7 +765,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    x                         clear and obtain cell
 \\n    o O                       obtain cell / Obtain column
 \\n    p P                       Put obtained cell or column
-\\n    c i                       Change label
+\\n    c                         Change label
 \\n    g <cr>                    Goto block (and exit map)
 \\n    I D                       Insert / Delete and obtain column
 \\n    Z                         Adjust map block size
@@ -778,23 +777,17 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    drag                      Pan
 \\n    click at topleft corner   Quit
 \\n    drag to topleft corner    Show map
-\\n\nMouse clicks are associated with the very first letter of the label, so it might be helpful to prepend a marker, eg, ''+ Chapter 1'', so you can aim your mouse at the ''+''. To facilitate navigating with the mouse only, the map can be activated with a mouse drag that ends at the top left corner; it can be closed by a click at the top left corner.
 \\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work.
-\\n\n\\CAdvanced - Map Label Syntax
-\\n\nSyntax is provided for map labels in order to (1) color labels and (2) allow for additional positioning after jumping to the target block. Syntax hints can also optionally be shown during the change label input (''c'' or ''i''). The ''#'' character is reserved to designated syntax regions and, unfortunately, can never be used in the label itself.
-\\n\nColoring:
-\\n\nColor a label via the syntax ''label_text#highlightgroup''. For example, ''^ Danger!#WarningMsg'' should color the label bright red. If coloring is causing slowdowns or drawing issues, you can toggle it with the ''T'' command.
-\\n\nPositioning:
-\\n\nBy default, jumping to the target grid will put the cursor at the top left corner and the split as the leftmost split. The commands following the second ''#'' character can change this. To set the view but skip highlighting use ''##''. For example, ''^ Danger!##CM'' will [C]enter the split horizontally and put the cursor line in the [M]iddle of the screen. The full command list is:\n
-\\n    jkl    Cursor up / down / right
+\\n\n\\CColor and Position (Optional):
+\\n\nWhen [c]hanging a label, you will also be prompted for an optional highlight group and positioning command. Type '':hi'' for a list of currently defined highlight groups.
+\\n\nPositioning commands move the jump from its default position of the split being at the left edge and the cursor at the top left corner. Eg, ''CM'' will [C]enter the split and put the cursor line in the screen [M]iddle. The full list of commmands is:\n
+\\n    j k l  Cursor up / down / right
 \\n    s      Shift view left 1 split
 \\n    r R    Shift view down / up 1 row
-\\n    C      Shift view so that split is Centered horizontally
-\\n    M      Shift view so that cursor is at Middle screenline
-\\n    W      Virtual split width (see below)
-\\n\nThese commands work much like normal mode commands. For example, ''^ Danger!#WarningMsg#sjjj'' or ''^ Danger!#WarningMsg#s3j'' will both shift the view left by one split and move the cursor down 3 lines. The order of the commands does not matter.
-\\n\n''W'' changes the behavior of ''C'' and ''s''. By default, ''s'' won''t move the split offscreen, so, for example, ''45s'' will not actually pan left 45 splits but only enough to push the target split to the right edge. ''W'' specifies a ''virtual width'': for example, ''15W'' means that the width of the split is treated as though it were 15 columns, which would mean ''45s15W'' would shift up to the point where only 15 columns of the split are visible. Likewise, ''C'' will center the split as though it were of width ''W''"
-\,width,(&columns-width)/2),s:map_bookmark)',
+\\n    C      Centered split horizontally (ignore s)
+\\n    M      Scroll so cursor line is Middle line (ignore r R)
+\\n    W*     Virtual split width
+\\n\n* By default ''s'' won''t shift the split offscreen but only push it to the right edge, regardless of count. But setting the virtual width, eg, ''45s15W'', would cause ''s'' to shift further (here, up to the point where only 15 columns are visible.) Likewise, ''C'' centers the split as if it were ''W'' columns wide",width,(&columns-width)/2),s:map_bookmark)',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
 \"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
@@ -857,32 +850,31 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
 	\let s:ms__redr=1\n
 \en",
-\"c":"let input=input(s:disp__str.(exists('s:show_syntax_help')? 'label text#highlight group#post jump positioning commands\n   jkl  move cursor                 s    shift one split left\n   r    shift one row down          R    shift one row up\n   C    center cursor horizontally  M    center cursor vertically' : '').([s:ms__r,s:ms__c]==s:ms__initbk? s:ms__posmes : '').'\nChange (type \"##hint\" to toggle syntax hints): ',exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '')\n
-\if !empty(input)\n
-	\if input==?'##hint'\n
-		\if exists('s:show_syntax_help')\n
-			\unlet s:show_syntax_help\n
-		\else\n
-			\let s:show_syntax_help=1\n
-		\en\n
-		\exe s:mapdict.c\n
+\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '','\t',1),['',''])[:2]\n
+\let inLbl=input(s:disp__str.'Label: ',lblTxt)\n
+\if !empty(inLbl)\n
+	\let inHL=input('\nHighlight: ',hiColor,'highlight')\n
+	\if empty(pos) && [s:ms__r,s:ms__c]==s:ms__initbk\n
+		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will jump to current cursor position) :',s:ms__posmes)\n
 	\else\n
-		\if s:ms__c>=len(s:ms__array)\n
-			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
-		\en\n
-		\if s:ms__r>=len(s:ms__array[s:ms__c])\n
-			\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
-		\en\n
-		\let s:ms__array[s:ms__c][s:ms__r]=strtrans(input)\n
-		\let s:ms__redr=1\n
+		\let inPos=input('\nPosition: ')\n
 	\en\n
+	\if s:ms__c>=len(s:ms__array)\n
+		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+	\en\n
+	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+	\en\n
+	\let s:ms__array[s:ms__c][s:ms__r]=strtrans(inLbl).'\t'.strtrans(inHL).'\t'.strtrans(inPos)\n
+	\let s:ms__redr=1\n
+\else\n
+	\let s:ms__msg=' Change aborted (press ''x'' to clear)'\n
 \en\n",
 \"g":'let s:ms__continue=2',
 \"Z":'let s:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mBlockW)])])|let s:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",s:mBlockH)])])|let [t:txb.mBlockH,t:txb.mBlockW,s:ms__redr,s:ms__rows,s:ms__cols]=[s:mBlockH,s:mBlockW,1,(&ch-1)/s:mBlockH,(&columns-1)/s:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
 \"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:ms__array,s:ms__c)|let s:last_yanked_is_column=1|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en',
 \"O":'let s:copied_column=s:ms__c<len(s:ms__array)? deepcopy(s:ms__array[s:ms__c]) : []|let s:ms__msg=" Col ".(s:ms__c)." Obtained"|let s:last_yanked_is_column=1'}
-let s:mapdict.i=s:mapdict.c
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
 fun! s:deleteHiddenBuffers()
@@ -1086,7 +1078,7 @@ let TXBkyCmd["\<right>"]=TXBkyCmd.l
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
 	let y=l0>s:mapL? l0-l0%s:mapL : 1
-	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'#',1),2,'')
+	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),"\t",1),2,'')
 	if !empty(poscom)
 		call s:doSyntax(s:gotoPos(ix,y)? '' : poscom)
 		call s:saveCursPos()
