@@ -538,7 +538,7 @@ fun! s:getMapDisp()
 			while k<s:mBlockH && len(occ[k])>=cell_border
 				let k+=1
 			endw
-			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'`',1)
+			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#',1)
 			if k==s:mBlockH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
@@ -667,7 +667,7 @@ fun! s:navMapKeyHandler(c)
 					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mBlockW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
-						call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'`',1),2,''))
+						call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
 						return
 					en
 					let s:ms__prevclick=[s:ms__r,s:ms__c]
@@ -694,7 +694,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:ms__continue==2
 			let [&ch,&more,&ls,&stal]=s:ms__settings
-			call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'`',1),2,''))
+			call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
 		else
 			let [&ch,&more,&ls,&stal]=s:ms__settings
 		en
@@ -850,17 +850,17 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
 	\let s:ms__redr=1\n
 \en",
-\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '','`',1),['',''])[:2]\n
+\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '','#',1),['',''])[:2]\n
 \let inLbl=input(s:disp__str.'Label: ',lblTxt)\n
 \if !empty(inLbl)\n
 	\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
 	\if empty(pos) && [s:ms__r,s:ms__c]==s:ms__initbk\n
 		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will jump to current cursor position) :',s:ms__posmes)\n
 	\else\n
-		\let inPos=input('\nPosition: ')\n
+		\let inPos=input('\nPosition: ',pos)\n
 	\en\n
-	\if stridx(inLbl.inHL.inPos,'`')!=-1\n
-		\let s:ms__msg=' ERROR: ''`'' is reserved for syntax and not allowed in the label text or settings'\n
+	\if stridx(inLbl.inHL.inPos,'#')!=-1\n
+		\let s:ms__msg=' ERROR: ''#'' is reserved for syntax and not allowed in the label text or settings'\n
 	\else\n
 		\if s:ms__c>=len(s:ms__array)\n
 			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
@@ -868,7 +868,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 		\if s:ms__r>=len(s:ms__array[s:ms__c])\n
 			\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
 		\en\n
-		\let s:ms__array[s:ms__c][s:ms__r]=strtrans(inLbl).'`'.strtrans(inHL).'`'.strtrans(inPos)\n
+		\let s:ms__array[s:ms__c][s:ms__r]=strtrans(inLbl).'#'.strtrans(inHL).'#'.strtrans(inPos)\n
 		\let s:ms__redr=1\n
 	\en\n
 \else\n
@@ -1082,7 +1082,7 @@ let TXBkyCmd["\<right>"]=TXBkyCmd.l
 fun! s:snapToGrid()
 	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
 	let y=l0>s:mapL? l0-l0%s:mapL : 1
-	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'`',1),2,'')
+	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'#',1),2,'')
 	if !empty(poscom)
 		call s:doSyntax(s:gotoPos(ix,y)? '' : poscom)
 		call s:saveCursPos()
