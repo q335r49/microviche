@@ -57,7 +57,7 @@ Syntax | Action | | Syntax | Action
 <dt>Mouse</dt>
 <dd>If the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work.
 <dt>Directories</dt>
-<dd>Since relative paths are used, switching working directories will cause problems. Adding files not in the working directory should be ok. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab.</dd>
+<dd>Since relative paths are used, switching working directories will cause problems. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab. Adding files not in the working directory should be ok.</dd>
 <dt>Misaligned splits</dt>
 <dd>Scrolling past the end of splits can occasionally cause splits to misalign. You can press `r` to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode to go to the last non-blank line rather than the very last line -- you can uncomment a line in the source code for this option.</dd>
 <dt>Horizontal splits</dt>
@@ -66,7 +66,7 @@ Syntax | Action | | Syntax | Action
 
 ####Advanced 
 <dt>Anchoring Lines</dt>
-<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
+<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---

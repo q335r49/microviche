@@ -2,10 +2,10 @@
 
 if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
 
+"Hotkey to load plane and evoke commands
+	nn <silent> <f10> :call {exists('t:txb')? 'TXBdoCmd' : 'TXBinit'}(-99)
+	let s:hkName='<f10>'               "Name of the above key (used for help files)
 "Plane settings
-	nn <silent> <f10> :if exists('t:txb')\|call TXBdoCmd('ini')\|else\|call TXBinit(0)\|en<cr>
-	                                   "Hotkey to load plane and activate keyboard commands
-	let s:hkName='<f10>'               "The name of the above key (used for help files)
 	let s:panL=15                      "Lines panned with jk
 	let [s:aniStepH,s:aniStepV]=[9,2]  "Keyboard pan animation step horizontal / vertical (higher pans faster)
 	let s:mouseAcc=[0,1,2,4,7,10,15,21,24,27]       "for every N steps mouse moves, pan mouseAcc[N] steps
@@ -99,19 +99,16 @@ fun! s:printHelp()
 	\\n    ^A          Align all text anchors in split\n
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.6     Multiple prompts for map label
 	\\n1.6.5     Lots of initialization fixes
 	\\n1.6.4     Center and redraw on zoom
-	\\n1.6.2     Line anchors
-	\\n1.6.1     Movement commands (map and plane) now take counts
-	\\n1.6.0     Map positioning syntax added
-	\\n1.5.8     s:pager function to avoid bug in vim's pager
-	\\n1.5.7     Eliminate random cursor jitter during panning",width,(&columns-width)/2),s:help_bookmark)
+	\\n1.6.2     Line anchors",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
 fun! TXBinit(seed)
 	let filtered=[]
 	let [more,&more]=[&more,0]
-	if a:seed is 0
+	if a:seed is -99
 		let msg=''
 		if &ttymouse==?"xterm"
 			let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
@@ -195,7 +192,7 @@ fun! TXBinit(seed)
 			ec "\n  " join(displist,"\n   ") "\n ----" plane.len "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
-	elseif a:seed isnot 0
+	elseif a:seed isnot -99
 		ec "\n    (No matches found)"
 		let c=0
 	else
@@ -291,12 +288,12 @@ fun! s:initDragDefault()
 			call s:updateCursPos()
 			let s0=get(t:txb.ix,bufname(winbufnr(v:mouse_win)),-1)
 			let t_r=v:mouse_lnum/s:mapL
-			echon t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 			return "keepj norm! \<leftmouse>"
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			let ecstr=t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			let ecstr=t:txb.gridnames[s0].t_r.' '.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -328,7 +325,7 @@ fun! s:initDragDefault()
 		call s:updateCursPos()
 		let s0=get(t:txb.ix,bufname(''),-1)
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0].t_r.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+		echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -381,7 +378,7 @@ fun! s:initDragSGR()
 		if exists("t:txb")
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -417,7 +414,7 @@ fun! <SID>doDragSGR()
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -439,7 +436,7 @@ fun! s:initDragXterm2()
 		if exists("t:txb")
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -472,7 +469,7 @@ fun! <SID>doDragXterm2()
 		else
 			let s0=get(t:txb.ix,bufname(''),-1)
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -491,21 +488,23 @@ fun! s:navPlane(dx,dy)
 	let l0=max([1,a:dy>0? s:nav_state[0]-get(s:mouseAcc,a:dy,s:mouseAcc[-1]) : s:nav_state[0]+get(s:mouseAcc,-a:dy,s:mouseAcc[-1])])
 	exe 'norm! '.l0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]
+	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]
 	echon s:nav_state[4]
 endfun
+
+let GN=function('s:getGridNames')
 
 fun! s:getGridNames(len)
 	let alpha=map(range(65,90),'nr2char(v:val)')
 	let powers=[26,676,17576]
-	let array1=map(range(powers[0]),'alpha[v:val%26]')
+	let array1=map(range(powers[0]),'alpha[v:val%26]." "')
 	if a:len<=powers[0]
 		return array1
 	elseif a:len<=powers[0]+powers[1]
-		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
 	else
-		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]'))
-		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]'))
+		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
+		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
 	en
 endfun
 
@@ -1156,7 +1155,7 @@ fun! s:doCmdKeyhandler(c)
 	if s:kc__continue
 		let s0=get(t:txb.ix,bufname(''),-1)
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7] : s:kc__msg
+		echon t:txb.gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)
@@ -1165,7 +1164,7 @@ fun! s:doCmdKeyhandler(c)
 endfun
 
 let TXBkyCmd[-1]='let s:kc__continue=0|call feedkeys("\<leftmouse>")'
-let TXBkyCmd.ini=""
+let TXBkyCmd[-99]=""
 let TXBkyCmd.D="redr\n
 \let confirm=input(' < Really delete current column (y/n)? ')\n
 \if confirm==?'y'\n
