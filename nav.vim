@@ -204,6 +204,20 @@ fun! TXBinit(seed)
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
+
+		let input=input("\n**Warning: The map syntax separator has been changed from '#' to '`'.\n   Would you like me to scan the map and replace all occurences of '#' with '`'? (y/n)")
+		if input==?'y'
+			for i in range(len(plane.map))
+				if empty(plane.map[i])
+					continue
+				en
+				for j in range(len(plane.map[i]))
+					let plane.map[i][j]=tr(plane.map[i][j],"\t","`")
+				endfor
+			endfor
+			echo "\n\nReplacement complete"
+		en
+
 		call s:load(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
