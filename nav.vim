@@ -286,14 +286,14 @@ fun! s:initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let s0=get(t:txb.ix,bufname(winbufnr(v:mouse_win)),-1)
+			let s0=t:txb.ix[bufname(winbufnr(v:mouse_win)]
 			let t_r=v:mouse_lnum/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
-			let s0=get(t:txb.ix,bufname(''),-1)
+			let s0=t:txb.ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			let ecstr=t:txb.gridnames[s0].t_r.' '.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			let ecstr=t:txb.gridnames[s0].t_r.' '.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -323,9 +323,9 @@ fun! s:initDragDefault()
 			endwhile
 		en
 		call s:updateCursPos()
-		let s0=get(t:txb.ix,bufname(''),-1)
+		let s0=t:txb.ix[bufname('')]
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+		echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -376,9 +376,9 @@ fun! s:initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let s0=get(t:txb.ix,bufname(''),-1)
+			let s0=t:txb.ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -412,9 +412,9 @@ fun! <SID>doDragSGR()
 		if k[1:]==[1,1]
 			call TXBdoCmd('o')
 		else
-			let s0=get(t:txb.ix,bufname(''),-1)
+			let s0=t:txb.ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -434,9 +434,9 @@ fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let s0=get(t:txb.ix,bufname(''),-1)
+			let s0=t:txb.ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -467,9 +467,9 @@ fun! <SID>doDragXterm2()
 		if k[1:]==[33,33]
 			call TXBdoCmd('o')
 		else
-			let s0=get(t:txb.ix,bufname(''),-1)
+			let s0=t:txb.ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7]
+			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -485,14 +485,12 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(s:mouseAcc,a:dx,s:mouseAcc[-1]) : get(s:mouseAcc,-a:dx,s:mouseAcc[-1]))
-	let l0=max([1,a:dy>0? s:nav_state[0]-get(s:mouseAcc,a:dy,s:mouseAcc[-1]) : s:nav_state[0]+get(s:mouseAcc,-a:dy,s:mouseAcc[-1])])
-	exe 'norm! '.l0.'zt'
+	let s0=max([1,a:dy>0? s:nav_state[0]-get(s:mouseAcc,a:dy,s:mouseAcc[-1]) : s:nav_state[0]+get(s:mouseAcc,-a:dy,s:mouseAcc[-1])])
+	exe 'norm! '.s0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	let s:nav_state=[l0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-7] : s:nav_state[4]]
+	let s:nav_state=[s0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-9] : s:nav_state[4]]
 	echon s:nav_state[4]
 endfun
-
-let GN=function('s:getGridNames')
 
 fun! s:getGridNames(len)
 	let alpha=map(range(65,90),'nr2char(v:val)')
@@ -1153,9 +1151,9 @@ endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:kc__msg=" Press f1 for help"')
 	if s:kc__continue
-		let s0=get(t:txb.ix,bufname(''),-1)
+		let s0=t:txb.ix[bufname('')]
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-7] : s:kc__msg
+		echon t:txb.gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)
