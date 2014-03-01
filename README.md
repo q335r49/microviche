@@ -39,22 +39,17 @@ Key | Action | | Key | Action
 `o` `O` | *obtain cell / column*| | `F1` |*help*
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
-<dt>(Optional) Label color and position
-<dd>When `c`hanging a label, you are also prompted for a highlight group and a position. Type <samp>&nbsp;:hi&nbsp;</samp> for a list of currently defined highlights. Positioning is more elaborate:
+<dt>Label color and position
+<dd>When `c`hanging a label in the map, you're also prompted for a (optional) highlight group and (optional) position. You can press `tab` at the highlight prompt for auto-completion from the list of currently defined highlights.
 
-Say you want to label heading that occurs halfway down the block and as the second column in a larger block of text. You'd like to show the previous split and have the cursor jump straight to the heading. Positioning commands can acheive this by move the cursor and the view from their default positions (topleft corner in the leftmost split, respectively). For example:
-
-<samp>&nbsp;&nbsp;s20j&nbsp;&nbsp;</samp> _shift view left one split, cursor down 20 lines_  
-<samp>&nbsp;&nbsp;20jCM&nbsp;</samp>  _cursor down 20 lines, center split, scroll so cursor is middle line_
-
-Note that when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
+Positioning commands can move the cursor and the split from their default positions (top left corner and leftmost split, respectively). For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. Also, when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W\*</samp> | *virtual split width*
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp> | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-\* _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. Specifying, eg,_ <samp>15W</samp> _allows_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
+\* _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
 </dd>
 
 ####Troubleshooting
