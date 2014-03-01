@@ -139,11 +139,9 @@ fun! TXBinit(seed)
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
-				let check_compat=1
 				let confirm_keys=[82]
 			else
 				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
-				let check_compat=1
 				let confirm_keys=[10,13]
 			en
 		else
@@ -169,12 +167,10 @@ fun! TXBinit(seed)
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane:"
 			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / F1 for help: "
-			let check_compat=1
 			let confirm_keys=[76]
 		else
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane."
 			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / F1 for help:"
-			let check_compat=1
 			let confirm_keys=[76]
 		en
 	elseif type(a:seed)==1
@@ -208,22 +204,6 @@ fun! TXBinit(seed)
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
-
-		if exists('check_compat')
-			let input=input("\n**Warning**\n    The map syntax separator has recently changed from '#' to '`'.\n    Would you like me to scan the map and replace all occurences of '#' with '`'? (y/n)")
-			if input==?'y'
-				for i in range(len(plane.map))
-					if empty(plane.map[i])
-						continue
-					en
-					for j in range(len(plane.map[i]))
-						let plane.map[i][j]=tr(plane.map[i][j],"\t","`")
-					endfor
-				endfor
-				echo "\n\nReplacement complete"
-			en
-		en
-
 		call s:load(plane)
 	elseif c is "\<f1>"
 		call s:printHelp() 
