@@ -46,7 +46,7 @@ Positioning commands can move the cursor and the split from their default positi
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp> | *virtual split width*
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp>__*__ | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
 \* _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
