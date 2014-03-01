@@ -66,11 +66,11 @@ Syntax | Action | | Syntax | Action
 
 ####Advanced 
 <dt>Anchoring Lines</dt>
-<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands (after pressing `F10`)  manipulate anchors:
+<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form <samp>&nbsp;txb:[line number]&nbsp;</samp>, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`Ctrl-L` | *insert anchor* | | `Ctrl-A` | *re-anchor split*
+`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
 </dd>
 
 <dt>Saving and Restoring</dt>
