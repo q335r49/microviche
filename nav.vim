@@ -139,6 +139,7 @@ fun! TXBinit(seed)
 		else
 			let plane={'name':[]}
 			let plane.size=[]
+			let plane.map=[[]]
 			let plane.exe=[]
 			let confirm_keys=[]
 		en
@@ -165,6 +166,7 @@ fun! TXBinit(seed)
 	elseif type(a:seed)==1
 		let plane={'name':map(filter(split(glob(a:seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
 		let plane.size=repeat([60],len(plane.name))
+		let plane.map=[[]]
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
