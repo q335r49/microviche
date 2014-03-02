@@ -3,7 +3,7 @@
 if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
 
 "Hotkey to load plane and evoke commands
-	nn <silent> <f10> :call {exists('t:txb')? 'TXBdoCmd' : 'TXBinit'}(-99)
+	nn <silent> <f10> :call {exists('t:txb')? 'TXBdoCmd' : 'TXBinit'}(-99)<cr>
 	let s:hkName='<f10>'               "Name of the above key (used for help files)
 "Plane settings
 	let s:panL=15                      "Lines panned with jk
