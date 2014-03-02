@@ -165,6 +165,7 @@ fun! TXBinit(seed)
 		let plane={'name':map(filter(split(glob(a:seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
 		let plane.size=repeat([60],len(plane.name))
 		let plane.map=[[]]
+		let plane.settings={}
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
@@ -189,6 +190,9 @@ fun! TXBinit(seed)
 		en
 		if !exists('plane.map')
 			let plane.map=[[]]
+		en
+		if !exists('plane.settings')
+			let plane.settings={}
 		en
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
@@ -505,9 +509,9 @@ endfun
 
 fun! s:getMapDisp()          
 	let pad=repeat(' ',&columns+20)
-	let s:disp__r=s:ms__cols*s:mBlockW+1
-	let l=s:disp__r*s:mBlockH
-	let templist=repeat([''],s:mBlockH)
+	let s:disp__r=s:ms__cols*t:mBlockW+1
+	let l=s:disp__r*t:mBlockH
+	let templist=repeat([''],t:mBlockH)
 	let last_entry_colored=copy(templist)
 	let s:disp__selmap=map(range(s:ms__rows),'repeat([0],s:ms__cols)')
 	let dispLines=[]
@@ -517,23 +521,23 @@ fun! s:getMapDisp()
 	let extend_colorv='call extend(s:disp__colorv,'.join(map(templist,'"colorvix[".v:key."]"'),'+').')'
 	let let_colorix='let colorix=['.join(map(templist,'"[]"'),',').']'
 	let let_colorvix=let_colorix[:8].'v'.let_colorix[9:]
-	let let_occ='let occ=['.repeat("'',",s:mBlockH)[:-2].']'
+	let let_occ='let occ=['.repeat("'',",t:mBlockH)[:-2].']'
 	for i in range(s:ms__rows)
 		exe let_occ
 		exe let_colorix
 		exe let_colorvix
 		for j in range(s:ms__cols)
 			if !exists("s:ms__array[s:ms__coff+j][s:ms__roff+i]") || empty(s:ms__array[s:ms__coff+j][s:ms__roff+i])
-				let s:disp__selmap[i][j]=[i*l+j*s:mBlockW,0]
+				let s:disp__selmap[i][j]=[i*l+j*t:mBlockW,0]
 				continue
 			en
 			let k=0
-			let cell_border=(j+1)*s:mBlockW
-			while k<s:mBlockH && len(occ[k])>=cell_border
+			let cell_border=(j+1)*t:mBlockW
+			while k<t:mBlockH && len(occ[k])>=cell_border
 				let k+=1
 			endw
 			let parsed=split(s:ms__array[s:ms__coff+j][s:ms__roff+i],'#',1)
-			if k==s:mBlockH
+			if k==t:mBlockH
 				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
 				if last_entry_colored[k]
 					let colorix[k][-1]-=len(occ[k])-(cell_border-1)
@@ -541,7 +545,7 @@ fun! s:getMapDisp()
 				let occ[k]=occ[k][:cell_border-2].parsed[0]
 				let s:disp__selmap[i][j]=[i*l+k*s:disp__r+cell_border-1,len(parsed[0])]
 			else
-				let [s:disp__selmap[i][j],occ[k]]=len(occ[k])<j*s:mBlockW? [[i*l+k*s:disp__r+j*s:mBlockW,1],occ[k].pad[:j*s:mBlockW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp__r+j*s:mBlockW+(len(occ[k])%s:mBlockW),1],occ[k].parsed[0]]
+				let [s:disp__selmap[i][j],occ[k]]=len(occ[k])<j*t:mBlockW? [[i*l+k*s:disp__r+j*t:mBlockW,1],occ[k].pad[:j*t:mBlockW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp__r+j*t:mBlockW+(len(occ[k])%t:mBlockW),1],occ[k].parsed[0]]
 			en
 			if len(parsed)>1
 				call extend(colorix[k],[s:disp__selmap[i][j][0],s:disp__selmap[i][j][0]+len(parsed[0])])
@@ -551,14 +555,14 @@ fun! s:getMapDisp()
 				let last_entry_colored[k]=0
 			en
 		endfor
-		for z in range(s:mBlockH)
+		for z in range(t:mBlockH)
 			if !empty(colorix[z]) && colorix[z][-1]%s:disp__r<colorix[z][-2]%s:disp__r
 				let colorix[z][-1]-=colorix[z][-1]%s:disp__r
 			en
 		endfor
 		exe extend_color
 		exe extend_colorv
-		let dispLines+=map(occ,'len(v:val)<s:ms__cols*s:mBlockW? v:val.pad[:s:ms__cols*s:mBlockW-len(v:val)-1]."\n" : v:val[:s:ms__cols*s:mBlockW-1]."\n"')
+		let dispLines+=map(occ,'len(v:val)<s:ms__cols*t:mBlockW? v:val.pad[:s:ms__cols*t:mBlockW-len(v:val)-1]."\n" : v:val[:s:ms__cols*t:mBlockW-1]."\n"')
 	endfor
 	let s:disp__str=join(dispLines,'')
 	call add(s:disp__color,99999)
@@ -596,7 +600,7 @@ fun! s:printMapDisp()
 		echon s:ms__array[s:ms__c][s:ms__r][:endmark-1]
 		let endmark=sel+endmark
 	else
-		let endmark=sel+s:mBlockW
+		let endmark=sel+t:mBlockW
 		echohl TXBmapSelEmpty
 		echon s:disp__str[sel : endmark-1]
 	en
@@ -622,7 +626,7 @@ fun! s:printMapDispNoHL()
 		echohl TXBmapSel
 		echon s:ms__array[s:ms__c][s:ms__r][:len]
 	else
-		let len=s:mBlockW
+		let len=t:mBlockW
 		echohl TXBmapSelEmpty
 		echon s:disp__str[i : i+len-1]
 	en
@@ -637,12 +641,12 @@ fun! s:navMapKeyHandler(c)
 			let s:ms__prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mBlockW]),0]
+				let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/t:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/t:mBlockW]),0]
 				let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
 				call s:getMapDisp()
 				call s:ms__displayfunc()
 			en
-			let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mBlockW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mBlockH]
+			let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%t:mBlockW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%t:mBlockH]
 		elseif g:TXBmsmsg[0]==3
 			if g:TXBmsmsg==[3,1,1]
 				let [&ch,&more,&ls,&stal]=s:ms__settings
@@ -650,15 +654,15 @@ fun! s:navMapKeyHandler(c)
 			elseif s:ms__prevcoord[0]==1
 				if &ttymouse=='xterm' && s:ms__prevcoord[1]!=g:TXBmsmsg[1] && s:ms__prevcoord[2]!=g:TXBmsmsg[2] 
 					if s:ms__prevcoord[1] && s:ms__prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/s:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/s:mBlockW]),0]
+						let [s:ms__roff,s:ms__coff,s:ms__redr]=[max([0,s:ms__roff-(g:TXBmsmsg[2]-s:ms__prevcoord[2])/t:mBlockH]),max([0,s:ms__coff-(g:TXBmsmsg[1]-s:ms__prevcoord[1])/t:mBlockW]),0]
 						let [s:ms__r,s:ms__c]=[s:ms__r<s:ms__roff? s:ms__roff : s:ms__r>=s:ms__roff+s:ms__rows? s:ms__roff+s:ms__rows-1 : s:ms__r,s:ms__c<s:ms__coff? s:ms__coff : s:ms__c>=s:ms__coff+s:ms__cols? s:ms__coff+s:ms__cols-1 : s:ms__c]
 						call s:getMapDisp()
 						call s:ms__displayfunc()
 					en
-					let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%s:mBlockW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%s:mBlockH]
+					let s:ms__prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:ms__prevcoord[1])%t:mBlockW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:ms__prevcoord[2])%t:mBlockH]
 				else
-					let s:ms__r=(g:TXBmsmsg[2]-&lines+&ch-1)/s:mBlockH+s:ms__roff
-					let s:ms__c=(g:TXBmsmsg[1]-1)/s:mBlockW+s:ms__coff
+					let s:ms__r=(g:TXBmsmsg[2]-&lines+&ch-1)/t:mBlockH+s:ms__roff
+					let s:ms__c=(g:TXBmsmsg[1]-1)/t:mBlockW+s:ms__coff
 					if [s:ms__r,s:ms__c]==s:ms__prevclick
 						let [&ch,&more,&ls,&stal]=s:ms__settings
 						call s:doSyntax(s:gotoPos(s:ms__c,s:mapL*s:ms__r)? '' : get(split(get(get(s:ms__array,s:ms__c,[]),s:ms__r,''),'#',1),2,''))
@@ -722,8 +726,8 @@ endfun
 
 let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb__ix[expand("%")],line(".")/s:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
-	let s:mBlockH=exists('t:txb.mBlockH')? t:txb.mBlockH : 2
-	let s:mBlockW=exists('t:txb.mBlockW')? t:txb.mBlockW : 5
+	let t:mBlockH=exists('t:txb.settings.mBlockH')? t:txb.settings.mBlockH : 2
+	let t:mBlockW=exists('t:txb.settings.mBlockW')? t:txb.settings.mBlockW : 5
 	let s:ms__num='01'
     let s:ms__posmes=(line('.')%s:mapL? line('.')%s:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '')
 	let s:ms__initbk=[a:r_ini,a:c_ini]
@@ -738,8 +742,8 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:ms__c=a:c_ini
 	let s:ms__continue=1
 	let s:ms__redr=1
-	let s:ms__rows=(&ch-1)/s:mBlockH
-	let s:ms__cols=(&columns-1)/s:mBlockW
+	let s:ms__rows=(&ch-1)/t:mBlockH
+	let s:ms__cols=(&columns-1)/t:mBlockW
 	let s:ms__roff=max([s:ms__r-s:ms__rows/2,0])
 	let s:ms__coff=max([s:ms__c-s:ms__cols/2,0])
 	let s:ms__displayfunc=function('s:printMapDisp')
@@ -869,7 +873,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\let s:ms__msg=' Change aborted (press ''x'' to clear)'\n
 \en\n",
 \"g":'let s:ms__continue=2',
-\"Z":'let s:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",s:mBlockW)])])|let s:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",s:mBlockH)])])|let [t:txb.mBlockH,t:txb.mBlockW,s:ms__redr,s:ms__rows,s:ms__cols]=[s:mBlockH,s:mBlockW,1,(&ch-1)/s:mBlockH,(&columns-1)/s:mBlockW]',
+\"Z":'let t:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",t:mBlockW)])])|let t:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",t:mBlockH)])])|let [t:txb.settings.mBlockH,t:txb.settings.mBlockW,s:ms__redr,s:ms__rows,s:ms__cols]=[t:mBlockH,t:mBlockW,1,(&ch-1)/t:mBlockH,(&columns-1)/t:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
 \"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:ms__array,s:ms__c)|let s:last_yanked_is_column=1|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en',
 \"O":'let s:copied_column=s:ms__c<len(s:ms__array)? deepcopy(s:ms__array[s:ms__c]) : []|let s:ms__msg=" Col ".(s:ms__c)." Obtained"|let s:last_yanked_is_column=1'}
