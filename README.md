@@ -4,7 +4,7 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 
 <dl>
 <dt>Installation and Startup</dt>
-<dd>**[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>.
+<dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
 
 Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and append others as needed.</dd>
 
