@@ -176,9 +176,15 @@ fun! TXBinit(seed)
 			let confirm_keys=[10,13]
 		en
 	else
-		throw "Argument must be dictionary plane or string filepattern"
+		throw "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 	en
 	if !empty(plane.name) || !empty(filtered)
+		if len(plane.size)<len(plane.name)
+			call extend(plane.size,repeat([60],len(plane.name)-len(plane.size)))
+		en
+		if len(plane.exe)<len(plane.name)
+			call extend(plane.exe,repeat(['se scb cole=2 nowrap'],len(plane.name)-len(plane.exe)))
+		en
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
 			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
@@ -1197,7 +1203,7 @@ fun! s:editSplitSettings()
 		redr
 		let input=input('Column width: ',t:txb.size[ix])
 		if empty(input) | return | en
-		let t:txb.size[ix]=input
+		let t:txb.size[ix]=str2nr(input)
 		let input=input("Autoexecute on load: ",t:txb.exe[ix])
 		if empty(input) | return | en
 		let t:txb.exe[ix]=input
