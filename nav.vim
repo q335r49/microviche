@@ -52,7 +52,7 @@ augroup TXB
 augroup END
 fun! <SID>centerCursor(row,col)
 	let restoreView='norm! '.virtcol('.').'|'
-	call s:load()
+	call s:redraw()
 	call s:nav(a:col/2-&columns/4)
 	let dy=&lines/4-a:row/2
 	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
@@ -120,7 +120,7 @@ fun! TXBinit(seed)
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
-			for i in range(plane.len-1,0,-1)
+			for i in range(len(plane.name)-1,0,-1)
 				if !filereadable(plane.name[i])
 					call add(filtered,remove(plane.name,i))
 					call remove(plane.size,i)	
@@ -128,11 +128,6 @@ fun! TXBinit(seed)
 				en
 			endfor
 			if !empty(filtered)
-				let plane.len=len(plane.name)
-				let [plane.ix,j]=[{},0]
-				for e in plane.name
-					let [plane.ix[e],j]=[j,j+1]
-				endfor
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
@@ -142,12 +137,14 @@ fun! TXBinit(seed)
 				let confirm_keys=[10,13]
 			en
 		else
-			let plane=s:makePlane('')
+			let plane={'name':[]}
+			let plane.size=[]
+			let plane.exe=[]
 			let confirm_keys=[]
 		en
 	elseif type(a:seed)==4
    		let plane=a:seed
-		for i in range(plane.len-1,0,-1)
+		for i in range(len(a:seed.name)-1,0,-1)
 			if !filereadable(plane.name[i])
 				call add(filtered,remove(plane.name,i))
 				call remove(plane.size,i)	
@@ -155,11 +152,6 @@ fun! TXBinit(seed)
 			en
 		endfor
 		if !empty(filtered)
-			let plane.len=len(plane.name)
-			let [plane.ix,j]=[{},0]
-			for e in plane.name
-				let [plane.ix[e],j]=[j,j+1]
-			endfor
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane:"
@@ -171,7 +163,9 @@ fun! TXBinit(seed)
 			let confirm_keys=[76]
 		en
 	elseif type(a:seed)==1
-		let plane=s:makePlane(a:seed)
+		let plane={'name':map(filter(split(glob(a:seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
+		let plane.size=repeat([60],len(plane.name))
+		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
@@ -185,11 +179,11 @@ fun! TXBinit(seed)
 	if !empty(plane.name) || !empty(filtered)
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
-			ec "\n  " join(plane.name,"\n   ") "\n ---- " plane.len "file(s) ----" msg
+			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
 		else
 			let displist=copy(plane.name)
 			let displist[curbufix].=' (current file)'
-			ec "\n  " join(displist,"\n   ") "\n ----" plane.len "file(s) (Plane will be loaded in current tab) ----" msg
+			ec "\n  " join(displist,"\n   ") "\n ----" len(plane.name) "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
 	elseif a:seed isnot -99
@@ -201,7 +195,16 @@ fun! TXBinit(seed)
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
-		call s:load(plane)
+		let t:txb=plane
+		let t:txb__len=len(t:txb.name)
+		let [t:txb__ix,j]=[{},0]
+		for e in t:txb.name
+			let [t:txb__ix[e],j]=[j,j+1]
+		endfor
+		if !exists('s:gridNames') || len(s:gridNames)<t:txb__len+50
+			let s:gridnames=s:getGridNames(t:txb__len+50)
+		en
+		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	else
@@ -213,25 +216,6 @@ fun! TXBinit(seed)
 		en
 	en
 	let &more=more
-endfun
-
-fun! s:makePlane(name,...)
-	let plane={}
-	let plane.name=type(a:name)==1? map(filter(split(glob(a:name),"\n"),'filereadable(v:val)'),'escape(v:val," ")') : type(a:name)==3? a:name : 'INV'
-	if plane.name is 'INV'
-		throw 'First argument ('.string(a:name).') must be string (filepattern) or list (list of files)'
-	else
-		let plane.len=len(plane.name)
-		let plane.size=exists("a:1")? a:1 : repeat([60],plane.len)
-		let plane.exe=exists("a:2")? a:2 : repeat(['se scb cole=2 nowrap'],plane.len)
-		let [plane.ix,i]=[{},0]
-		let plane.map=[[]]
-		for e in plane.name
-			let [plane.ix[e],i]=[i,i+1]
-		endfor
-		let plane.gridnames=s:getGridNames(plane.len+50)
-		return plane
-	en
 endfun
 
 let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0"
@@ -286,14 +270,14 @@ fun! s:initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let s0=t:txb.ix[bufname(winbufnr(v:mouse_win)]
+			let s0=t:txb__ix[bufname(winbufnr(v:mouse_win)]
 			let t_r=v:mouse_lnum/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
-			let s0=t:txb.ix[bufname('')]
+			let s0=t:txb__ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			let ecstr=t:txb.gridnames[s0].t_r.' '.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			let ecstr=s:gridnames[s0].t_r.' '.get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -302,7 +286,7 @@ fun! s:initDragDefault()
 						return ''
 					en
 					let [b0,wrap]=[winbufnr(0),&wrap]
-					let [x,y,offset,ix]=wrap? [wincol(),line('w0')+winline(),0,get(t:txb.ix,bufname(b0),-1)] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol(),get(t:txb.ix,bufname(b0),-1)]
+					let [x,y,offset]=wrap? [wincol(),line('w0')+winline(),0] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol()]
 				else
 					if wrap
 						exe "norm! \<leftmouse>"
@@ -323,9 +307,9 @@ fun! s:initDragDefault()
 			endwhile
 		en
 		call s:updateCursPos()
-		let s0=t:txb.ix[bufname('')]
+		let s0=t:txb__ix[bufname('')]
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+		echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -376,9 +360,9 @@ fun! s:initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let s0=t:txb.ix[bufname('')]
+			let s0=t:txb__ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -412,9 +396,9 @@ fun! <SID>doDragSGR()
 		if k[1:]==[1,1]
 			call TXBdoCmd('o')
 		else
-			let s0=t:txb.ix[bufname('')]
+			let s0=t:txb__ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -434,9 +418,9 @@ fun! s:initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
-			let s0=t:txb.ix[bufname('')]
+			let s0=t:txb__ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
 		exe v:mouse_win.'wincmd w'
@@ -467,9 +451,9 @@ fun! <SID>doDragXterm2()
 		if k[1:]==[33,33]
 			call TXBdoCmd('o')
 		else
-			let s0=t:txb.ix[bufname('')]
+			let s0=t:txb__ix[bufname('')]
 			let t_r=line('.')/s:mapL
-			echon t:txb.gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
@@ -488,7 +472,7 @@ fun! s:navPlane(dx,dy)
 	let s0=max([1,a:dy>0? s:nav_state[0]-get(s:mouseAcc,a:dy,s:mouseAcc[-1]) : s:nav_state[0]+get(s:mouseAcc,-a:dy,s:mouseAcc[-1])])
 	exe 'norm! '.s0.'zt'
 	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	let s:nav_state=[s0,line('.'),t:txb.ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? t:txb.gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-9] : s:nav_state[4]]
+	let s:nav_state=[s0,line('.'),t:txb__ix[bufname('')],s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? s:gridnames[s:nav_state[2]].s:nav_state[1]/s:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/s:mapL,'')[:&columns-9] : s:nav_state[4]]
 	echon s:nav_state[4]
 endfun
 
@@ -612,7 +596,7 @@ fun! s:printMapDisp()
 		exe s:disp__colorv[p]
 		echon s:disp__str[s:disp__color[p-1] : s:disp__color[p]-1]
 	endfor
-	echon get(t:txb.gridnames,s:ms__c,'--') s:ms__r s:ms__msg
+	echon get(s:gridnames,s:ms__c,'--') s:ms__r s:ms__msg
 	let s:ms__msg=''
 endfun
 fun! s:printMapDispNoHL()
@@ -630,7 +614,7 @@ fun! s:printMapDispNoHL()
 		echon s:disp__str[i : i+len-1]
 	en
 	echohl NONE
-	echon s:disp__str[i+len :] get(t:txb.gridnames,s:ms__c,'--') s:ms__r s:ms__msg
+	echon s:disp__str[i+len :] get(s:gridnames,s:ms__c,'--') s:ms__r s:ms__msg
 	let s:ms__msg=''
 endfun
 
@@ -719,11 +703,11 @@ fun! s:doSyntax(stmt)
 	if com.C
 		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
 	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb.len)%t:txb.len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
+		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb__len)%t:txb__len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
 	en
 endfun
 
-let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb.ix[expand("%")],line(".")/s:mapL)'
+let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb__ix[expand("%")],line(".")/s:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
 	let s:mBlockH=exists('t:txb.mBlockH')? t:txb.mBlockH : 2
 	let s:mBlockW=exists('t:txb.mBlockW')? t:txb.mBlockW : 5
@@ -965,7 +949,7 @@ fun! s:gotoPos(col,row)
 	en
 	norm! 0
 	only
-	call s:load()
+	call s:redraw()
 	exe 'norm!' (a:row? a:row : 1).'zt'
 endfun
 
@@ -1012,15 +996,15 @@ fun! s:blockPan(dx,y,...)
 			endwhile
 			let y+=y>0? -1 : y<0? 1 : 0
 			let i+=1
-			let continue=absolute_x? (t:txb.ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i<a:dx
+			let continue=absolute_x? (t:txb__ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i<a:dx
 		endwhile
 	elseif dir<0
 		let i=0
-		let continue=!map([t:txb.ix[bufname(winbufnr(1))]],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
+		let continue=!map([t:txb__ix[bufname(winbufnr(1))]],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
 		while continue
 			exe update_ydest
 			let buf0=winbufnr(1)
-			let ix=t:txb.ix[bufname(buf0)]
+			let ix=t:txb__ix[bufname(buf0)]
 			if winwidth(1)>=t:txb.size[ix]
 				call s:nav(-4)
 				let buf0=winbufnr(1)
@@ -1039,7 +1023,7 @@ fun! s:blockPan(dx,y,...)
 			endwhile
 			let y+=y>0? -1 : y<0? 1 : 0
 			let i-=1
-			let continue=absolute_x? (t:txb.ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i>a:dx
+			let continue=absolute_x? (t:txb__ix[bufname(winbufnr(1))]==a:dx? 0 : 1) : i>a:dx
 		endwhile
 	en
 	while y
@@ -1077,7 +1061,7 @@ let TXBkyCmd["\<left>"]=TXBkyCmd.h
 let TXBkyCmd["\<right>"]=TXBkyCmd.l
 
 fun! s:snapToGrid()
-	let [ix,l0]=[t:txb.ix[expand('%')],line('.')]
+	let [ix,l0]=[t:txb__ix[expand('%')],line('.')]
 	let y=l0>s:mapL? l0-l0%s:mapL : 1
 	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/s:mapL,''),'#',1),2,'')
 	if !empty(poscom)
@@ -1085,7 +1069,7 @@ fun! s:snapToGrid()
 		call s:saveCursPos()
 	elseif winnr()!=winnr('$')
 		exe 'norm! '.y.'zt0'
-		call s:load()
+		call s:redraw()
 	elseif t:txb.size[ix]>&columns
 		only
 		exe 'norm! '.y.'zt0'
@@ -1094,7 +1078,7 @@ fun! s:snapToGrid()
 		exe 'norm! '.y.'zt0'
 	elseif winwidth(0)>t:txb.size[ix]
 		exe 'norm! '.y.'zt0'
-		call s:load()
+		call s:redraw()
 	en
 endfun
 let TXBkyCmd['.']='call s:snapToGrid()|let s:kc__continue=0|call s:updateCursPos()' 
@@ -1151,9 +1135,9 @@ endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:kc__msg=" Press f1 for help"')
 	if s:kc__continue
-		let s0=t:txb.ix[bufname('')]
+		let s0=t:txb__ix[bufname('')]
 		let t_r=line('.')/s:mapL
-		echon t:txb.gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
+		echon s:gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)
@@ -1166,25 +1150,25 @@ let TXBkyCmd[-99]=""
 let TXBkyCmd.D="redr\n
 \let confirm=input(' < Really delete current column (y/n)? ')\n
 \if confirm==?'y'\n
-	\let ix=get(t:txb.ix,expand('%'),-1)\n
+	\let ix=get(t:txb__ix,expand('%'),-1)\n
 	\if ix!=-1\n
 		\call s:deleteSplit(ix)\n
 		\wincmd W\n
-		\call s:load(t:txb)\n
+		\call s:redraw()\n
 		\let s:kc__msg='col '.ix.' removed'\n
 	\else\n
 		\let s:kc__msg='Current buffer not in plane; deletion failed'\n
 	\en\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
+let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 \if ix!=-1\n
 	\redr\n
 	\let file=input(' < File to append : ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
 	\let error=s:appendSplit(ix,file)\n
 	\if empty(error)\n
 		\try\n
-			\call s:load(t:txb)\n
+			\call s:redraw()\n
 			\let s:kc__msg='col '.(ix+1).' appended'\n
 		\catch\n
 			\call s:deleteSplit(ix)\n
@@ -1199,12 +1183,12 @@ let TXBkyCmd.A="let ix=get(t:txb.ix,expand('%'),-1)\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\e"]="let s:kc__continue=0"
 let TXBkyCmd.q="let s:kc__continue=0"
-let TXBkyCmd.r="call s:load(t:txb)|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
+let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
 
 fun! s:editSplitSettings()
-	let ix=get(t:txb.ix,expand('%'),-1)
+	let ix=get(t:txb__ix,expand('%'),-1)
 	if ix==-1
 		ec " Error: Current buffer not in plane"
 	else
@@ -1215,22 +1199,22 @@ fun! s:editSplitSettings()
 		let input=input("Autoexecute on load: ",t:txb.exe[ix])
 		if empty(input) | return | en
 		let t:txb.exe[ix]=input
-		let input=input('Column position (0-'.(t:txb.len-1).'): ',ix)
+		let input=input('Column position (0-'.(t:txb__len-1).'): ',ix)
 		if empty(input) | return | en
 		let newix=input
-		if newix>=0 && newix<t:txb.len && newix!=ix
+		if newix>=0 && newix<t:txb__len && newix!=ix
 			let item=remove(t:txb.name,ix)
 			call insert(t:txb.name,item,newix)
 			let item=remove(t:txb.size,ix)
 			call insert(t:txb.size,item,newix)
 			let item=remove(t:txb.exe,ix)
 			call insert(t:txb.exe,item,newix)
-			let [t:txb.ix,i]=[{},0]
+			let [t:txb__ix,i]=[{},0]
 			for e in t:txb.name
-				let [t:txb.ix[e],i]=[i,i+1]
+				let [t:txb__ix[e],i]=[i,i+1]
 			endfor
 		en
-		call s:load(t:txb)
+		call s:redraw()
 	en
 endfun
 
@@ -1238,44 +1222,38 @@ fun! s:deleteSplit(index)
 	call remove(t:txb.name,a:index)	
 	call remove(t:txb.size,a:index)	
 	call remove(t:txb.exe,a:index)	
-	let t:txb.len=len(t:txb.name)
-	let [t:txb.ix,i]=[{},0]
+	let t:txb__len=len(t:txb.name)
+	let [t:txb__ix,i]=[{},0]
 	for e in t:txb.name
-		let [t:txb.ix[e],i]=[i,i+1]
+		let [t:txb__ix[e],i]=[i,i+1]
 	endfor
 endfun
 fun! s:appendSplit(index,file,...)
 	if empty(a:file)
 		return 'File name is empty'
-	elseif has_key(t:txb.ix,a:file)
+	elseif has_key(t:txb__ix,a:file)
 		return 'Duplicate entries not allowed'
 	en
 	call insert(t:txb.name,a:file,a:index+1)
 	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
 	call insert(t:txb.exe,'se nowrap scb cole=2',a:index+1)
-	let t:txb.len=len(t:txb.name)
-	let [t:txb.ix,i]=[{},0]
+	let t:txb__len=len(t:txb.name)
+	let [t:txb__ix,i]=[{},0]
 	for e in t:txb.name
-		let [t:txb.ix[e],i]=[i,i+1]
+		let [t:txb__ix[e],i]=[i,i+1]
 	endfor
-	if len(t:txb.gridnames)<t:txb.len
-		let t:txb.gridnames=s:getGridNames(t:txb.len+50)
+	if len(s:gridnames)<t:txb__len
+		let s:gridnames=s:getGridNames(t:txb__len+50)
 	endif
 endfun
 
-fun! s:load(...)
-	if a:0
-		let t:txb=a:1
-	elseif !exists("t:txb")
-		ec "No plane initialized..."
-		return
+fun! s:redraw()
+	if !exists("t:txb")
+		throw 'Plane (t:txb) not initialized'
 	en
-	let [col0,win0]=[get(t:txb.ix,bufname(""),a:0? -1 : -2),winnr()]
-	if col0==-2
-		ec "Current buffer not registered in in plane, use ".s:hkName."A to add"
-		return
-	elseif col0==-1
-		let col0=0
+	let [ix0,win0]=[get(t:txb__ix,bufname(''),-1),winnr()]
+	if ix0==-1
+		let ix0=0
 		only
 		let name=t:txb.name[0]
 		if name!=#expand('%')
@@ -1288,29 +1266,29 @@ fun! s:load(...)
 	se scrollopt=jump
 	if winnr()==1 && !&wrap
 		let offset=virtcol('.')-wincol()
-		if offset<t:txb.size[col0]
-			exe (t:txb.size[col0]-offset).'winc|'
+		if offset<t:txb.size[ix0]
+			exe (t:txb.size[ix0]-offset).'winc|'
 		en
 	en
-	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,col0,0]
+	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,ix0,0]
 	let remain=split0
 	while remain>=1
-		let colt=(colt-1)%t:txb.len
+		let colt=(colt-1)%t:txb__len
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
-	let [colb,remain,colsRight]=[col0,&columns-(split0>0? split0+1+t:txb.size[col0] : min([winwidth(1),t:txb.size[col0]])),1]
+	let [colb,remain,colsRight]=[ix0,&columns-(split0>0? split0+1+t:txb.size[ix0] : min([winwidth(1),t:txb.size[ix0]])),1]
 	while remain>=2
 		let remain-=t:txb.size[colb]+1
-		let colb=(colb+1)%t:txb.len
+		let colb=(colb+1)%t:txb__len
 		let colsRight+=1
 	endwhile
 	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
 	if dif>0
-		let colt=(col0-win0)%t:txb.len
+		let colt=(ix0-win0)%t:txb__len
 		for i in range(dif)
-			let colt=(colt-1)%t:txb.len
+			let colt=(colt-1)%t:txb__len
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
 			exe alignmentcmd
 			exe t:txb.exe[colt]
@@ -1324,9 +1302,9 @@ fun! s:load(...)
 	en
 	let dif=colsRight+colsLeft-winnr('$')
 	if dif>0
-		let colb=(col0+colsRight-1-dif)%t:txb.len
+		let colb=(ix0+colsRight-1-dif)%t:txb__len
 		for i in range(dif)
-			let colb=(colb+1)%t:txb.len
+			let colb=(colb+1)%t:txb__len
 			exe 'bot vsp '.escape(t:txb.name[colb],' ')
 			exe alignmentcmd
 			exe t:txb.exe[colb]
@@ -1344,13 +1322,9 @@ fun! s:load(...)
 	let [bot,cwin]=[winnr(),-1]
 	while winnr()!=cwin
 		se wfw
-		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb.len]
-		let k=t:txb.name[ccol]
-		if expand('%:p')!=#fnamemodify(t:txb.name[ccol],":p")
+		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb__len]
+		if bufname('')!=#t:txb.name[ccol]
 			exe 'e' escape(t:txb.name[ccol],' ')
-			exe alignmentcmd
-			exe t:txb.exe[ccol]
-		elseif a:0
 			exe alignmentcmd
 			exe t:txb.exe[ccol]
 		en
@@ -1367,10 +1341,13 @@ fun! s:load(...)
 	try
 	exe "silent norm! :syncbind\<cr>"
 	catch
+		let &scrollopt=''
+		windo 1
+		let &scrollopt='ver,jump'
 	endtry
 	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
-	if len(t:txb.gridnames)<t:txb.len
-		let t:txb.gridnames=s:getGridNames(t:txb.len+50)
+	if len(s:gridnames)<t:txb__len
+		let s:gridnames=s:getGridNames(t:txb__len+50)
 	en
 endfun
 
@@ -1390,7 +1367,7 @@ fun! s:updateCursPos(...)
 			exe win.'winc w'
 			exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]>winwidth(win)? '0g$' : s:cPos[2].'|')
 		en
-	elseif default_scrolloff==1 || !default_scrolloff && t:txb.ix[bufname(s:cPos[0])]>t:txb.ix[bufname('')]
+	elseif default_scrolloff==1 || !default_scrolloff && t:txb__ix[bufname(s:cPos[0])]>t:txb__ix[bufname('')]
 		winc b
 		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
 	else
@@ -1407,7 +1384,7 @@ fun! s:nav(N)
 	if a:N<0
 		let N=-a:N
 		let extrashift=0
-		let tcol=t:txb.ix[bufname(winbufnr(1))]
+		let tcol=t:txb__ix[bufname(winbufnr(1))]
 		if N<&columns
 			while winwidth(winnr('$'))<=N
 				wincmd b
@@ -1442,7 +1419,7 @@ fun! s:nav(N)
 			en
 			while winwidth(0)>=t:txb.size[tcol]+2
 				se nowfw scrollopt=jump
-				let nextcol=(tcol-1)%t:txb.len
+				let nextcol=(tcol-1)%t:txb__len
 				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1470,7 +1447,7 @@ fun! s:nav(N)
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
-					let tcol=(tcol-1)%t:txb.len
+					let tcol=(tcol-1)%t:txb__len
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
@@ -1481,7 +1458,7 @@ fun! s:nav(N)
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
 				if t:txb.size[tcol]-loff<&columns-1
 					let spaceremaining=&columns-t:txb.size[tcol]+loff
-					let NextCol=(tcol+1)%len(t:txb.name)
+					let NextCol=(tcol+1)%t:txb__len
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[NextCol],' ')
@@ -1489,7 +1466,7 @@ fun! s:nav(N)
 						exe t:txb.exe[NextCol]
 						norm! 0
 						let spaceremaining-=t:txb.size[NextCol]+1
-						let NextCol=(NextCol+1)%len(t:txb.name)
+						let NextCol=(NextCol+1)%t:txb__len
 					endwhile
 					se scrollopt=ver,jump
 					windo se wfw
@@ -1505,8 +1482,8 @@ fun! s:nav(N)
 		en
 		return -extrashift
 	elseif a:N>0
-		let tcol=t:txb.ix[bufname(winbufnr(1))]
-		let [bcol,loff,extrashift,N]=[t:txb.ix[bufname(winbufnr(winnr('$')))],winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+		let tcol=t:txb__ix[bufname(winbufnr(1))]
+		let [bcol,loff,extrashift,N]=[t:txb__ix[bufname(winbufnr(winnr('$')))],winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 		let nobotresize=0
 		if N>=&columns
 			if winwidth(1)==&columns
@@ -1517,20 +1494,20 @@ fun! s:nav(N)
 			en
 			if loff>=t:txb.size[tcol]
 				let loff=0
-				let tcol=(tcol+1)%len(t:txb.name)
+				let tcol=(tcol+1)%t:txb__len
 			en
 			let toshift=N-&columns
 			if toshift>=t:txb.size[tcol]-loff+1
 				let toshift-=t:txb.size[tcol]-loff+1
-				let tcol=(tcol+1)%len(t:txb.name)
+				let tcol=(tcol+1)%t:txb__len
 				while toshift>=t:txb.size[tcol]+1
 					let toshift-=t:txb.size[tcol]+1
-					let tcol=(tcol+1)%len(t:txb.name)
+					let tcol=(tcol+1)%t:txb__len
 				endwhile
 				if toshift==t:txb.size[tcol]
 					let N+=1
 					let extrashift=-1
-					let tcol=(tcol+1)%len(t:txb.name)
+					let tcol=(tcol+1)%t:txb__len
 					let loff=0
 				else
 					let loff=toshift
@@ -1538,7 +1515,7 @@ fun! s:nav(N)
 			elseif toshift==t:txb.size[tcol]-loff
 				let N+=1
 				let extrashift=-1
-				let tcol=(tcol+1)%len(t:txb.name)
+				let tcol=(tcol+1)%t:txb__len
 				let loff=0
 			else
 				let loff+=toshift	
@@ -1576,7 +1553,7 @@ fun! s:nav(N)
 				if winwidth(1)==w2
 					let nobotresize=1
 				en
-				let tcol=(tcol+1)%len(t:txb.name)
+				let tcol=(tcol+1)%t:txb__len
 				let loff=0
 			endw
 			let N+=extrashift
@@ -1598,7 +1575,7 @@ fun! s:nav(N)
 			while winwidth(winnr('$'))>=t:txb.size[bcol]+2
 				wincmd b
 				se nowfw scrollopt=jump
-				let nextcol=(bcol+1)%len(t:txb.name)
+				let nextcol=(bcol+1)%t:txb__len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[bcol]-1).'split '.escape(t:txb.name[nextcol],' ')
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1626,7 +1603,7 @@ fun! s:nav(N)
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
-				let bcol=(bcol+1)%len(t:txb.name)
+				let bcol=(bcol+1)%t:txb__len
 				exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[bcol],' ')
 				exe alignmentcmd
 				exe t:txb.exe[bcol]
