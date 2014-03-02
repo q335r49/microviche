@@ -1276,7 +1276,6 @@ fun! s:redraw()
 	en
 	let pos=[bufnr('%'),line('w0')]
 	exe winnr()==1? "norm! mt" : "norm! mt0"
-	let alignmentcmd="norm! 0".pos[1]."zt"
 	se scrollopt=jump
 	if winnr()==1 && !&wrap
 		let offset=virtcol('.')-wincol()
@@ -1304,7 +1303,6 @@ fun! s:redraw()
 		for i in range(dif)
 			let colt=(colt-1)%t:txb__len
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
-			exe alignmentcmd
 			exe t:txb.exe[colt]
 			se wfw
 		endfor
@@ -1320,7 +1318,6 @@ fun! s:redraw()
 		for i in range(dif)
 			let colb=(colb+1)%t:txb__len
 			exe 'bot vsp '.escape(t:txb.name[colb],' ')
-			exe alignmentcmd
 			exe t:txb.exe[colb]
 			se wfw
 		endfor
@@ -1339,9 +1336,8 @@ fun! s:redraw()
 		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb__len]
 		if bufname('')!=#t:txb.name[ccol]
 			exe 'e' escape(t:txb.name[ccol],' ')
-			exe alignmentcmd
-			exe t:txb.exe[ccol]
 		en
+		exe t:txb.exe[ccol]
 		if cwin==1
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
