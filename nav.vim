@@ -99,6 +99,7 @@ fun! s:printHelp()
 	\\n    ^A          Align all text anchors in split\n
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.6.7     Plane data optimizations, further init error checks
 	\\n1.6.6     Multiple prompts for map label
 	\\n1.6.5     Lots of initialization fixes
 	\\n1.6.4     Center and redraw on zoom
@@ -138,9 +139,6 @@ fun! TXBinit(seed)
 			en
 		else
 			let plane={'name':[]}
-			let plane.size=[]
-			let plane.map=[[]]
-			let plane.exe=[]
 			let confirm_keys=[]
 		en
 	elseif type(a:seed)==4
@@ -179,11 +177,18 @@ fun! TXBinit(seed)
 		throw "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 	en
 	if !empty(plane.name) || !empty(filtered)
-		if len(plane.size)<len(plane.name)
+		if !exists('plane.size')
+			let plane.size=repeat([60],len(plane.name))
+		elseif len(plane.size)<len(plane.name)
 			call extend(plane.size,repeat([60],len(plane.name)-len(plane.size)))
 		en
-		if len(plane.exe)<len(plane.name)
+		if !exists('plane.exe')
+			let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
+		elseif len(plane.exe)<len(plane.name)
 			call extend(plane.exe,repeat(['se scb cole=2 nowrap'],len(plane.name)-len(plane.exe)))
+		en
+		if !exists('plane.map')
+			let plane.map=[[]]
 		en
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
