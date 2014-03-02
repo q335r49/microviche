@@ -1248,9 +1248,6 @@ fun! s:appendSplit(index,file,...)
 endfun
 
 fun! s:redraw()
-	if !exists("t:txb")
-		throw 'Plane (t:txb) not initialized'
-	en
 	let [ix0,win0]=[get(t:txb__ix,bufname(''),-1),winnr()]
 	if ix0==-1
 		let ix0=0
