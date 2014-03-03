@@ -62,8 +62,8 @@ Syntax | Action | | Syntax | Action
 <dd>Scrolling past the end of splits can occasionally cause splits to misalign. You can press `r` to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode to go to the last non-blank line rather than the very last line -- you can uncomment a line in the source code for this option.</dd>
 <dt>BufEnter, BufLeave autocommands</dt>
 <dd>If you have autocommands defined *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), they can be a cause of lagging for plane mouse panning because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
-<dt>Zooming and GVim</dt>
-<dd>The VimResize autocommand is disabled for GVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`.</dt>
+<dt>Zooming and gVim</dt>
+<dd>Redrawing on VimResize is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`.</dt>
 <dt>Horizontal splits</dt>
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
