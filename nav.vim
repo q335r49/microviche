@@ -42,21 +42,28 @@ if exists('s:option_remap_G_gg') && s:option_remap_G_gg==1
 	unlet s:option_remap_G_gg
 endif
 
-augroup TXB
-	au!
-	if v:version > 703 || v:version==703 && has("patch748")
-		au VimResized * if exists('t:txb') | call <SID>centerCursor(screenrow(),screencol()) | en
-	else
-		au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
-	en
-augroup END
-fun! <SID>centerCursor(row,col)
-	let restoreView='norm! '.virtcol('.').'|'
-	call s:redraw()
-	call s:nav(a:col/2-&columns/4)
-	let dy=&lines/4-a:row/2
-	exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
-endfun
+if !has("gui_running")
+	fun! <SID>centerCursor(row,col)
+		let restoreView='norm! '.virtcol('.').'|'
+		call s:redraw()
+		call s:nav(a:col/2-&columns/4)
+		let dy=&lines/4-a:row/2
+		exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
+	endfun
+	augroup TXB
+		au!
+		if v:version > 703 || v:version==703 && has("patch748")
+			au VimResized * if exists('t:txb') | call <SID>centerCursor(screenrow(),screencol()) | en
+		else
+			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
+		en
+	augroup END
+else
+	augroup TXB
+		au!
+		au VimEnter * set wiw=1
+	augroup END
+en
 
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -1442,9 +1449,7 @@ fun! s:nav(N)
 				norm! 0
 				wincmd t
 				let tcol=nextcol
-				" exe PRINT('111')
 				se wfw scrollopt=ver,jump
-				"exe PRINT('222')
 			endwhile
 			let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
