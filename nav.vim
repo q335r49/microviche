@@ -175,7 +175,8 @@ fun! TXBinit(seed)
 			let confirm_keys=[10,13]
 		en
 	else
-		throw "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
+		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
+		return 1
 	en
 	if !empty(plane.name) || !empty(filtered)
 		if !exists('plane.size')
@@ -250,7 +251,8 @@ fun! s:anchor(interactive)
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
 					let &cul=cul
-					throw "Not enough blank lines to restore current marker!"
+					echoerr "Not enough blank lines to restore current marker!"
+					return 1
 				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -266,7 +268,8 @@ fun! s:anchor(interactive)
 			if mark<line && mark>=0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
-					throw "Not enough blank lines to restore current marker!"
+					echoerr "Not enough blank lines to restore current marker!"
+					return 1
 				else
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -1181,7 +1184,7 @@ let TXBkyCmd.D="redr\n
 let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 \if ix!=-1\n
 	\redr\n
-	\let file=input(' < File to append : ',substitute(bufname('%'),'\\d\\+','\\=(\"000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
+	\let file=input(' < File to append : ',substitute(bufname('%'),'\\d\\+','\\=(\"00000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
 	\let error=s:appendSplit(ix,file)\n
 	\if empty(error)\n
 		\try\n
@@ -1351,9 +1354,9 @@ fun! s:redraw()
 	try
 	exe "silent norm! :syncbind\<cr>"
 	catch
-		let &scrollopt=''
+		se scrollopt=jump
 		windo 1
-		let &scrollopt='ver,jump'
+		se scrollopt=ver,jump
 	endtry
 	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
 	if len(s:gridnames)<t:txb__len
@@ -1658,5 +1661,3 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
-
-let Nav=function('s:nav')
