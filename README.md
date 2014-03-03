@@ -18,6 +18,7 @@ Key | Action | | Key | Action
 `r`  | *redraw*    | | `E`|*edit split settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
+`S` | *Edit plane settings* | | |
 </dd>
 
 <dt>Using the map</dt>
