@@ -1406,7 +1406,8 @@ fun! s:nav(N)
 			only
 		en
 		if winwidth(0)!=&columns
-			wincmd t	
+			wincmd t
+			let topw=winwidth(0)
 			if winwidth(winnr('$'))<=N+3+extrashift || winnr('$')>=9
 				se nowfw
 				wincmd b
@@ -1420,7 +1421,7 @@ fun! s:nav(N)
 					wincmd l
 					se wfw
 					wincmd t
-				else
+				elseif winwidth(0)==topw
 					exe 'vert res+'.(N+extrashift)
 				en
 				se wfw
@@ -1657,3 +1658,5 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
+
+let Nav=function('s:nav')
