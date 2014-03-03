@@ -63,7 +63,7 @@ Syntax | Action | | Syntax | Action
 <dt>BufEnter, BufLeave autocommands</dt>
 <dd>If you have autocommands defined *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), they can be a cause of lagging for plane mouse panning because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
 <dt>gVim Issues</dt>
-<dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (All keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.</dt>
+<dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dt>
 <dt>Horizontal splits</dt>
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
