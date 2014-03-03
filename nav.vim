@@ -290,7 +290,7 @@ fun! s:initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let s0=t:txb__ix[bufname(winbufnr(v:mouse_win)]
+			let s0=t:txb__ix[bufname(winbufnr(v:mouse_win))]
 			let t_r=v:mouse_lnum/s:mapL
 			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
@@ -1184,7 +1184,7 @@ let TXBkyCmd.D="redr\n
 let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 \if ix!=-1\n
 	\redr\n
-	\let file=input(' < File to append : ',substitute(bufname('%'),'\\d\\+','\\=(\"00000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
+	\let file=input(' < File to append (do not escape spaces): ',substitute(bufname('%'),'\\d\\+','\\=(\"00000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
 	\let error=s:appendSplit(ix,file)\n
 	\if empty(error)\n
 		\try\n
@@ -1442,7 +1442,9 @@ fun! s:nav(N)
 				norm! 0
 				wincmd t
 				let tcol=nextcol
+				" exe PRINT('111')
 				se wfw scrollopt=ver,jump
+				"exe PRINT('222')
 			endwhile
 			let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
