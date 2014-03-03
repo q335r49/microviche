@@ -1362,29 +1362,29 @@ fun! s:redraw()
 endfun
 
 fun! s:saveCursPos()
-	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
+	let t:txb__cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 fun! s:updateCursPos(...)
     let default_scrolloff=a:0? a:1 : 0
-	let win=bufwinnr(s:cPos[0])
+	let win=bufwinnr(t:txb__cPos[0])
 	if win!=-1
 		if winnr('$')==1 || win==1
 			winc t
 			let offset=virtcol('.')-wincol()+1
 			let width=offset+winwidth(0)-3
-			exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]<offset? offset : width<=s:cPos[2]? width : s:cPos[2]).'|'
+			exe 'norm! '.(t:txb__cPos[1]<line('w0')? 'H' : line('w$')<t:txb__cPos[1]? 'L' : t:txb__cPos[1].'G').(t:txb__cPos[2]<offset? offset : width<=t:txb__cPos[2]? width : t:txb__cPos[2]).'|'
 		elseif win!=1
 			exe win.'winc w'
-			exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(s:cPos[2]>winwidth(win)? '0g$' : s:cPos[2].'|')
+			exe 'norm! '.(t:txb__cPos[1]<line('w0')? 'H' : line('w$')<t:txb__cPos[1]? 'L' : t:txb__cPos[1].'G').(t:txb__cPos[2]>winwidth(win)? '0g$' : t:txb__cPos[2].'|')
 		en
-	elseif default_scrolloff==1 || !default_scrolloff && t:txb__ix[bufname(s:cPos[0])]>t:txb__ix[bufname('')]
+	elseif default_scrolloff==1 || !default_scrolloff && t:txb__ix[bufname(t:txb__cPos[0])]>t:txb__ix[bufname('')]
 		winc b
-		exe 'norm! '.(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
+		exe 'norm! '.(t:txb__cPos[1]<line('w0')? 'H' : line('w$')<t:txb__cPos[1]? 'L' : t:txb__cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
 	else
 		winc t
-		exe "norm! ".(s:cPos[1]<line('w0')? 'H' : line('w$')<s:cPos[1]? 'L' : s:cPos[1].'G').'g0'
+		exe "norm! ".(t:txb__cPos[1]<line('w0')? 'H' : line('w$')<t:txb__cPos[1]? 'L' : t:txb__cPos[1].'G').'g0'
 	en
-	let s:cPos=[bufnr('%'),line('.'),virtcol('.')]
+	let t:txb__cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
 
 fun! s:nav(N)
