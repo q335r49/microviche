@@ -60,6 +60,8 @@ Syntax | Action | | Syntax | Action
 <dd>Since relative paths are used, switching working directories will cause problems. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab. Adding files not in the working directory should be ok.</dd>
 <dt>Misaligned splits</dt>
 <dd>Scrolling past the end of splits can occasionally cause splits to misalign. You can press `r` to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode to go to the last non-blank line rather than the very last line -- you can uncomment a line in the source code for this option.</dd>
+<dt>BufEnter, BufLeave autocommands</dt>
+If you have autocommands defined *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter<\samp> to list), they can be a cause of lagging for mouse panning, because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.
 <dt>Horizontal splits</dt>
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
