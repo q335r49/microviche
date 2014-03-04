@@ -1,19 +1,17 @@
 "Hosted at https://github.com/q335r49/textabyss
 
 "Reasons for changing internal settings:
-	if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
-	se noequalalways                  "[Do not change] Needed for correct panning
-	se winwidth=1                     "[Do not change] Needed for correct panning
-	se winminwidth=0                  "[Do not change] Needed For correct panning
-	se viminfo+=!                     "Needed to save map and plane in between sessions
-	se sidescroll=1                   "Smoother panning
-	se nostartofline                  "Keeps cursor in the same position when panning
-	se mouse=a                        "Enables mouse
-	se lazyredraw                     "Less redraws
-	se virtualedit=all                "Makes leftmost split align correctly
-	se hidden                         "Suppresses error messages when a modified buffer pans offscreen
-"Optional components -- uncomment to activate
-	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
+	if &cp|se nocompatible|en              "[Vital] Enable vim features, sets ttymouse
+	se noequalalways                       "[Vital] Needed for correct panning
+	se winwidth=1                          "[Vital] Needed for correct panning
+	se winminwidth=0                       "[Vital] Needed For correct panning
+	se viminfo+=!                          "Needed to save map and plane in between sessions
+	se sidescroll=1                        "Smoother panning
+	se nostartofline                       "Keeps cursor in the same position when panning
+	se mouse=a                             "Enables mouse
+	se lazyredraw                          "Less redraws
+	se virtualedit=all                     "Makes leftmost split align correctly
+	se hidden                              "Suppresses error messages when a modified buffer pans offscreen
 
 silent highlight default link TXBmapSel Visual
 silent highlight default link TXBmapSelEmpty Visual
@@ -22,20 +20,6 @@ if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
 exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-
-if exists('s:option_remap_G_gg') && s:option_remap_G_gg==1
-	fun! <SID>G(count)
-		let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')+1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','W')? line('.') : line('$')]
-		return (mode=='no'? "\<esc>0".v:operator : mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '$' : '')
-	endfun
-	fun! <SID>gg(count)
-		let [mode,line]=[mode(1),a:count? a:count : cursor(line('.')-1,1)+search('\S\s*\n\s*\n\s*\n\s*\n\s*\n\s*\n','Wb')? line('.') : 1]
-		return (mode=='no'? "\<esc>$".v:operator :  mode==?'v'? "\<esc>".mode : "\<esc>").line.'G'.(mode=='v'? '0' : '')
-	endfun
-	no <expr> G <SID>G(v:count)        "G goes to the next nonblank line followed by 6 blank lines (counts still work normally)
-	no <expr> gg <SID>gg(v:count)      "gg goes to the previous nonblank line followed by 6 blank lines (counts still work normally)
-	unlet s:option_remap_G_gg
-endif
 
 if !has("gui_running")
 	fun! <SID>centerCursor(row,col)
