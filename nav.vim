@@ -983,7 +983,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:mapL=t:txb.settings['lines per map grid']\n
 	\if prev_autoexe!=#t:txb.settings.autoexe\n
 		\echohl MoreMsg\n
-		\if 'y'==?input('Default autoexe has changed: future appended splits will gain this property. Would you like to apply settings to all current splits as well? (y/n)')\n
+		\if 'y'==?input('Default autoexe changed; apply autoexe setting to current splits? (y/n)')\n
         	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 			\call s:redraw()\n
 			\let s:kc__msg.=' Autoexe settings applied to current splits'\n
