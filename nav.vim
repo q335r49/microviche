@@ -1287,10 +1287,9 @@ fun! s:snapToGrid()
 endfun
 let TXBkyCmd['.']='call s:snapToGrid()|let s:kc__continue=0|call s:updateCursPos()' 
 
-nmap <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
-nmap <silent> <plug>TxbY :call <SID>getchar()<cr>
-nmap <silent> <plug>TxbZ :call <SID>getchar()<cr>
-"nmap <silent> vvvv :call <SID>getchar()<cr>
+nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
+nno <silent> <plug>TxbY :call <SID>getchar()<cr>
+nno <silent> <plug>TxbZ :call <SID>getchar()<cr>
 fun! <SID>getchar()
 	if getchar(1) is 0
 		sleep 1m
@@ -1345,7 +1344,6 @@ fun! s:doCmdKeyhandler(c)
 		echon s:gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
-		"call feedkeys('vvvv') 
 	else
 		ec '(done)' s:kc__msg
 	en
