@@ -199,7 +199,7 @@ fun! TXBinit(...)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'panL':15,'aniStepH':9,'aniStepV':2,'mouseAcc':[0,1,2,4,7,10,15,21,24,27],'mapL':45}
+		let default={'lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -248,13 +248,13 @@ fun! TXBinit(...)
 		if !exists('s:gridNames') || len(s:gridNames)<t:txb__len+50
 			let s:gridnames=s:getGridNames(t:txb__len+50)
 		en
-	    let t:panL=t:txb.settings.panL 				
-		let t:aniStepH=t:txb.settings.aniStepH
-		let t:aniStepV=t:txb.settings.aniStepV
-		let t:mouseAcc=t:txb.settings.mouseAcc
-		let t:mapL=t:txb.settings.mapL
+	    let t:panL=t:txb.settings['lines panned by j,k']
+		let t:aniStepH=t:txb.settings['kbd x pan speed']
+		let t:aniStepV=t:txb.settings['kbd y pan speed']
+		let t:mouseAcc=t:txb.settings['mouse pan speed']
+		let t:mapL=t:txb.settings['lines per map grid']
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["panL","aniStepH","aniStepV","mouseAcc","mapL"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
@@ -773,8 +773,8 @@ endfun
 
 let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,t:txb__ix[expand("%")],line(".")/t:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
-	let t:mBlockH=exists('t:txb.settings.mBlockH')? t:txb.settings.mBlockH : 2
-	let t:mBlockW=exists('t:txb.settings.mBlockW')? t:txb.settings.mBlockW : 5
+	let t:mBlockH=exists('t:txb.settings["map cell height"]')? t:txb.settings['map cell height'] : 2
+	let t:mBlockW=exists('t:txb.settings["map cell width"]')? t:txb.settings['map cell width'] : 5
 	let s:ms__num='01'
     let s:ms__posmes=(line('.')%t:mapL? line('.')%t:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '')
 	let s:ms__initbk=[a:r_ini,a:c_ini]
@@ -920,7 +920,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 	\let s:ms__msg=' Change aborted (press ''x'' to clear)'\n
 \en\n",
 \"g":'let s:ms__continue=2',
-\"Z":'let t:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",t:mBlockW)])])|let t:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",t:mBlockH)])])|let [t:txb.settings.mBlockH,t:txb.settings.mBlockW,s:ms__redr,s:ms__rows,s:ms__cols]=[t:mBlockH,t:mBlockW,1,(&ch-1)/t:mBlockH,(&columns-1)/t:mBlockW]',
+\"Z":'let t:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",t:mBlockW)])])|let t:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",t:mBlockH)])])|let [t:txb.settings["map cell height"],t:txb.settings["map cell width"],s:ms__redr,s:ms__rows,s:ms__cols]=[t:mBlockH,t:mBlockW,1,(&ch-1)/t:mBlockH,(&columns-1)/t:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
 \"D":'if s:ms__c<len(s:ms__array) && input(s:disp__str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:ms__array,s:ms__c)|let s:last_yanked_is_column=1|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." deleted"|en',
 \"O":'let s:copied_column=s:ms__c<len(s:ms__array)? deepcopy(s:ms__array[s:ms__c]) : []|let s:ms__msg=" Col ".(s:ms__c)." Obtained"|let s:last_yanked_is_column=1'}
@@ -971,11 +971,11 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let g:TXB_HOTKEY=settings_dict._global_hotkey\n
 	\unlet settings_dict._global_hotkey\n
 	\let t:txb.settings=deepcopy(settings_dict)\n
-	\let t:panL=t:txb.settings.panL\n
-	\let t:aniStepH=t:txb.settings.aniStepH\n
-	\let t:aniStepV=t:txb.settings.aniStepV\n
-	\let t:mouseAcc=t:txb.settings.mouseAcc\n
-	\let t:mapL=t:txb.settings.mapL\n
+	\let t:panL=t:txb.settings['lines panned by j,k']\n
+	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
+	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
+	\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
+	\let t:mapL=t:txb.settings['lines per map grid']\n
 \else\n
 	\let s:kc__msg='Cancelled'\n
 \en"
@@ -1043,47 +1043,47 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'_global_hotkey':['<f10>','',"Global Hotkey name, for example (don't type quotes): '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can no longer access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"]}
-let s:ErrorCheck.panL[1]="let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: panL must be >=0'\n
+let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"]}
+let s:ErrorCheck['lines panned by j,k'][1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: lines panned by j,k must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.aniStepH[1]="let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: aniStepH must be >=0'\n
+let s:ErrorCheck['kbd x pan speed'][1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: x pan speed must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.aniStepV[1]="let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: aniStepV must be >=0'\n
+let s:ErrorCheck['kbd y pan speed'][1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: y pan speed must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
 let s:ErrorCheck._global_hotkey[1]="let vals[cursor]=input"
-let s:ErrorCheck.mouseAcc[1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
+let s:ErrorCheck['mouse pan speed'][1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
-	\let smsg.='Error: mouseAcc must evaluate to a list'\n
+	\let smsg.='Error: mouse pan speed must evaluate to a list'\n
 \elseif empty(inList)\n
-	\let smsg.='mouseAcc must be non-empty'\n
+	\let smsg.='list must be non-empty'\n
 \elseif inList[0]\n
-	\let smsg.='Error: first element of mouseAcc must be 0'\n
+	\let smsg.='Error: first element of mouse speed list must be 0'\n
 \elseif eval(join(map(copy(inList),'v:val<0'),'+'))\n
-	\let smsg.='Error: mouseAcc must be non-negative'\n
+	\let smsg.='Error: mouse speed list must be non-negative'\n
 \else\n
 	\let vals[cursor]=copy(inList)\n
 \en"
-let s:ErrorCheck.mapL[1]="let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: mapL must be >=0'\n
+let s:ErrorCheck['lines per map grid'][1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: lines per map grid must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.mBlockH[1]="let input=str2nr(input)|if input<=0 || input>10\n
-	\let smsg.='Error: mBlockH must be between 0 and 10'\n
+let s:ErrorCheck['map cell height'][1]="let input=str2nr(input)|if input<=0 || input>10\n
+	\let smsg.='Error: map cell height must be between 0 and 10'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.mBlockW[1]="let input=str2nr(input)|if input<=0 || input>10\n
-	\let smsg.='Error: mBlockW must be between 0 and 10'\n
+let s:ErrorCheck['map cell width'][1]="let input=str2nr(input)|if input<=0 || input>10\n
+	\let smsg.='Error: map cell width must be between 0 and 10'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
