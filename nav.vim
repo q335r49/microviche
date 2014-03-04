@@ -53,15 +53,17 @@ if !has("gui_running")
 			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 		en
 	augroup END
+	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+else
+	nn <silent> <leftmouse> :exe TXBmsCmd.default()<cr>
 en
 
 augroup TXB
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
 let TXBmsCmd={}
 let TXBkyCmd={}
-nn <silent> <leftmouse> :exe get(TXBmsCmd,has('gui_running')? '' : &ttymouse,TXBmsCmd.default)()<cr>
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -263,7 +265,7 @@ fun! TXBinit(...)
 	elseif c is 83
 		let t_dict={'_global_hotkey' : (g:TXB_HOTKEY)}
 		if s:settingsPager(t_dict,s:ErrorCheck)
-			exe 'nunmap' g:TXB_HOTKEY
+			exe 'silent! nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict._global_hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict._global_hotkey
 			redr|echo "Settings Saved!"
@@ -969,7 +971,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let prev_autoexe=settings_dict.autoexe\n
 \if s:settingsPager(settings_dict,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
-	\exe 'nunmap' g:TXB_HOTKEY\n
+	\exe 'silent! nunmap' g:TXB_HOTKEY\n
 	\exe 'nn <silent>' settings_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
 	\let g:TXB_HOTKEY=settings_dict._global_hotkey\n
 	\unlet settings_dict._global_hotkey\n
