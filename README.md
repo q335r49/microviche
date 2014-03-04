@@ -18,7 +18,8 @@ Key | Action | | Key | Action
 `r`  | *redraw*    | | `E`|*edit split settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S` | *Edit plane settings* | | |
+`S`__*__ | *Edit plane settings* | | |
+\* _Note that you can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. You can also set the global hotkey by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S` _if you're stuck with an inaccessible hotkey._
 </dd>
 
 <dt>Using the map</dt>
@@ -79,7 +80,7 @@ Key | Action | | Key | Action
 </dd>
 
 <dt>Saving and Restoring</dt>
-<dd>The script uses the viminfo file to save plane and map data. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
+<dd>The script uses the viminfo file to save plane, map data, and the global hotkey. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
 
 To manually save and restore (make sure name is in ALL CAPS):
 
