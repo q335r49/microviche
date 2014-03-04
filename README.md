@@ -18,8 +18,8 @@ Key | Action | | Key | Action
 `r`  | *redraw*    | | `E`|*edit split settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S`__*__ | *Edit plane settings* | | |
-\* _Note that you can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. You can also set the global hotkey by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S` _if you're stuck with an inaccessible hotkey._
+`S`__*__ | *edit plane settings* | | |
+\* _Note that you can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`
 </dd>
 
 <dt>Using the map</dt>
