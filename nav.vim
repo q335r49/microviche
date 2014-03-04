@@ -53,19 +53,15 @@ if !has("gui_running")
 			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 		en
 	augroup END
-else
-	augroup TXB
-		au!
-		au VimEnter * set wiw=1
-	augroup END
 en
+
 augroup TXB
 	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
 let TXBmsCmd={}
 let TXBkyCmd={}
-nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+nn <silent> <leftmouse> :exe get(TXBmsCmd,has('gui_running')? '' : &ttymouse,TXBmsCmd.default)()<cr>
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -114,6 +110,7 @@ fun! s:printHelp()
 endfun
 
 fun! TXBinit(...)
+	se wiw=1
 	let filtered=[]
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
