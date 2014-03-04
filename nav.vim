@@ -12,10 +12,9 @@
 	se lazyredraw                     "Less redraws
 	se virtualedit=all                "Makes leftmost split aligns correctly
 	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
-
-
 "Optional components -- uncomment to activate
 	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
+
 
 silent hi default link TXBmapSel Visual          "Default Highlight color for map cursor on label
 silent hi default link TXBmapSelEmpty Search     "Default Highlight color for map cursor on empty grid
@@ -139,10 +138,10 @@ fun! TXBinit(...)
 			if !empty(filtered)
 				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / F1 for help: "
+				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
 			else
-				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / F1 for help:"
+				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
 				let confirm_keys=[10,13]
 			en
 		else
@@ -162,11 +161,11 @@ fun! TXBinit(...)
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane:"
-			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / F1 for help: "
+			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / S for settings / F1 for help: "
 			let confirm_keys=[76]
 		else
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane."
-			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / F1 for help:"
+			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
 			let confirm_keys=[76]
 		en
 	elseif type(seed)==1
@@ -176,10 +175,10 @@ fun! TXBinit(...)
 		let plane.settings={}
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[79]
 		else
-			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / F1 for help:"
+			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[10,13]
 		en
 	else
@@ -250,9 +249,6 @@ fun! TXBinit(...)
 		if !exists('s:gridNames') || len(s:gridNames)<t:txb__len+50
 			let s:gridnames=s:getGridNames(t:txb__len+50)
 		en
-		exe 'nunmap' g:TXB_HOTKEY
-		exe 'nn <silent>' t:txb.settings.hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-		let g:TXB_HOTKEY=t:txb.settings.hotkey
 	    let t:panL=t:txb.settings.panL 				
 		let t:aniStepH=t:txb.settings.aniStepH
 		let t:aniStepV=t:txb.settings.aniStepV
@@ -261,6 +257,12 @@ fun! TXBinit(...)
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
+	elseif c is 83
+		if s:settingsPager({'hotkey' : (g:TXB_HOTKEY)},s:ErrorCheck)
+			exe 'nunmap' g:TXB_HOTKEY
+			exe 'nn <silent>' t:txb.settings.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'
+			let g:TXB_HOTKEY=plane.settings.hotkey
+		en
 	else
 		let input=input("> Enter file pattern or type HELP: ")
 		if input==?'help'
@@ -955,22 +957,27 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 let TXBkyCmd.S="let s:kc__continue=0\n
-\call s:settingsPager(t:txb.settings,s:ErrorCheck)\n
-\let t:panL=t:txb.settings.panL\n
-\let t:aniStepH=t:txb.settings.aniStepH\n
-\let t:aniStepV=t:txb.settings.aniStepV\n
-\let t:mouseAcc=t:txb.settings.mouseAcc\n
-\exe 'nunmap' g:TXB_HOTKEY\n
-\exe 'nn <silent>' t:txb.settings.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-\let g:TXB_HOTKEY=t:txb.settings.hotkey\n
-\let t:mapL=t:txb.settings.mapL"
+\let settings_dict=deepcopy(t:txb.settings)\n
+\let settings_dict.hotkey=g:TXB_HOTKEY\n
+\if s:settingsPager(settings_dict,s:ErrorCheck)\n
+	\exe 'nunmap' g:TXB_HOTKEY\n
+	\exe 'nn <silent>' settings_dict.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+	\let g:TXB_HOTKEY=settings_dict.hotkey\n
+	\unlet settings_dict.hotkey\n
+	\let t:txb.settings=settings_dict\n
+	\let t:panL=t:txb.settings.panL\n
+	\let t:aniStepH=t:txb.settings.aniStepH\n
+	\let t:aniStepV=t:txb.settings.aniStepV\n
+	\let t:mouseAcc=t:txb.settings.mouseAcc\n
+	\let t:mapL=t:txb.settings.mapL\n
+\en"
 let s:settings__cursor=0
 fun! s:settingsPager(dict,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
 	let smsg=''
 	let keys=sort(keys(a:dict))
-	let vals=map(copy(keys),'a:dict[v:val]')
+	let vals=map(copy(keys),'deepcopy(a:dict[v:val])')
 	let [&more,&ch]=[0,len(keys)+2]
 	let cursor=s:settings__cursor<0? 0 : s:settings__cursor>=len(keys)? len(keys)-1 : s:settings__cursor
 	while continue
@@ -1008,9 +1015,10 @@ fun! s:settingsPager(dict,errorcheck)
 	let [&more,&ch]=settings
 	redr
 	echohl MoreMsg
-	echo exitmsg
+		echo exitmsg? 'Settings saved!' : 'Cancelled'
 	echohl None
 	let s:settings__cursor=cursor
+	return exitmsg
 endfun
 let s:settingscom={}
 let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
@@ -1019,7 +1027,7 @@ let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n
 		\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
 	\endfor\n
 \en"
-let s:settingscom.113="let continue=0|let exitmsg='(cancelled)'"
+let s:settingscom.113="let continue=0|let exitmsg=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99="let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))"
@@ -1027,7 +1035,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 	\let a:dict[keys[i]]=vals[i]\n
 \endfor\n
 \let continue=0\n
-\let exitmsg='Settings saved'"
+\let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'hotkey':['<f10>','',"Global Hotkey **NOTE** Enter NAME of hotkey, eg, <f10> for f10, <c-v> for ctrl-v, qf for q then f, etc.\n**NOTE**: If you can no longer access the hotkey, use :call TXBinit() to set this settings"]}
