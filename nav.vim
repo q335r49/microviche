@@ -955,14 +955,15 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let t:aniStepV=t:txb.settings.aniStepV\n
 \let t:mouseAcc=t:txb.settings.mouseAcc\n
 \let t:mapL=t:txb.settings.mapL"
+let s:settings__cursor=0
 fun! s:settingsPager(dict,errorcheck)
 	let settings=[&more,&ch]
-    let cursor=0
 	let continue=1
 	let smsg=''
 	let keys=sort(keys(a:dict))
 	let vals=map(copy(keys),'a:dict[v:val]')
 	let [&more,&ch]=[0,len(keys)+2]
+	let cursor=s:settings__cursor<0? 0 : s:settings__cursor>=len(keys)? len(keys)-1 : s:settings__cursor
 	while continue
 		redr!
 		echohl Title
@@ -1000,6 +1001,7 @@ fun! s:settingsPager(dict,errorcheck)
 	echohl MoreMsg
 	echo exitmsg
 	echohl None
+	let s:settings__cursor=cursor
 endfun
 let s:settingscom={}
 let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
@@ -1244,6 +1246,7 @@ let TXBkyCmd['.']='call s:snapToGrid()|let s:kc__continue=0|call s:updateCursPos
 nmap <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nmap <silent> <plug>TxbY :call <SID>getchar()<cr>
 nmap <silent> <plug>TxbZ :call <SID>getchar()<cr>
+"nmap <silent> vvvv :call <SID>getchar()<cr>
 fun! <SID>getchar()
 	if getchar(1) is 0
 		sleep 1m
@@ -1298,6 +1301,7 @@ fun! s:doCmdKeyhandler(c)
 		echon s:gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
+		"call feedkeys('vvvv') 
 	elseif !empty(s:kc__msg)
 		ec s:kc__msg
 	en
