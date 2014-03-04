@@ -283,7 +283,7 @@ fun! TXBinit(...)
 	let &more=more
 endfun
 
-let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0"
+let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0|let s:kc__msg='(Anchor set)'"
 let TXBkyCmd["\<c-a>"]="call s:anchor(1)|let s:kc__continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
@@ -1389,8 +1389,8 @@ let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 	\let s:kc__msg='Current buffer not in plane'\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd["\e"]="let s:kc__continue=0"
-let TXBkyCmd.q="let s:kc__continue=0"
+let TXBkyCmd.q="let s:kc__continue=0|let s:kc__msg='(done)'"
+let TXBkyCmd["\e"]=TXBkyCmd.q
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
