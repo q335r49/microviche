@@ -965,7 +965,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\exe 'nn <silent>' settings_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
 	\let g:TXB_HOTKEY=settings_dict._global_hotkey\n
 	\unlet settings_dict._global_hotkey\n
-	\let t:txb.settings=settings_dict\n
+	\let t:txb.settings=deepcopy(settings_dict)\n
 	\let t:panL=t:txb.settings.panL\n
 	\let t:aniStepH=t:txb.settings.aniStepH\n
 	\let t:aniStepV=t:txb.settings.aniStepV\n
