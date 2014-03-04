@@ -1,17 +1,16 @@
 "Hosted at https://github.com/q335r49/textabyss
 
-"Reasons for changing internal settings:
-	if &cp|se nocompatible|en              "[Vital] Enable vim features, sets ttymouse
-	se noequalalways                       "[Vital] Needed for correct panning
-	se winwidth=1                          "[Vital] Needed for correct panning
-	se winminwidth=0                       "[Vital] Needed For correct panning
-	se viminfo+=!                          "Needed to save map and plane in between sessions
-	se sidescroll=1                        "Smoother panning
-	se nostartofline                       "Keeps cursor in the same position when panning
-	se mouse=a                             "Enables mouse
-	se lazyredraw                          "Less redraws
-	se virtualedit=all                     "Makes leftmost split align correctly
-	se hidden                              "Suppresses error messages when a modified buffer pans offscreen
+if &cp|se nocompatible|en              "[Vital] Enable vim features, sets ttymouse
+se noequalalways                       "[Vital] Needed for correct panning
+se winwidth=1                          "[Vital] Needed for correct panning
+se winminwidth=0                       "[Vital] Needed For correct panning
+se viminfo+=!                          "Needed to save map and plane in between sessions
+se sidescroll=1                        "Smoother panning
+se nostartofline                       "Keeps cursor in the same position when panning
+se mouse=a                             "Enables mouse
+se lazyredraw                          "Less redraws
+se virtualedit=all                     "Makes leftmost split align correctly
+se hidden                              "Suppresses error messages when a modified buffer pans offscreen
 
 silent highlight default link TXBmapSel Visual
 silent highlight default link TXBmapSelEmpty Visual
