@@ -253,6 +253,8 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings.aniStepV
 		let t:mouseAcc=t:txb.settings.mouseAcc
 		let t:mapL=t:txb.settings.mapL
+		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["panL","aniStepH","aniStepV","mouseAcc","mapL"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
@@ -1041,7 +1043,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'_global_hotkey':['<f10>','',"Global Hotkey **NOTE** Enter NAME of hotkey, eg, <f10> for f10, <c-v> for ctrl-v, qf for q then f, etc.\n**NOTE**: If you can no longer access the hotkey, use :call TXBinit() to set this settings"]}
+let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'_global_hotkey':['<f10>','',"Global Hotkey name, for example (don't type quotes): '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can no longer access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"]}
 let s:ErrorCheck.panL[1]="let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: panL must be >=0'\n
 \else\n
