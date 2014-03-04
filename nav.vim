@@ -958,18 +958,21 @@ endfun
 
 let TXBkyCmd.S="let s:kc__continue=0\n
 \let settings_dict=deepcopy(t:txb.settings)\n
-\let settings_dict.hotkey=g:TXB_HOTKEY\n
+\let settings_dict._global_hotkey=g:TXB_HOTKEY\n
 \if s:settingsPager(settings_dict,s:ErrorCheck)\n
+	\let s:kc__msg='Settings saved!'\n
 	\exe 'nunmap' g:TXB_HOTKEY\n
-	\exe 'nn <silent>' settings_dict.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-	\let g:TXB_HOTKEY=settings_dict.hotkey\n
-	\unlet settings_dict.hotkey\n
+	\exe 'nn <silent>' settings_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+	\let g:TXB_HOTKEY=settings_dict._global_hotkey\n
+	\unlet settings_dict._global_hotkey\n
 	\let t:txb.settings=settings_dict\n
 	\let t:panL=t:txb.settings.panL\n
 	\let t:aniStepH=t:txb.settings.aniStepH\n
 	\let t:aniStepV=t:txb.settings.aniStepV\n
 	\let t:mouseAcc=t:txb.settings.mouseAcc\n
 	\let t:mapL=t:txb.settings.mapL\n
+\else\n
+	\let s:kc__msg='Cancelled'\n
 \en"
 let s:settings__cursor=0
 fun! s:settingsPager(dict,errorcheck)
@@ -1014,9 +1017,6 @@ fun! s:settingsPager(dict,errorcheck)
 	endwhile
 	let [&more,&ch]=settings
 	redr
-	echohl MoreMsg
-		echo exitmsg? 'Settings saved!' : 'Cancelled'
-	echohl None
 	let s:settings__cursor=cursor
 	return exitmsg
 endfun
@@ -1038,7 +1038,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'hotkey':['<f10>','',"Global Hotkey **NOTE** Enter NAME of hotkey, eg, <f10> for f10, <c-v> for ctrl-v, qf for q then f, etc.\n**NOTE**: If you can no longer access the hotkey, use :call TXBinit() to set this settings"]}
+let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'_global_hotkey':['<f10>','',"Global Hotkey **NOTE** Enter NAME of hotkey, eg, <f10> for f10, <c-v> for ctrl-v, qf for q then f, etc.\n**NOTE**: If you can no longer access the hotkey, use :call TXBinit() to set this settings"]}
 let s:ErrorCheck.panL[1]="let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: panL must be >=0'\n
 \else\n
@@ -1054,7 +1054,7 @@ let s:ErrorCheck.aniStepV[1]="let input=str2nr(input)|if input<=0\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.hotkey[1]="let vals[cursor]=input"
+let s:ErrorCheck._global_hotkey[1]="let vals[cursor]=input"
 let s:ErrorCheck.mouseAcc[1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
 	\let smsg.='Error: mouseAcc must evaluate to a list'\n
