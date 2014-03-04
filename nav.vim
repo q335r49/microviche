@@ -260,7 +260,7 @@ fun! TXBinit(...)
 		let t_dict={'_global_hotkey' : (g:TXB_HOTKEY)}
 		if s:settingsPager(t_dict,s:ErrorCheck)
 			exe 'nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'
+			exe 'nn <silent>' t_dict._global_hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict._global_hotkey
 		en
 	else
