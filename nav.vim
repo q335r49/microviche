@@ -1327,8 +1327,8 @@ fun! s:doCmdKeyhandler(c)
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 		"call feedkeys('vvvv') 
-	elseif !empty(s:kc__msg)
-		ec s:kc__msg
+	else
+		ec '(done)' s:kc__msg
 	en
 endfun
 
