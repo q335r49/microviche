@@ -1,18 +1,7 @@
 "Hosted at https://github.com/q335r49/textabyss
 
-if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
-
-"Map colors initialize
-	hi! link TXBmapSel Visual          "Default Highlight color for map cursor on label
-	hi! link TXBmapSelEmpty Search     "Default Highlight color for map cursor on empty grid
-
-"Hotkey to load plane and evoke commands
-	nn <silent> <f10> :call {exists('t:txb')? 'TXBdoCmd' : 'TXBinit'}(-99)<cr>
-	let s:hkName='<f10>'               "Name of the above key (used for help files)
-"Optional components -- uncomment to activate
-	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
-
 "Reasons for changing internal settings:
+	if &compatible|se nocompatible|en      "[Do not change] Enable vim features, sets ttymouse
 	se noequalalways                  "[Do not change] Needed for correct panning
 	se winwidth=1                     "[Do not change] Needed for correct panning
 	se winminwidth=0                  "[Do not change] Needed For correct panning
@@ -23,6 +12,17 @@ if &compatible|se nocompatible|en      "[Do not change] Enable vim features, set
 	se lazyredraw                     "Less redraws
 	se virtualedit=all                "Makes leftmost split aligns correctly
 	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
+
+
+"Optional components -- uncomment to activate
+	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
+
+silent hi default link TXBmapSel Visual          "Default Highlight color for map cursor on label
+silent hi default link TXBmapSelEmpty Search     "Default Highlight color for map cursor on empty grid
+
+if !exists('g:TXB_HOTKEY')
+	let g:TXB_HOTKEY='<f10>'       "Default hotkey name (will be overwritten by viminfo
+en
 
 if exists('s:option_remap_G_gg') && s:option_remap_G_gg==1
 	fun! <SID>G(count)
@@ -60,6 +60,9 @@ else
 		au VimEnter * set wiw=1
 	augroup END
 en
+augroup TXB
+	au VimEnter * exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+augroup END
 
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -70,8 +73,8 @@ fun! s:printHelp()
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.6!
 	\\n\\Cgithub.com/q335r49/textabyss
-	\\n\nPress ".s:hkName." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".s:hkName."A to append additional splits.\n
-	\\nOnce loaded, use the mouse to pan or press ".s:hkName." followed by:
+	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
+	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
 	\\n    h j k l     Pan left / down / up / right*
 	\\n    y u b n     Pan upleft / downleft / upright / downright*
 	\\n    o           Open map (map grid: default 1 split x 45 lines)
@@ -90,7 +93,7 @@ fun! s:printHelp()
 	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
 	\\n\\CAdvanced\n
 	\\n--- Saving Planes ---\n
-	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in CAPS is set automatically when the script is loaded. The saved plane is suggested when you press ".s:hkName.".\n
+	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in CAPS is set automatically when the script is loaded. The saved plane is suggested when you press ".g:TXB_HOTKEY.".\n
 	\\nTo manually save a snapshot of the current plane, navigate to the tab containing the plane and try:
 	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
 	\\nYou can then restore via:
@@ -101,7 +104,7 @@ fun! s:printHelp()
 	\\n--- Line Anchors ---
 	\\n    ^L          Insert line anchor
 	\\n    ^A          Align all text anchors in split\n
-	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".s:hkName." ^L. The align command ".s:hkName." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
+	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".g:TXB_HOTKEY." ^L. The align command ".g:TXB_HOTKEY." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
 	\\n1.6.7     Plane data optimizations, further init error checks
 	\\n1.6.6     Multiple prompts for map label
@@ -110,10 +113,11 @@ fun! s:printHelp()
 	\\n1.6.2     Line anchors",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
-fun! TXBinit(seed)
+fun! TXBinit(...)
 	let filtered=[]
 	let [more,&more]=[&more,0]
-	if a:seed is -99
+	let seed=a:0? a:1 : -99
+	if seed is -99
 		let msg=''
 		if &ttymouse==?"xterm"
 			let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
@@ -145,9 +149,9 @@ fun! TXBinit(seed)
 			let plane={'name':[]}
 			let confirm_keys=[]
 		en
-	elseif type(a:seed)==4
-   		let plane=a:seed
-		for i in range(len(a:seed.name)-1,0,-1)
+	elseif type(seed)==4
+   		let plane=seed
+		for i in range(len(seed.name)-1,0,-1)
 			if !filereadable(plane.name[i])
 				call add(filtered,remove(plane.name,i))
 				call remove(plane.size,i)	
@@ -165,8 +169,8 @@ fun! TXBinit(seed)
 			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / F1 for help:"
 			let confirm_keys=[76]
 		en
-	elseif type(a:seed)==1
-		let plane={'name':map(filter(split(glob(a:seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
+	elseif type(seed)==1
+		let plane={'name':map(filter(split(glob(seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
 		let plane.size=repeat([60],len(plane.name))
 		let plane.map=[[]]
 		let plane.settings={}
@@ -175,7 +179,7 @@ fun! TXBinit(seed)
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / F1 for help:"
 			let confirm_keys=[79]
 		else
-			let msg ="\nUse current pattern '".a:seed."'?\n -> Type ENTER / ESC / F1 for help:"
+			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / F1 for help:"
 			let confirm_keys=[10,13]
 		en
 	else
@@ -196,7 +200,7 @@ fun! TXBinit(seed)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'panL':15,'aniStepH':9,'aniStepV':2,'mouseAcc':[0,1,2,4,7,10,15,21,24,27],'mapL':45}
+		let default={'panL':15,'aniStepH':9,'aniStepV':2,'mouseAcc':[0,1,2,4,7,10,15,21,24,27],'mapL':45,'hotkey':'<f10>'}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -212,7 +216,6 @@ fun! TXBinit(seed)
 				unlet! input
 				let input=plane.settings[i]
 				exe s:ErrorCheck[i][1]
-				echom i
 				if !empty(smsg)
 					let plane.settings[i]=s:ErrorCheck[i][0]
 					let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
@@ -229,7 +232,7 @@ fun! TXBinit(seed)
 			ec "\n  " join(displist,"\n   ") "\n ----" len(plane.name) "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
-	elseif a:seed isnot -99
+	elseif seed isnot -99
 		ec "\n    (No matches found)"
 		let c=0
 	else
@@ -247,6 +250,9 @@ fun! TXBinit(seed)
 		if !exists('s:gridNames') || len(s:gridNames)<t:txb__len+50
 			let s:gridnames=s:getGridNames(t:txb__len+50)
 		en
+		exe 'nunmap' g:TXB_HOTKEY
+		exe 'nn <silent>' t:txb.settings.hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+		let g:TXB_HOTKEY=t:txb.settings.hotkey
 	    let t:panL=t:txb.settings.panL 				
 		let t:aniStepH=t:txb.settings.aniStepH
 		let t:aniStepV=t:txb.settings.aniStepV
@@ -954,6 +960,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let t:aniStepH=t:txb.settings.aniStepH\n
 \let t:aniStepV=t:txb.settings.aniStepV\n
 \let t:mouseAcc=t:txb.settings.mouseAcc\n
+\exe 'nunmap' g:TXB_HOTKEY\n
+\exe 'nn <silent>' t:txb.settings.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+\let g:TXB_HOTKEY=t:txb.settings.hotkey\n
 \let t:mapL=t:txb.settings.mapL"
 let s:settings__cursor=0
 fun! s:settingsPager(dict,errorcheck)
@@ -1021,14 +1030,23 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg='Settings saved'"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block']}
+let s:ErrorCheck={'mBlockW':[5,'','Map cell width'],'mBlockH':[2,'','Map cell height'],'panL':[15,'','Lines panned with j/k in plane'],'aniStepH':[9,'','Keyboard pan animation speed (cols)'],'aniStepV':[2,'','Keyboard pan animation speed (lines)'],'mouseAcc':[[0,1,2,4,7,10,15,21,24,27],'','Mouse pan speed: every N steps with mouse is mouseAcc[N] steps in plane'],'mapL':[45,'','Lines in plane per map block'],'hotkey':['<f10>','',"Global Hotkey **NOTE** Enter NAME of hotkey, eg, <f10> for f10, <c-v> for ctrl-v, qf for q then f, etc.\n**NOTE**: If you can no longer access the hotkey, use :call TXBinit() to set this settings"]}
 let s:ErrorCheck.panL[1]="let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: panL must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck.aniStepH[1]=s:ErrorCheck.panL[1]
-let s:ErrorCheck.aniStepV[1]=s:ErrorCheck.panL[1]
+let s:ErrorCheck.aniStepH[1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: aniStepH must be >=0'\n
+\else\n
+	\let vals[cursor]=input\n
+\en"
+let s:ErrorCheck.aniStepV[1]="let input=str2nr(input)|if input<=0\n
+	\let smsg.='Error: aniStepV must be >=0'\n
+\else\n
+	\let vals[cursor]=input\n
+\en"
+let s:ErrorCheck.hotkey[1]="let vals[cursor]=input"
 let s:ErrorCheck.mouseAcc[1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
 	\let smsg.='Error: mouseAcc must evaluate to a list'\n
