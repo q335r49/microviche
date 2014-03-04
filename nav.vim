@@ -10,13 +10,13 @@
 	se nostartofline                  "Keeps cursor in the same position when panning
 	se mouse=a                        "Enables mouse
 	se lazyredraw                     "Less redraws
-	se virtualedit=all                "Makes leftmost split aligns correctly
-	se hidden                         "Suppresses error messages when a modified buffer panns offscreen
+	se virtualedit=all                "Makes leftmost split align correctly
+	se hidden                         "Suppresses error messages when a modified buffer pans offscreen
 "Optional components -- uncomment to activate
 	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
 
 silent highlight default link TXBmapSel Visual
-silent highlight default link TXBmapSelEmpty Search
+silent highlight default link TXBmapSelEmpty Visual
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
@@ -110,7 +110,9 @@ fun! s:printHelp()
 endfun
 
 fun! TXBinit(...)
-	se wiw=1
+	se noequalalways
+	se winwidth=1
+	se winminwidth=0
 	let filtered=[]
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
@@ -817,7 +819,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    T                         Toggle color
 \\n    q                         Quit
 \\n*The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.
-\\n\nMouse:
+\\n\nMouse (not supported in gVim):
 \\n    doubleclick               Goto block
 \\n    drag                      Pan
 \\n    click at topleft corner   Quit
