@@ -262,6 +262,9 @@ fun! TXBinit(...)
 			exe 'nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict._global_hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict._global_hotkey
+			redr|echo "Settings Saved!"
+		else
+			redr|echo "Cancelled"
 		en
 	else
 		let input=input("> Enter file pattern or type HELP: ")
