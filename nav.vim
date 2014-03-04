@@ -16,11 +16,12 @@
 	"let s:option_remap_G_gg           "G and gg goes to the next / prev nonblank line followed by 6 blank lines (counts still work normally)
 
 
-silent hi default link TXBmapSel Visual          "Default Highlight color for map cursor on label
-silent hi default link TXBmapSelEmpty Search     "Default Highlight color for map cursor on empty grid
+silent highlight default link TXBmapSel Visual
+silent highlight default link TXBmapSelEmpty Search
 
 if !exists('g:TXB_HOTKEY')
-	let g:TXB_HOTKEY='<f10>'       "Default hotkey name (will be overwritten by viminfo
+	let g:TXB_HOTKEY='<f10>'
+ 	exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 en
 
 if exists('s:option_remap_G_gg') && s:option_remap_G_gg==1
@@ -60,7 +61,7 @@ else
 	augroup END
 en
 augroup TXB
-	au VimEnter * exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
 let TXBmsCmd={}
