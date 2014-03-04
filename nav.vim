@@ -1348,8 +1348,8 @@ fun! s:doCmdKeyhandler(c)
 		echon s:gridnames[s0] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
-	else
-		ec '(done)' s:kc__msg
+	elseif !empty(s:kc__msg)
+		ec s:kc__msg
 	en
 endfun
 
