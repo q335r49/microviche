@@ -82,9 +82,10 @@ fun! s:printHelp()
 	\\n    D A E       Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
-	\\n    S           Edit Settings
+	\\n    S           Edit Settings**
 	\\n    ^X          Delete hidden buffers
 	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
+	\\n** Note that you can use S to set the global hotkey, currently ".g:TXB_HOTKEY.". If you find yourself with an inaccessible hotkey, you can also change settings by evoking ':call TXBinit()' and pressing S
 	\\n\n\\CTroubleshooting
 	\\n\nMOUSE\nIf dragging the mouse doesn't pan, try ':set ttymouse=sgr' or ':set ttymouse=xterm2'. Most other modes should work but the panning speed multiplier will be disabled. 'xterm' does not report dragging and will disable mouse panning entirely.
 	\\n\nDIRECTORIES\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
@@ -191,15 +192,10 @@ fun! TXBinit(...)
 		elseif len(plane.size)<len(plane.name)
 			call extend(plane.size,repeat([60],len(plane.name)-len(plane.size)))
 		en
-		if !exists('plane.exe')
-			let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
-		elseif len(plane.exe)<len(plane.name)
-			call extend(plane.exe,repeat(['se scb cole=2 nowrap'],len(plane.name)-len(plane.exe)))
-		en
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+		let default={'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -220,6 +216,11 @@ fun! TXBinit(...)
 					let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
 				en
 			endfor
+		en
+		if !exists('plane.exe')
+			let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
+		elseif len(plane.exe)<len(plane.name)
+			call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 		en
 		let curbufix=index(plane.name,expand('%'))
 		if curbufix==-1
@@ -254,7 +255,7 @@ fun! TXBinit(...)
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
@@ -964,6 +965,7 @@ endfun
 let TXBkyCmd.S="let s:kc__continue=0\n
 \let settings_dict=deepcopy(t:txb.settings)\n
 \let settings_dict._global_hotkey=g:TXB_HOTKEY\n
+\let prev_autoexe=settings_dict.autoexe\n
 \if s:settingsPager(settings_dict,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
 	\exe 'nunmap' g:TXB_HOTKEY\n
@@ -976,6 +978,17 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
 	\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
 	\let t:mapL=t:txb.settings['lines per map grid']\n
+	\if prev_autoexe!=#t:txb.settings.autoexe\n
+		\echohl MoreMsg\n
+		\if 'y'==?input('Default autoexe has changed: future appended splits will gain this property. Would you like to apply settings to all current splits as well? (y/n)')\n
+        	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
+			\call s:redraw()\n
+			\let s:kc__msg.=' Autoexe settings applied to current splits'\n
+		\else\n
+			\let s:kc__msg.=' (Only newly appended splits will be affected by new default autoexe)'\n
+		\en\n
+		\echohl NONE\n
+	\en\n
 \else\n
 	\let s:kc__msg='Cancelled'\n
 \en"
@@ -1043,7 +1056,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"]}
+let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for existing splits via '.g:TXB_HOTKEY.'E']}
 let s:ErrorCheck['lines panned by j,k'][1]="let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: lines panned by j,k must be >=0'\n
 \else\n
@@ -1060,6 +1073,7 @@ let s:ErrorCheck['kbd y pan speed'][1]="let input=str2nr(input)|if input<=0\n
 	\let vals[cursor]=input\n
 \en"
 let s:ErrorCheck._global_hotkey[1]="let vals[cursor]=input"
+let s:ErrorCheck.autoexe[1]="let vals[cursor]=input"
 let s:ErrorCheck['mouse pan speed'][1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
 	\let smsg.='Error: mouse pan speed must evaluate to a list'\n
@@ -1429,7 +1443,7 @@ fun! s:appendSplit(index,file,...)
 	en
 	call insert(t:txb.name,a:file,a:index+1)
 	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
-	call insert(t:txb.exe,'se nowrap scb cole=2',a:index+1)
+	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
 	let t:txb__len=len(t:txb.name)
 	let [t:txb__ix,i]=[{},0]
 	for e in t:txb.name
