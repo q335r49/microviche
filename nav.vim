@@ -119,10 +119,12 @@ fun! TXBinit(...)
 	let seed=a:0? a:1 : -99
 	if seed is -99
 		let msg=''
-		if &ttymouse==?"xterm"
-			let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
-		elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-			let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
+		if !has("gui_running")
+			if &ttymouse==?"xterm"
+				let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
+			elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
+				let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
+			en
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
 			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the t:txb variable as a string."
