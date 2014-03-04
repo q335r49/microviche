@@ -1341,7 +1341,7 @@ fun! TXBdoCmd(inicmd)
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TXBkyCmd,a:c,'let s:kc__msg=" Press f1 for help"')
+	exe get(g:TXBkyCmd,a:c,'let s:kc__continue=0|let s:kc__msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc__continue
 		let s0=t:txb__ix[bufname('')]
 		let t_r=line('.')/t:mapL
