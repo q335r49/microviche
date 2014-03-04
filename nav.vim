@@ -284,7 +284,7 @@ fun! TXBinit(...)
 endfun
 
 let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0|let s:kc__msg='(Anchor set)'"
-let TXBkyCmd["\<c-a>"]="call s:anchor(1)|let s:kc__continue=0"
+let TXBkyCmd["\<c-a>"]="let s:kc__msg=s:anchor(1)|let s:kc__continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
 	let line=search('^txb:','W')
@@ -327,7 +327,7 @@ fun! s:anchor(interactive)
 		endwhile
 	en
 	exe restoreView
-	echon "\rRealign complete: " expand('%')
+	return "Realign complete: ".expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
@@ -1349,7 +1349,11 @@ fun! s:doCmdKeyhandler(c)
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)
-		ec s:kc__msg
+		redr|ec s:kc__msg
+	else
+		let s0=t:txb__ix[bufname('')]
+		let t_r=line('.')/t:mapL
+		redr|echo '(done)' s:gridnames[s0].t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-17]
 	en
 endfun
 
@@ -1389,7 +1393,7 @@ let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 	\let s:kc__msg='Current buffer not in plane'\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.q="let s:kc__continue=0|let s:kc__msg='(done)'"
+let TXBkyCmd.q="let s:kc__continue=0"
 let TXBkyCmd["\e"]=TXBkyCmd.q
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
