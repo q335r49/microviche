@@ -60,7 +60,7 @@ else
 	augroup END
 en
 augroup TXB
-	au VimEnter * if stridx(maparg(exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'),'TXB')!=-1 | exe 'nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg(exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'),'TXB')!=-1 | exe 'nunmap '.(exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>') | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
 let TXBmsCmd={}
