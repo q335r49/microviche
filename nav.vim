@@ -199,7 +199,7 @@ fun! TXBinit(...)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'panL':15,'aniStepH':9,'aniStepV':2,'mouseAcc':[0,1,2,4,7,10,15,21,24,27],'mapL':45,'hotkey':'<f10>'}
+		let default={'panL':15,'aniStepH':9,'aniStepV':2,'mouseAcc':[0,1,2,4,7,10,15,21,24,27],'mapL':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -257,10 +257,11 @@ fun! TXBinit(...)
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	elseif c is 83
-		if s:settingsPager({'hotkey' : (g:TXB_HOTKEY)},s:ErrorCheck)
+		let t_dict={'_global_hotkey' : (g:TXB_HOTKEY)}
+		if s:settingsPager(t_dict,s:ErrorCheck)
 			exe 'nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t:txb.settings.hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'
-			let g:TXB_HOTKEY=plane.settings.hotkey
+			exe 'nn <silent>' t_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'
+			let g:TXB_HOTKEY=t_dict._global_hotkey
 		en
 	else
 		let input=input("> Enter file pattern or type HELP: ")
