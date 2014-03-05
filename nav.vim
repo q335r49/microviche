@@ -1024,21 +1024,28 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \else\n
 	\let s:kc__msg='Cancelled'\n
 \en"
-let s:settings__cursor=0
+let s:sp__cursor=0
+let s:sp__offset=0
+let s:sp__height=9
 fun! s:settingsPager(dict,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
 	let smsg=''
 	let keys=sort(keys(a:dict))
 	let vals=map(copy(keys),'deepcopy(a:dict[v:val])')
-	let [&more,&ch]=[0,len(keys)+2]
-	let cursor=s:settings__cursor<0? 0 : s:settings__cursor>=len(keys)? len(keys)-1 : s:settings__cursor
+	let [&more,&ch]=[0,s:sp__height+3]
+	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
+
+	let height=s:sp__height
+	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height+1? (len(keys)-height+1>=0? len(keys)-height+1 : 0) : s:sp__offset
+    let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
+
 	while continue
 		redr!
 		echohl Title
 			echo 'Settings: j/k:up/down [c]change [S]ave [Q]uit [D]efaults'
 		echohl NONE
-		for i in range(len(keys))
+		for i in range(offset,offset+height-1)
         	if i==cursor
             	echohl Visual
                 	echo keys[i] ':' vals[i]
@@ -1061,13 +1068,20 @@ fun! s:settingsPager(dict,errorcheck)
 		let c=getchar()
 		exe get(s:settingscom,c,'')
 		let cursor=cursor<0? 0 : cursor>=len(keys)? len(keys)-1 : cursor
+
+    	let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
+
 		if !empty(input)
 			exe get(a:errorcheck,keys[cursor],[0,'let vals[cursor]=input'])[1]
 		en
 	endwhile
 	let [&more,&ch]=settings
 	redr
-	let s:settings__cursor=cursor
+	let s:sp__cursor=cursor
+
+	let s:sp__height=height
+	let s:sp__offset=offset
+
 	return exitcode
 endfun
 let s:settingscom={}
