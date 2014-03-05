@@ -181,7 +181,7 @@ fun! TXBinit(...)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+		let default={'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -241,7 +241,7 @@ fun! TXBinit(...)
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
@@ -952,6 +952,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let settings_dict=deepcopy(t:txb.settings)\n
 \let settings_dict._global_hotkey=g:TXB_HOTKEY\n
 \let prev_autoexe=settings_dict.autoexe\n
+\let prev_splitW=settings_dict['split width']\n
 \if s:settingsPager(settings_dict,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
 	\exe 'silent! nunmap' g:TXB_HOTKEY\n
@@ -966,12 +967,23 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:mapL=t:txb.settings['lines per map grid']\n
 	\if prev_autoexe!=#t:txb.settings.autoexe\n
 		\echohl MoreMsg\n
-		\if 'y'==?input('Default autoexe changed; apply autoexe setting to current splits? (y/n)')\n
+		\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
         	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 			\call s:redraw()\n
-			\let s:kc__msg.=' Autoexe settings applied to current splits'\n
+			\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
 		\else\n
-			\let s:kc__msg.=' (Only newly appended splits will be affected by new default autoexe)'\n
+			\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
+		\en\n
+		\echohl NONE\n
+	\en\n
+	\if prev_splitW!=#t:txb.settings['split width']\n
+		\echohl MoreMsg\n
+		\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
+        	\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
+			\call s:redraw()\n
+			\let s:kc__msg.=' (Current splits resized)'\n
+		\else\n
+			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
 		\echohl NONE\n
 	\en\n
@@ -1042,7 +1054,13 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitmsg=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E']}
+
+let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E'],'split width':[60,'','Default split width. Change for individual splits with (HOTKEY) E']}
+let s:ErrorCheck['split width'][1]="let input=str2nr(input)|if input<=2\n
+	\let smsg.='Error: default split width must be >2'\n
+\else\n
+	\let vals[cursor]=input\n
+\en"
 let s:ErrorCheck['lines panned by j,k'][1]="let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: lines panned by j,k must be >=0'\n
 \else\n
@@ -1430,7 +1448,7 @@ fun! s:appendSplit(index,file,...)
 		return 'Duplicate entries not allowed'
 	en
 	call insert(t:txb.name,a:file,a:index+1)
-	call insert(t:txb.size,exists('a:1')? a:1 : 60,a:index+1)
+	call insert(t:txb.size,exists('a:1')? a:1 : t:txb.settings['split width'],a:index+1)
 	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
 	let t:txb__len=len(t:txb.name)
 	let [t:txb__ix,i]=[{},0]
