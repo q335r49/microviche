@@ -50,6 +50,11 @@ let TXBkyCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
+	redir => bufenterAu
+		silent au BufEnter
+		silent au BufLeave
+	redir END
+	let auCommands=split(bufenterAu,"\n")
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.7!
 	\\n\\Cgithub.com/q335r49/textabyss
@@ -67,9 +72,11 @@ fun! s:printHelp()
 	\\n    ^X          Delete hidden buffers
 	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
 	\\n** Note that you can use S to set the global hotkey, currently ".g:TXB_HOTKEY.". If you find yourself with an inaccessible hotkey, you can also change settings by evoking ':call TXBinit()' and pressing S
-	\\n\n\\CTroubleshooting\n".(has('gui_running')? "" : &ttymouse==?'xterm'? "** Note **\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Note **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
+	\\n\n\\CTroubleshooting\n\n"
+	\.(len(auCommands)>2? "** BufEnter or BufLeave detected **\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter and BufLeave. Each step of mouse panning switches buffers several times and would trigger those autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "** xterm detected **\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
 	\."DIRECTORIES\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nSCROLLBIND DESYNC\nRegarding scrollbinding splits of uneven lengths -- I've tried to smooth this over but occasionally splits will still desync. You can press r to redraw when this happens. Actually, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then want to remap G (go to end of file) to go to the last non-blank line rather than the very last line.
+	\\nSCROLLBIND DESYNC\nWhen scrolling in a split much longer than its neighbors scrollbinding my desync. You can press r to redraw when this happens. Alternatively, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then find it helpful to remap normal mode G (go to end of file) to go to the last non-blank line rather than the very last line.
 	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
 	\\n\\CAdvanced\n
 	\\n--- Saving Planes ---\n
