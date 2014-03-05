@@ -176,7 +176,7 @@ fun! TXBinit(...)
 		if !exists('plane.size')
 			let plane.size=repeat([60],len(plane.name))
 		elseif len(plane.size)<len(plane.name)
-			call extend(plane.size,repeat([60],len(plane.name)-len(plane.size)))
+			call extend(plane.size,repeat([exists("plane.settings['split width']")? plane.settings['split width'] : 60],len(plane.name)-len(plane.size)))
 		en
 		if !exists('plane.map')
 			let plane.map=[[]]
