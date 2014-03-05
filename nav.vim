@@ -51,7 +51,7 @@ let TXBkyCmd={}
 let s:help_bookmark=0
 fun! s:printHelp()
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.6!
+	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.7!
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
@@ -886,8 +886,8 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \let inLbl=input(s:disp__str.'Label: ',lblTxt)\n
 \if !empty(inLbl)\n
 	\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
-	\if empty(pos) && [s:ms__r,s:ms__c]==s:ms__initbk\n
-		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will jump to current cursor position) :',s:ms__posmes)\n
+	\if [s:ms__r,s:ms__c]==s:ms__initbk\n
+		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will jump to current cursor position) :', empty(pos)? s:ms__posmes : pos)\n
 	\else\n
 		\let inPos=input('\nPosition: ',pos)\n
 	\en\n
@@ -1054,7 +1054,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E'],'split width':[60,'','Default split width. Change for individual splits with (HOTKEY) E']}
+let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Examples: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you're stuck with an inoperable hotkey, evoke ':call TXBinit()', then press 'S' to reset key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E'],'split width':[60,'','Default split width. Change for individual splits with (HOTKEY) E']}
 let s:ErrorCheck['split width'][1]="let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: default split width must be >2'\n
 \else\n
