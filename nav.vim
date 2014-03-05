@@ -1029,18 +1029,16 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
 	\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
 	\let t:mapL=t:txb.settings['lines per map grid']\n
+	\echohl MoreMsg\n
 	\if prev_autoexe!=#t:txb.settings.autoexe\n
-		\echohl MoreMsg\n
 		\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
         	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 			\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
 		\else\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
 		\en\n
-		\echohl NONE\n
 	\en\n
 	\if prev_splitW!=#t:txb.settings['split width']\n
-		\echohl MoreMsg\n
 		\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
         	\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
 			\let s:kc__msg.=' (Current splits resized)'\n
@@ -1048,6 +1046,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
 	\en\n
+	\echohl NONE\n
 	\call s:redraw()\n
 \else\n
 	\let s:kc__msg='Cancelled'\n
