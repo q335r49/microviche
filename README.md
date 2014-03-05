@@ -62,6 +62,8 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
 </dd>
+<dt>Toggling Scrollbind</dt>
+<dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
 
 ####Troubleshooting
 <dt>Mouse</dt>

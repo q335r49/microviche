@@ -60,44 +60,30 @@ fun! s:printHelp()
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
-	\\n    h j k l     Pan left / down / up / right*
-	\\n    y u b n     Pan upleft / downleft / upright / downright*
+	\\n(1) h j k l     Pan left / down / up / right
+	\\n    y u b n     Pan upleft / downleft / upright / downright
 	\\n    o           Open map (map grid: default 1 split x 45 lines)
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
 	\\n    D A         Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
-	\\n    S           Edit Settings**
+	\\n(2) S           Edit Settings
 	\\n    W           Write plane to file
 	\\n    ^X          Delete hidden buffers
-	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
-	\\n** Note that you can use S to set the global hotkey, currently ".g:TXB_HOTKEY.". If you find yourself with an inaccessible hotkey, you can also change settings by evoking ':call TXBinit()' and pressing S
+	\\n(3) ^L          Insert line anchor
+	\\n    ^A          Realign anchors\n
+	\\n(1) The movement keys take counts, as in vim. Eg, 3j will move down 3 times. The count is capped at 99.
+	\\n(2) If you accidentally make the hotkey (".g:TXB_HOTKEY.") inaccessible, change settings via ':call TXBinit()' and pressing S
+	\\n(3) Insertions at the top of a split misalign everything below. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. Realign attempts to restore all displaced anchors in a split by removing or inserting *immediately preceding* blank lines. (It will fail if there aren't enough blank lines to remove)
 	\\n\n\\CTroubleshooting\n\n"
 	\.(len(auCommands)>2? "** BufEnter or BufLeave detected **\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter and BufLeave. Each step of mouse panning switches buffers several times and would trigger those autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "** xterm detected **\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
-	\."DIRECTORIES\nEnsuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nSCROLLBIND DESYNC\nWhen scrolling in a split much longer than its neighbors scrollbinding my desync. You can press r to redraw when this happens. Alternatively, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then find it helpful to remap normal mode G (go to end of file) to go to the last non-blank line rather than the very last line.
-	\\n\nHORIZONTAL SPLITS\nHorizontal splits aren't supported and may interfere with panning.\n
-	\\n\\CAdvanced\n
-	\\n--- Saving Planes ---\n
-	\\nThe script uses the viminfo file (:help viminfo) to save plane and map data. The option to save global variables in CAPS is set automatically when the script is loaded. The saved plane is suggested when you press ".g:TXB_HOTKEY.".\n
-	\\nTo manually save a snapshot of the current plane, navigate to the tab containing the plane and try:
-	\\n    :let BACK01=deepcopy(t:txb) \"make sure name is in all CAPS\n
-	\\nYou can then restore via:
-	\\n    :call TXBinit(BACK01)\n
-	\\nAlternatively, you can save a snapshot of the viminfo via:
-	\\n    :wviminfo viminfo-backup-01\n
-	\\nYou can then restore it by quitting vim and replacing your current viminfo file with the backup.\n
-	\\n--- Line Anchors ---
-	\\n    ^L          Insert line anchor
-	\\n    ^A          Align all text anchors in split\n
-	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".g:TXB_HOTKEY." ^L. The align command ".g:TXB_HOTKEY." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
+	\."DIRECTORIES   Ensuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
+	\\nSCROLLBIND DESYNC   When scrolling in a split much longer than its neighbors scrollbinding my desync. You can press r to redraw when this happens. Alternatively, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then find it helpful to remap normal mode G (go to end of file) to go to the last non-blank line rather than the very last line.
+	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.
 	\\n\n\\CRecent Changes\n
 	\\n1.7.0     Settings browser
-	\\n1.6.7     Plane data optimizations, further init error checks
-	\\n1.6.6     Multiple prompts for map label
-	\\n1.6.5     Lots of initialization fixes
 	\\n1.6.4     Center and redraw on zoom
 	\\n1.6.2     Line anchors",width,(&columns-width)/2),s:help_bookmark)
 endfun
@@ -826,7 +812,7 @@ endfun
 let s:last_yanked_is_column=0
 let s:map_bookmark=0
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard: (Each map grid is 1 split x ".t:mapL." lines)
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard:
 \\n    h j k l                   move 1 block cardinally*
 \\n    y u b n                   move 1 block diagonally*
 \\n    0 $                       Beginning / end of line
