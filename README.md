@@ -55,6 +55,13 @@ Syntax | Action | | Syntax | Action
 \* _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
 </dd>
 
+<dt>Anchoring Lines</dt>
+<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
+
+Key | Action | | Key | Action
+--- | --- | --- | --- | ---
+`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*</dd></dl>
+
 ####Troubleshooting
 <dl>
 <dt>Mouse</dt>
@@ -70,11 +77,3 @@ Syntax | Action | | Syntax | Action
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
 <dl>
 
-####Advanced 
-<dt>Anchoring Lines</dt>
-<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
-
-Key | Action | | Key | Action
---- | --- | --- | --- | ---
-`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
-</dd>
