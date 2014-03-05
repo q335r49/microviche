@@ -1008,9 +1008,13 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
-	\exe 'silent! nunmap' g:TXB_HOTKEY\n
-		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-		\let g:TXB_HOTKEY=settings_values[1]\n
+	\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
+		\exe 'silent! nunmap' g:TXB_HOTKEY\n
+	\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
+		\silent! nunmap <f10>\n
+	\en\n
+	\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+	\let g:TXB_HOTKEY=settings_values[1]\n
 	\let t:txb.settings['split width']=settings_values[3]\n
 	\let t:txb.settings['autoexe']=settings_values[4]\n
 	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
@@ -1053,7 +1057,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \en"
 let s:sp__cursor=0
 let s:sp__offset=0
-let s:sp__height=9
+let s:sp__height=8
 fun! s:settingsPager(keys,vals,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
