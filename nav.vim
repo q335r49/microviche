@@ -147,7 +147,7 @@ fun! TXBinit(...)
 			en
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved between sessions.\n    Consider upgrading Vim or manually saving and loading the t:txb variable as a string."
+			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can manually write to file with (HOTKEY) W."
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
