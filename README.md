@@ -78,12 +78,3 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
 </dd>
-
-<<<<<<< HEAD
-=======
-<dt>Saving and Restoring</dt>
-<dd>The script typically uses viminfo to automatically save plane, map, and hotkey between sessions so that the last plane used is suggested on `hotkey` the next time you start vim. To write plane and map data to a file, use `hotkey``W`. Restore with <samp>:source [file name]</samp></dd>
-
->>>>>>> 9866db1fa60490027654d8e8208539ca6657d327
-<dt>Toggling Scrollbind</dt>
-<dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
