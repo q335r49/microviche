@@ -57,13 +57,12 @@ Syntax | Action | | Syntax | Action
 ####Troubleshooting
 <dl>
 <dt>Mouse</dt>
-<dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.
+<dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.</dd>
+<dd>Autocommands for *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning the plane because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
 <dt>Directories</dt>
 <dd>Since relative paths are used, switching working directories will cause problems. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab. Adding files not in the working directory should be ok.</dd>
 <dt>Misaligned splits</dt>
 <dd>Scrolling past the end of splits can occasionally cause splits to misalign. You can press `r` to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
-<dt>BufEnter, BufLeave autocommands</dt>
-<dd>Autocommands for *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning the plane because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
 <dt>gVim Issues</dt>
 <dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dt>
 <dt>Horizontal splits</dt>
