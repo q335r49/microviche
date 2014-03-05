@@ -65,7 +65,7 @@ fun! s:printHelp()
 	\\n    o           Open map (map grid: default 1 split x 45 lines)
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
-	\\n    D A E       Delete split / Append split / Edit split settings
+	\\n    D A         Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
 	\\n    S           Edit Settings**
@@ -217,7 +217,7 @@ fun! TXBinit(...)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+		let default={'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -283,7 +283,7 @@ fun! TXBinit(...)
 		call s:printHelp() 
 	elseif c is 83
 		let t_dict=[g:TXB_HOTKEY]
-		if s:settingsPager(['global hotkey'],t_dict,s:ErrorCheck)
+		if s:settingsPager(['hotkey'],t_dict,s:ErrorCheck)
 			exe 'silent! nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict[0] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[0]
@@ -982,25 +982,47 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let default={'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
-"+mblockw, mblockh
-
 let TXBkyCmd.S="let s:kc__continue=0\n
-\let settings_names=['_global_hotkey','split width','autoexe','lines panned by j,k','kbd x pan speed','kbd y pan speed','mouse pan speed','lines per map grid']\n
-\let settings_values=[g:TXB_HOTKEY,t:txb.settings['split width'],t:txb.settings.autoexe,t:txb.settings['lines panned by j,k'],t:txb.settings['kbd x pan speed'],t:txb.settings['mouse pan speed'],t:txb.settings['lines per map grid']]\n
-\let prev_autoexe=settings_values[2]\n
-\let prev_splitW=settings_values[1]\n
+\let cix=get(t:txb__ix,expand('%'),-1)\n
+\let settings_names=range(15)\n
+\let settings_values=range(15)\n
+\let [settings_names[0],settings_values[0]]=['-- Global Settings --','##label##']\n
+\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
+\let [settings_names[2],settings_values[2]]=['-- Plane Settings --','##label##']\n
+\let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
+\let prev_splitW=settings_values[3]\n
+\let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
+\let prev_autoexe=settings_values[4]\n
+\let [settings_names[5],settings_values[5]]=['lines panned by j,k',has_key(t:txb.settings,'lines panned by j,k') && type(t:txb.settings['lines panned by j,k'])==0? t:txb.settings['lines panned by j,k'] : 15]\n
+\let [settings_names[6],settings_values[6]]=['kbd x pan speed',has_key(t:txb.settings,'kbd x pan speed') && type(t:txb.settings['kbd x pan speed'])==0? t:txb.settings['kbd x pan speed'] : 9]\n
+\let [settings_names[7],settings_values[7]]=['kbd y pan speed',has_key(t:txb.settings,'kbd y pan speed') && type(t:txb.settings['kbd y pan speed'])==0? t:txb.settings['kbd y pan speed'] : 2]\n
+\let [settings_names[8],settings_values[8]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
+\let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
+\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
+\let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
+\if cix!=-1\n
+	\let [settings_names[12],settings_values[12]]=['-- Split Settings --','##label##']\n
+	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,cix,60)]\n
+	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,cix,'se nowrap scb cole=2')]\n
+\en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
 	\exe 'silent! nunmap' g:TXB_HOTKEY\n
-	\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-	\let g:TXB_HOTKEY=settings_values[0]\n
-	\let t:txb.settings['split width']=settings_values[1]
-	\let t:txb.settings.autoexe=settings_values[2]
-	\let t:txb.settings['lines panned by j,k']=settings_values[3]
-	\let t:txb.settings['kbd x pan speed']=settings_values[4]
-	\let t:txb.settings['mouse pan speed']=settings_values[5]
-	\let t:txb.settings['lines per map grid']=settings_values[6]
+		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+		\let g:TXB_HOTKEY=settings_values[1]\n
+	\let t:txb.settings['split width']=settings_values[3]\n
+	\let t:txb.settings['autoexe']=settings_values[4]\n
+	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
+	\let t:txb.settings['kbd x pan speed']=settings_values[6]\n
+	\let t:txb.settings['kbd y pan speed']=settings_values[7]\n
+	\let t:txb.settings['mouse pan speed']=settings_values[8]\n
+	\let t:txb.settings['lines per map grid']=settings_values[9]\n
+	\let t:txb.settings['map cell width']=settings_values[10]\n
+	\let t:txb.settings['map cell height']=settings_values[11]\n
+	\if cix!=-1\n
+		\let t:txb.size[cix]=settings_values[13]\n
+		\let t:txb.exe[cix]=settings_values[14]\n
+	\en\n
 	\let t:panL=t:txb.settings['lines panned by j,k']\n
 	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
 	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
@@ -1010,7 +1032,6 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\echohl MoreMsg\n
 		\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
         	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
-			\call s:redraw()\n
 			\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
 		\else\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
@@ -1021,13 +1042,12 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\echohl MoreMsg\n
 		\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
         	\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
-			\call s:redraw()\n
 			\let s:kc__msg.=' (Current splits resized)'\n
 		\else\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
-		\echohl NONE\n
 	\en\n
+	\call s:redraw()\n
 \else\n
 	\let s:kc__msg='Cancelled'\n
 \en"
@@ -1039,14 +1059,12 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let continue=1
 	let smsg=''
 	let keys=a:keys
-	let vals=deepcopy(a:val)
+	let vals=deepcopy(a:vals)
 	let [&more,&ch]=[0,s:sp__height+3]
 	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
-
 	let height=s:sp__height
 	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height+1? (len(keys)-height+1>=0? len(keys)-height+1 : 0) : s:sp__offset
     let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
-
 	while continue
 		redr!
 		echohl Title
@@ -1055,10 +1073,20 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		for i in range(offset,offset+height-1)
         	if i==cursor
             	echohl Visual
-                	echo keys[i] ':' vals[i]
+					if vals[i] isnot '##label##'
+                		echo keys[i] ':' vals[i]
+					else
+                    	echo keys[i]
+					en
 				echohl None
-			else
-                echo keys[i] ':' vals[i]
+			elseif i<len(keys)
+				if vals[i] isnot '##label##'
+                	echo keys[i] ':' vals[i]
+				else
+					echohl Title
+						echo keys[i]
+					echohl NONE
+				en
 			en
 		endfor
 		if !empty(smsg)
@@ -1075,9 +1103,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		let c=getchar()
 		exe get(s:settingscom,c,'')
 		let cursor=cursor<0? 0 : cursor>=len(keys)? len(keys)-1 : cursor
-
     	let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
-
 		if !empty(input)
 			exe get(a:errorcheck,keys[cursor],[0,'let vals[cursor]=input'])[1]
 		en
@@ -1085,10 +1111,8 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let [&more,&ch]=settings
 	redr
 	let s:sp__cursor=cursor
-
 	let s:sp__height=height
 	let s:sp__offset=offset
-
 	return exitcode
 endfun
 let s:settingscom={}
@@ -1101,7 +1125,9 @@ let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n
 let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
-let s:settingscom.99="let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))"
+let s:settingscom.99="if vals[cursor] isnot '##label##'\n
+	\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+\en"
 let s:settingscom.83="for i in range(len(keys))\n
 	\let a:vals[i]=vals[i]\n
 \endfor\n
@@ -1109,7 +1135,13 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Examples: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you're stuck with an inoperable hotkey, evoke ':call TXBinit()', then press 'S' to reset key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E'],'split width':[60,'','Default split width. Change for individual splits with (HOTKEY) E']}
+let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','autoexe for current split'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"Examples: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you're stuck with an inoperable hotkey, evoke ':call TXBinit()', then press 'S' to reset key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value).'],'split width':[60,'','Default split width.']}
+let s:ErrorCheck['current autoexe'][1]="let vals[cursor]=input"
+let s:ErrorCheck['current width'][1]="let input=str2nr(input)|if input<=2\n
+	\let smsg.='Error: current split width must be >2'\n
+\else\n
+	\let vals[cursor]=input\n
+\en"
 let s:ErrorCheck['split width'][1]="let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: default split width must be >2'\n
 \else\n
@@ -1130,7 +1162,7 @@ let s:ErrorCheck['kbd y pan speed'][1]="let input=str2nr(input)|if input<=0\n
 \else\n
 	\let vals[cursor]=input\n
 \en"
-let s:ErrorCheck._global_hotkey[1]="let vals[cursor]=input"
+let s:ErrorCheck.hotkey[1]="let vals[cursor]=input"
 let s:ErrorCheck.autoexe[1]="let vals[cursor]=input"
 let s:ErrorCheck['mouse pan speed'][1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
@@ -1457,38 +1489,6 @@ let TXBkyCmd.q="let s:kc__continue=0"
 let TXBkyCmd["\e"]=TXBkyCmd.q
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
-let TXBkyCmd.E='call s:editSplitSettings()|let s:kc__continue=0'
-
-fun! s:editSplitSettings()
-	let ix=get(t:txb__ix,expand('%'),-1)
-	if ix==-1
-		ec " Error: Current buffer not in plane"
-	else
-		redr
-		let input=input('Column width: ',t:txb.size[ix])
-		if empty(input) | return | en
-		let t:txb.size[ix]=str2nr(input)
-		let input=input("Autoexecute on load: ",t:txb.exe[ix])
-		if empty(input) | return | en
-		let t:txb.exe[ix]=input
-		let input=input('Column position (0-'.(t:txb__len-1).'): ',ix)
-		if empty(input) | return | en
-		let newix=input
-		if newix>=0 && newix<t:txb__len && newix!=ix
-			let item=remove(t:txb.name,ix)
-			call insert(t:txb.name,item,newix)
-			let item=remove(t:txb.size,ix)
-			call insert(t:txb.size,item,newix)
-			let item=remove(t:txb.exe,ix)
-			call insert(t:txb.exe,item,newix)
-			let [t:txb__ix,i]=[{},0]
-			for e in t:txb.name
-				let [t:txb__ix[e],i]=[i,i+1]
-			endfor
-		en
-		call s:redraw()
-	en
-endfun
 
 fun! s:deleteSplit(index)
 	call remove(t:txb.name,a:index)	
