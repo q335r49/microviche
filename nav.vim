@@ -1034,7 +1034,7 @@ fun! s:settingsPager(dict,errorcheck)
 	let [&more,&ch]=settings
 	redr
 	let s:settings__cursor=cursor
-	return exitmsg
+	return exitcode
 endfun
 let s:settingscom={}
 let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
@@ -1043,7 +1043,7 @@ let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n
 		\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
 	\endfor\n
 \en"
-let s:settingscom.113="let continue=0|let exitmsg=0"
+let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99="let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))"
@@ -1051,9 +1051,8 @@ let s:settingscom.83="for i in range(len(keys))\n
 	\let a:dict[keys[i]]=vals[i]\n
 \endfor\n
 \let continue=0\n
-\let exitmsg=1"
+\let exitcode=1"
 let s:settingscom.27=s:settingscom.113
-
 
 let s:ErrorCheck={'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'_global_hotkey':['<f10>','',"Ex: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you can't access the hotkey, evoke ':call TXBinit()', then press 'S' to set key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value). Change for individual splits via (HOTKEY) E'],'split width':[60,'','Default split width. Change for individual splits with (HOTKEY) E']}
 let s:ErrorCheck['split width'][1]="let input=str2nr(input)|if input<=2\n
