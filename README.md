@@ -20,7 +20,7 @@ Key | Action | | Key | Action
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` __*__ | *edit plane settings* | |`W` __**__| *write plane to file*
 \* _You can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`  
-\** _The last plane is also automatically saved between sessions in the viminfo file and suggested on `F10` the next session._
+\** _The last plane is also saved between sessions in the viminfo file and suggested on `F10` the next session._
 </dd>
 
 <dt>Using the map</dt>
