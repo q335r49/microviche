@@ -69,6 +69,7 @@ fun! s:printHelp()
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
 	\\n    S           Edit Settings**
+	\\n    W           Write plane to file
 	\\n    ^X          Delete hidden buffers
 	\\n* The movement keys take counts, as in vim. Eg, 3j will move down 3 grids. The count is capped at 99. Each grid is 1 split x 15 lines.
 	\\n** Note that you can use S to set the global hotkey, currently ".g:TXB_HOTKEY.". If you find yourself with an inaccessible hotkey, you can also change settings by evoking ':call TXBinit()' and pressing S
@@ -104,29 +105,30 @@ fun! s:writePlaneToFile(plane,file)
 	let lines=[]
 	let data=string(a:plane)
 	if stridx(data,"\n")!=-1
-		echohl ErrorMsg
-			echom "** Warning **"
-			echom "    Plane data, unexpectedly, contains newlines (\"\\n\"), which can't be predictably written to file. (Are you using filenames containing the newline character?)"
-			echom "    A workaround will be attempted, but there is a chance problems on restoration."
-		echohl NONE
+		let error=-10
  		let data=substitute(data,"\n",'''."\\n".''',"g")
+	else
+		let error=0
 	en
 	call add(lines,'unlet! txb_temp_plane')
 	call add(lines,'let txb_temp_plane='.data)
 	call add(lines,"call TXBinit(txb_temp_plane)")
-	return writefile(lines,a:file)
+	return writefile(lines,a:file)+error
 endfun
 let TXBkyCmd.W="let s:kc__continue=0\n
 	\let input=input('[Write plane to file] Input file name:','','file')\n
 	\if !empty(input)\n
 		\let error=s:writePlaneToFile(t:txb,input)\n
-		\if error==-1\n
-			\let s:kc__msg='ERROR: File not writable'\n
+		\if (error/10)\n
+			\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
+		\en\n
+		\if error%10==-1\n
+			\let s:kc__msg.=' ERROR: File not writable'\n
 		\else\n
-			\let s:kc__msg='Plane written to file. Use '':source '.input.''' to restore'\n
+			\let s:kc__msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
 		\en\n
 	\else\n
-    	\let s:kc__msg='(file write aborted)'\n
+    	\let s:kc__msg.=' (file write aborted)'\n
 	\en\n"
 fun! TXBinit(...)
 	se noequalalways
@@ -181,7 +183,7 @@ fun! TXBinit(...)
 		if !empty(filtered)
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane:"
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. You can save the previous plane to file with (HOTKEY) W"
 			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / S for settings / F1 for help: "
 			let confirm_keys=[76]
 		else

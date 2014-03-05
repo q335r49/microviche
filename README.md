@@ -18,7 +18,7 @@ Key | Action | | Key | Action
 `r`  | *redraw*    | | `E`|*edit split settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S`__*__ | *edit plane settings* | | |
+`S`__*__ | *edit plane settings* | |`W`| *write plane to file*
 \* _Note that you can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`
 </dd>
 
@@ -79,14 +79,8 @@ Key | Action | | Key | Action
 </dd>
 
 <dt>Saving and Restoring</dt>
-<dd>The script uses the viminfo file to save plane, map data, and the global hotkey. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.
-
-To manually save and restore (make sure name is in ALL CAPS):
-
-<samp>&nbsp;&nbsp;&nbsp;:let BACKUP_01=deepcopy(t:txb)&nbsp;"evoke from tab containing plane</samp>  
-<samp>&nbsp;&nbsp;&nbsp;:call TXBinit(BACKUP_01)&nbsp;&nbsp;"evoke from anywhere</samp>
-
-Alternatively, you can save a snapshot of the viminfo file, <samp>&nbsp;:wviminfo viminfo-backup-01&nbsp;</samp>, and then restore it by quitting vim and replacing your current viminfo file with the snapshot.</dd>
+<dd>The script uses the viminfo file to save plane, map data, and the global hotkey. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.</dd>
+<dd>To manually save a plane to file, use `F10``W`. Restore with <samp>:source [file name]</samp></dd>
 
 <dt>Toggling Scrollbind</dt>
-<dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.
+<dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
