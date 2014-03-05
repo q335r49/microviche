@@ -1110,6 +1110,7 @@ let s:ErrorCheck['map cell width'][1]="let input=str2nr(input)|if input<=0 || in
 \en"
 
 fun! s:pager(list,start)
+	let pad=repeat(' ',&columns)
 	let settings=[&more,&ch]
 	let [&more,&ch]=[0,&lines]
 	let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
@@ -1128,15 +1129,18 @@ endfun
 let s:pagercom={113:'let continue=0',
 \32:"let t=&lines/2\n
 	\while pos<bot && t>0\n
-		\let pos=pos+1\n
-		\let next=pos\n
 		\let t-=1\n
-		\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+		\exe s:pagercom.106\n
 	\endw",
 \106:"if pos<bot\n
 		\let pos=pos+1\n
 		\let next=pos\n
-		\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+		\let dispw=strdisplaywidth(a:list[pos+&lines-2])\n
+		\if dispw>49\n
+			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+		\else\n
+			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+		\en\n
 	\en",
 \107:'let next=pos>0? pos-1 : pos',
 \98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
