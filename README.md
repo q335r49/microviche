@@ -79,8 +79,7 @@ Key | Action | | Key | Action
 </dd>
 
 <dt>Saving and Restoring</dt>
-<dd>The script uses the viminfo file to save plane, map data, and the global hotkey. The option to save global variables in ALL CAPS is set automatically when the script is loaded, via the command <samp>&nbsp;:set viminfo+=!&nbsp;</samp>. The saved plane is then suggested on `F10` the next time you start vim.</dd>
-<dd>To manually save a plane to file, use `F10``W`. Restore with <samp>:source [file name]</samp></dd>
+<dd>The script typically uses viminfo to automatically save plane, map, and hotkey between sessions so that the last plane used is suggested on `hotkey` the next time you start vim. To write plane and map data to a file, use `F10``W`. Restore with <samp>:source [file name]</samp></dd>
 
 <dt>Toggling Scrollbind</dt>
 <dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
