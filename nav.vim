@@ -94,6 +94,7 @@ fun! s:printHelp()
 	\\n    ^A          Align all text anchors in split\n
 	\\nInserting text at the top of a split misaligns everything below. Line anchors try to address this problem. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. It can be inserted with ".g:TXB_HOTKEY." ^L. The align command ".g:TXB_HOTKEY." ^A attempts to restore all displaced anchors in a split by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the effort will be abandoned with an error message.
 	\\n\n\\CRecent Changes\n
+	\\n1.7.0     Settings browser
 	\\n1.6.7     Plane data optimizations, further init error checks
 	\\n1.6.6     Multiple prompts for map label
 	\\n1.6.5     Lots of initialization fixes
@@ -986,9 +987,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let cix=get(t:txb__ix,expand('%'),-1)\n
 \let settings_names=range(15)\n
 \let settings_values=range(15)\n
-\let [settings_names[0],settings_values[0]]=['-- Global Settings --','##label##']\n
+\let [settings_names[0],settings_values[0]]=['    -- Global Settings --','##label##']\n
 \let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
-\let [settings_names[2],settings_values[2]]=['-- Plane Settings --','##label##']\n
+\let [settings_names[2],settings_values[2]]=['    -- Plane Settings --','##label##']\n
 \let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
 \let prev_splitW=settings_values[3]\n
 \let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
@@ -1001,7 +1002,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
 \let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
 \if cix!=-1\n
-	\let [settings_names[12],settings_values[12]]=['-- Split Settings --','##label##']\n
+	\let [settings_names[12],settings_values[12]]=['    -- Split Settings --','##label##']\n
 	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,cix,60)]\n
 	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,cix,'se nowrap scb cole=2')]\n
 \en\n

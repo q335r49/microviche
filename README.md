@@ -14,13 +14,13 @@ Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l`| ← ↓ ↑ → | | `F1` | *help*
-`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` | *append / delete split*
-`r`  | *redraw*    | | `E`|*edit split settings* 
+`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A`| *append split*
+`r`  | *redraw*    | | `D`|*delete settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S` __*__ | *edit plane settings* | |`W` __**__| *write plane to file*
-\* _You can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`  
-\** _The last plane is also saved between sessions in the viminfo file and suggested on_ `F10` _the next session._
+`S` __*__ | *edit settings* | |`W` __**__| *write plane to file*
+\* _If you accidentally make the hotkey (default_ `F10` _) inaccessible, you can evoke_ <samp>:call TXBinit()</samp> _and press_ `S` _to change settings._  
+\** _The last plane is also automatically saved between sessions in the viminfo file and suggested on_ `F10` _the next session._
 </dd>
 
 <dt>Using the map</dt>
