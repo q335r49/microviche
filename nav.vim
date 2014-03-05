@@ -105,16 +105,29 @@ fun! s:writePlaneToFile(plane,file)
 	let data=string(a:plane)
 	if stridx(data,"\n")!=-1
 		echohl ErrorMsg
-			echo "** Warning **\n    Plane data, unexpectedly, contains newlines (\"\\n\"), which can't be predictably written to file. (Are you using filenames containing the newline character?) \n    A workaround will be attempted, but there is a chance problems on restoration."
+			echom "** Warning **"
+			echom "    Plane data, unexpectedly, contains newlines (\"\\n\"), which can't be predictably written to file. (Are you using filenames containing the newline character?)"
+			echom "    A workaround will be attempted, but there is a chance problems on restoration."
 		echohl NONE
  		let data=substitute(data,"\n",'''."\\n".''',"g")
 	en
 	call add(lines,'unlet! txb_temp_plane')
 	call add(lines,'let txb_temp_plane='.data)
 	call add(lines,"call TXBinit(txb_temp_plane)")
-	call writefile(lines,a:file)
+	return writefile(lines,a:file)
 endfun
-
+let TXBkyCmd.W="let s:kc__continue=0\n
+	\let input=input('[Write plane to file] Input file name:','','file')\n
+	\if !empty(input)\n
+		\let error=s:writePlaneToFile(t:txb,input)\n
+		\if error==-1\n
+			\let s:kc__msg='ERROR: File not writable'\n
+		\else\n
+			\let s:kc__msg='Plane written to file. Use '':source '.input.''' to restore'\n
+		\en\n
+	\else\n
+    	\let s:kc__msg='(file write aborted)'\n
+	\en\n"
 fun! TXBinit(...)
 	se noequalalways
 	se winwidth=1
