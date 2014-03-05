@@ -282,11 +282,11 @@ fun! TXBinit(...)
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	elseif c is 83
-		let t_dict={'_global_hotkey' : (g:TXB_HOTKEY)}
-		if s:settingsPager(t_dict,s:ErrorCheck)
+		let t_dict=[g:TXB_HOTKEY]
+		if s:settingsPager(['global hotkey'],t_dict,s:ErrorCheck)
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict._global_hotkey ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-			let g:TXB_HOTKEY=t_dict._global_hotkey
+			exe 'nn <silent>' t_dict[0] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			let g:TXB_HOTKEY=t_dict[0]
 			redr|echo "Settings Saved!"
 		else
 			redr|echo "Cancelled"
@@ -982,18 +982,25 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
+let default={'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+"+mblockw, mblockh
+
 let TXBkyCmd.S="let s:kc__continue=0\n
-\let settings_dict=deepcopy(t:txb.settings)\n
-\let settings_dict._global_hotkey=g:TXB_HOTKEY\n
-\let prev_autoexe=settings_dict.autoexe\n
-\let prev_splitW=settings_dict['split width']\n
-\if s:settingsPager(settings_dict,s:ErrorCheck)\n
+\let settings_names=['_global_hotkey','split width','autoexe','lines panned by j,k','kbd x pan speed','kbd y pan speed','mouse pan speed','lines per map grid']\n
+\let settings_values=[g:TXB_HOTKEY,t:txb.settings['split width'],t:txb.settings.autoexe,t:txb.settings['lines panned by j,k'],t:txb.settings['kbd x pan speed'],t:txb.settings['mouse pan speed'],t:txb.settings['lines per map grid']]\n
+\let prev_autoexe=settings_values[2]\n
+\let prev_splitW=settings_values[1]\n
+\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
 	\exe 'silent! nunmap' g:TXB_HOTKEY\n
-	\exe 'nn <silent>' settings_dict._global_hotkey ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-	\let g:TXB_HOTKEY=settings_dict._global_hotkey\n
-	\unlet settings_dict._global_hotkey\n
-	\let t:txb.settings=deepcopy(settings_dict)\n
+	\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+	\let g:TXB_HOTKEY=settings_values[0]\n
+	\let t:txb.settings['split width']=settings_values[1]
+	\let t:txb.settings.autoexe=settings_values[2]
+	\let t:txb.settings['lines panned by j,k']=settings_values[3]
+	\let t:txb.settings['kbd x pan speed']=settings_values[4]
+	\let t:txb.settings['mouse pan speed']=settings_values[5]
+	\let t:txb.settings['lines per map grid']=settings_values[6]
 	\let t:panL=t:txb.settings['lines panned by j,k']\n
 	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
 	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
@@ -1027,12 +1034,12 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 let s:sp__cursor=0
 let s:sp__offset=0
 let s:sp__height=9
-fun! s:settingsPager(dict,errorcheck)
+fun! s:settingsPager(keys,vals,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
 	let smsg=''
-	let keys=sort(keys(a:dict))
-	let vals=map(copy(keys),'deepcopy(a:dict[v:val])')
+	let keys=a:keys
+	let vals=deepcopy(a:val)
 	let [&more,&ch]=[0,s:sp__height+3]
 	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
 
@@ -1096,7 +1103,7 @@ let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99="let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))"
 let s:settingscom.83="for i in range(len(keys))\n
-	\let a:dict[keys[i]]=vals[i]\n
+	\let a:vals[i]=vals[i]\n
 \endfor\n
 \let continue=0\n
 \let exitcode=1"
