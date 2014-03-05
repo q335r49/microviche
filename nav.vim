@@ -100,6 +100,21 @@ fun! s:printHelp()
 	\\n1.6.2     Line anchors",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
+fun! s:writePlaneToFile(plane,file)
+	let lines=[]
+	let data=string(a:plane)
+	if stridx(data,"\n")!=-1
+		echohl ErrorMsg
+			echo "** Warning **\n    Plane data, unexpectedly, contains newlines (\"\\n\"), which can't be predictably written to file. (Are you using filenames containing the newline character?) \n    A workaround will be attempted, but there is a chance problems on restoration."
+		echohl NONE
+ 		let data=substitute(data,"\n",'''."\\n".''',"g")
+	en
+	call add(lines,'unlet! txb_temp_plane')
+	call add(lines,'let txb_temp_plane='.data)
+	call add(lines,"call TXBinit(txb_temp_plane)")
+	call writefile(lines,a:file)
+endfun
+
 fun! TXBinit(...)
 	se noequalalways
 	se winwidth=1
