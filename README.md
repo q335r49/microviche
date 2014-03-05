@@ -19,7 +19,7 @@ Key | Action | | Key | Action
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` __*__ | *edit plane settings* | |`W` __**__| *write plane to file*
-\* _You can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`
+\* _You can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`  
 \** _The last plane is also automatically saved between sessions in the viminfo file and suggested on `F10` the next session._
 </dd>
 
@@ -60,10 +60,10 @@ Syntax | Action | | Syntax | Action
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*</dd></dl>
+`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
+</dd>
 
 ####Troubleshooting
-<dl>
 <dt>Mouse</dt>
 <dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.</dd>
 <dd>Autocommands for *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning the plane because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
@@ -75,5 +75,4 @@ Key | Action | | Key | Action
 <dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dt>
 <dt>Horizontal splits</dt>
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
-<dl>
 
