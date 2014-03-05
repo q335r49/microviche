@@ -18,8 +18,9 @@ Key | Action | | Key | Action
 `r`  | *redraw*    | | `E`|*edit split settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S`__*__ | *edit plane settings* | |`W`| *write plane to file*
-\* _Note that you can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`
+`S` __*__ | *edit plane settings* | |`W` __**__| *write plane to file*
+\* _You can use_ `F10``S` _to set the global hotkey, ie, change_ `F10` _to something else. If you find yourself with an inaccessible hotkey, you can also change settings by evoking_ <samp>:call TXBinit()</samp> _and then pressing_ `S`
+\** _The last plane is also automatically saved between sessions in the viminfo file and suggested on `F10` the next session._
 </dd>
 
 <dt>Using the map</dt>
@@ -77,9 +78,6 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
 </dd>
-
-<dt>Saving and Restoring</dt>
-<dd>The script typically uses viminfo to automatically save plane, map, and hotkey between sessions so that the last plane used is suggested on `hotkey` the next time you start vim. To write plane and map data to a file, use `F10``W`. Restore with <samp>:source [file name]</samp></dd>
 
 <dt>Toggling Scrollbind</dt>
 <dd>You turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
