@@ -1526,9 +1526,9 @@ fun! s:redraw()
 	endwhile
 	let [colb,remain,colsRight]=[ix0,&columns-(split0>0? split0+1+t:txb.size[ix0] : min([winwidth(1),t:txb.size[ix0]])),1]
 	while remain>=2
-		let remain-=t:txb.size[colb]+1
 		let colb=(colb+1)%t:txb__len
 		let colsRight+=1
+		let remain-=t:txb.size[colb]+1
 	endwhile
 	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
