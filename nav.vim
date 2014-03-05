@@ -1367,6 +1367,7 @@ let TXBkyCmd.D="redr\n
 	\if ix!=-1\n
 		\call s:deleteSplit(ix)\n
 		\wincmd W\n
+		\call s:saveCursPos()\n
 		\call s:redraw()\n
 		\let s:kc__msg='col '.ix.' removed'\n
 	\else\n
