@@ -117,6 +117,7 @@ let TXBkyCmd.W="let s:kc__continue=0\n
 	\else\n
     	\let s:kc__msg.=' (file write aborted)'\n
 	\en\n"
+
 fun! TXBinit(...)
 	se noequalalways
 	se winwidth=1
@@ -941,7 +942,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-	let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc__msg,s:kc__continue]=["Hidden Buffers Deleted",0]'
+let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc__msg,s:kc__continue]=["Hidden Buffers Deleted",0]'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -1054,24 +1055,24 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
 	let height=s:sp__height
 	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height+1? (len(keys)-height+1>=0? len(keys)-height+1 : 0) : s:sp__offset
-    let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
+	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
 		echohl Title
 			echo 'Settings: j/k:up/down [c]change [S]ave [Q]uit [D]efaults'
 		echohl NONE
 		for i in range(offset,offset+height-1)
-        	if i==cursor
-            	echohl Visual
+			if i==cursor
+				echohl Visual
 					if vals[i] isnot '##label##'
-                		echo keys[i] ':' vals[i]
+						echo keys[i] ':' vals[i]
 					else
-                    	echo keys[i]
+						echo keys[i]
 					en
 				echohl None
 			elseif i<len(keys)
 				if vals[i] isnot '##label##'
-                	echo keys[i] ':' vals[i]
+					echo keys[i] ':' vals[i]
 				else
 					echohl Title
 						echo keys[i]
@@ -1093,7 +1094,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		let c=getchar()
 		exe get(s:settingscom,c,'')
 		let cursor=cursor<0? 0 : cursor>=len(keys)? len(keys)-1 : cursor
-    	let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
+		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 		if !empty(input)
 			exe get(a:errorcheck,keys[cursor],[0,'let vals[cursor]=input'])[1]
 		en
