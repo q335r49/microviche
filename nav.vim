@@ -282,7 +282,7 @@ fun! TXBinit(...)
 			redr|echo "Cancelled"
 		en
 	else
-		let input=input("> Enter file pattern or type HELP: ")
+		let input=input('> Enter file pattern or type HELP: ','','file')
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
