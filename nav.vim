@@ -11,13 +11,17 @@ se mouse=a                             "Enables mouse
 se lazyredraw                          "Less redraws
 se virtualedit=all                     "Makes leftmost split align correctly
 se hidden                              "Suppresses error messages when a modified buffer pans offscreen
-silent hi default link TXBmapSel Visual           "default hilight for map label selection
-silent hi default link TXBmapSelEmpty Visual      "default hilight for map empty selection
+hi default link TXBmapSel Visual       "default hilight for map label selection
+hi default link TXBmapSelEmpty Visual  "default hilight for map empty selection
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
 exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+augroup TXB
+	au!
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+augroup END
 
 if !has("gui_running")
 	fun! <SID>centerCursor(row,col)
@@ -28,7 +32,6 @@ if !has("gui_running")
 		exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
 	endfun
 	augroup TXB
-		au!
 		if v:version > 703 || v:version==703 && has("patch748")
 			au VimResized * if exists('t:txb') | call <SID>centerCursor(screenrow(),screencol()) | en
 		else
@@ -39,10 +42,6 @@ if !has("gui_running")
 else
 	nn <silent> <leftmouse> :exe TXBmsCmd.default()<cr>
 en
-
-augroup TXB
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-augroup END
 
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -76,7 +75,7 @@ fun! s:printHelp()
 	\\n    ^A          Re-anchor\n
 	\\n[1] Movement keys take counts, capped at 99. Eg, 3j will move down 3 times.
 	\\n[2] If the hotkey (currently ".g:TXB_HOTKEY.") becomes inaccessible, change it via ':call TXBinit()' and pressing S
-	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line of the form `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
+	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line beginning with `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
 	\\n\n\\CTroubleshooting\n\n"
 	\.(len(auCommands)>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\\C(Incompatible mouse mode detected:)\n\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
@@ -120,9 +119,7 @@ let TXBkyCmd.W="let s:kc__continue=0\n
 	\en\n"
 
 fun! TXBinit(...)
-	se noequalalways
-	se winwidth=1
-	se winminwidth=0
+	se noequalalways winwidth=1 winminwidth=0
 	let filtered=[]
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
@@ -296,13 +293,17 @@ let TXBkyCmd["\<c-l>"]="call setline('.','txb:'.line('.'))|let s:kc__continue=0|
 let TXBkyCmd["\<c-a>"]="let s:kc__msg=s:anchor(1)|let s:kc__continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
-	let line=search('^txb:','W')
 	1
+	let line=search('^txb:','W')
 	if a:interactive
 	   	let [cul,&cul]=[&cul,1]
 		while line
 			redr
-			let mark=getline('.')[4:]
+			let mark=matchstr(getline('.')[4:],'^\d*')
+			if empty(mark)
+				let line=search('^txb:','W')
+				continue
+			en
 			if mark<line && mark>0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
@@ -320,7 +321,11 @@ fun! s:anchor(interactive)
 	  	let &cul=cul
 	else
 		while line
-			let mark=getline('.')[4:]
+			let mark=matchstr(getline('.')[4:],'^\d*')
+			if empty(mark)
+				let line=search('^txb:','W')
+				continue
+			en
 			if mark<line && mark>=0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark

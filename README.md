@@ -56,7 +56,7 @@ Syntax | Action | | Syntax | Action
 </dd>
 
 <dt>Anchoring Lines</dt>
-<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line of the form *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
+<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line beginning with *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
