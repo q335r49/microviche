@@ -1459,7 +1459,7 @@ let TXBkyCmd.D="redr\n
 let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 \if ix!=-1\n
 	\redr\n
-	\let file=input(' < File to append (do not escape spaces): ',substitute(bufname('%'),'\\d\\+','\\=(\"00000000\".(str2nr(submatch(0))+1))[-len(submatch(0)):]',''),'file')\n
+	\let file=input(' < File to append (do not escape spaces): ',bufname('%'),'file')\n
 	\let error=s:appendSplit(ix,file)\n
 	\if empty(error)\n
 		\try\n
