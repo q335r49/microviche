@@ -977,9 +977,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let cix=get(t:txb__ix,expand('%'),-1)\n
 \let settings_names=range(15)\n
 \let settings_values=range(15)\n
-\let [settings_names[0],settings_values[0]]=['    -- Global Settings --','##label##']\n
+\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 \let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
-\let [settings_names[2],settings_values[2]]=['    -- Plane Settings --','##label##']\n
+\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
 \let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
 \let prev_splitW=settings_values[3]\n
 \let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
@@ -992,7 +992,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
 \let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
 \if cix!=-1\n
-	\let [settings_names[12],settings_values[12]]=['    -- Split Settings --','##label##']\n
+	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
 	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,cix,60)]\n
 	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,cix,'se nowrap scb cole=2')]\n
 \en\n
@@ -1061,9 +1061,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
-		echohl Title
-			echo 'Settings: j/k:up/down [c]change [S]ave [Q]uit [D]efaults'
-		echohl NONE
+		echo '== j/k:up/down [c]hange [S]ave [Q]uit [D]efaults =='
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
@@ -1129,7 +1127,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','autoexe for current split'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','integer > 0'],'kbd x pan speed':[9,'','animation speed; integer > 0'],'kbd y pan speed':[2,'','animation speed; integer > 0'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','should be ascending list: every N steps with mouse -> speed[N] steps in plane'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"Examples: (don't type quotes) '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If you're stuck with an inoperable hotkey, evoke ':call TXBinit()', then press 'S' to reset key"],'autoexe':['se nowrap scb cole=2','','command when a split is unhidden (default value).'],'split width':[60,'','Default split width.']}
+let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','command when current split is unhidden'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','j k y u b n will place the top line at multiples of this number'],'kbd x pan speed':[9,'','keyboard pan animation speed horizontal'],'kbd y pan speed':[2,'','keyboard pan animation speed vertical'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"Examples (don't type quotes): '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If the hotkey becomes inaccessible, evoke ':call TXBinit()', then press 'S' to reset"],'autoexe':['se nowrap scb cole=2','','default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)'],'split width':[60,'','default value ([c]hange value and [S]ave for the option to apply to current splits)']}
 let s:ErrorCheck['current autoexe'][1]="let vals[cursor]=input"
 let s:ErrorCheck['current width'][1]="let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: current split width must be >2'\n
@@ -1195,7 +1193,7 @@ fun! s:pager(list,start)
 	while continue
 		if pos!=next
 			let pos=next
-			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit"
+			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
 		en
 		exe get(s:pagercom,getchar(),'')
 	endwhile
