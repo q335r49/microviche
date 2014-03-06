@@ -60,27 +60,27 @@ fun! s:printHelp()
 	\\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
-	\\n(1) h j k l     Pan left / down / up / right
+	\\n[1] h j k l     Pan left / down / up / right
 	\\n    y u b n     Pan upleft / downleft / upright / downright
-	\\n    o           Open map (map grid: default 1 split x 45 lines)
+	\\n    o           Open map
 	\\n    r           Redraw
 	\\n    .           Snap to map grid
 	\\n    D A         Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
-	\\n(2) S           Edit Settings
+	\\n[2] S           Edit Settings
 	\\n    W           Write plane to file
 	\\n    ^X          Delete hidden buffers
-	\\n(3) ^L          Insert line anchor
-	\\n    ^A          Realign anchors\n
-	\\n(1) The movement keys take counts, as in vim. Eg, 3j will move down 3 times. The count is capped at 99.
-	\\n(2) If you accidentally make the hotkey (".g:TXB_HOTKEY.") inaccessible, change settings via ':call TXBinit()' and pressing S
-	\\n(3) Insertions at the top of a split misalign everything below. A line anchor is simply a line of the form `txb:current line`, eg, `txb:455`. Realign attempts to restore all displaced anchors in a split by removing or inserting *immediately preceding* blank lines. (It will fail if there aren't enough blank lines to remove)
+	\\n[3] ^L          Insert line anchor
+	\\n    ^A          Re-anchor\n
+	\\n[1] Movement keys take counts, capped at 99. Eg, 3j will move down 3 times.
+	\\n[2] If the hotkey (currently ".g:TXB_HOTKEY.") becomes inaccessible, change it via ':call TXBinit()' and pressing S
+	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line of the form `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
 	\\n\n\\CTroubleshooting\n\n"
-	\.(len(auCommands)>2? "** BufEnter or BufLeave detected **\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter and BufLeave. Each step of mouse panning switches buffers several times and would trigger those autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "** xterm detected **\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
-	\."DIRECTORIES   Ensuring a consistent starting directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch to that directory beforehand). Ie, a file from the current directory will be remembered as the name only and not the path. Adding files not in the current directory is ok as long as the starting directory is consistent.\n
-	\\nSCROLLBIND DESYNC   When scrolling in a split much longer than its neighbors scrollbinding my desync. You can press r to redraw when this happens. Alternatively, padding about 500 or 1000 blank lines to the end of every split would solve this problem with very little overhead. You might then find it helpful to remap normal mode G (go to end of file) to go to the last non-blank line rather than the very last line.
+	\.(len(auCommands)>2? "* * * BUFENTER OR BUFLEAVE DETECTED * * *\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter and BufLeave. Each step of mouse panning switches buffers several times and would trigger those autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "* * * XTERM DETECTED * * *\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
+	\."DIRECTORIES   Keeping the same working directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch working directories). Appending files not in the working directory is ok\n
+	\\nSCROLLBIND SYNC   Scrolling in a split much longer than its neighbors may occasionally cause desyncing. (This may be fixed in newer versions of Vim.) You can press ".g:TXB_HOTKEY." r to redraw when this happens. Another solution is to pad, say, 500 blank lines to the end of shorter splits.
 	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.
 	\\n\n\\CRecent Changes\n
 	\\n1.7.0     Settings browser
@@ -93,7 +93,7 @@ fun! s:writePlaneToFile(plane,file)
 	let data=string(a:plane)
 	if stridx(data,"\n")!=-1
 		let error=-10
- 		let data=substitute(data,"\n",'''."\\n".''',"g")
+		let data=substitute(data,"\n",'''."\\n".''',"g")
 	else
 		let error=0
 	en
@@ -787,7 +787,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let t:mBlockH=exists('t:txb.settings["map cell height"]')? t:txb.settings['map cell height'] : 2
 	let t:mBlockW=exists('t:txb.settings["map cell width"]')? t:txb.settings['map cell width'] : 5
 	let s:ms__num='01'
-    let s:ms__posmes=(line('.')%t:mapL? line('.')%t:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '')
+    let s:ms__posmes=(line('.')%t:mapL? line('.')%t:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
 	let s:ms__initbk=[a:r_ini,a:c_ini]
 	let s:ms__settings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
@@ -827,7 +827,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \\n    Z                         Adjust map block size
 \\n    T                         Toggle color
 \\n    q                         Quit
-\\n*The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.".(!has("gui_running")? "\n\nMouse:
+\\n* The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.".(!has("gui_running")? "\n\nMouse:
 \\n    doubleclick               Goto block
 \\n    drag                      Pan
 \\n    click at topleft corner   Quit
@@ -909,7 +909,7 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \if !empty(inLbl)\n
 	\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
 	\if [s:ms__r,s:ms__c]==s:ms__initbk\n
-		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will jump to current cursor position) :', empty(pos)? s:ms__posmes : pos)\n
+		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will center current cursor position) :', empty(pos)? s:ms__posmes : pos)\n
 	\else\n
 		\let inPos=input('\nPosition: ',pos)\n
 	\en\n
