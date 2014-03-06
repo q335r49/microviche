@@ -224,7 +224,7 @@ fun! TXBinit(...)
 				let input=plane.settings[i]
 				exe get(s:ErrorCheck,i,['',''])[1]
 				if !empty(smsg)
-					let plane.settings[i]=s:ErrorCheck[i][0]
+					let plane.settings[i]=copy(s:ErrorCheck[i][0])
 					let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
 				en
 			endfor
