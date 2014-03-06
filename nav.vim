@@ -53,6 +53,8 @@ fun! s:printHelp()
 	redir => bufenterAu
 		silent au BufEnter
 		silent au BufLeave
+		silent au WinEnter
+		silent au WinLeave
 	redir END
 	let auCommands=split(bufenterAu,"\n")
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -77,8 +79,8 @@ fun! s:printHelp()
 	\\n[2] If the hotkey (currently ".g:TXB_HOTKEY.") becomes inaccessible, change it via ':call TXBinit()' and pressing S
 	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line of the form `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
 	\\n\n\\CTroubleshooting\n\n"
-	\.(len(auCommands)>2? "* * * BUFENTER OR BUFLEAVE DETECTED * * *\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter and BufLeave. Each step of mouse panning switches buffers several times and would trigger those autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "* * * XTERM DETECTED * * *\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
+	\.(len(auCommands)>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\\C(Incompatible mouse mode detected:)\n\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
 	\."DIRECTORIES   Keeping the same working directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch working directories). Appending files not in the working directory is ok\n
 	\\nSCROLLBIND SYNC   Scrolling in a split much longer than its neighbors may occasionally cause desyncing. (This may be fixed in newer versions of Vim.) You can press ".g:TXB_HOTKEY." r to redraw when this happens. Another solution is to pad, say, 500 blank lines to the end of shorter splits.
 	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.
