@@ -11,9 +11,8 @@ se mouse=a                             "Enables mouse
 se lazyredraw                          "Less redraws
 se virtualedit=all                     "Makes leftmost split align correctly
 se hidden                              "Suppresses error messages when a modified buffer pans offscreen
-
-silent highlight default link TXBmapSel Visual
-silent highlight default link TXBmapSelEmpty Visual
+silent hi default link TXBmapSel Visual           "default hilight for map label selection
+silent hi default link TXBmapSelEmpty Visual      "default hilight for map empty selection
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
@@ -1127,7 +1126,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','command when current split is unhidden'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','j k y u b n will place the top line at multiples of this number'],'kbd x pan speed':[9,'','keyboard pan animation speed horizontal'],'kbd y pan speed':[2,'','keyboard pan animation speed vertical'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"Examples (don't type quotes): '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x)\n**WARNING** If the hotkey becomes inaccessible, evoke ':call TXBinit()', then press 'S' to reset"],'autoexe':['se nowrap scb cole=2','','default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)'],'split width':[60,'','default value ([c]hange value and [S]ave for the option to apply to current splits)']}
+let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','command when current split is unhidden'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','j k y u b n will place the top line at multiples of this number'],'kbd x pan speed':[9,'','keyboard pan animation speed horizontal'],'kbd y pan speed':[2,'','keyboard pan animation speed vertical'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"],'autoexe':['se nowrap scb cole=2','','default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)'],'split width':[60,'','default value ([c]hange value and [S]ave for the option to apply to current splits)']}
 let s:ErrorCheck['current autoexe'][1]="let vals[cursor]=input"
 let s:ErrorCheck['current width'][1]="let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: current split width must be >2'\n
