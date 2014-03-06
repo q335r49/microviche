@@ -137,7 +137,7 @@ fun! TXBinit(...)
 			en
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can manually write to file with (HOTKEY) W."
+			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with [hotkey] W."
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -173,11 +173,11 @@ fun! TXBinit(...)
 		if !empty(filtered)
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. You can save the previous plane to file with (HOTKEY) W"
-			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type L to confirm / ESC / S for settings / F1 for help: "
-			let confirm_keys=[76]
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading it and pressing [hotkey] W)"
+			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+			let confirm_keys=[82]
 		else
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane."
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading it and pressing [hotkey] W)"
 			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
 			let confirm_keys=[76]
 		en
@@ -188,8 +188,9 @@ fun! TXBinit(...)
 		let plane.settings={}
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. Press F1 for options on saving previous plane\n -> Type O to confirm overwrite / ESC / S for Settings / F1 for help:"
-			let confirm_keys=[79]
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading it and pressing [hotkey] W)"
+			let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
+			let confirm_keys=[76]
 		else
 			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[10,13]
