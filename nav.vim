@@ -55,14 +55,14 @@ fun! s:printHelp()
 		silent au WinLeave
 	redir END
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.7!\n\\Cgithub.com/q335r49/textabyss
+	let s:help_bookmark=s:pager(s:formatPar("\n\\CWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)
 	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
 	\\n[1] h j k l     Pan left / down / up / right
 	\\n    y u b n     Pan upleft / downleft / upright / downright
 	\\n    o           Open map
 	\\n    r           Redraw
-	\\n    .           Snap to map grid
+	\\n    .           Snap to map positioning command
 	\\n    D A         Delete split / Append split / Edit split settings
 	\\n    <f1>        Show this message
 	\\n    q <esc>     Abort
@@ -70,20 +70,16 @@ fun! s:printHelp()
 	\\n    W           Write plane to file
 	\\n    ^X          Delete hidden buffers
 	\\n[3] ^L          Insert line anchor
-	\\n    ^A          Re-anchor\n
-	\\n[1] Movement keys take counts, capped at 99. Eg, 3j will move down 3 times.
-	\\n[2] If the hotkey (currently ".g:TXB_HOTKEY.") becomes inaccessible, change it via ':call TXBinit()' and pressing S
-	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line beginning with `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
+	\\n    ^A          Re-anchor
+	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will move down 3 times.
+	\\n(2) If you accidentally make the hotkey (currently ".g:TXB_HOTKEY.") inaccessible, change it via ':call TXBinit()' and pressing S
+	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
 	\\n\n\\CTroubleshooting\n\n"
 	\.(len(split(laggyAu,"\n"))>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\\C(Incompatible mouse mode detected:)\n\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
 	\."DIRECTORIES   Keeping the same working directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch working directories). Appending files not in the working directory is ok\n
 	\\nSCROLLBIND SYNC   Scrolling in a split much longer than its neighbors may occasionally cause desyncing. (This may be fixed in newer versions of Vim.) You can press ".g:TXB_HOTKEY." r to redraw when this happens. Another solution is to pad, say, 500 blank lines to the end of shorter splits.
-	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.
-	\\n\n\\CRecent Changes\n
-	\\n1.7.0     Settings browser
-	\\n1.6.4     Center and redraw on zoom
-	\\n1.6.2     Line anchors",width,(&columns-width)/2),s:help_bookmark)
+	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
 fun! s:writePlaneToFile(plane,file)
@@ -819,35 +815,35 @@ endfun
 let s:last_yanked_is_column=0
 let s:map_bookmark=0
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\n\\CMap Help\n\nKeyboard:
-\\n    h j k l                   move 1 block cardinally*
-\\n    y u b n                   move 1 block diagonally*
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\\CCommands:\n
+\\n[1] h j k l y u b n           move cardinally / diagonally
 \\n    0 $                       Beginning / end of line
 \\n    H M L                     High / Middle / Low of screen
 \\n    x                         clear and obtain cell
 \\n    o O                       obtain cell / Obtain column
 \\n    p P                       Put obtained cell or column
-\\n    c                         Change label
+\\n[2] c                         Change label / color / position
 \\n    g <cr>                    Goto block (and exit map)
 \\n    I D                       Insert / Delete and obtain column
 \\n    Z                         Adjust map block size
 \\n    T                         Toggle color
-\\n    q                         Quit
-\\n* The movement commands take counts, as in vim. Eg, 3j will move down 3 rows. The count is capped at 99.".(!has("gui_running")? "\n\nMouse:
-\\n    doubleclick               Goto block
+\\n    q                         Quit"
+\.(!has("gui_running")? "\n[3] doubleclick               Goto block
 \\n    drag                      Pan
-\\n    click at topleft corner   Quit
-\\n    drag to topleft corner    Show map
-\\n\nMouse commands only work when ttymouse is set to xterm2 or sgr. When ttymouse is xterm, a limited set of features will work." : "\n\n**Mouse is unsupported in gVim**")."\n\n\\CColor and Position (Optional):
-\\n\nWhen [c]hanging a label, you will also be prompted for an optional highlight group and positioning command. Type '':hi'' for a list of currently defined highlight groups.
-\\n\nPositioning commands move the jump from its default position of the split being at the left edge and the cursor at the top left corner. Eg, ''CM'' will [C]enter the split and put the cursor line in the screen [M]iddle. The full list of commmands is:\n
+\\n    click topleft corner      Quit
+\\n    drag to topleft corner    (from the plane) Show map\n
+\\n(1) Movements take counts, capped at 99. Eg, 3j descends 3 rows.
+\\n(2) " : "\n[Mouse is unsupported in gVim]\n
+\\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
+\\n(2) ")."You can press <tab> to autocomplete from currently defined highlights.
+\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, ''CM'' [C]enters the split and puts the cursor line in the [M]iddle. The full list of commmands is:
 \\n    j k l  Cursor up / down / right
 \\n    s      Shift view left 1 split
 \\n    r R    Shift view down / up 1 row
 \\n    C      Centered split horizontally (ignore s)
-\\n    M      Scroll so cursor line is Middle line (ignore r R)
-\\n    W*     Virtual split width
-\\n\n* By default ''s'' won''t shift the split offscreen but only push it to the right edge, regardless of count. But setting the virtual width, eg, ''45s15W'', would cause ''s'' to shift further (here, up to the point where only 15 columns are visible.) Likewise, ''C'' centers the split as if it were ''W'' columns wide",width,(&columns-width)/2),s:map_bookmark)',
+\\n    M      Center line vertically (ignore r R)
+\\n    W      Virtual split width (see below)
+\\nBy default ''s'' won''t shift the split offscreen but only push it to the right edge, regardless of count. But setting the virtual width, eg, ''45s15W'', would cause ''s'' to shift further (here, up to the point where only 15 columns are visible.) Likewise, ''C'' centers the split as if it were ''W'' columns wide".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : ""),width,(&columns-width)/2),s:map_bookmark)',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
 \"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
