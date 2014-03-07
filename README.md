@@ -68,7 +68,7 @@ Key | Action | | Key | Action
 ####Troubleshooting
 <dt>Mouse</dt>
 <dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.</dd>
-<dd>Autocommands for *BufEnter* and *BufLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning the plane because a single panning step actually has to switch buffers a few times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
+<dd>Autocommands for *BufEnter*, *BufLeave*, *WinEnter*, and *WinLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning in the plane because a single panning step may switch buffers several times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
 <dt>Directories</dt>
 <dd>Since relative paths are used, switching working directories will cause problems. If you find yourself constantly changing working directories, consider adding an autocommand to automatically switch back to the plane directory when in the plane tab. Adding files not in the working directory should be ok.</dd>
 <dt>Misaligned splits</dt>

@@ -48,16 +48,14 @@ let TXBkyCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
-	redir => bufenterAu
+	redir => laggyAu
 		silent au BufEnter
 		silent au BufLeave
 		silent au WinEnter
 		silent au WinLeave
 	redir END
-	let auCommands=split(bufenterAu,"\n")
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.7!
-	\\n\\Cgithub.com/q335r49/textabyss
+	let s:help_bookmark=s:pager(s:formatPar("\n\n\n\\CWelcome to Textabyss v1.7!\n\\Cgithub.com/q335r49/textabyss
 	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
 	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
 	\\n[1] h j k l     Pan left / down / up / right
@@ -77,7 +75,7 @@ fun! s:printHelp()
 	\\n[2] If the hotkey (currently ".g:TXB_HOTKEY.") becomes inaccessible, change it via ':call TXBinit()' and pressing S
 	\\n[3] Insertions at the top of a split misalign everything below. An anchor is a line beginning with `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
 	\\n\n\\CTroubleshooting\n\n"
-	\.(len(auCommands)>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
+	\.(len(split(laggyAu,"\n"))>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\\C(Incompatible mouse mode detected:)\n\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
 	\."DIRECTORIES   Keeping the same working directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch working directories). Appending files not in the working directory is ok\n
 	\\nSCROLLBIND SYNC   Scrolling in a split much longer than its neighbors may occasionally cause desyncing. (This may be fixed in newer versions of Vim.) You can press ".g:TXB_HOTKEY." r to redraw when this happens. Another solution is to pad, say, 500 blank lines to the end of shorter splits.
@@ -103,20 +101,21 @@ fun! s:writePlaneToFile(plane,file)
 	return writefile(lines,a:file)+error
 endfun
 let TXBkyCmd.W="let s:kc__continue=0\n
-	\let input=input('[Write plane to file] Input file name:','','file')\n
-	\if !empty(input)\n
-		\let error=s:writePlaneToFile(t:txb,input)\n
-		\if (error/10)\n
-			\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
-		\en\n
-		\if error%10==-1\n
-			\let s:kc__msg.=' ERROR: File not writable'\n
-		\else\n
-			\let s:kc__msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
-		\en\n
+\let input=input('[Write plane to file] Input file name:',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
+\if !empty(input)\n
+	\let t:txb.settings['default file name']=input\n
+	\let error=s:writePlaneToFile(t:txb,input)\n
+	\if (error/10)\n
+		\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
+	\en\n
+	\if error%10==-1\n
+		\let s:kc__msg.='** ERROR **\n    File not writable'\n
 	\else\n
-    	\let s:kc__msg.=' (file write aborted)'\n
-	\en\n"
+		\let s:kc__msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
+	\en\n
+\else\n
+	\let s:kc__msg.=' (file write aborted)'\n
+\en\n"
 
 fun! TXBinit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -169,11 +168,11 @@ fun! TXBinit(...)
 		if !empty(filtered)
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading it and pressing [hotkey] W)"
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing [hotkey] W)"
 			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 			let confirm_keys=[82]
 		else
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading it and pressing [hotkey] W)"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing [hotkey] W)"
 			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
 			let confirm_keys=[76]
 		en
@@ -184,7 +183,7 @@ fun! TXBinit(...)
 		let plane.settings={}
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading it and pressing [hotkey] W)"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing [hotkey] W)"
 			let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[76]
 		else
@@ -264,7 +263,7 @@ fun! TXBinit(...)
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
