@@ -1050,16 +1050,15 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \en"
 let s:sp__cursor=0
 let s:sp__offset=0
-let s:sp__height=8
 fun! s:settingsPager(keys,vals,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
 	let smsg=''
 	let keys=a:keys
 	let vals=deepcopy(a:vals)
-	let [&more,&ch]=[0,s:sp__height+3]
+	let [&more,&ch]=[0,len(keys)<8? len(keys)+3 : 11] 
 	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
-	let height=s:sp__height
+	let height=&ch>3? &ch-3 : 1
 	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height+1? (len(keys)-height+1>=0? len(keys)-height+1 : 0) : s:sp__offset
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
@@ -1106,7 +1105,6 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let [&more,&ch]=settings
 	redr
 	let s:sp__cursor=cursor
-	let s:sp__height=height
 	let s:sp__offset=offset
 	return exitcode
 endfun
