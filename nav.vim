@@ -402,9 +402,8 @@ fun! s:initDragDefault()
 			endwhile
 		en
 		call s:updateCursPos()
-		let s0=b:txbi
 		let t_r=line('.')/t:mapL
-		echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+		echon s:gridnames[b:txbi] t_r ' ' get(get(t:txb.map,b:txbi,[]),t_r,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
