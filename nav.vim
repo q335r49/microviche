@@ -55,12 +55,11 @@ fun! s:printHelp()
 		silent au WinLeave
 	redir END
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7!\ngithub.com/q335r49/textabyss\n"
+	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(len(split(laggyAu,"\n"))>4? "\n** WARNING ** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n** WARNING ** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n** WARNING ** POSSIBLE SLOW TTYMOUSE setting detected\nRecommended: 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
-	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n\nPress HOTKEY to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for files beginning with 'pl'. Or you can start with a single file and append others with HOTKEY A.\n
-	\\nOnce loaded, use the MOUSE to pan, or press HOTKEY followed by:
-	\\n[1] hjkl yubn                 Pan cardinally / diagonally
+	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n\nPress HOTKEY to start. You will be prompted for a file pattern (eg, 'pl*' for files beginning with 'pl'). You can also enter a single file name and later append others with HOTKEY A. Once loaded, use the MOUSE to pan, or press HOTKEY followed by:\n
+	\\n[1] h j k l y u b n           Pan cardinally & diagonally
 	\\n    r                         Redraw
 	\\n    o                         Open map
 	\\n    D A                       Delete / Append split
@@ -73,12 +72,12 @@ fun! s:printHelp()
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) If HOTKEY becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines."
-	\."\n\nMAP MODE:\n
-	\\n[1] h j k l y u b n           move cardinally / diagonally
+	\."\n\nIn map mode:\n
+	\\n[1] h j k l y u b n           Move cardinally & diagonally
 	\\n    0 $                       Beginning / end of line
 	\\n    H M L                     High / Middle / Low of screen
-	\\n    x                         clear and obtain cell
-	\\n    o O                       obtain cell / Obtain column
+	\\n    x                         Clear and obtain cell
+	\\n    o O                       Obtain cell / Obtain column
 	\\n    p P                       Put obtained after / before
 	\\n[2] c                         Change label, color, position
 	\\n    .                         (in plane) execute label position
@@ -90,7 +89,7 @@ fun! s:printHelp()
 	\.(!has("gui_running")? "\n[3] doubleclick               Go to block
 	\\n    drag                      Pan
 	\\n    click topleft corner      Quit
-	\\n    drag to topleft corner    (from the plane) Show map
+	\\n    drag to topleft corner    (in the plane) Show map
 	\\n(1) Movements take counts, capped at 99. Eg, ''3j'' = ''jjj''.
 	\\n(2) " : "\n[Mouse is unsupported in gVim]
 	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
@@ -102,10 +101,11 @@ fun! s:printHelp()
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
 	\\n    W                         Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
-	\."\n\nTIPS:\n\n* Appending files not in the WORKING DIRECTORY (':pwd') is ok but the directory itself must remain fixed, since the plane remembers relative paths.
+	\."\n\nTips:\n\n* Appending files not in the WORKING DIRECTORY (':pwd') is ok but the directory itself must remain fixed, since the plane remembers relative paths.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
 	\\n* In old versions of Vim SCROLLBIND DESYNC may occur when at the bottom of a split much longer than its neighbors. You can press HOTKEY r to redraw, or pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
+let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 
 fun! s:writePlaneToFile(plane,file)
 	let lines=[]
@@ -1120,36 +1120,39 @@ let s:settingscom.83="for i in range(len(keys))\n
 \let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
-let s:ErrorCheck={'current autoexe':['se nowrap scb cole=2','','command when current split is unhidden'],'current width':[60,'','width of current split'],'map cell width':[5,'','integer between 1 and 10'],'map cell height':[2,'','integer between 1 and 10'],'lines panned by j,k':[15,'','j k y u b n will place the top line at multiples of this number'],'kbd x pan speed':[9,'','keyboard pan animation speed horizontal'],'kbd y pan speed':[2,'','keyboard pan animation speed vertical'],'mouse pan speed':[[0,1,2,4,7,10,15,21,24,27],'','for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)'],'lines per map grid':[45,'','Each map grid is 1 split and this many lines'],'hotkey':['<f10>','',"For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"],'autoexe':['se nowrap scb cole=2','','default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)'],'split width':[60,'','default value ([c]hange value and [S]ave for the option to apply to current splits)']}
-let s:ErrorCheck['current autoexe'][1]="let vals[cursor]=input"
-let s:ErrorCheck['current width'][1]="let input=str2nr(input)|if input<=2\n
+let s:ErrorCheck={}
+let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
+let s:ErrorCheck['current width']=[60,
+\"let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: current split width must be >2'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['split width'][1]="let input=str2nr(input)|if input<=2\n
+\en",'width of current split']
+let s:ErrorCheck['split width']=[60,
+\"let input=str2nr(input)|if input<=2\n
 	\let smsg.='Error: default split width must be >2'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['lines panned by j,k'][1]="let input=str2nr(input)|if input<=0\n
+\en",'default value ([c]hange value and [S]ave for the option to apply to current splits)']
+let s:ErrorCheck['lines panned by j,k']=[15,"let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: lines panned by j,k must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['kbd x pan speed'][1]="let input=str2nr(input)|if input<=0\n
+\en",'j k y u b n will place the top line at multiples of this number']
+let s:ErrorCheck['kbd x pan speed']=[9,"let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: x pan speed must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['kbd y pan speed'][1]="let input=str2nr(input)|if input<=0\n
+\en",'keyboard pan animation speed horizontal']
+let s:ErrorCheck['kbd y pan speed']=[2,"let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: y pan speed must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck.hotkey[1]="let vals[cursor]=input"
-let s:ErrorCheck.autoexe[1]="let vals[cursor]=input"
-let s:ErrorCheck['mouse pan speed'][1]="unlet! inList|let inList=type(input)==3? input : eval(input)\n
+\en",'keyboard pan animation speed vertical']
+let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"]
+let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)']
+let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
+\"unlet! inList|let inList=type(input)==3? input : eval(input)\n
 \if type(inList)!=3\n
 	\let smsg.='Error: mouse pan speed must evaluate to a list'\n
 \elseif empty(inList)\n
@@ -1160,22 +1163,22 @@ let s:ErrorCheck['mouse pan speed'][1]="unlet! inList|let inList=type(input)==3?
 	\let smsg.='Error: mouse speed list must be non-negative'\n
 \else\n
 	\let vals[cursor]=copy(inList)\n
-\en"
-let s:ErrorCheck['lines per map grid'][1]="let input=str2nr(input)|if input<=0\n
+\en",'for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
+let s:ErrorCheck['lines per map grid']=[45,"let input=str2nr(input)|if input<=0\n
 	\let smsg.='Error: lines per map grid must be >=0'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['map cell height'][1]="let input=str2nr(input)|if input<=0 || input>10\n
+\en",'Each map grid is 1 split and this many lines']
+let s:ErrorCheck['map cell height']=[2,"let input=str2nr(input)|if input<=0 || input>10\n
 	\let smsg.='Error: map cell height must be between 0 and 10'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
-let s:ErrorCheck['map cell width'][1]="let input=str2nr(input)|if input<=0 || input>10\n
+\en",'integer between 1 and 10']
+let s:ErrorCheck['map cell width']=[5,"let input=str2nr(input)|if input<=0 || input>10\n
 	\let smsg.='Error: map cell width must be between 0 and 10'\n
 \else\n
 	\let vals[cursor]=input\n
-\en"
+\en",'integer between 1 and 10']
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
@@ -1442,9 +1445,39 @@ fun! s:doCmdKeyhandler(c)
 		redr|echo '(done)' s:gridnames[s0].t_r get(get(t:txb.map,s0,[]),t_r,'')[:&columns-17]
 	en
 endfun
-
+let TXBkyCmd.q="let s:kc__continue=0"
 let TXBkyCmd[-1]='let s:kc__continue=0|call feedkeys("\<leftmouse>")'
 let TXBkyCmd[-99]=""
+let TXBkyCmd["\e"]=TXBkyCmd.q
+
+fun! s:deleteSplit(index)
+	call remove(t:txb.name,a:index)	
+	call remove(t:txb.size,a:index)	
+	call remove(t:txb.exe,a:index)	
+	let t:txb__len=len(t:txb.name)
+	let [t:txb__ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb__ix[e],i]=[i,i+1]
+	endfor
+endfun
+fun! s:appendSplit(index,file,...)
+	if empty(a:file)
+		return 'File name is empty'
+	elseif has_key(t:txb__ix,a:file)
+		return 'Duplicate entries not allowed'
+	en
+	call insert(t:txb.name,a:file,a:index+1)
+	call insert(t:txb.size,exists('a:1')? a:1 : t:txb.settings['split width'],a:index+1)
+	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
+	let t:txb__len=len(t:txb.name)
+	let [t:txb__ix,i]=[{},0]
+	for e in t:txb.name
+		let [t:txb__ix[e],i]=[i,i+1]
+	endfor
+	if len(s:gridnames)<t:txb__len
+		let s:gridnames=s:getGridNames(t:txb__len+50)
+	endif
+endfun
 let TXBkyCmd.D="redr\n
 \let confirm=input(' < Really delete current column (y/n)? ')\n
 \if confirm==?'y'\n
@@ -1480,39 +1513,6 @@ let TXBkyCmd.A="let ix=get(t:txb__ix,expand('%'),-1)\n
 	\let s:kc__msg='Current buffer not in plane'\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.q="let s:kc__continue=0"
-let TXBkyCmd["\e"]=TXBkyCmd.q
-let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
-
-fun! s:deleteSplit(index)
-	call remove(t:txb.name,a:index)	
-	call remove(t:txb.size,a:index)	
-	call remove(t:txb.exe,a:index)	
-	let t:txb__len=len(t:txb.name)
-	let [t:txb__ix,i]=[{},0]
-	for e in t:txb.name
-		let [t:txb__ix[e],i]=[i,i+1]
-	endfor
-endfun
-fun! s:appendSplit(index,file,...)
-	if empty(a:file)
-		return 'File name is empty'
-	elseif has_key(t:txb__ix,a:file)
-		return 'Duplicate entries not allowed'
-	en
-	call insert(t:txb.name,a:file,a:index+1)
-	call insert(t:txb.size,exists('a:1')? a:1 : t:txb.settings['split width'],a:index+1)
-	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
-	let t:txb__len=len(t:txb.name)
-	let [t:txb__ix,i]=[{},0]
-	for e in t:txb.name
-		let [t:txb__ix[e],i]=[i,i+1]
-	endfor
-	if len(s:gridnames)<t:txb__len
-		let s:gridnames=s:getGridNames(t:txb__len+50)
-	endif
-endfun
 
 fun! s:redraw()
 	let [ix0,win0]=[get(t:txb__ix,bufname(''),-1),winnr()]
@@ -1610,6 +1610,7 @@ fun! s:redraw()
 		let s:gridnames=s:getGridNames(t:txb__len+50)
 	en
 endfun
+let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
 
 fun! s:saveCursPos()
 	let t:txb__cPos=[bufnr('%'),line('.'),virtcol('.')]
