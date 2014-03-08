@@ -414,7 +414,7 @@ fun! s:initDragDefault()
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
 		call getchar()
-		exe v:mouse_win."wincmd w"
+		exe v:mouse_win."winc w"
 		if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
 			if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
 			return "keepj norm! \<leftmouse>" | en
@@ -465,7 +465,7 @@ fun! s:initDragSGR()
 			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
-		exe v:mouse_win.'wincmd w'
+		exe v:mouse_win.'winc w'
 		if &wrap && v:mouse_col%winwidth(0)==1
 			exe "norm! \<leftmouse>"
 		elseif !&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol
@@ -523,7 +523,7 @@ fun! s:initDragXterm2()
 			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('t:txb')
-		exe v:mouse_win.'wincmd w'
+		exe v:mouse_win.'winc w'
 		if &wrap && v:mouse_col%winwidth(0)==1
 			exe "norm! \<leftmouse>"
 		elseif !&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol
@@ -1241,7 +1241,7 @@ fun! s:gotoPos(col,row)
 		echoerr "Split ".a:col." does not exist."
 		return 1
 	elseif name!=#expand('%')
-		wincmd t
+		winc t
 		exe 'e '.escape(name,' ')
 	en
 	norm! 0
@@ -1260,7 +1260,7 @@ fun! s:blockPan(dx,y,...)
 		\if cury>line('$')\n
 			\let longlinefound=0\n
 			\for i in range(winnr('$')-1)\n
-				\wincmd w\n
+				\winc w\n
 				\if line('$')>=cury\n
 					\exe 'norm!' cury.'zt'\n
 					\let longlinefound=1\n
@@ -1484,7 +1484,7 @@ let TXBkyCmd.D="redr\n
 	\let ix=get(t:txb__ix,expand('%'),-1)\n
 	\if ix!=-1\n
 		\call s:deleteSplit(ix)\n
-		\wincmd W\n
+		\winc W\n
 		\call s:saveCursPos()\n
 		\call s:redraw()\n
 		\let s:kc__msg='col '.ix.' removed'\n
@@ -1557,7 +1557,7 @@ fun! s:redraw()
 			se wfw
 		endfor
 	elseif dif<0
-		wincmd t
+		winc t
 		for i in range(-dif)
 			exe 'hide'
 		endfor
@@ -1572,14 +1572,14 @@ fun! s:redraw()
 			se wfw
 		endfor
 	elseif dif<0
-		wincmd b
+		winc b
 		for i in range(-dif)
 			exe 'hide'
 		endfor
 	en
 	windo se nowfw
-	wincmd =
-	wincmd b
+	winc =
+	winc b
 	let [bot,cwin]=[winnr(),-1]
 	while winnr()!=cwin
 		se wfw
@@ -1595,7 +1595,7 @@ fun! s:redraw()
 			let dif=(cwin==bot? colbw : t:txb.size[ccol])-winwidth(cwin)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
-		wincmd h
+		winc h
 	endw
 	se scrollopt=ver,jump
 	try
@@ -1648,30 +1648,30 @@ fun! s:nav(N)
 		let tcol=t:txb__ix[bufname(winbufnr(1))]
 		if N<&columns
 			while winwidth(winnr('$'))<=N
-				wincmd b
+				winc b
 				let extrashift=(winwidth(0)==N)
 				hide
 			endw
 		else
-			wincmd t
+			winc t
 			only
 		en
 		if winwidth(0)!=&columns
-			wincmd t
+			winc t
 			let topw=winwidth(0)
 			if winwidth(winnr('$'))<=N+3+extrashift || winnr('$')>=9
 				se nowfw
-				wincmd b
+				winc b
 				exe 'vert res-'.(N+extrashift)
-				wincmd t
+				winc t
 				if winwidth(1)==1
-					wincmd l
+					winc l
 					se nowfw
-					wincmd t 
+					winc t 
 					exe 'vert res+'.(N+extrashift)
-					wincmd l
+					winc l
 					se wfw
-					wincmd t
+					winc t
 				elseif winwidth(0)==topw
 					exe 'vert res+'.(N+extrashift)
 				en
@@ -1685,10 +1685,10 @@ fun! s:nav(N)
 				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
-				wincmd l
+				winc l
 				se wfw
 				norm! 0
-				wincmd t
+				winc t
 				let tcol=nextcol
 				se wfw scrollopt=ver,jump
 			endwhile
@@ -1792,7 +1792,7 @@ fun! s:nav(N)
 		else
 			if winwidth(1)==1
 				let c_wn=winnr()
-				wincmd t
+				winc t
 				hide
 				let N-=2
 				if N<=0
@@ -1810,7 +1810,7 @@ fun! s:nav(N)
 				let w2=winwidth(2)
 				let extrashift=winwidth(1)==N
 				let shifted+=winwidth(1)+1
-				wincmd t
+				winc t
 				hide
 				if winwidth(1)==w2
 					let nobotresize=1
@@ -1824,32 +1824,32 @@ fun! s:nav(N)
 		let wf=winwidth(1)-N
 		if wf+N!=&columns
 			if !nobotresize
-				wincmd b
+				winc b
 				exe 'vert res+'.N
 				if virtcol('.')!=wincol()
 					norm! 0
 				en
-				wincmd t	
+				winc t	
 				if winwidth(1)!=wf
 					exe 'vert res'.wf
 				en
 			en
 			while winwidth(winnr('$'))>=t:txb.size[bcol]+2
-				wincmd b
+				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(bcol+1)%t:txb__len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[bcol]-1).'split '.escape(t:txb.name[nextcol],' ')
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
-				wincmd h
+				winc h
 				se wfw
-				wincmd b
+				winc b
 				norm! 0
 				let bcol=nextcol
 				se scrollopt=ver,jump
 			endwhile
-			wincmd t
-			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
+			winc t
+			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+winc()
 			exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
