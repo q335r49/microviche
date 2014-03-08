@@ -366,7 +366,7 @@ fun! s:initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let s0=getwinvar(v:mouse_win,'txbi',-1)
+			let s0=getbufvar(winbufnr(v:mouse_win),'txbi',-1)
 			let t_r=v:mouse_lnum/t:mapL
 			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
@@ -1285,11 +1285,11 @@ fun! s:blockPan(dx,y,...)
 			endwhile
 			let y+=y>0? -1 : y<0? 1 : 0
 			let i+=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i<a:dx
+			let continue=absolute_x? (getbufvar(winbufnr(1),'txbi')==a:dx? 0 : 1) : i<a:dx
 		endwhile
 	elseif dir<0
 		let i=0
-		let continue=!map([getwinvar(1,'txbi')],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
+		let continue=!map([getbufvar(winbufnr(1),'txbi')],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
 		while continue
 			exe update_ydest
 			let buf0=winbufnr(1)
@@ -1312,7 +1312,7 @@ fun! s:blockPan(dx,y,...)
 			endwhile
 			let y+=y>0? -1 : y<0? 1 : 0
 			let i-=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i>a:dx
+			let continue=absolute_x? (getbufvar(winbufnr(1),'txbi')==a:dx? 0 : 1) : i>a:dx
 		endwhile
 	en
 	while y
@@ -1532,7 +1532,7 @@ fun! s:redraw()
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,ix0,0]
 	let remain=split0
 	while remain>=1
-		let colt=(colt-1)%t:txb__len
+		let colt=(colt-1+t:txb__len)%t:txb__len
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
@@ -1545,9 +1545,9 @@ fun! s:redraw()
 	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
 	if dif>0
-		let colt=(ix0-win0)%t:txb__len
+		let colt=(ix0-win0+t:txb__len)%t:txb__len
 		for i in range(dif)
-			let colt=(colt-1)%t:txb__len
+			let colt=(colt-1+t:txb__len)%t:txb__len
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
 			let b:txbi=colt
 			exe t:txb.exe[colt]
@@ -1561,7 +1561,7 @@ fun! s:redraw()
 	en
 	let dif=colsRight+colsLeft-winnr('$')
 	if dif>0
-		let colb=(ix0+colsRight-1-dif)%t:txb__len
+		let colb=(ix0+colsRight-1-dif+t:txb__len)%t:txb__len
 		for i in range(dif)
 			let colb=(colb+1)%t:txb__len
 			exe 'bot vsp '.escape(t:txb.name[colb],' ')
@@ -1644,7 +1644,7 @@ fun! s:nav(N)
 	if a:N<0
 		let N=-a:N
 		let extrashift=0
-		let tcol=getwinvar(1,'txbi')
+		let tcol=getbufvar(winbufnr(1),'txbi')
 		if N<&columns
 			while winwidth(winnr('$'))<=N
 				winc b
@@ -1680,7 +1680,7 @@ fun! s:nav(N)
 			en
 			while winwidth(0)>=t:txb.size[tcol]+2
 				se nowfw scrollopt=jump
-				let nextcol=(tcol-1)%t:txb__len
+				let nextcol=(tcol-1+t:txb__len)%t:txb__len
 				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
 				let b:txbi=nextcol
 				exe alignmentcmd
@@ -1709,7 +1709,7 @@ fun! s:nav(N)
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
-					let tcol=(tcol-1)%t:txb__len
+					let tcol=(tcol-1+t:txb__len)%t:txb__len
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
@@ -1746,8 +1746,8 @@ fun! s:nav(N)
 		en
 		return -extrashift
 	elseif a:N>0
-		let tcol=getwinvar(1,'txbi')
-		let [bcol,loff,extrashift,N]=[getwinvar(winnr('$'),'txbi'),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+		let tcol=getbufvar(winbufnr(1),'txbi')
+		let [bcol,loff,extrashift,N]=[getbufvar(winbufnr(winnr('$')),'txbi'),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 		let nobotresize=0
 		if N>=&columns
 			if winwidth(1)==&columns
@@ -1853,7 +1853,7 @@ fun! s:nav(N)
 				se scrollopt=ver,jump
 			endwhile
 			winc t
-			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+winc()
+			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 			exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
