@@ -55,31 +55,27 @@ fun! s:printHelp()
 		silent au WinLeave
 	redir END
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\n\\CWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)
-	\\n\nPress ".g:TXB_HOTKEY." to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for \"pl1\", \"plb\", \"planetary.txt\", etc.. You can also start with a single file and use ".g:TXB_HOTKEY."A to append additional splits.\n
-	\\nOnce loaded, use the mouse to pan or press ".g:TXB_HOTKEY." followed by:
-	\\n[1] h j k l     Pan left / down / up / right
-	\\n    y u b n     Pan upleft / downleft / upright / downright
-	\\n    o           Open map
+	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7!\ngithub.com/q335r49/textabyss\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
+	\\nPress HOTKEY to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for files beginning with 'pl'. Or you can start with a single file and append others with HOTKEY A.\n
+	\\nOnce loaded, use the MOUSE to pan, or press HOTKEY followed by:
+	\\n[1] hjkl yubn   Pan cardinally / diagonally
 	\\n    r           Redraw
-	\\n    .           Snap to map positioning command
-	\\n    D A         Delete split / Append split / Edit split settings
+	\\n    o           Open map
+	\\n    D A         Delete / Append split
 	\\n    <f1>        Show this message
-	\\n    q <esc>     Abort
-	\\n[2] S           Edit Settings
-	\\n    W           Write plane to file
+	\\n[2] S           Edit Settings...
+	\\n    W           Write to file...
 	\\n    ^X          Delete hidden buffers
-	\\n[3] ^L          Insert line anchor
-	\\n    ^A          Re-anchor
-	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will move down 3 times.
-	\\n(2) If you accidentally make the hotkey (currently ".g:TXB_HOTKEY.") inaccessible, change it via ':call TXBinit()' and pressing S
-	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with `txb:current line`, eg, `txb:455`. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines.
-	\\n\n\\CTroubleshooting\n\n"
-	\.(len(split(laggyAu,"\n"))>4? "\\C(Laggy autocommands detected:)\n\nIf you are experiencing mouse lag, considering slimming down the autocommands you have set for BufEnter, BufLeave, WinEnter, and WinLeave. Each step of mouse panning switches buffers several times and would trigger these autocommands multiple times. Also consider the alternatives 'BufRead' and 'BufHidden'\n\n" : "")
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\\C(Incompatible mouse mode detected:)\n\nMouse panning is disabled because your ttymouse is set to 'xterm'. Try another ttymouse setting to enable. (Recommended: ':set ttymouse=xterm2' or 'sgr').\n\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "** Possible bad mouse setting detected **\nFor better performance, try 'set ttymouse=xterm2' or 'sgr', if possible.\n\n" : "")
-	\."DIRECTORIES   Keeping the same working directory is important because relative names are remembered (use ':cd ~/PlaneDir' to switch working directories). Appending files not in the working directory is ok\n
-	\\nSCROLLBIND SYNC   Scrolling in a split much longer than its neighbors may occasionally cause desyncing. (This may be fixed in newer versions of Vim.) You can press ".g:TXB_HOTKEY." r to redraw when this happens. Another solution is to pad, say, 500 blank lines to the end of shorter splits.
-	\\n\nHORIZONTAL SPLITS   Horizontal splits aren't supported and may interfere with panning.",width,(&columns-width)/2),s:help_bookmark)
+	\\n[3] ^L ^A       Insert line anchor / Re-anchor
+	\\n    q <esc>     Abort
+	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
+	\\n(2) If HOTKEY becomes inaccessible, reset via: ':call TXBinit()', press S
+	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines."
+	\.(len(split(laggyAu,"\n"))>4? "\n\n** WARNING: Laggy autocommands detected **\n    If mouse panning lags, considering slimming down your BufEnter, BufLeave, WinEnter, and WinLeave autocommands (':au BufEnter' to list'). Each step of mouse panning triggers these autocommands multiple times because of window switching. Alternatively, consider using 'BufRead' or 'BufHidden'" : "")
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n\n** WARNING: Incompatible mouse mode detected **\n    Mouse panning is disabled because ttymouse is 'xterm'. (Recommended: ':set ttymouse=xterm2' or 'sgr')." : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n\n** WARNING: Possible bad mouse setting detected **\n    For better performance, try 'set ttymouse=xterm2' or 'sgr', if possible." : "")
+	\."\n\nTIPS:\n\n* Appending files not in the WORKING DIRECTORY (':pwd') is ok but the directory itself must remain fixed, since the plane remembers relative paths.
+	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
+	\\n* In old versions of Vim SCROLLBIND DESYNC may occur when at the bottom of a split much longer than its neighbors. You can press HOTKEY r to redraw, or pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
 
 fun! s:writePlaneToFile(plane,file)
@@ -124,11 +120,10 @@ fun! TXBinit(...)
 			if &ttymouse==?"xterm"
 				let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 			elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-				let msg.="\n**WARNING**\n    For better mouse panning performance, try ':set ttymouse=xterm2' or 'set ttymouse=sgr'.\n    Your current setting is: ".&ttymouse
 			en
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with [hotkey] W."
+			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W."
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -164,11 +159,11 @@ fun! TXBinit(...)
 		if !empty(filtered)
 			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing [hotkey] W)"
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 			let confirm_keys=[82]
 		else
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing [hotkey] W)"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
 			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
 			let confirm_keys=[76]
 		en
@@ -179,7 +174,7 @@ fun! TXBinit(...)
 		let plane.settings={}
 		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing [hotkey] W)"
+			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 			let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[76]
 		else
@@ -815,35 +810,34 @@ endfun
 let s:last_yanked_is_column=0
 let s:map_bookmark=0
 let s:mapdict={"\e":"let s:ms__continue=0|redr",
-\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n\\CCommands:\n
-\\n[1] h j k l y u b n           move cardinally / diagonally
+\"\<f1>":'let width=&columns>80? min([&columns-10,80]) : &columns-2|let s:map_bookmark=s:pager(s:formatPar("\n[1] h j k l y u b n           move cardinally / diagonally
 \\n    0 $                       Beginning / end of line
 \\n    H M L                     High / Middle / Low of screen
 \\n    x                         clear and obtain cell
 \\n    o O                       obtain cell / Obtain column
-\\n    p P                       Put obtained cell or column
-\\n[2] c                         Change label / color / position
-\\n    g <cr>                    Goto block (and exit map)
+\\n    p P                       Put obtained after / before
+\\n[2] c                         Change label, color, position
+\\n    .                         (in plane) execute label position
+\\n    g <cr>                    Go to block and exit map
 \\n    I D                       Insert / Delete and obtain column
 \\n    Z                         Adjust map block size
 \\n    T                         Toggle color
 \\n    q                         Quit"
-\.(!has("gui_running")? "\n[3] doubleclick               Goto block
+\.(!has("gui_running")? "\n[3] doubleclick               Go to block
 \\n    drag                      Pan
 \\n    click topleft corner      Quit
 \\n    drag to topleft corner    (from the plane) Show map\n
-\\n(1) Movements take counts, capped at 99. Eg, 3j descends 3 rows.
+\\n(1) Movements take counts, capped at 99. Eg, ''3j'' = ''jjj''.
 \\n(2) " : "\n[Mouse is unsupported in gVim]\n
 \\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
 \\n(2) ")."You can press <tab> to autocomplete from currently defined highlights.
-\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, ''CM'' [C]enters the split and puts the cursor line in the [M]iddle. The full list of commmands is:
+\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, ''CM'' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
 \\n    j k l  Cursor up / down / right
 \\n    s      Shift view left 1 split
 \\n    r R    Shift view down / up 1 row
 \\n    C      Centered split horizontally (ignore s)
-\\n    M      Center line vertically (ignore r R)
-\\n    W      Virtual split width (see below)
-\\nBy default ''s'' won''t shift the split offscreen but only push it to the right edge, regardless of count. But setting the virtual width, eg, ''45s15W'', would cause ''s'' to shift further (here, up to the point where only 15 columns are visible.) Likewise, ''C'' centers the split as if it were ''W'' columns wide".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : ""),width,(&columns-width)/2),s:map_bookmark)',
+\\n    M      Center cursor vertically (ignore r R)
+\\n    W      Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : ""),width,(&columns-width)/2),s:map_bookmark)',
 \"q":"let s:ms__continue=0",
 \"l":"let s:ms__c+=s:ms__num|let s:ms__num='01'",
 \"h":"let s:ms__c=max([s:ms__c-s:ms__num,0])|let s:ms__num='01'",
@@ -1182,21 +1176,31 @@ let s:ErrorCheck['map cell width'][1]="let input=str2nr(input)|if input<=0 || in
 \en"
 
 fun! s:pager(list,start)
-	let pad=repeat(' ',&columns)
-	let settings=[&more,&ch]
-	let [&more,&ch]=[0,&lines]
-	let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
-	let next=a:start<0? 0 : a:start>bot? bot : a:start
-	while continue
-		if pos!=next
-			let pos=next
-			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
-		en
-		exe get(s:pagercom,getchar(),'')
-	endwhile
-	redr
-	let [&more,&ch]=settings
-	return pos
+	if len(a:list)<&lines
+		let [more,&more]=[&more,0]
+		ec join(a:list,"\n")."\nPress ENTER to continue"
+		while index([10,13,113,27],getchar())==-1
+		endwhile
+		redr
+		let &more=more
+		return 0
+	else
+		let pad=repeat(' ',&columns)
+		let settings=[&more,&ch]
+		let [&more,&ch]=[0,&lines]
+		let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
+		let next=a:start<0? 0 : a:start>bot? bot : a:start
+		while continue
+			if pos!=next
+				let pos=next
+				redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
+			en
+			exe get(s:pagercom,getchar(),'')
+		endwhile
+		redr
+		let [&more,&ch]=settings
+		return pos
+	en
 endfun
 let s:pagercom={113:'let continue=0',
 \32:"let t=&lines/2\n
