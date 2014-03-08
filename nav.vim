@@ -60,16 +60,16 @@ fun! s:printHelp()
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n** WARNING ** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n** WARNING ** POSSIBLE SLOW TTYMOUSE setting detected\nRecommended: 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
 	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n\nPress HOTKEY to start. You will be prompted for a file pattern. You can try \"*\" for all files or, say, \"pl*\" for files beginning with 'pl'. Or you can start with a single file and append others with HOTKEY A.\n
 	\\nOnce loaded, use the MOUSE to pan, or press HOTKEY followed by:
-	\\n[1] hjkl yubn   Pan cardinally / diagonally
-	\\n    r           Redraw
-	\\n    o           Open map
-	\\n    D A         Delete / Append split
-	\\n    <f1>        Show this message
-	\\n[2] S           Edit Settings...
-	\\n    W           Write to file...
-	\\n    ^X          Delete hidden buffers
-	\\n[3] ^L ^A       Insert line anchor / Re-anchor
-	\\n    q <esc>     Abort
+	\\n[1] hjkl yubn                 Pan cardinally / diagonally
+	\\n    r                         Redraw
+	\\n    o                         Open map
+	\\n    D A                       Delete / Append split
+	\\n    <f1>                      Show this message
+	\\n[2] S                         Edit Settings...
+	\\n    W                         Write to file...
+	\\n    ^X                        Delete hidden buffers
+	\\n[3] ^L ^A                     Insert line anchor / Re-anchor
+	\\n    q <esc>                   Abort
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) If HOTKEY becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines."
@@ -96,12 +96,12 @@ fun! s:printHelp()
 	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
 	\\n(2) ")."You can press <tab> to autocomplete from currently defined highlights.
 	\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, ''CM'' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
-	\\n    j k l  Cursor up / down / right
-	\\n    s      Shift view left 1 split
-	\\n    r R    Shift view down / up 1 row
-	\\n    C      Centered split horizontally (ignore s)
-	\\n    M      Center cursor vertically (ignore r R)
-	\\n    W      Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
+	\\n    j k l                     Cursor up / down / right
+	\\n    s                         Shift view left 1 split
+	\\n    r R                       Shift view down / up 1 row
+	\\n    C                         Centered split horizontally (ignore s)
+	\\n    M                         Center cursor vertically (ignore r R)
+	\\n    W                         Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
 	\."\n\nTIPS:\n\n* Appending files not in the WORKING DIRECTORY (':pwd') is ok but the directory itself must remain fixed, since the plane remembers relative paths.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
 	\\n* In old versions of Vim SCROLLBIND DESYNC may occur when at the bottom of a split much longer than its neighbors. You can press HOTKEY r to redraw, or pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
