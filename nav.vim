@@ -1644,7 +1644,6 @@ fun! s:nav(N)
 	if a:N<0
 		let N=-a:N
 		let extrashift=0
-		let tcol=getbufvar(winbufnr(1),'txbi')
 		if N<&columns
 			while winwidth(winnr('$'))<=N
 				winc b
@@ -1657,6 +1656,7 @@ fun! s:nav(N)
 		en
 		if winwidth(0)!=&columns
 			winc t
+			let tcol=b:txbi
 			let topw=winwidth(0)
 			if winwidth(winnr('$'))<=N+3+extrashift || winnr('$')>=9
 				se nowfw
@@ -1703,6 +1703,7 @@ fun! s:nav(N)
 				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
 			en
 		else
+			let tcol=b:txbi
 			let loff=&wrap? -N-extrashift : virtcol('.')-wincol()-N-extrashift
 			if loff>=0
 				exe 'norm! '.(N+extrashift).(bufwinnr(c_bf)==-1? 'zhg$' : 'zh')
