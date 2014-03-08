@@ -960,7 +960,6 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 let TXBkyCmd.S="let s:kc__continue=0\n
-\let cix=b:txbi\n
 \let settings_names=range(15)\n
 \let settings_values=range(15)\n
 \let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
@@ -977,10 +976,10 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
 \let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
 \let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
-\if cix!=-1\n
+\if exists('b:txbi')'\n
 	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
-	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,cix,60)]\n
-	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,cix,'se nowrap scb cole=2')]\n
+	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,b:txbi,60)]\n
+	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,b:txbi,'se nowrap scb cole=2')]\n
 \en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
@@ -1000,9 +999,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:txb.settings['lines per map grid']=settings_values[9]\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
-	\if cix!=-1\n
-		\let t:txb.size[cix]=settings_values[13]\n
-		\let t:txb.exe[cix]=settings_values[14]\n
+	\if exists('b:txbi')
+		\let t:txb.size[b:txbi]=settings_values[13]\n
+		\let t:txb.exe[b:txbi]=settings_values[14]\n
 	\en\n
 	\let t:panL=t:txb.settings['lines panned by j,k']\n
 	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
