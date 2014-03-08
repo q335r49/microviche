@@ -1532,7 +1532,7 @@ fun! s:redraw()
 	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,ix0,0]
 	let remain=split0
 	while remain>=1
-		let colt=(colt-1+t:txb__len)%t:txb__len
+		let colt=colt? colt-1 : t:txb__len-1
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
@@ -1547,7 +1547,7 @@ fun! s:redraw()
 	if dif>0
 		let colt=(ix0-win0+t:txb__len)%t:txb__len
 		for i in range(dif)
-			let colt=(colt-1+t:txb__len)%t:txb__len
+			let colt=colt? colt-1 : t:txb__len-1
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
 			let b:txbi=colt
 			exe t:txb.exe[colt]
@@ -1680,7 +1680,7 @@ fun! s:nav(N)
 			en
 			while winwidth(0)>=t:txb.size[tcol]+2
 				se nowfw scrollopt=jump
-				let nextcol=(tcol-1+t:txb__len)%t:txb__len
+				let nextcol=tcol? tcol-1 : t:txb__len-1
 				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
 				let b:txbi=nextcol
 				exe alignmentcmd
@@ -1710,7 +1710,7 @@ fun! s:nav(N)
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
-					let tcol=(tcol-1+t:txb__len)%t:txb__len
+					let tcol=tcol? tcol-1 : t:txb__len-1
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
