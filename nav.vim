@@ -1243,6 +1243,7 @@ fun! s:gotoPos(col,row)
 	elseif name!=#expand('%')
 		winc t
 		exe 'e '.escape(name,' ')
+		let b:txbi=a:col
 	en
 	norm! 0
 	only
@@ -1522,6 +1523,7 @@ fun! s:redraw()
 		let name=t:txb.name[0]
 		if name!=#expand('%')
 			exe 'e '.escape(name,' ')
+			let b:txbi=ix0
 		en
 	en
 	let pos=[bufnr('%'),line('w0')]
@@ -1553,6 +1555,7 @@ fun! s:redraw()
 		for i in range(dif)
 			let colt=(colt-1)%t:txb__len
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
+			let b:txbi=colt
 			exe t:txb.exe[colt]
 			se wfw
 		endfor
@@ -1568,6 +1571,7 @@ fun! s:redraw()
 		for i in range(dif)
 			let colb=(colb+1)%t:txb__len
 			exe 'bot vsp '.escape(t:txb.name[colb],' ')
+			let b:txbi=colb
 			exe t:txb.exe[colb]
 			se wfw
 		endfor
@@ -1586,6 +1590,7 @@ fun! s:redraw()
 		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb__len]
 		if bufname('')!=#t:txb.name[ccol]
 			exe 'e' escape(t:txb.name[ccol],' ')
+			let b:txbi=ccol
 		en
 		exe t:txb.exe[ccol]
 		if cwin==1
@@ -1683,6 +1688,7 @@ fun! s:nav(N)
 				se nowfw scrollopt=jump
 				let nextcol=(tcol-1)%t:txb__len
 				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
+				let b:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
 				winc l
@@ -1714,6 +1720,7 @@ fun! s:nav(N)
 				endwhile
 				se scrollopt=jump
 				exe 'e '.escape(t:txb.name[tcol],' ')
+				let b:txbi=tcol
 				exe alignmentcmd
 				exe t:txb.exe[tcol]
 				se scrollopt=ver,jump
@@ -1724,6 +1731,7 @@ fun! s:nav(N)
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[NextCol],' ')
+						let b:txbi=NextCol
 						exe alignmentcmd
 						exe t:txb.exe[NextCol]
 						norm! 0
@@ -1784,6 +1792,7 @@ fun! s:nav(N)
 			en
 			se scrollopt=jump
 			exe 'e '.escape(t:txb.name[tcol],' ')
+			let b:txbi=tcol
 			exe alignmentcmd
 			exe t:txb.exe[tcol]
 			se scrollopt=ver,jump
@@ -1839,6 +1848,7 @@ fun! s:nav(N)
 				se nowfw scrollopt=jump
 				let nextcol=(bcol+1)%t:txb__len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[bcol]-1).'split '.escape(t:txb.name[nextcol],' ')
+				let b:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
 				winc h
@@ -1867,6 +1877,7 @@ fun! s:nav(N)
 			while spaceremaining>=2
 				let bcol=(bcol+1)%t:txb__len
 				exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[bcol],' ')
+				let b:txbi=bcol
 				exe alignmentcmd
 				exe t:txb.exe[bcol]
 				norm! 0
