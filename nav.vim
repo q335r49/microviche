@@ -1464,7 +1464,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
 			\let w:txbi=t_ix\n
-			\let s:kc__msg='File '''.file.(index(t:txb.name,file)==-1? ''' appended.' : ''' (duplicate) appended.')
+			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
