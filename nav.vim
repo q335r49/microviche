@@ -1717,14 +1717,12 @@ fun! s:nav(N)
 		return -extrashift
 	elseif a:N>0
 		let tcol=getbufvar(winbufnr(1),'txbi')
-		let [loff,extrashift,N]=[winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
+		let extrashift=0
+		let N=a:N
 		let nobotresize=0
 		if N>=&columns
-			if winwidth(1)==&columns
-				let loff+=&columns
-			else
-				let loff=winwidth(winnr('$'))
-			en
+			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
 				let loff=0
 				let tcol=(tcol+1)%t:txb__len
