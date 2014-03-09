@@ -1461,7 +1461,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 	\else\n
 		\let t_ix=index(t:txb.name,expand('%'))\n
 		\if t_ix==-1\n
-			\let s:kc__msg='Current file not in plane! Redraw before appending.'\n
+			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
 			\let w:txbi=t_ix\n
 			\if index(t:txb.name,file)!=-1\n
@@ -1474,6 +1474,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 			\if len(s:gridnames)<t:txb__len\n
 				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
 			\en\n
+			\call s:redraw()\n
 			\let s:kc__msg.='File '''.file.''' appended.'\n
 		\en\n
 	\en\n
