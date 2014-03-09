@@ -1464,9 +1464,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
 			\let w:txbi=t_ix\n
-			\if index(t:txb.name,file)!=-1\n
-				\let s:kc__msg='(Warning: Duplicate inserted.) '\n
-			\en\n
+			\let s:kc__msg='File '''.file.(index(t:txb.name,file)==-1? ''' appended.' : ''' (duplicate) appended.')
 			\call insert(t:txb.name,file,w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
@@ -1475,7 +1473,6 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
 			\en\n
 			\call s:redraw()\n
-			\let s:kc__msg.='File '''.file.''' appended.'\n
 		\en\n
 	\en\n
 \else\n
