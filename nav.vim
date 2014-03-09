@@ -1724,7 +1724,6 @@ fun! s:nav(N)
 				let loff+=&columns
 			else
 				let loff=winwidth(winnr('$'))
-				let bcol=tcol
 			en
 			if loff>=t:txb.size[tcol]
 				let loff=0
@@ -1834,17 +1833,16 @@ fun! s:nav(N)
 				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
 			en
 		elseif &columns-t:txb.size[tcol]+loff>=2
-			let bcol=tcol
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
-				let bcol=(bcol+1)%t:txb__len
-				exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[bcol],' ')
-				let b:txbi=bcol
+				let nextcol=(b:txbi+1)%t:txb__len
+				exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[nextcol],' ')
+				let b:txbi=nextcol
 				exe alignmentcmd
-				exe t:txb.exe[bcol]
+				exe t:txb.exe[nextcol]
 				norm! 0
-				let spaceremaining-=t:txb.size[bcol]+1
+				let spaceremaining-=t:txb.size[nextcol]+1
 			endwhile
 			se scrollopt=ver,jump
 			windo se wfw
