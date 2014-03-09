@@ -1438,57 +1438,41 @@ let TXBkyCmd[-1]='let s:kc__continue=0|call feedkeys("\<leftmouse>")'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
-fun! s:deleteSplit(index)
-	call remove(t:txb.name,a:index)	
-	call remove(t:txb.size,a:index)	
-	call remove(t:txb.exe,a:index)	
-	let t:txb__len=len(t:txb.name)
-endfun
-fun! s:appendSplit(index,file,...)
-	if empty(a:file)
-		return 'File name is empty'
-	elseif index(t:txb.name,a:file)!=-1
-		return 'Duplicate entries not allowed'
-	en
-	call insert(t:txb.name,a:file,a:index+1)
-	call insert(t:txb.size,exists('a:1')? a:1 : t:txb.settings['split width'],a:index+1)
-	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
-	let t:txb__len=len(t:txb.name)
-	if len(s:gridnames)<t:txb__len
-		let s:gridnames=s:getGridNames(t:txb__len+50)
-	endif
-endfun
 let TXBkyCmd.D="redr\n
-\let confirm=input(' < Really delete current column (y/n)? ')\n
-\if confirm==?'y'\n
-	\let ix=b:txbi\n
-	\if ix!=-1\n
-		\call s:deleteSplit(ix)\n
-		\winc W\n
-		\call s:saveCursPos()\n
-		\call s:redraw()\n
-		\let s:kc__msg='col '.ix.' removed'\n
-	\else\n
-		\let s:kc__msg='Current buffer not in plane; deletion failed'\n
+\if input('Really delete current column (y/n)? ')==?'y'\n
+	\let t_index=index(t:txb.name,expand('%'))\n
+	\if t_index!=-1\n
+		\call remove(t:txb.name,a:index)\n
+		\call remove(t:txb.size,a:index)\n
+		\call remove(t:txb.exe,a:index)\n
+		\let t:txb__len=len(t:txb.name)\n
 	\en\n
+	\winc W\n
+	\call s:saveCursPos()\n
+	\call s:redraw()\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.A="let ix=b:txbi\n
-\if ix!=-1\n
-	\redr\n
+let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
+\if t_index!=-1\n
 	\let file=input(' < File to append (do not escape spaces): ',bufname('%'),'file')\n
-	\let error=s:appendSplit(ix,file)\n
-	\if empty(error)\n
-		\try\n
-			\call s:redraw()\n
-			\let s:kc__msg='col '.(ix+1).' appended'\n
-		\catch\n
-			\call s:deleteSplit(ix)\n
-			\let s:kc__msg='Error detected while loading plane: file append aborted'\n
-			\call s:redraw()\n
-		\endtry\n
+	\if empty(file)\n
+		\let s:kc__msg='File name is empty'\n
+	\elseif index(t:txb.name,file)!=-1\n
+		\let s:kc__msg= 'Duplicate names not allowed'\n
 	\else\n
-		\let s:kc__msg='Error: '.error\n
+		\let b:txbi=index(t:txb.name,expand('%')\n
+		\if b:txbi==-1\n
+			\let s:kc__msg='Current file not in plane! Redraw before appending.'\n
+		\else\n
+			\call insert(t:txb.name,file,b:txbi+1)\n
+			\call insert(t:txb.size,t:txb.settings['split width'],b:txbi+1)\n
+			\call insert(t:txb.exe,t:txb.settings.autoexe,b:txbi+1)\n
+			\let t:txb__len=len(t:txb.name)\n
+			\if len(s:gridnames)<t:txb__len\n
+				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
+			\en\n
+			\let s:kc__msg='File '''.file.''' appended.'\n
+		\en\n
 	\en\n
 \else\n
 	\let s:kc__msg='Current buffer not in plane'\n
