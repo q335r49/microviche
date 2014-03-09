@@ -975,7 +975,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
 \let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
 \let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
-\if exists('b:txbi')'\n
+\if exists('b:txbi')\n
 	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
 	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,b:txbi,60)]\n
 	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,b:txbi,'se nowrap scb cole=2')]\n
@@ -998,7 +998,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:txb.settings['lines per map grid']=settings_values[9]\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
-	\if exists('b:txbi')
+	\if exists('b:txbi')\n
 		\let t:txb.size[b:txbi]=settings_values[13]\n
 		\let t:txb.exe[b:txbi]=settings_values[14]\n
 	\en\n
@@ -1207,9 +1207,9 @@ let s:pagercom={113:'let continue=0',
 		\let next=pos\n
 		\let dispw=strdisplaywidth(a:list[pos+&lines-2])\n
 		\if dispw>49\n
-			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
 		\else\n
-			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k: up, g/G:top/bottom, q:quit'\n
+			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
 		\en\n
 	\en",
 \107:'let next=pos>0? pos-1 : pos',
@@ -1480,34 +1480,39 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 
 fun! s:redraw()
-	let win0=winnr()
-	let ix0=index(t:txb.name,expand('%'))
-	if ix0==-1
-		let ix0=0
-	en
-	only
-	let name=t:txb.name[ix0]
-	if name!=#expand('%')
-		exe 'e '.escape(name,' ')
-	en
-	let b:txbi=ix0
-	let pos=[bufnr('%'),line('w0')]
-	exe winnr()==1? "norm! mt" : "norm! mt0"
-	se scrollopt=jump
-	if winnr()==1 && !&wrap
-		let offset=virtcol('.')-wincol()
-		if offset<t:txb.size[ix0]
-			exe (t:txb.size[ix0]-offset).'winc|'
+	let name0=expand('%')
+	if !exists('b:txbi') || get(t:txb.name,b:txbi,'')!=#name0
+		let ix=index(t:txb.name,name0)
+		if ix==-1
+			only
+			exe 'e '.escape(t:txb.name[0],' ')
+			let b:txbi=0
+		else
+			let b:txbi=ix
 		en
 	en
-	let [split0,colt,colsLeft]=[win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2,ix0,0]
+	let win0=winnr()
+	let pos=[bufnr('%'),line('w0')]
+	exe win0==1? "norm! mt" : "norm! mt0"
+	if win0==1 && !&wrap
+		let offset=virtcol('.')-wincol()
+		if offset<t:txb.size[b:txbi]
+			exe (t:txb.size[b:txbi]-offset).'winc|'
+		en
+	en
+	se scrollopt=jump
+	let split0=win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2
+	let colt=b:txbi
+	let colsLeft=0
 	let remain=split0
 	while remain>=1
 		let colt=colt? colt-1 : t:txb__len-1
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
-	let [colb,remain,colsRight]=[ix0,&columns-(split0>0? split0+1+t:txb.size[ix0] : min([winwidth(1),t:txb.size[ix0]])),1]
+	let colb=b:txbi
+	let remain=&columns-(split0>0? split0+1+t:txb.size[b:txbi] : min([winwidth(1),t:txb.size[b:txbi]]))
+	let colsRight=1
 	while remain>=2
 		let colb=(colb+1)%t:txb__len
 		let colsRight+=1
@@ -1516,13 +1521,12 @@ fun! s:redraw()
 	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
 	if dif>0
-		let colt=(ix0-win0+t:txb__len)%t:txb__len
+		let colt=(b:txbi-win0+t:txb__len)%t:txb__len
 		for i in range(dif)
 			let colt=colt? colt-1 : t:txb__len-1
 			exe 'top vsp '.escape(t:txb.name[colt],' ')
 			let b:txbi=colt
 			exe t:txb.exe[colt]
-			se wfw
 		endfor
 	elseif dif<0
 		winc t
@@ -1532,13 +1536,12 @@ fun! s:redraw()
 	en
 	let dif=colsRight+colsLeft-winnr('$')
 	if dif>0
-		let colb=(ix0+colsRight-1-dif+t:txb__len)%t:txb__len
+		let nextcol=((colb-dif)%t:txb__len+t:txb__len)%t:txb__len
 		for i in range(dif)
-			let colb=(colb+1)%t:txb__len
-			exe 'bot vsp '.escape(t:txb.name[colb],' ')
-			let b:txbi=colb
-			exe t:txb.exe[colb]
-			se wfw
+			let nextcol=(nextcol+1)%t:txb__len
+			exe 'bot vsp '.escape(t:txb.name[nextcol],' ')
+			let b:txbi=nextcol
+			exe t:txb.exe[nextcol]
 		endfor
 	elseif dif<0
 		winc b
@@ -1549,27 +1552,28 @@ fun! s:redraw()
 	windo se nowfw
 	winc =
 	winc b
-	let [bot,cwin]=[winnr(),-1]
-	while winnr()!=cwin
+	let ccol=colb
+	let numcol=colsRight+colsLeft
+    for i in range(1,numcol)
 		se wfw
-		let [cwin,ccol]=[winnr(),(colt+winnr()-1)%t:txb__len]
 		if bufname('')!=#t:txb.name[ccol]
 			exe 'e' escape(t:txb.name[ccol],' ')
-			let b:txbi=ccol
 		en
+		let b:txbi=ccol
 		exe t:txb.exe[ccol]
-		if cwin==1
+		if i==numcol
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 		else
-			let dif=(cwin==bot? colb : t:txb.size[ccol])-winwidth(cwin)
+			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		winc h
-	endw
+		let ccol=ccol? ccol-1 : t:txb__len-1
+	endfor
 	se scrollopt=ver,jump
 	try
-	exe "silent norm! :syncbind\<cr>"
+		exe "silent norm! :syncbind\<cr>"
 	catch
 		se scrollopt=jump
 		windo 1
