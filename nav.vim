@@ -1458,13 +1458,14 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 	\let file=input(' < File to append (do not escape spaces): ',bufname('%'),'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
-	\elseif index(t:txb.name,file)!=-1\n
-		\let s:kc__msg= 'Duplicate names not allowed'\n
 	\else\n
 		\let b:txbi=index(t:txb.name,expand('%')\n
 		\if b:txbi==-1\n
 			\let s:kc__msg='Current file not in plane! Redraw before appending.'\n
 		\else\n
+			\if index(t:txb.name,file)!=-1\n
+				\let s:kc__msg='(Warning: Duplicate inserted.) '\n
+			\en\n
 			\call insert(t:txb.name,file,b:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],b:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,b:txbi+1)\n
@@ -1472,7 +1473,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 			\if len(s:gridnames)<t:txb__len\n
 				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
 			\en\n
-			\let s:kc__msg='File '''.file.''' appended.'\n
+			\let s:kc__msg.='File '''.file.''' appended.'\n
 		\en\n
 	\en\n
 \else\n
