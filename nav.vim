@@ -1438,7 +1438,7 @@ fun! s:doCmdKeyhandler(c)
 	en
 endfun
 let TXBkyCmd.q="let s:kc__continue=0"
-let TXBkyCmd[-1]='let s:kc__continue=0|call feedkeys("\<leftmouse>")'
+let TXBkyCmd[-1]='let s:kc__continue=0'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
