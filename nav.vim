@@ -13,6 +13,7 @@ se virtualedit=all                     "Makes leftmost split align correctly
 se hidden                              "Suppresses error messages when a modified buffer pans offscreen
 hi default link TXBmapSel Visual       "default hilight for map label selection
 hi default link TXBmapSelEmpty Visual  "default hilight for map empty selection
+se scrolloff=0                         "ensures correct vertical panning
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
@@ -470,7 +471,7 @@ fun! s:initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[line('w0'),line('.'),-10,'']
+		let s:nav_state=[line('w0'),line('.')]
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -526,7 +527,7 @@ fun! s:initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[line('w0'),line('.'),-10,'']
+		let s:nav_state=[line('w0'),line('.')]
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -560,11 +561,11 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(t:mouseAcc,a:dx,t:mouseAcc[-1]) : get(t:mouseAcc,-a:dx,t:mouseAcc[-1]))
-	let s0=max([1,a:dy>0? s:nav_state[0]-get(t:mouseAcc,a:dy,t:mouseAcc[-1]) : s:nav_state[0]+get(t:mouseAcc,-a:dy,t:mouseAcc[-1])])
-	exe 'norm! '.s0.'zt'
-	exe 'norm! '.(s:nav_state[1]<line('w0')? 'H' : line('w$')<s:nav_state[1]? 'L' : s:nav_state[1].'G')
-	let s:nav_state=[s0,line('.'),b:txbi,s:nav_state[2],s:nav_state[3]!=s:nav_state[2]? s:gridnames[s:nav_state[2]].s:nav_state[1]/t:mapL.' '.get(get(t:txb.map,s:nav_state[2],[]),s:nav_state[1]/t:mapL,'')[:&columns-9] : s:nav_state[4]]
-	echon s:nav_state[4]
+	let s:nav_state[0]=max([1,a:dy>0? s:nav_state[0]-get(t:mouseAcc,a:dy,t:mouseAcc[-1]) : s:nav_state[0]+get(t:mouseAcc,-a:dy,t:mouseAcc[-1])])
+	exe 'norm! '.s:nav_state[0].'zt'
+	let s:nav_state[1]=s:nav_state[1]<line('w0')? line('w0') : line('w$')<s:nav_state[1]? line('w$') : s:nav_state[1]
+	exe s:nav_state[1]
+	echon s:gridnames[b:txbi] s:nav_state[1]/t:mapL ' ' get(get(t:txb.map,b:txbi,[]),s:nav_state[1]/t:mapL,'')[:&columns-9]
 endfun
 
 fun! s:getGridNames(len)
@@ -1534,7 +1535,8 @@ fun! s:redraw()
 			exe 'hide'
 		endfor
 	en
-	let dif=colsRight+colsLeft-winnr('$')
+	let numcols=colsRight+colsLeft
+	let dif=numcols-winnr('$')
 	if dif>0
 		let nextcol=((colb-dif)%t:txb__len+t:txb__len)%t:txb__len
 		for i in range(dif)
@@ -1553,15 +1555,14 @@ fun! s:redraw()
 	winc =
 	winc b
 	let ccol=colb
-	let numcol=colsRight+colsLeft
-    for i in range(1,numcol)
+    for i in range(1,numcols)
 		se wfw
 		if bufname('')!=#t:txb.name[ccol]
 			exe 'e' escape(t:txb.name[ccol],' ')
 		en
 		let b:txbi=ccol
 		exe t:txb.exe[ccol]
-		if i==numcol
+		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 		else
