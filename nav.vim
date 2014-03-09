@@ -1288,22 +1288,25 @@ fun! s:blockPan(dx,y,...)
 		endwhile
 	elseif dir<0
 		let i=0
-		let continue=!map([getwinvar(1,'txbi')],'absolute_x && v:val==a:dx && winwidth(1)>=t:txb.size[v:val]')[0]
+		let ix=getwinvar(1,'txbi')
+		let continue=!(absolute_x && ix==a:dx && winwidth(1)>=t:txb.size[ix])
 		while continue
 			exe update_ydest
-			let buf0=winbufnr(1)
-			let ix=getwinar(1,'txbi')
-			if winwidth(1)>=t:txb.size[ix]
+			if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
 				call s:nav(-4)
-				let buf0=winbufnr(1)
 			en
-			while winwidth(1)<t:txb.size[ix]-t:aniStepH
+			let ix=getwinvar(1,'txbi')
+			while winwidth(1)<t:txb.size[ix]-t:aniStepH && !(winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()<t:aniStepH)) && getwinvar(1,'txbi')==ix
 				call s:nav(-t:aniStepH)
 				exe pan_y
 				redr
 			endwhile
-			if winbufnr(1)==buf0
-				call s:nav(-t:txb.size[ix]+winwidth(1))
+			if winnr('$')==1
+				if !&wrap && virtcol('.')-wincol()
+					call s:nav(-virtcol('.')+wincol())
+				endif
+			elseif getwinvar(1,'txbi')==ix
+				call s:nav(winwidth(1)-t:txb.size[ix])
 			en
 			while cury!=y_dest
 				exe pan_y
