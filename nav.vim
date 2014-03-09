@@ -1443,9 +1443,9 @@ let TXBkyCmd.D="redr\n
 \if input('Really delete current column (y/n)? ')==?'y'\n
 	\let t_index=index(t:txb.name,expand('%'))\n
 	\if t_index!=-1\n
-		\call remove(t:txb.name,a:index)\n
-		\call remove(t:txb.size,a:index)\n
-		\call remove(t:txb.exe,a:index)\n
+		\call remove(t:txb.name,t_index)\n
+		\call remove(t:txb.size,t_index)\n
+		\call remove(t:txb.exe,t_index)\n
 		\let t:txb__len=len(t:txb.name)\n
 	\en\n
 	\winc W\n
@@ -1459,7 +1459,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
-		\let b:txbi=index(t:txb.name,expand('%')\n
+		\let b:txbi=index(t:txb.name,expand('%'))\n
 		\if b:txbi==-1\n
 			\let s:kc__msg='Current file not in plane! Redraw before appending.'\n
 		\else\n
