@@ -1443,9 +1443,6 @@ fun! s:deleteSplit(index)
 	call remove(t:txb.size,a:index)	
 	call remove(t:txb.exe,a:index)	
 	let t:txb__len=len(t:txb.name)
-
-    "TODO
-
 endfun
 fun! s:appendSplit(index,file,...)
 	if empty(a:file)
@@ -1457,9 +1454,6 @@ fun! s:appendSplit(index,file,...)
 	call insert(t:txb.size,exists('a:1')? a:1 : t:txb.settings['split width'],a:index+1)
 	call insert(t:txb.exe,t:txb.settings.autoexe,a:index+1)
 	let t:txb__len=len(t:txb.name)
-
-    "TODO
-
 	if len(s:gridnames)<t:txb__len
 		let s:gridnames=s:getGridNames(t:txb__len+50)
 	endif
@@ -1491,6 +1485,7 @@ let TXBkyCmd.A="let ix=b:txbi\n
 		\catch\n
 			\call s:deleteSplit(ix)\n
 			\let s:kc__msg='Error detected while loading plane: file append aborted'\n
+			\call s:redraw()\n
 		\endtry\n
 	\else\n
 		\let s:kc__msg='Error: '.error\n
@@ -1502,22 +1497,16 @@ let TXBkyCmd.A="let ix=b:txbi\n
 
 fun! s:redraw()
 	let win0=winnr()
-	if !exists('b:txbi')
-		let ix0=index(t:txb.name,expand('%'))
-		if ix0==-1
-			let ix0=0
-		en
-		only
-		let name=t:txb.name[ix0]
-		if name!=#expand('%')
-			exe 'e '.escape(name,' ')
-			let b:txbi=ix0
-		else
-			let b:txbi=ix0
-		en
-	else
-		let ix0=b:txbi
+	let ix0=index(t:txb.name,expand('%'))
+	if ix0==-1
+		let ix0=0
 	en
+	only
+	let name=t:txb.name[ix0]
+	if name!=#expand('%')
+		exe 'e '.escape(name,' ')
+	en
+	let b:txbi=ix0
 	let pos=[bufnr('%'),line('w0')]
 	exe winnr()==1? "norm! mt" : "norm! mt0"
 	se scrollopt=jump
