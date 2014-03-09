@@ -1627,7 +1627,6 @@ fun! s:nav(N)
 		en
 		if winwidth(0)!=&columns
 			winc t
-			let tcol=b:txbi
 			let topw=winwidth(0)
 			if winwidth(winnr('$'))<=N+3+extrashift || winnr('$')>=9
 				se nowfw
@@ -1649,10 +1648,10 @@ fun! s:nav(N)
 			else
 				exe 'vert res+'.(N+extrashift)
 			en
-			while winwidth(0)>=t:txb.size[tcol]+2
+			while winwidth(0)>=t:txb.size[b:txbi]+2
 				se nowfw scrollopt=jump
-				let nextcol=tcol? tcol-1 : t:txb__len-1
-				exe 'top '.(winwidth(0)-t:txb.size[tcol]-1).'vsp '.escape(t:txb.name[nextcol],' ')
+				let nextcol=b:txbi? b:txbi-1 : t:txb__len-1
+				exe 'top '.(winwidth(0)-t:txb.size[b:txbi]-1).'vsp '.escape(t:txb.name[nextcol],' ')
 				let b:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1660,10 +1659,9 @@ fun! s:nav(N)
 				se wfw
 				norm! 0
 				winc t
-				let tcol=nextcol
 				se wfw scrollopt=ver,jump
 			endwhile
-			let offset=t:txb.size[tcol]-winwidth(0)-virtcol('.')+wincol()
+			let offset=t:txb.size[b:txbi]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 			let c_wn=bufwinnr(c_bf)
 			if c_wn==-1
@@ -1693,16 +1691,16 @@ fun! s:nav(N)
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
 				if t:txb.size[tcol]-loff<&columns-1
 					let spaceremaining=&columns-t:txb.size[tcol]+loff
-					let NextCol=(tcol+1)%t:txb__len
+					let nextcol=(tcol+1)%t:txb__len
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[NextCol],' ')
-						let b:txbi=NextCol
+						exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb.name[nextcol],' ')
+						let b:txbi=nextcol
 						exe alignmentcmd
-						exe t:txb.exe[NextCol]
+						exe t:txb.exe[nextcol]
 						norm! 0
-						let spaceremaining-=t:txb.size[NextCol]+1
-						let NextCol=(NextCol+1)%t:txb__len
+						let spaceremaining-=t:txb.size[nextcol]+1
+						let nextcol=(nextcol+1)%t:txb__len
 					endwhile
 					se scrollopt=ver,jump
 					windo se wfw
@@ -1719,7 +1717,7 @@ fun! s:nav(N)
 		return -extrashift
 	elseif a:N>0
 		let tcol=getbufvar(winbufnr(1),'txbi')
-		let [bcol,loff,extrashift,N]=[getbufvar(winbufnr(winnr('$')),'txbi'),winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
+		let [loff,extrashift,N]=[winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0),0,a:N]
 		let nobotresize=0
 		if N>=&columns
 			if winwidth(1)==&columns
@@ -1809,11 +1807,11 @@ fun! s:nav(N)
 					exe 'vert res'.wf
 				en
 			en
-			while winwidth(winnr('$'))>=t:txb.size[bcol]+2
+			while winwidth(winnr('$'))>=t:txb.size[getbufvar(winbufnr(winnr('$')),'txbi')]+2
 				winc b
 				se nowfw scrollopt=jump
-				let nextcol=(bcol+1)%t:txb__len
-				exe 'rightb vert '.(winwidth(0)-t:txb.size[bcol]-1).'split '.escape(t:txb.name[nextcol],' ')
+				let nextcol=(b:txbi+1)%t:txb__len
+				exe 'rightb vert '.(winwidth(0)-t:txb.size[b:txbi]-1).'split '.escape(t:txb.name[nextcol],' ')
 				let b:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1821,7 +1819,6 @@ fun! s:nav(N)
 				se wfw
 				winc b
 				norm! 0
-				let bcol=nextcol
 				se scrollopt=ver,jump
 			endwhile
 			winc t
