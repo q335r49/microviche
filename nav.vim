@@ -1041,7 +1041,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let [&more,&ch]=[0,len(keys)<8? len(keys)+3 : 11] 
 	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
 	let height=&ch>3? &ch-3 : 1
-	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height+1? (len(keys)-height+1>=0? len(keys)-height+1 : 0) : s:sp__offset
+	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height? (len(keys)-height>=0? len(keys)-height : 0) : s:sp__offset
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
