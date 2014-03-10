@@ -102,9 +102,9 @@ fun! s:printHelp()
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
 	\\n    W                         Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
-	\."\n\nTips:\n\n* Appending files not in the WORKING DIRECTORY (':pwd') is ok but the directory itself must remain fixed, since the plane remembers relative paths.
+	\."\n\nTips:\n\n* ABSOLUTE PATHS are recommended if you need to change working directories (via ':cd [dir]'). You can change all the files at once by [W]riting the split to file and then editing that file.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
-	\\n* In old versions of Vim SCROLLBIND DESYNC may occur when at the bottom of a split much longer than its neighbors. You can press HOTKEY r to redraw, or pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
+	\\n* When working at the end of a LONG SPLIT you may experience unexpected jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc__continue=0'
 
@@ -960,8 +960,8 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 let TXBkyCmd.S="let s:kc__continue=0\n
-\let settings_names=range(15)\n
-\let settings_values=range(15)\n
+\let settings_names=range(16)\n
+\let settings_values=range(16)\n
 \let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 \let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 \let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
@@ -980,6 +980,8 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
 	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,w:txbi,60)]\n
 	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+	\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,expand('%'))]\n
+	\let prev_filename=get(t:txb.name,w:txbi,'')\n
 \en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
@@ -1024,6 +1026,10 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\else\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
+	\en\n
+	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
+		\let t:txb.name[w:txbi]=settings_values[15]\n
+		\exe 'e' escape(settings_values[15],' ')\n
 	\en\n
 	\echohl NONE\n
 	\call s:redraw()\n
@@ -1111,6 +1117,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
+let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
 \"let input=str2nr(input)|if input<=2\n
