@@ -198,7 +198,7 @@ fun! TXBinit(...)
 			let confirm_keys=[76]
 		en
 	elseif type(seed)==1
-		let plane={'name':map(filter(split(glob(seed),"\n"),'filereadable(v:val)'),'escape(v:val," ")')}
+		let plane={'name':filter(split(glob(seed),"\n"),'filereadable(v:val)')}
 		let plane.size=repeat([60],len(plane.name))
 		let plane.map=[[]]
 		let plane.settings={}
