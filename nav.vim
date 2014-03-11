@@ -279,6 +279,8 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
+		let t:txb_cwd=getcwd()
+		let t:txb_name=map(copy(t:txb.name),'fnamemodify(v:val,":p")')
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
