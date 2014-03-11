@@ -1030,6 +1030,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
 		\let t:txb.name[w:txbi]=settings_values[15]\n
+		\let t:txb_name[w:txbi]=fnamemodify(settings_values[15],":p")\n
 		\exe 'e' escape(settings_values[15],' ')\n
 	\en\n
 	\echohl NONE\n
@@ -1455,6 +1456,7 @@ let TXBkyCmd.D="redr\n
 	\let t_index=index(t:txb.name,expand('%'))\n
 	\if t_index!=-1\n
 		\call remove(t:txb.name,t_index)\n
+		\call remove(t:txb_name,t_index)\n
 		\call remove(t:txb.size,t_index)\n
 		\call remove(t:txb.exe,t_index)\n
 		\let t:txb__len=len(t:txb.name)\n
@@ -1474,9 +1476,9 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 		\if t_ix==-1\n
 			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
-			\let w:txbi=t_ix\n
 			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
+			\call insert(t:txb_name,fnamemodify(file,':p'),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\let t:txb__len=len(t:txb.name)\n
