@@ -144,12 +144,13 @@ fun! TXBinit(...)
 	let filtered=[]
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
+	let msg=''
 	if seed is -99
-		let msg=''
 		if !has("gui_running")
 			if &ttymouse==?"xterm"
 				let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
 			elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
+				let msg.="\n**WARNING**\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr' for better panning performance"
 			en
 		en
 		if v:version < 703 || v:version==703 && !has('patch30')
@@ -157,37 +158,82 @@ fun! TXBinit(...)
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
-			for i in range(len(plane.name)-1,0,-1)
-				if !filereadable(plane.name[i])
-					call add(filtered,remove(plane.name,i))
-					call remove(plane.size,i)	
-					call remove(plane.exe,i)	
-				en
-			endfor
-			if !empty(filtered)
-				let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
-				let confirm_keys=[82]
-			else
-				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
-				let confirm_keys=[10,13]
-			en
 		else
 			let plane={'name':[]}
 			let confirm_keys=[]
 		en
 	elseif type(seed)==4
-   		let plane=seed
-		for i in range(len(seed.name)-1,0,-1)
-			if !filereadable(plane.name[i])
-				call add(filtered,remove(plane.name,i))
-				call remove(plane.size,i)	
-				call remove(plane.exe,i)	
+   		let plane=deepcopy(seed)
+	elseif type(seed)==1
+		let plane={'name':filter(split(glob(seed),"\n"),'filereadable(v:val)')}
+		let plane.size=repeat([60],len(plane.name))
+		let plane.map=[[]]
+		let plane.settings={}
+		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
+	else
+		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
+		return 1
+	en
+	let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	if !exists('plane.settings')
+		let plane.settings=default
+	else
+		for i in keys(default)
+			if !has_key(plane.settings,i)
+				let plane.settings[i]=default[i]
 			en
 		endfor
+		let cursor=0
+		let vals=[1]
+		for i in keys(plane.settings)
+			let smsg=''
+			unlet! input
+			let input=plane.settings[i]
+			exe get(s:ErrorCheck,i,['',''])[1]
+			if !empty(smsg)
+				let plane.settings[i]=copy(s:ErrorCheck[i][0])
+				let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
+			en
+		endfor
+	en
+
+	if !exists('plane.size')
+		let plane.size=repeat([60],len(plane.name))
+	elseif len(plane.size)<len(plane.name)
+		call extend(plane.size,repeat([exists("plane.settings['split width']")? plane.settings['split width'] : 60],len(plane.name)-len(plane.size)))
+	en
+	if !exists('plane.map')
+		let plane.map=[[]]
+	en
+	if !exists('plane.exe')
+		let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
+	elseif len(plane.exe)<len(plane.name)
+		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
+	en
+	let t_name=[]
+	for i in range(len(plane.name))
+		if !filereadable(plane.name[i])
+			call add(filtered,remove(plane.name,i))
+			call remove(plane.size,i)	
+			call remove(plane.exe,i)	
+		else
+			call add(t_name,fnameescape(fnamemodify(plane.name[i])))
+		en
+	endfor
+
+	if seed is -99
 		if !empty(filtered)
-			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
+			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----".msg
+			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+			let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+			let confirm_keys=[82]
+		else
+			let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
+			let confirm_keys=[10,13]
+		en
+	elseif type(seed)==4
+		if !empty(filtered)
+			let msg.="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s) ----"
 			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
@@ -198,11 +244,6 @@ fun! TXBinit(...)
 			let confirm_keys=[76]
 		en
 	elseif type(seed)==1
-		let plane={'name':filter(split(glob(seed),"\n"),'filereadable(v:val)')}
-		let plane.size=repeat([60],len(plane.name))
-		let plane.map=[[]]
-		let plane.settings={}
-		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
 		if exists('g:TXB') && type(g:TXB)==4
 			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 			let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
@@ -211,47 +252,9 @@ fun! TXBinit(...)
 			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
 			let confirm_keys=[10,13]
 		en
-	else
-		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
-		return 1
 	en
+
 	if !empty(plane.name)
-		if !exists('plane.size')
-			let plane.size=repeat([60],len(plane.name))
-		elseif len(plane.size)<len(plane.name)
-			call extend(plane.size,repeat([exists("plane.settings['split width']")? plane.settings['split width'] : 60],len(plane.name)-len(plane.size)))
-		en
-		if !exists('plane.map')
-			let plane.map=[[]]
-		en
-		let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
-		if !exists('plane.settings')
-			let plane.settings=default
-		else
-			for i in keys(default)
-				if !has_key(plane.settings,i)
-					let plane.settings[i]=default[i]
-				en
-			endfor
-			let cursor=0
-			let vals=[1]
-			for i in keys(plane.settings)
-				let smsg=''
-				unlet! input
-				let input=plane.settings[i]
-				exe get(s:ErrorCheck,i,['',''])[1]
-				if !empty(smsg)
-					let plane.settings[i]=copy(s:ErrorCheck[i][0])
-					let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
-				en
-			endfor
-		en
-		if !exists('plane.exe')
-			let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
-		elseif len(plane.exe)<len(plane.name)
-			call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
-		en
-		let t_name=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix==-1
 			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
@@ -262,6 +265,7 @@ fun! TXBinit(...)
 		en
 		let c=getchar()
 	elseif !empty(filtered)
+		ec msg
 		ec "\n    (No readable files remain -- make sure working dir is correct)"
 		let c=0
 	elseif seed isnot -99
@@ -270,6 +274,7 @@ fun! TXBinit(...)
 	else
 		let c=0
 	en
+
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
@@ -283,8 +288,8 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
-		let t:txb_cwd=getcwd()
-		let t:txb_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,":p"))')
+		let t:txbwd=fnamemodify(t:txb.settings['working dir'],':p')
+		let t:txb_name=t_name
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
@@ -1159,7 +1164,11 @@ let s:settingscom.83="for i in range(len(keys))\n
 let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['working dir']=['','if isdirectory(input)|let vals[cursor]=input|en','current file']
+let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
+	\let vals[cursor]=input\n
+\else\n
+	\let smsg.='Error: not a valid directory'\n
+\en",'current file']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
@@ -1280,10 +1289,23 @@ fun! s:gotoPos(col,row)
 	if name==-1
 		echoerr "Split ".a:col." does not exist."
 		return 1
-	elseif name!=#fnameescape(fnamemodify(expand('%'),':p'))
-		winc t
-		exe 'e '.name
-		let w:txbi=a:col
+	else
+		let cwd=fnamemodify(getcwd(),':p')
+		if cwd!=#t:txbwd
+			exe 'cd' t:txbwd
+			if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+				winc t
+				exe 'e '.name
+				let w:txbi=a:col
+			en
+			exe 'cd' cwd
+		else
+			if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+				winc t
+				exe 'e '.name
+				let w:txbi=a:col
+			en
+		en
 	en
 	norm! 0
 	only
