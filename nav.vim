@@ -324,8 +324,7 @@ fun! s:anchor(interactive)
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
 					let &cul=cul
-					echoerr "Not enough blank lines to restore current marker!"
-					return 1
+					return "ERROR: Not enough blank lines to restore current marker."
 				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
