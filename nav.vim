@@ -215,7 +215,7 @@ fun! TXBinit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
-	if !empty(plane.name) || !empty(filtered)
+	if !empty(plane.name)
 		if !exists('plane.size')
 			let plane.size=repeat([60],len(plane.name))
 		elseif len(plane.size)<len(plane.name)
@@ -261,6 +261,9 @@ fun! TXBinit(...)
 			ec "\n  " join(displist,"\n   ") "\n ----" len(plane.name) "file(s) (Plane will be loaded in current tab) ----" msg
 		en
 		let c=getchar()
+	elseif !empty(filtered)
+		ec "\n    (No readable files remain -- make sure working dir is correct)"
+		let c=0
 	elseif seed isnot -99
 		ec "\n    (No matches found)"
 		let c=0
