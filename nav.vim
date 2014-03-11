@@ -160,16 +160,11 @@ fun! TXBinit(...)
 			let plane=deepcopy(g:TXB)
 		else
 			let plane={'name':[]}
-			let confirm_keys=[]
 		en
 	elseif type(seed)==4
    		let plane=deepcopy(seed)
 	elseif type(seed)==1
-		let plane={'name':filter(split(glob(seed),"\n"),'filereadable(v:val)')}
-		let plane.size=repeat([60],len(plane.name))
-		let plane.map=[[]]
-		let plane.settings={}
-		let plane.exe=repeat(['se scb cole=2 nowrap'],len(plane.name))
+		let plane={'name':split(glob(seed),"\n")}
 	else
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
@@ -211,6 +206,9 @@ fun! TXBinit(...)
 	elseif len(plane.exe)<len(plane.name)
 		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 	en
+
+    "TODO CD to plane dir
+
 	let t_name=[]
 	for i in range(len(plane.name))
 		if !filereadable(plane.name[i])
@@ -221,6 +219,8 @@ fun! TXBinit(...)
 			call add(t_name,fnameescape(fnamemodify(plane.name[i])))
 		en
 	endfor
+
+	"TODO CD to original dir
 
 	if !empty(filtered) || !empty(t_name)
 		let msg="\n   ".join(plane.name,"\n   ")."\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(plane.name)." readable file(s) ----".msg
@@ -253,6 +253,8 @@ fun! TXBinit(...)
 				let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
 				let confirm_keys=[10,13]
 			en
+		else
+			let confirm_keys=[]
 		en
 		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix==-1
@@ -264,12 +266,15 @@ fun! TXBinit(...)
 		en
 		let c=getchar()
 	elseif !empty(filtered)
+		let confirm_keys=[]
 		let msg.="\n    (No readable files remain -- make sure working dir is correct"
 		let c=0
 	elseif seed isnot -99
+		let confirm_keys=[]
 		ec "\n    (No matches found)"
 		let c=0
 	else
+		let confirm_keys=[]
 		let c=0
 	en
 
