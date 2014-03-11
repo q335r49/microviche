@@ -174,6 +174,7 @@ fun! TXBinit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
+
 	let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
@@ -221,40 +222,38 @@ fun! TXBinit(...)
 		en
 	endfor
 
-	if seed is -99
-		if !empty(filtered)
-			let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(t_name)." readable file(s) ----".msg
-			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
-			let confirm_keys=[82]
-		else
-			let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
-			let confirm_keys=[10,13]
-		en
-	elseif type(seed)==4
-		if !empty(filtered)
-			let msg.="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(t_name)." readable file(s) ----"
-			let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
-			let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
-			let confirm_keys=[82]
-		else
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
-			let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
-			let confirm_keys=[76]
-		en
-	elseif type(seed)==1
-		if exists('g:TXB') && type(g:TXB)==4
-			let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
-			let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
-			let confirm_keys=[76]
-		else
-			let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
-			let confirm_keys=[10,13]
-		en
+	if !empty(filtered) || !empty(t_name)
+		let msg="\n   ".join(plane.name,"\n   ")."\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(plane.name)." readable file(s) ----".msg
 	en
-
-	if !empty(plane.name)
+	if !empty(t_name)
+		if seed is -99
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+				let confirm_keys=[82]
+			else
+				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
+				let confirm_keys=[10,13]
+			en
+		elseif type(seed)==4
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+				let confirm_keys=[82]
+			else
+				let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
+				let confirm_keys=[76]
+			en
+		elseif type(seed)==1
+			if exists('g:TXB') && type(g:TXB)==4
+				let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
+				let confirm_keys=[76]
+			else
+				let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
+				let confirm_keys=[10,13]
+			en
+		en
 		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix==-1
 			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
@@ -265,8 +264,7 @@ fun! TXBinit(...)
 		en
 		let c=getchar()
 	elseif !empty(filtered)
-		ec msg
-		ec "\n    (No readable files remain -- make sure working dir is correct)"
+		let msg.="\n    (No readable files remain -- make sure working dir is correct"
 		let c=0
 	elseif seed isnot -99
 		ec "\n    (No matches found)"
