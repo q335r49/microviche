@@ -251,7 +251,7 @@ fun! TXBinit(...)
 		elseif len(plane.exe)<len(plane.name)
 			call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 		en
-		let t_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,":p"))')
+		let t_name=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix==-1
 			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
@@ -982,7 +982,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
 	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,w:txbi,60)]\n
 	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-	\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,expand('%'))]\n
+	\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\let prev_filename=get(t:txb.name,w:txbi,'')\n
 \en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
@@ -1030,23 +1030,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\en\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
-		\if t:txb_cwd!=#getcwd()\n
-			\echohl WarningMsg\n
-			\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
-			\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
-			\ec '  2. The absolute rather than the relative path to this file will be remembered'\n
-			\echohl NONE\n
-			\ec 'To avoid these issues, :cd back to the original directory and then editing settings again.'\n
-			\if 'y'==?input('Are you sure you want to change the file associated with this split? (y/n)?')\n
-				\let t:txb.name[w:txbi]=fnamemodify(settings_values[15],':p')\n
-				\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
-				\exe 'e' t:txb_name[w:txbi]\n
-			\en\n
-		\else\n
-			\let t:txb.name[w:txbi]=settings_values[15]\n
-			\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
-			\exe 'e' t:txb_name[w:txbi]\n
-		\en\n
+		\let t:txb_name[w:txbi]=settings_newfilenames[0]
+		\let t:txb.name[w:txbi]=settings_newfilenames[1]
+		\exe 'e' t:txb_name[w:txbi]\n
 	\en\n
 	\echohl NONE\n
 	\call s:redraw()\n
@@ -1124,7 +1110,42 @@ let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99="if vals[cursor] isnot '##label##'\n
-	\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+	\if cursor!=15\n
+		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+	\else\n
+		\if t:txb_cwd!=#getcwd()\n
+			\echohl WarningMsg\n
+			\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
+			\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
+			\ec '  2. The absolute path rather than the relative path to this file will be remembered'\n
+			\echohl NONE\n
+			\if input('Would you like to avoid the above issues and temporarily switch to the original directory to change this file? (y/n) ')==?'y'
+				\let changed_directory=1\n
+				\let prevwd=getcwd()\n	
+				\exe 'cd' t:txb__cwd\n
+				\ec 'Working directory restored to original for this operation.'\n
+			\else\n
+				\let changed_directory=2\n
+				\ec '(working directory not changed)'\n
+			\en\n
+			\let file=input(': ',a:vals[cursor],'file')\n
+			\if changed_directory==1\n
+				\let s:settings_newfilenames=['','']\n
+				\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))
+				\let s:settings_newfilenames[1]=file\n
+				\exe 'cd' prevwd\n
+			\elseif changed_directory==2\n
+				\let s:settings_newfilenames=['','']\n
+				\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))\n
+				\let s:settings_newfilenames[1]=fnamemodify(file,':p')\n
+			\en\n
+		\else\n
+			\let input=input('Enter new file: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+			\let s:settings_newfilenames=['','']\n
+			\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))\n
+			\let s:settings_newfilenames[1]=file\n
+		\en\n
+	\en\n
 \en"
 let s:settingscom.83="for i in range(len(keys))\n
 	\let a:vals[i]=vals[i]\n
@@ -1487,7 +1508,7 @@ let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%')
 		\echohl WarningMsg\n
 		\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
 		\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
-		\ec '  2. The absolute rather than the relative path to this file will be remembered'\n
+		\ec '  2. The absolute path rather than the relative path to this file will be remembered'\n
 		\echhl NONE\n
 		\if input('Would you like to avoid the above issues and temporarily switch to the original directory to append this file? (y/n) ')==?'y'
 			\let changed_directory=1\n
