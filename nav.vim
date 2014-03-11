@@ -1029,9 +1029,23 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\en\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
-		\let t:txb.name[w:txbi]=settings_values[15]\n
-		\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
-		\exe 'e' t:txb_name[w:txbi]\n
+		\if t:txb_cwd!=#getcwd()\n
+			\echohl WarningMsg\n
+			\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
+			\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
+			\ec '  2. The absolute rather than the relative path to this file will be remembered'\n
+			\echohl NONE\n
+			\ec 'To avoid these issues, :cd back to the original directory and then editing settings again.'\n
+			\if 'y'==?input('Are you sure you want to change the file associated with this split? (y/n)?')\n
+				\let t:txb.name[w:txbi]=fnamemodify(settings_values[15],':p')\n
+				\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
+				\exe 'e' t:txb_name[w:txbi]\n
+			\en\n
+		\else\n
+			\let t:txb.name[w:txbi]=settings_values[15]\n
+			\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
+			\exe 'e' t:txb_name[w:txbi]\n
+		\en\n
 	\en\n
 	\echohl NONE\n
 	\call s:redraw()\n
@@ -1471,10 +1485,10 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 	\if t:txb_cwd!=#getcwd()\n
 		\echohl WarningMsg\n
 		\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
-		\ec '  1. If you append a new file, it will be saved in the current directory and not the original.'
-		\ec '  2. The absolute path to this file will be remembered: this may cause problems if you want to move the plane folder later.'
+		\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
+		\ec '  2. The absolute rather than the relative path to this file will be remembered'\n
 		\echhl NONE\n
-		\if input('Would you like to temporarily switch to the original directory to append this file? (y/n) ')==?'y'
+		\if input('Would you like to avoid the above issues and temporarily switch to the original directory to append this file? (y/n) ')==?'y'
 			\let changed_directory=1\n
 			\let prevwd=getcwd()\n	
             \exe 'cd' t:txb__cwd\n
