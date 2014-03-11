@@ -1468,7 +1468,25 @@ let TXBkyCmd.D="redr\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 \if t_index!=-1\n
-	\let file=input(' < File to append (do not escape spaces): ',bufname('%'),'file')\n
+	\if t:txb_cwd!=#getcwd()\n
+		\echohl WarningMsg\n
+		\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
+		\ec '  1. If you append a new file, it will be saved in the current directory and not the original.'
+		\ec '  2. The absolute path to this file will be remembered: this may cause problems if you want to move the plane folder later.'
+		\echhl NONE\n
+		\if input('Would you like to temporarily switch to the original directory to append this file? (y/n) ')==?'y'
+			\let changed_directory=1\n
+			\let prevwd=getcwd()\n	
+            \exe 'cd' t:txb__cwd\n
+			\ec 'Working directory restored to original for this operation.'\n
+		\else\n
+			\let changed_directory=2\n
+			\ec '(working directory not changed)'\n
+		\en\n
+	\else\n
+		\let changed_directory=0\n
+	\en\n
+	\let file=input('> File to append (do not escape spaces): ',bufname('%'),'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
@@ -1477,7 +1495,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
 			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
-			\call insert(t:txb.name,file,w:txbi+1)\n
+			\call insert(t:txb.name,(changed_directory==2? fnamemodify(file,':p') : file),w:txbi+1)\n
 			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
@@ -1486,6 +1504,9 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
 			\en\n
 			\call s:redraw()\n
+		\en\n
+		\if changed_directory==1\n
+			\exe 'cd' prevwd\n
 		\en\n
 	\en\n
 \else\n
