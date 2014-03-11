@@ -1036,9 +1036,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
 	\en\n
-	\if !empty(settings_values[15]) && settings_values[16]!=prev_filename\n
-		\let t:txb_name[w:txbi]=sp__newfname[0]
-		\let t:txb.name[w:txbi]=sp__newfname[1]
+	\if !empty(settings_values[16]) && settings_values[16]!=prev_filename\n
+		\let t:txb_name[w:txbi]=sp__newfname[0]\n
+		\let t:txb.name[w:txbi]=sp__newfname[1]\n
 		\exe 'e' t:txb_name[w:txbi]\n
 	\en\n
 	\echohl NONE\n
