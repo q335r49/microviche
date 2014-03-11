@@ -280,7 +280,7 @@ fun! TXBinit(...)
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
 		let t:txb_cwd=getcwd()
-		let t:txb_name=map(copy(t:txb.name),'fnamemodify(v:val,":p")')
+		let t:txb_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,":p"))')
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
@@ -1030,8 +1030,8 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
 		\let t:txb.name[w:txbi]=settings_values[15]\n
-		\let t:txb_name[w:txbi]=fnamemodify(settings_values[15],":p")\n
-		\exe 'e' escape(settings_values[15],' ')\n
+		\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],":p"))\n
+		\exe 'e' t:txb_name[w:txbi]\n
 	\en\n
 	\echohl NONE\n
 	\call s:redraw()\n
@@ -1239,9 +1239,9 @@ fun! s:gotoPos(col,row)
 	if name==-1
 		echoerr "Split ".a:col." does not exist."
 		return 1
-	elseif name!=#expand('%')
+	elseif name!=#fnameescape(fnamemodify(expand('%'),':p'))
 		winc t
-		exe 'e '.escape(name,' ')
+		exe 'e '.name
 		let w:txbi=a:col
 	en
 	norm! 0
@@ -1478,7 +1478,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 		\else\n
 			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
-			\call insert(t:txb_name,fnamemodify(file,':p'),w:txbi+1)\n
+			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\let t:txb__len=len(t:txb.name)\n
@@ -1499,7 +1499,7 @@ fun! s:redraw()
 		let ix=index(t:txb_name,name0)
 		if ix==-1
 			only
-			exe 'e '.escape(t:txb_name[0],' ')
+			exe 'e' t:txb_name[0]
 			let w:txbi=0
 		else
 			let w:txbi=ix
@@ -1538,7 +1538,7 @@ fun! s:redraw()
 		let colt=(w:txbi-win0+t:txb__len)%t:txb__len
 		for i in range(dif)
 			let colt=colt? colt-1 : t:txb__len-1
-			exe 'top vsp '.escape(t:txb_name[colt],' ')
+			exe 'top vsp' t:txb_name[colt]
 			let w:txbi=colt
 			exe t:txb.exe[colt]
 		endfor
@@ -1554,7 +1554,7 @@ fun! s:redraw()
 		let nextcol=((colb-dif)%t:txb__len+t:txb__len)%t:txb__len
 		for i in range(dif)
 			let nextcol=(nextcol+1)%t:txb__len
-			exe 'bot vsp '.escape(t:txb_name[nextcol],' ')
+			exe 'bot vsp' t:txb_name[nextcol]
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
@@ -1571,7 +1571,7 @@ fun! s:redraw()
     for i in range(1,numcols)
 		se wfw
 		if bufname('')!=#t:txb_name[ccol]
-			exe 'e' escape(t:txb_name[ccol],' ')
+			exe 'e' t:txb_name[ccol]
 		en
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
@@ -1669,7 +1669,7 @@ fun! s:nav(N)
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
 				let nextcol=w:txbi? w:txbi-1 : t:txb__len-1
-				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.escape(t:txb_name[nextcol],' ')
+				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1701,7 +1701,7 @@ fun! s:nav(N)
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
-				exe 'e '.escape(t:txb_name[tcol],' ')
+				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
 				exe alignmentcmd
 				exe t:txb.exe[tcol]
@@ -1712,7 +1712,7 @@ fun! s:nav(N)
 					let nextcol=(tcol+1)%t:txb__len
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb_name[nextcol],' ')
+						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
 						exe alignmentcmd
 						exe t:txb.exe[nextcol]
@@ -1770,7 +1770,7 @@ fun! s:nav(N)
 				let loff+=toshift	
 			en
 			se scrollopt=jump
-			exe 'e '.escape(t:txb_name[tcol],' ')
+			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
 			exe alignmentcmd
 			exe t:txb.exe[tcol]
@@ -1826,7 +1826,7 @@ fun! s:nav(N)
 				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(w:txbi+1)%t:txb__len
-				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.escape(t:txb_name[nextcol],' ')
+				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
@@ -1853,7 +1853,7 @@ fun! s:nav(N)
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
 				let nextcol=(w:txbi+1)%t:txb__len
-				exe 'bot '.(spaceremaining-1).'vsp '.escape(t:txb_name[nextcol],' ')
+				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
 				exe t:txb.exe[nextcol]
