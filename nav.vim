@@ -251,7 +251,8 @@ fun! TXBinit(...)
 		elseif len(plane.exe)<len(plane.name)
 			call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 		en
-		let curbufix=index(plane.name,expand('%'))
+		let t_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,":p"))')
+		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix==-1
 			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
 		else
@@ -1467,7 +1468,7 @@ let TXBkyCmd["\e"]=TXBkyCmd.q
 
 let TXBkyCmd.D="redr\n
 \if input('Really delete current column (y/n)? ')==?'y'\n
-	\let t_index=index(t:txb.name,expand('%'))\n
+	\let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\if t_index!=-1\n
 		\call remove(t:txb.name,t_index)\n
 		\call remove(t:txb_name,t_index)\n
@@ -1480,7 +1481,7 @@ let TXBkyCmd.D="redr\n
 	\call s:redraw()\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
+let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'))))\n
 \if t_index!=-1\n
 	\if t:txb_cwd!=#getcwd()\n
 		\echohl WarningMsg\n
@@ -1504,7 +1505,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
-		\let t_ix=index(t:txb.name,expand('%'))\n
+		\let t_ix=index(t:txb_name,fnameescape(fnamemodify(expand('%'),'%p')))\n
 		\if t_ix==-1\n
 			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 		\else\n
@@ -1529,7 +1530,7 @@ let TXBkyCmd.A="let t_index=index(t:txb.name,expand('%'))\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 
 fun! s:redraw()
-	let name0=expand('%')
+	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi') || get(t:txb_name,w:txbi,'')!=#name0
 		let ix=index(t:txb_name,name0)
 		if ix==-1
