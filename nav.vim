@@ -1030,8 +1030,8 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\en\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
-		\let t:txb_name[w:txbi]=settings_newfilenames[0]
-		\let t:txb.name[w:txbi]=settings_newfilenames[1]
+		\let t:txb_name[w:txbi]=sp__newfname[0]
+		\let t:txb.name[w:txbi]=sp__newfname[1]
 		\exe 'e' t:txb_name[w:txbi]\n
 	\en\n
 	\echohl NONE\n
@@ -1128,22 +1128,16 @@ let s:settingscom.99="if vals[cursor] isnot '##label##'\n
 				\let changed_directory=2\n
 				\ec '(working directory not changed)'\n
 			\en\n
-			\let file=input(': ',a:vals[cursor],'file')\n
+			\let input=input(': ',a:vals[cursor],'file')\n
 			\if changed_directory==1\n
-				\let s:settings_newfilenames=['','']\n
-				\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))
-				\let s:settings_newfilenames[1]=file\n
+				\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 				\exe 'cd' prevwd\n
 			\elseif changed_directory==2\n
-				\let s:settings_newfilenames=['','']\n
-				\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))\n
-				\let s:settings_newfilenames[1]=fnamemodify(file,':p')\n
+				\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),fnamemodify(input)]\n
 			\en\n
 		\else\n
 			\let input=input('Enter new file: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-			\let s:settings_newfilenames=['','']\n
-			\let s:settings_newfilenames[0]=fnameescape(fnamemodify(file,':p'))\n
-			\let s:settings_newfilenames[1]=file\n
+			\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 		\en\n
 	\en\n
 \en"
