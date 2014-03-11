@@ -1030,7 +1030,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\en\n
 	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
 		\let t:txb.name[w:txbi]=settings_values[15]\n
-		\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],":p"))\n
+		\let t:txb_name[w:txbi]=fnameescape(fnamemodify(settings_values[15],':p'))\n
 		\exe 'e' t:txb_name[w:txbi]\n
 	\en\n
 	\echohl NONE\n
