@@ -224,7 +224,7 @@ fun! TXBinit(...)
 		if !exists('plane.map')
 			let plane.map=[[]]
 		en
-		let default={'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+		let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 		if !exists('plane.settings')
 			let plane.settings=default
 		else
@@ -283,17 +283,22 @@ fun! TXBinit(...)
 		let t:txb_cwd=getcwd()
 		let t:txb_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,":p"))')
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
 	elseif c is 83
-		let t_dict=[g:TXB_HOTKEY]
-		if s:settingsPager(['hotkey'],t_dict,s:ErrorCheck)
+		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
+		let prev_workingdir=t_dict[3]
+		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[0] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-			let g:TXB_HOTKEY=t_dict[0]
+			exe 'nn <silent>' t_dict[1] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			let g:TXB_HOTKEY=t_dict[1]
 			redr|echo "Settings Saved!"
+			if t_dict['working dir']!=#prev_workingdir
+				let plane.settings['working dir']=t_dict[3]
+				call TXBinit(plane)
+			en
 		else
 			redr|echo "Cancelled"
 		en
@@ -962,8 +967,8 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 let TXBkyCmd.S="let s:kc__continue=0\n
-\let settings_names=range(16)\n
-\let settings_values=range(16)\n
+\let settings_names=range(17)\n
+\let settings_values=range(17)\n
 \let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 \let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 \let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
@@ -978,11 +983,12 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
 \let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
 \let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
+\let [settings_names[12],settings_values[12]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
 \if exists('w:txbi')\n
-	\let [settings_names[12],settings_values[12]]=['    -- Current Split --','##label##']\n
-	\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,w:txbi,60)]\n
-	\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-	\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,'')]\n
+	\let [settings_names[13],settings_values[13]]=['    -- Current Split --','##label##']\n
+	\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
+	\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+	\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\let prev_filename=get(t:txb.name,w:txbi,'')\n
 \en\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
@@ -1003,9 +1009,10 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:txb.settings['lines per map grid']=settings_values[9]\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
+	\let t:txb.settings['working dir']=settings_values[12]\n
 	\if exists('w:txbi')\n
-		\let t:txb.size[w:txbi]=settings_values[13]\n
-		\let t:txb.exe[w:txbi]=settings_values[14]\n
+		\let t:txb.size[w:txbi]=settings_values[14]\n
+		\let t:txb.exe[w:txbi]=settings_values[15]\n
 	\en\n
 	\let t:panL=t:txb.settings['lines panned by j,k']\n
 	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
@@ -1029,7 +1036,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
 	\en\n
-	\if !empty(settings_values[15]) && settings_values[15]!=prev_filename\n
+	\if !empty(settings_values[15]) && settings_values[16]!=prev_filename\n
 		\let t:txb_name[w:txbi]=sp__newfname[0]
 		\let t:txb.name[w:txbi]=sp__newfname[1]
 		\exe 'e' t:txb_name[w:txbi]\n
@@ -1110,7 +1117,7 @@ let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99="if vals[cursor] isnot '##label##'\n
-	\if cursor!=15\n
+	\if cursor!=16\n
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\else\n
 		\if t:txb_cwd!=#getcwd()\n
@@ -1149,6 +1156,7 @@ let s:settingscom.83="for i in range(len(keys))\n
 let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
+let s:ErrorCheck['working dir']=['','if isdirectory(input)|let vals[cursor]=input|en','current file']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
