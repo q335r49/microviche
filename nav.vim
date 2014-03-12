@@ -264,16 +264,12 @@ fun! TXBinit(...)
 		en
 		ec msg
 		let c=getchar()
-	elseif !empty(filtered)
+	elseif !empty(filtered) || type(seed)==4
 		let confirm_keys=[]
 		let msg.="\n(No readable files remain -- make sure working dir is correct"
+		let msg.="\n -> Type S for Settings / F1 for help / Any other key to try a file pattern"
 		ec msg
-		let c=0
-	elseif seed isnot -99
-		let confirm_keys=[]
-		let msg.="\n(No matches found)"
-		ec msg
-		let c=0
+		let c=getchar()
 	else
 		let confirm_keys=[]
 		ec msg
