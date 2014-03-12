@@ -335,7 +335,7 @@ fun! TXBinit(...)
 	let &more=more
 endfun
 
-let TXBkyCmd["\<c-l>"]="exe 'norm! Itxb:'.line('.').' '|let s:kc__continue=0|let s:kc__msg='(Anchor set)'"
+let TXBkyCmd["\<c-l>"]="exe 'norm! 0itxb:'.line('.').' '|let s:kc__continue=0|let s:kc__msg='(Anchor set)'"
 let TXBkyCmd["\<c-a>"]="let s:kc__msg=s:anchor(1)|let s:kc__continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
