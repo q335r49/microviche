@@ -1022,20 +1022,20 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let g:TXB_HOTKEY=settings_values[1]\n
 	\let t:txb.settings['split width']=settings_values[3]\n
 		\if prevVal[3]!=#t:txb.settings['split width']\n
-			\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
+			\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
 				\let s:kc__msg.=' (Current splits resized)'\n
 			\else\n
-				\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
+				\let s:kc__msg.=' (Only appended splits will inherit split width)'\n
 			\en\n
 		\en\n
 	\let t:txb.settings['autoexe']=settings_values[4]\n
 		\if prevVal[4]!=#t:txb.settings.autoexe\n
-			\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
+			\if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 				\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
 			\else\n
-				\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
+				\let s:kc__msg.=' (Only appended splits will inherit new autoexe)'\n
 			\en\n
 		\en\n
 	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
@@ -1050,7 +1050,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 		\let t:mapL=t:txb.settings['lines per map grid']\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
-	\let t:txb.settings['working dir']=settings_values[12]\n
+	\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
+
+	\en\n
 	\if exists('w:txbi')\n
 		\let t:txb.size[w:txbi]=settings_values[14]\n
 		\let t:txb.exe[w:txbi]=settings_values[15]\n
