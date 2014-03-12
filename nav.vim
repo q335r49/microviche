@@ -1021,46 +1021,46 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
 	\let g:TXB_HOTKEY=settings_values[1]\n
 	\let t:txb.settings['split width']=settings_values[3]\n
+		\if prevVal[3]!=#t:txb.settings['split width']\n
+			\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
+				\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
+				\let s:kc__msg.=' (Current splits resized)'\n
+			\else\n
+				\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
+			\en\n
+		\en\n
 	\let t:txb.settings['autoexe']=settings_values[4]\n
+		\if prevVal[4]!=#t:txb.settings.autoexe\n
+			\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
+				\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
+				\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
+			\else\n
+				\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
+			\en\n
+		\en\n
 	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
+		\let t:panL=t:txb.settings['lines panned by j,k']\n
 	\let t:txb.settings['kbd x pan speed']=settings_values[6]\n
+		\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
 	\let t:txb.settings['kbd y pan speed']=settings_values[7]\n
+		\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
 	\let t:txb.settings['mouse pan speed']=settings_values[8]\n
+		\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
 	\let t:txb.settings['lines per map grid']=settings_values[9]\n
+		\let t:mapL=t:txb.settings['lines per map grid']\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
 	\let t:txb.settings['working dir']=settings_values[12]\n
 	\if exists('w:txbi')\n
 		\let t:txb.size[w:txbi]=settings_values[14]\n
 		\let t:txb.exe[w:txbi]=settings_values[15]\n
+		\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
+			\let t:txb_name[w:txbi]=sp__newfname[0]\n
+			\let t:txb.name[w:txbi]=sp__newfname[1]\n
+			\exe 'e' t:txb_name[w:txbi]\n
+		\en\n
 	\en\n
-	\let t:panL=t:txb.settings['lines panned by j,k']\n
-	\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
-	\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
-	\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
-	\let t:mapL=t:txb.settings['lines per map grid']\n
 	\echohl MoreMsg\n
-	\if prevVal[4]!=#t:txb.settings.autoexe\n
-		\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
-        	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
-			\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
-		\else\n
-			\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
-		\en\n
-	\en\n
-	\if prevVal[3]!=#t:txb.settings['split width']\n
-		\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
-        	\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
-			\let s:kc__msg.=' (Current splits resized)'\n
-		\else\n
-			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
-		\en\n
-	\en\n
-	\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
-		\let t:txb_name[w:txbi]=sp__newfname[0]\n
-		\let t:txb.name[w:txbi]=sp__newfname[1]\n
-		\exe 'e' t:txb_name[w:txbi]\n
-	\en\n
 	\echohl NONE\n
 	\call s:redraw()\n
 \else\n
