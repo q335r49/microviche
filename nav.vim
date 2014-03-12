@@ -280,9 +280,9 @@ fun! TXBinit(...)
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
 		let t:txb=plane
-		let t:txb__len=len(t:txb.name)
-		if !exists('s:gridNames') || len(s:gridNames)<t:txb__len+50
-			let s:gridnames=s:getGridNames(t:txb__len+50)
+		let t:txb_len=len(t:txb.name)
+		if !exists('s:gridNames') || len(s:gridNames)<t:txb_len+50
+			let s:gridnames=s:getGridNames(t:txb_len+50)
 		en
 	    let t:panL=t:txb.settings['lines panned by j,k']
 		let t:aniStepH=t:txb.settings['kbd x pan speed']
@@ -812,7 +812,7 @@ fun! s:doSyntax(stmt)
 	if com.C
 		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
 	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb__len)%t:txb__len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
+		call s:nav(-min([eval(join(map(range(s:ms__c-1,s:ms__c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
 	en
 endfun
 
@@ -1134,7 +1134,7 @@ let s:settingscom.99="if vals[cursor] isnot '##label##'\n
 		\if t:txb_wd!=#prevwd\n
 			\exe 'cd' fnameescape(t:txb_wd)\n
 		\en\n
-		\let input=input('Enter new file (do not escape spaces) (relative to working dir '.t:txb_wd.'): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
 		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 		\if t:txb_wd!=#prevwd\n
 			\exe 'cd' fnameescape(prevwd)\n
@@ -1153,7 +1153,7 @@ let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
 	\let vals[cursor]=input\n
 \else\n
 	\let smsg.='Error: not a valid directory'\n
-\en",'current file']
+\en",'Will automatically be converted to absolute path']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
@@ -1495,7 +1495,7 @@ let TXBkyCmd.D="redr\n
 		\call remove(t:txb_name,t_index)\n
 		\call remove(t:txb.size,t_index)\n
 		\call remove(t:txb.exe,t_index)\n
-		\let t:txb__len=len(t:txb.name)\n
+		\let t:txb_len=len(t:txb.name)\n
 	\en\n
 	\winc W\n
 	\call s:saveCursPos()\n
@@ -1508,18 +1508,18 @@ let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%')
 	\if t:txb_wd!=#prevwd\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
 	\en\n
-	\let file=input('File to append (do not escape spaces) (relative to working dir '.t:txb_wd.'): ',bufname('%'),'file')\n
+	\let file=input('(Use full path if not in working directory '.t:txb_wd.')/nAppend file (do not escape spaces) : ',t:txb.name[b:txbi],'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
 		\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
-		\call insert(t:txb.name,(changed_directory==2? fnamemodify(file,':p') : file),w:txbi+1)\n
+		\call insert(t:txb.name,file,w:txbi+1)\n
 		\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 		\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 		\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
-		\let t:txb__len=len(t:txb.name)\n
-		\if len(s:gridnames)<t:txb__len\n
-			\let s:gridnames=s:getGridNames(t:txb__len+50)\n
+		\let t:txb_len=len(t:txb.name)\n
+		\if len(s:gridnames)<t:txb_len\n
+			\let s:gridnames=s:getGridNames(t:txb_len+50)\n
 		\en\n
 		\call s:redraw()\n
 	\en\n
@@ -1558,7 +1558,7 @@ fun! s:redraw()
 	let colsLeft=0
 	let remain=split0
 	while remain>=1
-		let colt=colt? colt-1 : t:txb__len-1
+		let colt=colt? colt-1 : t:txb_len-1
 		let remain-=t:txb.size[colt]+1
 		let colsLeft+=1
 	endwhile
@@ -1566,16 +1566,16 @@ fun! s:redraw()
 	let remain=&columns-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]))
 	let colsRight=1
 	while remain>=2
-		let colb=(colb+1)%t:txb__len
+		let colb=(colb+1)%t:txb_len
 		let colsRight+=1
 		let remain-=t:txb.size[colb]+1
 	endwhile
 	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
 	if dif>0
-		let colt=(w:txbi-win0+t:txb__len)%t:txb__len
+		let colt=(w:txbi-win0+t:txb_len)%t:txb_len
 		for i in range(dif)
-			let colt=colt? colt-1 : t:txb__len-1
+			let colt=colt? colt-1 : t:txb_len-1
 			exe 'top vsp' t:txb_name[colt]
 			let w:txbi=colt
 			exe t:txb.exe[colt]
@@ -1589,9 +1589,9 @@ fun! s:redraw()
 	let numcols=colsRight+colsLeft
 	let dif=numcols-winnr('$')
 	if dif>0
-		let nextcol=((colb-dif)%t:txb__len+t:txb__len)%t:txb__len
+		let nextcol=((colb-dif)%t:txb_len+t:txb_len)%t:txb_len
 		for i in range(dif)
-			let nextcol=(nextcol+1)%t:txb__len
+			let nextcol=(nextcol+1)%t:txb_len
 			exe 'bot vsp' t:txb_name[nextcol]
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
@@ -1621,7 +1621,7 @@ fun! s:redraw()
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		winc h
-		let ccol=ccol? ccol-1 : t:txb__len-1
+		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
 	se scrollopt=ver,jump
 	try
@@ -1632,8 +1632,8 @@ fun! s:redraw()
 		se scrollopt=ver,jump
 	endtry
 	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
-	if len(s:gridnames)<t:txb__len
-		let s:gridnames=s:getGridNames(t:txb__len+50)
+	if len(s:gridnames)<t:txb_len
+		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc__msg='(redrawn)'|let s:kc__continue=0|call s:updateCursPos()" 
@@ -1706,7 +1706,7 @@ fun! s:nav(N)
 			en
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
-				let nextcol=w:txbi? w:txbi-1 : t:txb__len-1
+				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
@@ -1735,7 +1735,7 @@ fun! s:nav(N)
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
-					let tcol=tcol? tcol-1 : t:txb__len-1
+					let tcol=tcol? tcol-1 : t:txb_len-1
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
@@ -1747,7 +1747,7 @@ fun! s:nav(N)
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
 				if t:txb.size[tcol]-loff<&columns-1
 					let spaceremaining=&columns-t:txb.size[tcol]+loff
-					let nextcol=(tcol+1)%t:txb__len
+					let nextcol=(tcol+1)%t:txb_len
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
@@ -1756,7 +1756,7 @@ fun! s:nav(N)
 						exe t:txb.exe[nextcol]
 						norm! 0
 						let spaceremaining-=t:txb.size[nextcol]+1
-						let nextcol=(nextcol+1)%t:txb__len
+						let nextcol=(nextcol+1)%t:txb_len
 					endwhile
 					se scrollopt=ver,jump
 					windo se wfw
@@ -1781,20 +1781,20 @@ fun! s:nav(N)
 			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
 				let loff=0
-				let tcol=(tcol+1)%t:txb__len
+				let tcol=(tcol+1)%t:txb_len
 			en
 			let toshift=N-&columns
 			if toshift>=t:txb.size[tcol]-loff+1
 				let toshift-=t:txb.size[tcol]-loff+1
-				let tcol=(tcol+1)%t:txb__len
+				let tcol=(tcol+1)%t:txb_len
 				while toshift>=t:txb.size[tcol]+1
 					let toshift-=t:txb.size[tcol]+1
-					let tcol=(tcol+1)%t:txb__len
+					let tcol=(tcol+1)%t:txb_len
 				endwhile
 				if toshift==t:txb.size[tcol]
 					let N+=1
 					let extrashift=-1
-					let tcol=(tcol+1)%t:txb__len
+					let tcol=(tcol+1)%t:txb_len
 					let loff=0
 				else
 					let loff=toshift
@@ -1802,7 +1802,7 @@ fun! s:nav(N)
 			elseif toshift==t:txb.size[tcol]-loff
 				let N+=1
 				let extrashift=-1
-				let tcol=(tcol+1)%t:txb__len
+				let tcol=(tcol+1)%t:txb_len
 				let loff=0
 			else
 				let loff+=toshift	
@@ -1841,7 +1841,7 @@ fun! s:nav(N)
 				if winwidth(1)==w2
 					let nobotresize=1
 				en
-				let tcol=(tcol+1)%t:txb__len
+				let tcol=(tcol+1)%t:txb_len
 				let loff=0
 			endw
 			let N+=extrashift
@@ -1863,7 +1863,7 @@ fun! s:nav(N)
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
 				winc b
 				se nowfw scrollopt=jump
-				let nextcol=(w:txbi+1)%t:txb__len
+				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
@@ -1890,7 +1890,7 @@ fun! s:nav(N)
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
-				let nextcol=(w:txbi+1)%t:txb__len
+				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
 				exe alignmentcmd
