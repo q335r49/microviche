@@ -1117,10 +1117,10 @@ endfun
 let s:settingscom={}
 let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 \if confirm==?'y'\n
-	\for k in range(len(keys))\n
+	\for k in [1,3,4,5,6,7,8,9,10,11]\n
 		\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
 	\endfor\n
-	\for k in [16,15,14,12]\n
+	\for k in [12,14,15,16]\n
 		\let vals[k]=prevVal[k]\n
 	\endfor\n
 \en"
