@@ -1186,7 +1186,7 @@ let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
 \else\n
 	\let smsg.='Error: Not a valid directory'\n
 \en",'WARNING: Will automatically be converted to an absolute path']
-let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
+let s:ErrorCheck['current file']=['','let vals[cursor]=input','file associated with this split']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
 \"let input=str2nr(input)|if input<=2\n
@@ -1538,7 +1538,7 @@ let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%')
 \if t_index!=-1\n
 	\let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let file=input('(Use full path if not in working directory '.t:txb_wd.')/nAppend file (do not escape spaces) : ',t:txb.name[b:txbi],'file')\n
+	\let file=input('(Use full path if not in working directory '.t:txb_wd.')/nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
