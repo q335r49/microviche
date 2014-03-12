@@ -1636,7 +1636,7 @@ fun! s:redraw()
 	let ccol=colb
     for i in range(1,numcols)
 		se wfw
-		if bufname('')!=#t:txb_name[ccol]
+		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
 			exe 'e' t:txb_name[ccol]
 		en
 		let w:txbi=ccol
