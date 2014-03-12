@@ -1039,19 +1039,19 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\en\n
 		\en\n
 	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
-		\let t:panL=t:txb.settings['lines panned by j,k']\n
+		\let t:panL=settings_values[5]\n
 	\let t:txb.settings['kbd x pan speed']=settings_values[6]\n
-		\let t:aniStepH=t:txb.settings['kbd x pan speed']\n
+		\let t:aniStepH=settings_values[6]\n
 	\let t:txb.settings['kbd y pan speed']=settings_values[7]\n
-		\let t:aniStepV=t:txb.settings['kbd y pan speed']\n
+		\let t:aniStepV=settings_values[7]\n
 	\let t:txb.settings['mouse pan speed']=settings_values[8]\n
-		\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
+		\let t:mouseAcc=settings_values[8]\n
 	\let t:txb.settings['lines per map grid']=settings_values[9]\n
-		\let t:mapL=t:txb.settings['lines per map grid']\n
+		\let t:mapL=settings_values[9]\n
 	\let t:txb.settings['map cell width']=settings_values[10]\n
 	\let t:txb.settings['map cell height']=settings_values[11]\n
 	\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
-
+			
 	\en\n
 	\if exists('w:txbi')\n
 		\let t:txb.size[w:txbi]=settings_values[14]\n
