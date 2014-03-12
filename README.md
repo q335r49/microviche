@@ -65,16 +65,16 @@ Key | Action | | Key | Action
 <dt>Toggling Scrollbind</dt>
 <dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
 
-####Troubleshooting
+####Tips
+<dt>Saved File</dt>
+<dd>If you are having issues, or just curious, try looking through the file that you `hotkey``W`rote to file. It's an easy way modify settings.</dd>
 <dt>Mouse</dt>
 <dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.</dd>
 <dd>Autocommands for *BufEnter*, *BufLeave*, *WinEnter*, and *WinLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning in the plane because a single panning step may switch buffers several times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
-<dt>Directories</dt>
-<dd>You have the option of using either relative or absolute paths when appending splits or creating the plane. Relative paths are shorter but will cause errors when you change working directories (with <samp>:cd [dir]</samp>); you will have to maintain a consistent working directory. Absolute paths are harder to type but changing working directories won't be a problem. Using the home prefix ('~') might be a good idea when typing absolute paths. If you find yourself needing to change a lot of file names at once, you can `hotkey``W`rite the plane to file and then edit that file.</dd>
 <dt>Long splits</dt>
 <dd>Vim can't scroll past the end of a split, so you may experience unexpected jumps when working at the end of a particularly long split. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
 <dd>In older versions of Vim scrollbind desync may occur at the bottom of a split much longer than its neighbors. You can press `hotkey` r to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
 <dt>gVim Issues</dt>
-<dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dt>
+<dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dd>
 <dt>Horizontal splits</dt>
 <dd>Horizontal splits aren't supported and may interfere with panning</dd>
