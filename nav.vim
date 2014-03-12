@@ -289,7 +289,7 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
-		let t:txbwd=plane_wd
+		let t:txb_wd=plane_wd
 		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
@@ -1290,29 +1290,17 @@ fun! s:gotoPos(col,row)
 	let name=get(t:txb_name,a:col,-1)
 	if name==-1
 		echoerr "Split ".a:col." does not exist."
-		return 1
 	else
-		let cwd=fnamemodify(getcwd(),':p')
-		if cwd!=#t:txbwd
-			exe 'cd' t:txbwd
-			if name!=#fnameescape(fnamemodify(expand('%'),':p'))
-				winc t
-				exe 'e '.name
-				let w:txbi=a:col
-			en
-			exe 'cd' cwd
-		else
-			if name!=#fnameescape(fnamemodify(expand('%'),':p'))
-				winc t
-				exe 'e '.name
-				let w:txbi=a:col
-			en
+		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+			winc t
+			exe 'e '.name
+			let w:txbi=a:col
 		en
+		norm! 0
+		only
+		call s:redraw()
+		exe 'norm!' (a:row? a:row : 1).'zt'
 	en
-	norm! 0
-	only
-	call s:redraw()
-	exe 'norm!' (a:row? a:row : 1).'zt'
 endfun
 
 fun! s:blockPan(dx,y,...)
