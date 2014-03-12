@@ -39,9 +39,18 @@ if !has("gui_running")
 			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 		en
 	augroup END
-	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+	if v:version <= 703
+		let TXBmsCmd703={'xterm':'xterm','sgr':'sgr','xterm2':'xterm2'}
+		nn <silent> <leftmouse> :if &ttymouse==?'xterm2'\|call <SID>initDragXterm2()\|elseif &ttymouse==?'sgr'\|call <SID>initDragSGR()\|elseif &ttymouse==?'xterm'\|call <SID>initDragXterm()\|else\|call <SID>initDragDefault()\|en<cr>
+	else
+		nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+	en
 else
-	nn <silent> <leftmouse> :exe TXBmsCmd.default()<cr>
+	if v:version <= 703
+		nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
+	else
+		nn <silent> <leftmouse> :exe TXBmsCmd.default()<cr>
+	en
 en
 
 let TXBmsCmd={}
@@ -390,15 +399,14 @@ fun! s:anchor(interactive)
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
-fun! s:initDragDefault()
+fun! <SID>initDragDefault()
 	if exists('t:txb')
 		call s:saveCursPos()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let s0=getwinvar(v:mouse_win,'txbi',-1)
 			let t_r=v:mouse_lnum/t:mapL
-			echon s:gridnames[s0] t_r ' ' get(get(t:txb.map,s0,[]),t_r,'')[:&columns-9]
+			echon s:gridnames[getwinvar(v:mouse_win,'txbi')] t_r ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
 			let t_r=line('.')/t:mapL
@@ -478,9 +486,9 @@ fun! s:initDragDefault()
 	en
 	return ''
 endfun
-let TXBmsCmd.default=function("s:initDragDefault")
+let TXBmsCmd.default=function("<SID>initDragDefault")
 
-fun! s:initDragSGR()
+fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
@@ -529,14 +537,14 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.sgr=function("s:initDragSGR")
+let TXBmsCmd.sgr=function("<SID>initDragSGR")
 
-fun! s:initDragXterm()
+fun! <SID>initDragXterm()
 	return "norm! \<leftmouse>"
 endfun
-let TXBmsCmd.xterm=function("s:initDragXterm")
+let TXBmsCmd.xterm=function("<SID>initDragXterm")
 
-fun! s:initDragXterm2()
+fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists("t:txb")
@@ -582,7 +590,7 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.xterm2=function("s:initDragXterm2")
+let TXBmsCmd.xterm2=function("<SID>initDragXterm2")
 
 let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)

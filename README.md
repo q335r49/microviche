@@ -4,7 +4,7 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 
 <dl>
 <dt>Installation and Startup</dt>
-<dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/UI-for-settings/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
+<dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
 
 Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and append others as needed.</dd>
 
@@ -73,7 +73,6 @@ Key | Action | | Key | Action
 <dd>Autocommands for *BufEnter*, *BufLeave*, *WinEnter*, and *WinLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning in the plane because a single panning step may switch buffers several times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
 <dt>Long splits</dt>
 <dd>Vim can't scroll past the end of a split, so you may experience unexpected jumps when working at the end of a particularly long split. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
-<dd>In older versions of Vim scrollbind desync may occur at the bottom of a split much longer than its neighbors. You can press `hotkey` r to redraw when this happens. Another solution is to pad 500 or 1000 blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
 <dt>gVim Issues</dt>
 <dd>Redrawing on zoom (via <samp>au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)</dd>
 <dt>Horizontal splits</dt>
