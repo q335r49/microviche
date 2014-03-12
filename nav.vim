@@ -1120,6 +1120,9 @@ let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n
 	\for k in range(len(keys))\n
 		\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
 	\endfor\n
+	\for k in [16,15,14,12]\n
+		\let vals[k]=prevVal[k]\n
+	\endfor\n
 \en"
 let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
