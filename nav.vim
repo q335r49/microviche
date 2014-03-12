@@ -206,6 +206,7 @@ fun! TXBinit(...)
 	let plane_wd=fnamemodify(plane.settings['working dir'],':p')
 	exe 'cd' fnameescape(plane_wd)
 	let filtered=[]
+	let plane_name_save=copy(plane.name)
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	for i in range(len(plane.name))
 		if !filereadable(plane.name[i])
@@ -305,6 +306,7 @@ fun! TXBinit(...)
 			redr|echo "Settings Saved!"
 			if t_dict['working dir']!=#prev_workingdir
 				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
+				let plane.name=plane_name_save
 				call TXBinit(plane)
 			en
 		else
