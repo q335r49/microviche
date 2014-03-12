@@ -204,8 +204,7 @@ fun! TXBinit(...)
 		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 	en
     let prevwd=getcwd()
-	let plane_wd=fnamemodify(plane.settings['working dir'],':p')
-	exe 'cd' fnameescape(plane_wd)
+	exe 'cd' fnameescape(plane.settings['working dir'])
 	let filtered=[]
 	let plane_name_save=copy(plane.name)
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
@@ -290,7 +289,7 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
-		let t:txb_wd=plane_wd
+		let t:txb_wd=t:txb.settings['working dir']
 		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
