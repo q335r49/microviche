@@ -204,7 +204,7 @@ fun! TXBinit(...)
 	en
     let prevwd=getcwd()
 	let plane_wd=fnamemodify(plane.settings['working dir'],':p')
-	exe 'cd' plane_wd
+	exe 'cd' fnameescape(plane_wd)
 	let filtered=[]
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	for i in range(len(plane.name))
@@ -215,12 +215,17 @@ fun! TXBinit(...)
 			call remove(abs_paths,i)
 		en
 	endfor
-	exe 'cd' prevwd
-	if !empty(filtered) || !empty(abs_paths)
-		let msg="\n   ".join(plane.name,"\n   ")."\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(plane.name)." readable file(s) ----".msg
+	exe 'cd' fnameescape(prevwd)
+	let msg="\n ---- ".len(filtered)." unreadable file(s), ".len(plane.name)." readable file(s) ----".msg
+	if !empty(filtered)
+		let msg="\n   ".join(filtered," (unreadable)\n   ")." (unreadable)".msg
+	en
+	if !empty(plane.name)
+		let msg="\n   ".join(plane.name,"\n   ").msg
 	en
 	if !empty(abs_paths)
 		if seed is -99
+			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane; make sure you are in the right directory!"
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
@@ -229,6 +234,7 @@ fun! TXBinit(...)
 				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==4
+			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 				let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
