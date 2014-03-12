@@ -228,6 +228,7 @@ fun! TXBinit(...)
 		if seed is -99
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane; make sure you are in the right directory!"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
 			else
@@ -238,20 +239,24 @@ fun! TXBinit(...)
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
 			else
-				let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
 				let confirm_keys=[76]
 			en
 		elseif type(seed)==1
 			if exists('g:TXB') && type(g:TXB)==4
-				let msg ="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
 				let confirm_keys=[76]
 			else
-				let msg ="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
+				let msg.="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
 				let confirm_keys=[10,13]
 			en
 		else
