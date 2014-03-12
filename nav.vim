@@ -1070,14 +1070,9 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 					\exe 'cd' fnameescape(t:txb_wd)\n
 					\let t:txb_name=map(copy(t:txb_name),'fnameescape(fnamemodify(v:val,'':p''))')\n
  					\exe 'cd' fnameescape(curwd)\n
-				\else\n
-					\let s:kc__msg.' (Working directory not changed)'\n
+					\let s:kc__msg.=' (Working dir changed)'
 				\en\n
-			\else\n
-				\let s:kc__msg.' (Working directory not changed)'\n
 			\en\n
-		\else\n
-			\let s:kc__msg.' (Working directory not changed)'\n
 		\en\n
 	\en\n
 	\if exists('w:txbi')\n
