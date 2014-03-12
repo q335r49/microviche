@@ -40,7 +40,6 @@ if !has("gui_running")
 		en
 	augroup END
 	if v:version <= 703
-		let TXBmsCmd703={'xterm':'xterm','sgr':'sgr','xterm2':'xterm2'}
 		nn <silent> <leftmouse> :if &ttymouse==?'xterm2'\|call <SID>initDragXterm2()\|elseif &ttymouse==?'sgr'\|call <SID>initDragSGR()\|elseif &ttymouse==?'xterm'\|call <SID>initDragXterm()\|else\|call <SID>initDragDefault()\|en<cr>
 	else
 		nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
