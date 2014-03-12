@@ -1151,10 +1151,10 @@ let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
 let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
-	\let vals[cursor]=input\n
+	\let vals[cursor]=fnamemodify(input)\n
 \else\n
-	\let smsg.='Error: not a valid directory'\n
-\en",'Will automatically be converted to absolute path']
+	\let smsg.='Error: Not a valid directory'\n
+\en",'WARNING: Will automatically be converted to an absolute path']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','current file']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
