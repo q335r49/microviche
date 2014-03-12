@@ -1070,7 +1070,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 					\exe 'cd' fnameescape(t:txb_wd)\n
 					\let t:txb_name=map(copy(t:txb_name),'fnameescape(fnamemodify(v:val,'':p''))')\n
  					\exe 'cd' fnameescape(curwd)\n
-					\let s:kc__msg.=' (Working dir changed)'
+					\let s:kc__msg.=' (Working dir changed)'\n
 				\en\n
 			\en\n
 		\en\n
@@ -1186,7 +1186,7 @@ let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
 let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
-	\let vals[cursor]=fnamemodify(input)\n
+	\let vals[cursor]=fnamemodify(input,':p')\n
 \else\n
 	\let smsg.='Error: Not a valid directory'\n
 \en",'WARNING: Will automatically be converted to an absolute path']
