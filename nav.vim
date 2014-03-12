@@ -983,9 +983,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 \let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 \let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
 \let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
-\let prev_splitW=settings_values[3]\n
 \let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
-\let prev_autoexe=settings_values[4]\n
 \let [settings_names[5],settings_values[5]]=['lines panned by j,k',has_key(t:txb.settings,'lines panned by j,k') && type(t:txb.settings['lines panned by j,k'])==0? t:txb.settings['lines panned by j,k'] : 15]\n
 \let [settings_names[6],settings_values[6]]=['kbd x pan speed',has_key(t:txb.settings,'kbd x pan speed') && type(t:txb.settings['kbd x pan speed'])==0? t:txb.settings['kbd x pan speed'] : 9]\n
 \let [settings_names[7],settings_values[7]]=['kbd y pan speed',has_key(t:txb.settings,'kbd y pan speed') && type(t:txb.settings['kbd y pan speed'])==0? t:txb.settings['kbd y pan speed'] : 2]\n
@@ -999,8 +997,8 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
 	\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
 	\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
-	\let prev_filename=get(t:txb.name,w:txbi,'')\n
 \en\n
+\let prevVal=deepcopy(settings_values)\n
 \if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 	\let s:kc__msg='Settings saved!'\n
 	\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
@@ -1030,7 +1028,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 	\let t:mouseAcc=t:txb.settings['mouse pan speed']\n
 	\let t:mapL=t:txb.settings['lines per map grid']\n
 	\echohl MoreMsg\n
-	\if prev_autoexe!=#t:txb.settings.autoexe\n
+	\if prevVal[4]!=#t:txb.settings.autoexe\n
 		\if 'y'==?input('Apply changed autoexe setting to current splits? (y/n)')\n
         	\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 			\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
@@ -1038,7 +1036,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit new autoexe)'\n
 		\en\n
 	\en\n
-	\if prev_splitW!=#t:txb.settings['split width']\n
+	\if prevVal[3]!=#t:txb.settings['split width']\n
 		\if 'y'==?input('Resize current splits to new default split width value? (y/n)')\n
         	\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
 			\let s:kc__msg.=' (Current splits resized)'\n
@@ -1046,7 +1044,7 @@ let TXBkyCmd.S="let s:kc__continue=0\n
 			\let s:kc__msg.=' (Only newly appended splits will inherit split width)'\n
 		\en\n
 	\en\n
-	\if !empty(settings_values[16]) && settings_values[16]!=prev_filename\n
+	\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
 		\let t:txb_name[w:txbi]=sp__newfname[0]\n
 		\let t:txb.name[w:txbi]=sp__newfname[1]\n
 		\exe 'e' t:txb_name[w:txbi]\n
