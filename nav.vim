@@ -141,7 +141,6 @@ let TXBkyCmd.W="let s:kc__continue=0\n
 
 fun! TXBinit(...)
 	se noequalalways winwidth=1 winminwidth=0
-	let filtered=[]
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
 	let msg=''
@@ -169,7 +168,6 @@ fun! TXBinit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
-
 	let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
@@ -177,22 +175,20 @@ fun! TXBinit(...)
 		for i in keys(default)
 			if !has_key(plane.settings,i)
 				let plane.settings[i]=default[i]
-			en
-		endfor
-		let cursor=0
-		let vals=[1]
-		for i in keys(plane.settings)
-			let smsg=''
-			unlet! input
-			let input=plane.settings[i]
-			exe get(s:ErrorCheck,i,['',''])[1]
-			if !empty(smsg)
-				let plane.settings[i]=copy(s:ErrorCheck[i][0])
-				let msg="\n**WARNING**\n    ".smsg."\n    Default setting restored".msg
+			else
+				let cursor=0
+				let vals=[1]
+				let smsg=''
+				unlet! input
+				let input=plane.settings[i]
+				exe get(s:ErrorCheck,i,['',''])[1]
+				if !empty(smsg)
+					let plane.settings[i]=default[i]
+					let msg="\n**WARNING** Invalid Setting: ".i."\n    ".smsg."\n    Default setting used".msg
+				en
 			en
 		endfor
 	en
-
 	if !exists('plane.size')
 		let plane.size=repeat([60],len(plane.name))
 	elseif len(plane.size)<len(plane.name)
@@ -206,28 +202,26 @@ fun! TXBinit(...)
 	elseif len(plane.exe)<len(plane.name)
 		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 	en
-
-    "TODO CD to plane dir
-
-	let t_name=[]
+    let prevwd=getcwd()
+	let plane_wd=fnamemodify(plane.settings['working dir'],':p')
+	exe 'cd' plane_wd
+	let filtered=[]
+	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	for i in range(len(plane.name))
 		if !filereadable(plane.name[i])
 			call add(filtered,remove(plane.name,i))
 			call remove(plane.size,i)	
 			call remove(plane.exe,i)	
-		else
-			call add(t_name,fnameescape(fnamemodify(plane.name[i])))
+			call remove(abs_paths,i)
 		en
 	endfor
-
-	"TODO CD to original dir
-
-	if !empty(filtered) || !empty(t_name)
+	exe 'cd' prevwd
+	if !empty(filtered) || !empty(abs_paths)
 		let msg="\n   ".join(plane.name,"\n   ")."\n   ".join(filtered," (unreadable)\n   ")." (unreadable)\n ---- ".len(filtered)." unreadable file(s), ".len(plane.name)." readable file(s) ----".msg
 	en
-	if !empty(t_name)
+	if !empty(abs_paths)
 		if seed is -99
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane; make sure you are in the right directory!"
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
 			else
@@ -256,28 +250,29 @@ fun! TXBinit(...)
 		else
 			let confirm_keys=[]
 		en
-		let curbufix=index(t_name,fnameescape(fnamemodify(expand('%'),':p')))
-		if curbufix==-1
-			ec "\n  " join(plane.name,"\n   ") "\n ---- " len(plane.name) "file(s) ----" msg
+		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		if curbufix!=-1
+			let msg.="\n(Since current buffer is in plane, plane will be loaded in current tab)"
 		else
-			let displist=copy(plane.name)
-			let displist[curbufix].=' (current file)'
-			ec "\n  " join(displist,"\n   ") "\n ----" len(plane.name) "file(s) (Plane will be loaded in current tab) ----" msg
+			let msg.="\n(Plane will be loaded in a new tab)"
 		en
+		ec msg
 		let c=getchar()
 	elseif !empty(filtered)
 		let confirm_keys=[]
-		let msg.="\n    (No readable files remain -- make sure working dir is correct"
+		let msg.="\n(No readable files remain -- make sure working dir is correct"
+		ec msg
 		let c=0
 	elseif seed isnot -99
 		let confirm_keys=[]
-		ec "\n    (No matches found)"
+		let msg.="\n(No matches found)"
+		ec msg
 		let c=0
 	else
 		let confirm_keys=[]
+		ec msg
 		let c=0
 	en
-
 	if index(confirm_keys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
@@ -291,8 +286,8 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
-		let t:txbwd=fnamemodify(t:txb.settings['working dir'],':p')
-		let t:txb_name=t_name
+		let t:txbwd=plane_wd
+		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
@@ -307,7 +302,7 @@ fun! TXBinit(...)
 			let g:TXB_HOTKEY=t_dict[1]
 			redr|echo "Settings Saved!"
 			if t_dict['working dir']!=#prev_workingdir
-				let plane.settings['working dir']=t_dict[3]
+				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				call TXBinit(plane)
 			en
 		else
