@@ -39,18 +39,14 @@ if !has("gui_running")
 			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 		en
 	augroup END
-	if v:version <= 703
-		nn <silent> <leftmouse> :if &ttymouse==?'xterm2'\|call <SID>initDragXterm2()\|elseif &ttymouse==?'sgr'\|call <SID>initDragSGR()\|elseif &ttymouse==?'xterm'\|call <SID>initDragXterm()\|else\|call <SID>initDragDefault()\|en<cr>
-	else
-		nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
-	en
+	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 else
-	if v:version <= 703
-		nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
-	else
-		nn <silent> <leftmouse> :exe TXBmsCmd.default()<cr>
-	en
+	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
+
+fun! s:SID()
+  return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
+endfun
 
 let TXBmsCmd={}
 let TXBkyCmd={}
@@ -485,7 +481,7 @@ fun! <SID>initDragDefault()
 	en
 	return ''
 endfun
-let TXBmsCmd.default=function("<SID>initDragDefault")
+let TXBmsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
 
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
@@ -536,12 +532,12 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.sgr=function("<SID>initDragSGR")
+let TXBmsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
 
 fun! <SID>initDragXterm()
 	return "norm! \<leftmouse>"
 endfun
-let TXBmsCmd.xterm=function("<SID>initDragXterm")
+let TXBmsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
@@ -589,7 +585,7 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.xterm2=function("<SID>initDragXterm2")
+let TXBmsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
 let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)
