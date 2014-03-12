@@ -208,7 +208,7 @@ fun! TXBinit(...)
 	let filtered=[]
 	let plane_name_save=copy(plane.name)
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
-	for i in range(len(plane.name))
+	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
 			call add(filtered,remove(plane.name,i))
 			call remove(plane.size,i)	
