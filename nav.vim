@@ -189,6 +189,7 @@ fun! TXBinit(...)
 			en
 		endfor
 	en
+	let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
 	if !exists('plane.size')
 		let plane.size=repeat([60],len(plane.name))
 	elseif len(plane.size)<len(plane.name)
