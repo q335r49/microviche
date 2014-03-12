@@ -1130,31 +1130,14 @@ let s:settingscom.99="if vals[cursor] isnot '##label##'\n
 	\if cursor!=16\n
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\else\n
-		\if t:txb_cwd!=#getcwd()\n
-			\echohl WarningMsg\n
-			\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
-			\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
-			\ec '  2. The absolute path rather than the relative path to this file will be remembered'\n
-			\echohl NONE\n
-			\if input('Would you like to avoid the above issues and temporarily switch to the original directory to change this file? (y/n) ')==?'y'
-				\let changed_directory=1\n
-				\let prevwd=getcwd()\n	
-				\exe 'cd' t:txb__cwd\n
-				\ec 'Working directory restored to original for this operation.'\n
-			\else\n
-				\let changed_directory=2\n
-				\ec '(working directory not changed)'\n
-			\en\n
-			\let input=input(': ',a:vals[cursor],'file')\n
-			\if changed_directory==1\n
-				\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
-				\exe 'cd' prevwd\n
-			\elseif changed_directory==2\n
-				\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),fnamemodify(input)]\n
-			\en\n
-		\else\n
-			\let input=input('Enter new file: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-			\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
+		\let prevwd=getcwd()\n
+		\if t:txb_wd!=#prevwd\n
+			\exe 'cd' fnameescape(t:txb_wd)\n
+		\en\n
+		\let input=input('Enter new file (do not escape spaces) (relative to working dir '.t:txb_wd.'): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
+		\if t:txb_wd!=#prevwd\n
+			\exe 'cd' fnameescape(prevwd)\n
 		\en\n
 	\en\n
 \en"
@@ -1519,51 +1502,32 @@ let TXBkyCmd.D="redr\n
 	\call s:redraw()\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'))))\n
+let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 \if t_index!=-1\n
-	\if t:txb_cwd!=#getcwd()\n
-		\echohl WarningMsg\n
-		\ec '** WARNING ** Workign Directory Changed:' t:txb__cwd ' --> ' getcwd()\n
-		\ec '  1. The file will be saved in the current directory and not the directory where you initialized the plane.'\n
-		\ec '  2. The absolute path rather than the relative path to this file will be remembered'\n
-		\echhl NONE\n
-		\if input('Would you like to avoid the above issues and temporarily switch to the original directory to append this file? (y/n) ')==?'y'
-			\let changed_directory=1\n
-			\let prevwd=getcwd()\n	
-            \exe 'cd' t:txb__cwd\n
-			\ec 'Working directory restored to original for this operation.'\n
-		\else\n
-			\let changed_directory=2\n
-			\ec '(working directory not changed)'\n
-		\en\n
-	\else\n
-		\let changed_directory=0\n
+	\let prevwd=getcwd()\n
+	\if t:txb_wd!=#prevwd\n
+		\exe 'cd' fnameescape(t:txb_wd)\n
 	\en\n
-	\let file=input('> File to append (do not escape spaces): ',bufname('%'),'file')\n
+	\let file=input('File to append (do not escape spaces) (relative to working dir '.t:txb_wd.'): ',bufname('%'),'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
 	\else\n
-		\let t_ix=index(t:txb_name,fnameescape(fnamemodify(expand('%'),'%p')))\n
-		\if t_ix==-1\n
-			\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
-		\else\n
-			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
-			\call insert(t:txb.name,(changed_directory==2? fnamemodify(file,':p') : file),w:txbi+1)\n
-			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
-			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
-			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
-			\let t:txb__len=len(t:txb.name)\n
-			\if len(s:gridnames)<t:txb__len\n
-				\let s:gridnames=s:getGridNames(t:txb__len+50)\n
-			\en\n
-			\call s:redraw()\n
+		\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
+		\call insert(t:txb.name,(changed_directory==2? fnamemodify(file,':p') : file),w:txbi+1)\n
+		\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
+		\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
+		\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
+		\let t:txb__len=len(t:txb.name)\n
+		\if len(s:gridnames)<t:txb__len\n
+			\let s:gridnames=s:getGridNames(t:txb__len+50)\n
 		\en\n
-		\if changed_directory==1\n
-			\exe 'cd' prevwd\n
-		\en\n
+		\call s:redraw()\n
+	\en\n
+	\if t:txb_wd!=#prevwd\n
+		\exe 'cd' fnameescape(prevwd)\n
 	\en\n
 \else\n
-	\let s:kc__msg='Current buffer not in plane'\n
+	\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 \en\n
 \let s:kc__continue=0|call s:updateCursPos()" 
 
