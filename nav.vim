@@ -102,7 +102,7 @@ fun! s:printHelp()
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
 	\\n    W                         Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
-	\."\n\nTips:\n\n* ABSOLUTE PATHS are recommended if you need to change working directories (via ':cd [dir]'). You can change all the files at once by [W]riting the split to file and then editing that file.
+	\."\n\nTips:\n\n* Try looking through the file you [w]rote to file -- you can change lots of settings at once that way.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
 	\\n* When working at the end of a LONG SPLIT you may experience unexpected jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
@@ -1167,14 +1167,10 @@ let s:settingscom.99="if vals[cursor] isnot '##label##'\n
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\else\n
 		\let prevwd=getcwd()\n
-		\if t:txb_wd!=#prevwd\n
-			\exe 'cd' fnameescape(t:txb_wd)\n
-		\en\n
+		\exe 'cd' fnameescape(t:txb_wd)\n
 		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
 		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
-		\if t:txb_wd!=#prevwd\n
-			\exe 'cd' fnameescape(prevwd)\n
-		\en\n
+		\exe 'cd' fnameescape(prevwd)\n
 	\en\n
 \en"
 let s:settingscom.83="for i in range(len(keys))\n
@@ -1541,9 +1537,7 @@ let TXBkyCmd.D="redr\n
 let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 \if t_index!=-1\n
 	\let prevwd=getcwd()\n
-	\if t:txb_wd!=#prevwd\n
-		\exe 'cd' fnameescape(t:txb_wd)\n
-	\en\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
 	\let file=input('(Use full path if not in working directory '.t:txb_wd.')/nAppend file (do not escape spaces) : ',t:txb.name[b:txbi],'file')\n
 	\if empty(file)\n
 		\let s:kc__msg='File name is empty'\n
@@ -1559,9 +1553,7 @@ let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%')
 		\en\n
 		\call s:redraw()\n
 	\en\n
-	\if t:txb_wd!=#prevwd\n
-		\exe 'cd' fnameescape(prevwd)\n
-	\en\n
+	\exe 'cd' fnameescape(prevwd)\n
 \else\n
 	\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
 \en\n
