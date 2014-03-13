@@ -1175,17 +1175,18 @@ let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n
 let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
-let s:settingscom.99="if vals[cursor] isnot '##label##'\n
-	\if cursor!=16\n
-		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
-	\else\n
-		\let prevwd=getcwd()\n
-		\exe 'cd' fnameescape(t:txb_wd)\n
-		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
-		\exe 'cd' fnameescape(prevwd)\n
-	\en\n
-\en"
+let s:settingscom.99=
+\"if keys[cursor]==?'current file'\n
+	\let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
+	\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+	\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
+	\exe 'cd' fnameescape(prevwd)\n
+\elseif keys[cursor]==?'working dir'\n
+	\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+\elseif vals[cursor] isnot '##label##'\n
+	\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+\en\n"
 let s:settingscom.83="for i in range(len(keys))\n
 	\let a:vals[i]=vals[i]\n
 \endfor\n
@@ -1198,7 +1199,7 @@ let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
 	\let vals[cursor]=fnamemodify(input,':p')\n
 \else\n
 	\let smsg.='Error: Not a valid directory'\n
-\en",'WARNING: Will automatically be converted to an absolute path']
+\en",'for files in plane with relative paths']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','file associated with this split']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
