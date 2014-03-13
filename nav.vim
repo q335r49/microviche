@@ -833,8 +833,8 @@ endfun
 
 let TXBkyCmd.o='let s:kc__continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
-	let t:mBlockH=exists('t:txb.settings["map cell height"]')? t:txb.settings['map cell height'] : 2
-	let t:mBlockW=exists('t:txb.settings["map cell width"]')? t:txb.settings['map cell width'] : 5
+	let t:mBlockH=get(t:txb.settings,'map cell height',2)
+	let t:mBlockW=get(t:txb.settings,'map cell width',5)
 	let s:ms__num='01'
     let s:ms__posmes=(line('.')%t:mapL? line('.')%t:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
 	let s:ms__initbk=[a:r_ini,a:c_ini]
