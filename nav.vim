@@ -286,7 +286,8 @@ fun! TXBinit(...)
 		let c=getchar()
 	elseif !empty(filtered) || type(seed)==4
 		let confirm_keys=[]
-		let msg.="\n(No readable files remain -- make sure working dir is correct"
+		let msg.="\n(No readable files remain -- make sure working dir is correct)"
+		let msg.="\nWorking dir: " . plane.settings['working dir']
 		let msg.="\n -> Type S for Settings / F1 for help / Any other key to try a file pattern"
 		ec msg
 		let c=getchar()
