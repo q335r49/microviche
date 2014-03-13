@@ -1209,32 +1209,34 @@ let s:ErrorCheck['current file']=['','let vals[cursor]=input','file associated w
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
 	\"let input=str2nr(input)|if input<=2\n
-		\let smsg.='Error: current split width must be >2'\n
+		\let smsg.='Error: current split width must be > 2'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'width of current split']
 let s:ErrorCheck['split width']=[60,
 	\"let input=str2nr(input)|if input<=2\n
-		\let smsg.='Error: default split width must be >2'\n
+		\let smsg.='Error: default split width must be > 2'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'default value ([c]hange value and [S]ave for the option to apply to current splits)']
 let s:ErrorCheck['lines panned by j,k']=[15,
 	\"let input=str2nr(input)\n
 	\if input<=0\n
-		\let smsg.='Error: lines panned by j,k must be >=0'\n
+		\let smsg.='Error: lines panned by j,k must be > 0'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'j k y u b n will place the top line at multiples of this number']
 let s:ErrorCheck['kbd x pan speed']=[9,
 	\"let input=str2nr(input)\n
 	\if input<=0\n
-		\let smsg.='Error: x pan speed must be >=0'\n
+		\let smsg.='Error: x pan speed must be > 0'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed horizontal']
-	let s:ErrorCheck['kbd y pan speed']=[2,"let input=str2nr(input)|if input<=0\n
-		\let smsg.='Error: y pan speed must be >=0'\n
+let s:ErrorCheck['kbd y pan speed']=[2,
+	\"let input=str2nr(input)\n
+	\if input<=0\n
+		\let smsg.='Error: y pan speed must be > 0'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed vertical']
@@ -1263,21 +1265,21 @@ let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 let s:ErrorCheck['lines per map grid']=[45,
 	\"let input=str2nr(input)\n
 	\if input<=0\n
-		\let smsg.='Error: lines per map grid must be >=0'\n
+		\let smsg.='Error: lines per map grid must be > 0'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'Each map grid is 1 split and this many lines']
 let s:ErrorCheck['map cell height']=[2,
 	\"let input=str2nr(input)\n
 	\if input<=0 || input>10\n
-		\let smsg.='Error: map cell height must be between 0 and 10'\n
+		\let smsg.='Error: map cell height must be between 1 and 10'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'integer between 1 and 10']
 let s:ErrorCheck['map cell width']=[5,
 	\"let input=str2nr(input)\n
 	\if input<=0 || input>10\n
-		\let smsg.='Error: map cell width must be between 0 and 10'\n
+		\let smsg.='Error: map cell width must be between 1 and 10'\n
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'integer between 1 and 10']
