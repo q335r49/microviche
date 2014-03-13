@@ -1072,7 +1072,7 @@ let TXBkyCmd.S=
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
 				\if confirm==?'y' || confirm==?'n'\n
-					\let confirm2=input('Step 3/3: Would you like to write a copy of the current plane to file just in case? (y/n/cancel)')\n
+					\let confirm2=input('Step 3/3: Would you like to write a copy of the current plane to file, just in case? (y/n/cancel)')\n
 					\if confirm2==?'y' || confirm2==?'n'\n
 						\let curwd=getcwd()\n
 						\if confirm2=='y'\n
