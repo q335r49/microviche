@@ -518,8 +518,7 @@ fun! <SID>doDragSGR()
 		nunmap <esc>[<
 		if !exists('t:txb')
 			return
-		en
-		if k[1:]==[1,1]
+		elseif k[1:]==[1,1]
 			call TXBdoCmd('o')
 		else
 			let t_r=line('.')/t:mapL
@@ -571,8 +570,7 @@ fun! <SID>doDragXterm2()
 		nunmap <esc>[M
 		if !exists('t:txb')
 			return
-		en
-		if k[1:]==[33,33]
+		elseif k[1:]==[33,33]
 			call TXBdoCmd('o')
 		else
 			let t_r=line('.')/t:mapL
