@@ -1068,14 +1068,15 @@ let TXBkyCmd.S=
 		\let t:txb.settings['map cell width']=settings_values[10]\n
 		\let t:txb.settings['map cell height']=settings_values[11]\n
 		\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
-			\if 'y'==?input('Are you sure you want to change the working directory (Step 1/3 ... you can cancel at any time)? (y/n)')\n
-				\let confirm=input('(Step 2/3) Would you like to first convert files in the plane to absolute paths? This will ensure that these files remain unchanged when the directory changes. (y / n / anything else cancels)')\n
+			\let wd_msg=' (Working dir not changed)'\n
+			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
+				\let confirm=input('(Step 2/3) Would you like to convert current files in plane to absolute paths so that their paths remain unchanged? (y/n/cancel)')\n
 				\if confirm==?'y' || confirm==?'n'\n
-					\let confirm2=input('(Step 3/3) Would you like to write a copy of the current plane to file just in case? (y / n / anything else cancels)')\n
+					\let confirm2=input('(Step 3/3) Would you like to write a copy of the current plane to file just in case? (y/n/cancel)')\n
 					\if confirm2==?'y' || confirm==?'n'\n
 						\let curwd=getcwd()\n
 						\if confirm2=='y'\n
-							\exe TXBkyCmd.W\n
+							\exe g:TXBkyCmd.W\n
 						\en\n
 						\if confirm=='y'\n
 							\exe 'cd' fnameescape(t:txb_wd)
@@ -1086,10 +1087,11 @@ let TXBkyCmd.S=
 						\exe 'cd' fnameescape(t:txb_wd)\n
 						\let t:txb_name=map(copy(t:txb_name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
-						\let s:kc__msg.=' (Working dir changed)'\n
+						\let wd_msg=' (Working dir changed)'\n
 					\en\n
 				\en\n
 			\en\n
+			\let s:kc__msg.=wd_msg\n
 		\en\n
 		\if exists('w:txbi')\n
 			\let t:txb.size[w:txbi]=settings_values[14]\n
