@@ -317,7 +317,6 @@ fun! TXBinit(...)
 		call s:printHelp() 
 	elseif c is 83
 		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
-		let prev_workingdir=t_dict[3]
 		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
 			echo "\nApplying Settings ..."
 			sleep 200m
