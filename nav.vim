@@ -194,7 +194,7 @@ fun! TXBinit(...)
 				let smsg=''
 				unlet! input
 				let input=plane.settings[i]
-				exe get(s:ErrorCheck,i,['',''])[1]
+				silent! exe get(s:ErrorCheck,i,['',''])[1]
 				if !empty(smsg)
 					let plane.settings[i]=default[i]
 					let msg="\n**WARNING** Invalid Setting: ".i."\n    ".smsg."\n    Default setting used".msg
@@ -237,7 +237,7 @@ fun! TXBinit(...)
 	if !empty(plane.name)
 		let msg="\n   ".join(plane.name,"\n   ").msg
 	en
-	if !empty(abs_paths)
+	if !empty(plane.name)
 		if seed is -99
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
@@ -319,8 +319,6 @@ fun! TXBinit(...)
 		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
 		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
 			echo "\nApplying Settings ..."
-			sleep 200m
-			echon "."
 			sleep 200m
 			echon "."
 			sleep 200m
@@ -1244,7 +1242,13 @@ let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\"unlet! inList\n
-	\let inList=type(input)==3? input : eval(input)\n
+	\if type(input)==3\n
+		\let inList=input\n
+	\elseif type(input)==1\n
+		\let inList=eval(input)\n
+	\else\n
+		\let inList=''\n
+	\en\n
 	\if type(inList)!=3\n
 		\let smsg.='Error: mouse pan speed must evaluate to a list'\n
 	\elseif empty(inList)\n
