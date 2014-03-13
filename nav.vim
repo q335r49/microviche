@@ -63,21 +63,23 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(len(split(laggyAu,"\n"))>4? "\n** WARNING ** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n** WARNING ** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n** WARNING ** POSSIBLE SLOW TTYMOUSE setting detected\nIn some cases, 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
-	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n\nPress HOTKEY to start. You will be prompted for a file pattern (eg, 'pl*' for files beginning with 'pl'). You can also enter a single file name and later append others with HOTKEY A. Once loaded, use the MOUSE to pan, or press HOTKEY followed by:\n
+	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
+	\\nStart by navigating to a WORKING DIRECTORY (you only need to do this when you first create a plane). Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. \n
+	\\nYou can now use the MOUSE to pan, or press HOTKEY followed by:
 	\\n[1] h j k l y u b n           Pan cardinally & diagonally
 	\\n    r                         Redraw
 	\\n    o                         Open map
 	\\n    D A                       Delete / Append split
 	\\n    <f1>                      Show this message
-	\\n[2] S                         Edit Settings...
-	\\n    W                         Write to file...
+	\\n[2] S                         Settings (working dir, HOTKEY, etc.)
+	\\n    W                         Write to file
 	\\n    ^X                        Delete hidden buffers
 	\\n[3] ^L ^A                     Insert line anchor / Re-anchor
 	\\n    q <esc>                   Abort
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) If HOTKEY becomes inaccessible, reset via: ':call TXBinit()', press S
-	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough removable blank lines."
-	\."\n\nIn map mode:\n
+	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough to remove."
+	\."\n\nIn map mode:
 	\\n[1] h j k l y u b n           Move cardinally & diagonally
 	\\n    0 $                       Beginning / end of line
 	\\n    H M L                     High / Middle / Low of screen
@@ -95,18 +97,18 @@ fun! s:printHelp()
 	\\n    drag                      Pan
 	\\n    click topleft corner      Quit
 	\\n    drag to topleft corner    (in the plane) Show map
-	\\n(1) Movements take counts, capped at 99. Eg, ''3j'' = ''jjj''.
+	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) " : "\n[Mouse is unsupported in gVim]
 	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
 	\\n(2) ")."You can press <tab> to autocomplete from currently defined highlights.
-	\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, ''CM'' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
+	\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
 	\\n    j k l                     Cursor up / down / right
 	\\n    s                         Shift view left 1 split
 	\\n    r R                       Shift view down / up 1 row
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
-	\\n    W                         Virtual width - By default, ''s'' won''t shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, ''99s15W'' would shift up to the point where only 15 columns are visible regardless of actual width. ''C'' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr." : "")
-	\."\n\nTips:\n\n* Try looking through the file you [w]rote to file -- you can change lots of settings at once that way.
+	\\n    W                         Virtual width - By default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
+	\."\n\nTips:\n* Try looking through the file you [W]rote to file -- you can change lots of settings at once that way.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
 	\\n* When working at the end of a LONG SPLIT you may experience unexpected jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
