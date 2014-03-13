@@ -516,14 +516,15 @@ fun! <SID>doDragSGR()
 		let k=[32,0,0]
 	elseif k[0]==0
 		nunmap <esc>[<
-		if !exists('t:txb')
-			return
-		elseif k[1:]==[1,1]
-			call TXBdoCmd('o')
-		else
-			let t_r=line('.')/t:mapL
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+		if exists('t:txb')
+			if k[1:]==[1,1]
+				call TXBdoCmd('o')
+			else
+				let t_r=line('.')/t:mapL
+				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			en
 		en
+		return
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
@@ -568,14 +569,15 @@ fun! <SID>doDragXterm2()
 	let k=[getchar(0),getchar(0),getchar(0)]
 	if k[0]==35
 		nunmap <esc>[M
-		if !exists('t:txb')
-			return
-		elseif k[1:]==[33,33]
-			call TXBdoCmd('o')
-		else
-			let t_r=line('.')/t:mapL
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+		if exists('t:txb')
+			if k[1:]==[33,33]
+				call TXBdoCmd('o')
+			else
+				let t_r=line('.')/t:mapL
+				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			en
 		en
+		return
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
