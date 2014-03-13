@@ -319,11 +319,6 @@ fun! TXBinit(...)
 		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
 		let prev_workingdir=t_dict[3]
 		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
-			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
-			let g:TXB_HOTKEY=t_dict[1]
-			let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
-			let plane.name=plane_name_save
 			echo "\nApplying Settings ..."
 			sleep 200m
 			echon "."
@@ -332,7 +327,17 @@ fun! TXBinit(...)
 			sleep 200m
 			echon "."
 			sleep 200m
-			call TXBinit(plane)
+			exe 'silent! nunmap' g:TXB_HOTKEY
+			exe 'nn <silent>' t_dict[1] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			let g:TXB_HOTKEY=t_dict[1]
+			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
+				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
+				call TXBinit(-99)
+			else
+				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
+				let plane.name=plane_name_save
+				call TXBinit(plane)
+			en
 		else
 			redr|echo "Cancelled"
 		en
