@@ -126,8 +126,10 @@ fun! s:writePlaneToFile(plane,file)
 	call add(lines,"call TXBinit(txb_temp_plane)")
 	return writefile(lines,a:file)+error
 endfun
-let TXBkyCmd.W="let s:kc__continue=0\n
-\let input=input('[Write plane to file] Input file name:',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
+let TXBkyCmd.W="let prevwd=getcwd()\n
+\exe 'cd' fnameescape(t:txb_wd)\n
+\let s:kc__continue=0\n
+\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
 \if !empty(input)\n
 	\let t:txb.settings['default file name']=input\n
 	\let error=s:writePlaneToFile(t:txb,input)\n
@@ -141,7 +143,8 @@ let TXBkyCmd.W="let s:kc__continue=0\n
 	\en\n
 \else\n
 	\let s:kc__msg.=' (file write aborted)'\n
-\en\n"
+\en\n
+\exe 'cd' fnameescape(prevwd)"
 
 fun! TXBinit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -578,6 +581,7 @@ fun! <SID>doDragXterm2()
 			en
 		en
 		return
+		TEST write to file
 	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
 		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
 	en
