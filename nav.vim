@@ -64,7 +64,7 @@ fun! s:printHelp()
 	\.(len(split(laggyAu,"\n"))>4? "\n** WARNING ** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
 	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n** WARNING ** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n** WARNING ** POSSIBLE SLOW TTYMOUSE setting detected\nIn some cases, 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
 	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
-	\\nStart by navigating to a WORKING DIRECTORY (you only need to do this when you first create a plane). Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. \n
+	\\nStart by navigating to a WORKING DIRECTORY. Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
 	\\nYou can now use the MOUSE to pan, or press HOTKEY followed by:
 	\\n[1] h j k l y u b n           Pan cardinally & diagonally
 	\\n    r                         Redraw
@@ -161,8 +161,11 @@ fun! TXBinit(...)
 				let msg.="\n**WARNING**\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr' for better panning performance"
 			en
 		en
-		if v:version < 703 || v:version==703 && !has('patch30')
-			let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W."
+		if v:version <= 703
+			let msg.="\n**WARNING**\n    Textabyss runs best on Vim version >= 7.4. The mouse vertical panning animation, among other things, doesn't work for 7.3 (fix incoming)."
+			if v:version==703 && !has('patch30')
+				let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W."
+			en
 		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
@@ -236,7 +239,7 @@ fun! TXBinit(...)
 	if !empty(abs_paths)
 		if seed is -99
 			if !empty(filtered)
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane; make sure you are in the right directory!"
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
 				let confirm_keys=[82]
@@ -246,6 +249,7 @@ fun! TXBinit(...)
 			en
 		elseif type(seed)==4
 			if !empty(filtered)
+				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
 				let msg.="\nWorking dir: " . plane.settings['working dir']
