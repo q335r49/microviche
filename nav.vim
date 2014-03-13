@@ -128,25 +128,26 @@ fun! s:writePlaneToFile(plane,file)
 	call add(lines,"call TXBinit(txb_temp_plane)")
 	return writefile(lines,a:file)+error
 endfun
-let TXBkyCmd.W="let prevwd=getcwd()\n
-\exe 'cd' fnameescape(t:txb_wd)\n
-\let s:kc__continue=0\n
-\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
-\if !empty(input)\n
-	\let t:txb.settings['default file name']=input\n
-	\let error=s:writePlaneToFile(t:txb,input)\n
-	\if (error/10)\n
-		\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
-	\en\n
-	\if error%10==-1\n
-		\let s:kc__msg.='** ERROR **\n    File not writable'\n
+let TXBkyCmd.W=
+	\"let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
+	\let s:kc__continue=0\n
+	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
+	\if !empty(input)\n
+		\let t:txb.settings['default file name']=input\n
+		\let error=s:writePlaneToFile(t:txb,input)\n
+		\if (error/10)\n
+			\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
+		\en\n
+		\if error%10==-1\n
+			\let s:kc__msg.='** ERROR **\n    File not writable'\n
+		\else\n
+			\let s:kc__msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
+		\en\n
 	\else\n
-		\let s:kc__msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
+		\let s:kc__msg.=' (file write aborted)'\n
 	\en\n
-\else\n
-	\let s:kc__msg.=' (file write aborted)'\n
-\en\n
-\exe 'cd' fnameescape(prevwd)"
+	\exe 'cd' fnameescape(prevwd)"
 
 fun! TXBinit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -904,48 +905,11 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 \"x":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__array[s:ms__c][s:ms__r]=''|let s:ms__redr=1|en",
 \"o":"if exists('s:ms__array[s:ms__c][s:ms__r]')|let @\"=s:ms__array[s:ms__c][s:ms__r]|let s:ms__msg=' Cell obtained'|let s:last_yanked_is_column=0|en",
 \"p":"if s:last_yanked_is_column\n
-	\if s:ms__c+1>=len(s:ms__array)\n
-		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+2-len(s:ms__array)),',').']'))\n
-	\en\n
-	\call insert(s:ms__array,s:copied_column,s:ms__c+1)\n
-	\let s:ms__redr=1\n
-\else\n
-	\if s:ms__c>=len(s:ms__array)\n
-		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
-	\en\n
-	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
-		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
-	\en\n
-	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
-	\let s:ms__redr=1\n
-\en",
-\"P":"if s:last_yanked_is_column\n
-	\if s:ms__c>=len(s:ms__array)\n
-		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
-	\en\n
-	\call insert(s:ms__array,s:copied_column,s:ms__c)\n
-	\let s:ms__redr=1\n
-\else\n
-	\if s:ms__c>=len(s:ms__array)\n
-		\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
-	\en\n
-	\if s:ms__r>=len(s:ms__array[s:ms__c])\n
-		\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
-	\en\n
-	\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
-	\let s:ms__redr=1\n
-\en",
-\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '','#',1),['',''])[:2]\n
-\let inLbl=input(s:disp__str.'Label: ',lblTxt)\n
-\if !empty(inLbl)\n
-	\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
-	\if [s:ms__r,s:ms__c]==s:ms__initbk\n
-		\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will center current cursor position) :', empty(pos)? s:ms__posmes : pos)\n
-	\else\n
-		\let inPos=input('\nPosition: ',pos)\n
-	\en\n
-	\if stridx(inLbl.inHL.inPos,'#')!=-1\n
-		\let s:ms__msg=' ERROR: ''#'' is reserved for syntax and not allowed in the label text or settings'\n
+		\if s:ms__c+1>=len(s:ms__array)\n
+			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+2-len(s:ms__array)),',').']'))\n
+		\en\n
+		\call insert(s:ms__array,s:copied_column,s:ms__c+1)\n
+		\let s:ms__redr=1\n
 	\else\n
 		\if s:ms__c>=len(s:ms__array)\n
 			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
@@ -953,12 +917,49 @@ let s:mapdict={"\e":"let s:ms__continue=0|redr",
 		\if s:ms__r>=len(s:ms__array[s:ms__c])\n
 			\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
 		\en\n
-		\let s:ms__array[s:ms__c][s:ms__r]=strtrans(inLbl).'#'.strtrans(inHL).'#'.strtrans(inPos)\n
+		\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
 		\let s:ms__redr=1\n
-	\en\n
-\else\n
-	\let s:ms__msg=' Change aborted (press ''x'' to clear)'\n
-\en\n",
+	\en",
+\"P":"if s:last_yanked_is_column\n
+		\if s:ms__c>=len(s:ms__array)\n
+			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+		\en\n
+		\call insert(s:ms__array,s:copied_column,s:ms__c)\n
+		\let s:ms__redr=1\n
+	\else\n
+		\if s:ms__c>=len(s:ms__array)\n
+			\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+		\en\n
+		\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+			\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+		\en\n
+		\let s:ms__array[s:ms__c][s:ms__r]=@\"\n
+		\let s:ms__redr=1\n
+	\en",
+\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:ms__array[s:ms__c][s:ms__r]')? s:ms__array[s:ms__c][s:ms__r] : '','#',1),['',''])[:2]\n
+	\let inLbl=input(s:disp__str.'Label: ',lblTxt)\n
+	\if !empty(inLbl)\n
+		\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
+		\if [s:ms__r,s:ms__c]==s:ms__initbk\n
+			\let inPos=input(empty(s:ms__posmes)? '\nPosition: ' : '\nPosition ('.s:ms__posmes.' will center current cursor position) :', empty(pos)? s:ms__posmes : pos)\n
+		\else\n
+			\let inPos=input('\nPosition: ',pos)\n
+		\en\n
+		\if stridx(inLbl.inHL.inPos,'#')!=-1\n
+			\let s:ms__msg=' ERROR: ''#'' is reserved for syntax and not allowed in the label text or settings'\n
+		\else\n
+			\if s:ms__c>=len(s:ms__array)\n
+				\call extend(s:ms__array,eval('['.join(repeat(['[]'],s:ms__c+1-len(s:ms__array)),',').']'))\n
+			\en\n
+			\if s:ms__r>=len(s:ms__array[s:ms__c])\n
+				\call extend(s:ms__array[s:ms__c],repeat([''],s:ms__r+1-len(s:ms__array[s:ms__c])))\n
+			\en\n
+			\let s:ms__array[s:ms__c][s:ms__r]=strtrans(inLbl).'#'.strtrans(inHL).'#'.strtrans(inPos)\n
+			\let s:ms__redr=1\n
+		\en\n
+	\else\n
+		\let s:ms__msg=' Change aborted (press ''x'' to clear)'\n
+	\en\n",
 \"g":'let s:ms__continue=2',
 \"Z":'let t:mBlockW=min([10,max([1,input(s:disp__str."\nBlock width (1-10): ",t:mBlockW)])])|let t:mBlockH=min([10,max([1,input("\nBlock height (1-10): ",t:mBlockH)])])|let [t:txb.settings["map cell height"],t:txb.settings["map cell width"],s:ms__redr,s:ms__rows,s:ms__cols]=[t:mBlockH,t:mBlockW,1,(&ch-1)/t:mBlockH,(&columns-1)/t:mBlockW]',
 \"I":'if s:ms__c<len(s:ms__array)|call insert(s:ms__array,[],s:ms__c)|let s:ms__redr=1|let s:ms__msg="Col ".(s:ms__c)." inserted"|en',
@@ -1001,107 +1002,108 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let TXBkyCmd.S="let s:kc__continue=0\n
-\let settings_names=range(17)\n
-\let settings_values=range(17)\n
-\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
-\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
-\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
-\let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
-\let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
-\let [settings_names[5],settings_values[5]]=['lines panned by j,k',has_key(t:txb.settings,'lines panned by j,k') && type(t:txb.settings['lines panned by j,k'])==0? t:txb.settings['lines panned by j,k'] : 15]\n
-\let [settings_names[6],settings_values[6]]=['kbd x pan speed',has_key(t:txb.settings,'kbd x pan speed') && type(t:txb.settings['kbd x pan speed'])==0? t:txb.settings['kbd x pan speed'] : 9]\n
-\let [settings_names[7],settings_values[7]]=['kbd y pan speed',has_key(t:txb.settings,'kbd y pan speed') && type(t:txb.settings['kbd y pan speed'])==0? t:txb.settings['kbd y pan speed'] : 2]\n
-\let [settings_names[8],settings_values[8]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
-\let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
-\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
-\let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
-\let [settings_names[12],settings_values[12]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
-\if exists('w:txbi')\n
-	\let [settings_names[13],settings_values[13]]=['    -- Current Split --','##label##']\n
-	\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
-	\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-	\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
-\en\n
-\let prevVal=deepcopy(settings_values)\n
-\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
-	\echohl MoreMsg\n
-	\let s:kc__msg='Settings saved!'\n
-	\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
-		\exe 'silent! nunmap' g:TXB_HOTKEY\n
-	\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
-		\silent! nunmap <f10>\n
+let TXBkyCmd.S=
+	\"let s:kc__continue=0\n
+	\let settings_names=range(17)\n
+	\let settings_values=range(17)\n
+	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
+	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
+	\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
+	\let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])==0? t:txb.settings['split width'] : 60]\n
+	\let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)==1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
+	\let [settings_names[5],settings_values[5]]=['lines panned by j,k',has_key(t:txb.settings,'lines panned by j,k') && type(t:txb.settings['lines panned by j,k'])==0? t:txb.settings['lines panned by j,k'] : 15]\n
+	\let [settings_names[6],settings_values[6]]=['kbd x pan speed',has_key(t:txb.settings,'kbd x pan speed') && type(t:txb.settings['kbd x pan speed'])==0? t:txb.settings['kbd x pan speed'] : 9]\n
+	\let [settings_names[7],settings_values[7]]=['kbd y pan speed',has_key(t:txb.settings,'kbd y pan speed') && type(t:txb.settings['kbd y pan speed'])==0? t:txb.settings['kbd y pan speed'] : 2]\n
+	\let [settings_names[8],settings_values[8]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
+	\let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])==0? t:txb.settings['lines per map grid'] : 45]\n
+	\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])==0? t:txb.settings['map cell width'] : 5]\n
+	\let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])==0? t:txb.settings['map cell height'] : 2]\n
+	\let [settings_names[12],settings_values[12]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
+	\if exists('w:txbi')\n
+		\let [settings_names[13],settings_values[13]]=['    -- Current Split --','##label##']\n
+		\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
+		\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+		\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\en\n
-	\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
-	\let g:TXB_HOTKEY=settings_values[1]\n
-	\let t:txb.settings['split width']=settings_values[3]\n
-		\if prevVal[3]!=#t:txb.settings['split width']\n
-			\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
-				\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
-				\let s:kc__msg.=' (Current splits resized)'\n
-			\else\n
-				\let s:kc__msg.=' (Only appended splits will inherit split width)'\n
-			\en\n
+	\let prevVal=deepcopy(settings_values)\n
+	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
+		\echohl MoreMsg\n
+		\let s:kc__msg='Settings saved!'\n
+		\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
+			\exe 'silent! nunmap' g:TXB_HOTKEY\n
+		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
+			\silent! nunmap <f10>\n
 		\en\n
-	\let t:txb.settings['autoexe']=settings_values[4]\n
-		\if prevVal[4]!=#t:txb.settings.autoexe\n
-			\if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
-				\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
-				\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
-			\else\n
-				\let s:kc__msg.=' (Only appended splits will inherit new autoexe)'\n
+		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+		\let g:TXB_HOTKEY=settings_values[1]\n
+		\let t:txb.settings['split width']=settings_values[3]\n
+			\if prevVal[3]!=#t:txb.settings['split width']\n
+				\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
+					\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
+					\let s:kc__msg.=' (Current splits resized)'\n
+				\else\n
+					\let s:kc__msg.=' (Only appended splits will inherit split width)'\n
+				\en\n
 			\en\n
-		\en\n
-	\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
-		\let t:panL=settings_values[5]\n
-	\let t:txb.settings['kbd x pan speed']=settings_values[6]\n
-		\let t:aniStepH=settings_values[6]\n
-	\let t:txb.settings['kbd y pan speed']=settings_values[7]\n
-		\let t:aniStepV=settings_values[7]\n
-	\let t:txb.settings['mouse pan speed']=settings_values[8]\n
-		\let t:mouseAcc=settings_values[8]\n
-	\let t:txb.settings['lines per map grid']=settings_values[9]\n
-		\let t:mapL=settings_values[9]\n
-	\let t:txb.settings['map cell width']=settings_values[10]\n
-	\let t:txb.settings['map cell height']=settings_values[11]\n
-	\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
-		\if 'y'==?input('Are you sure you want to change the working directory (Step 1/3 ... you can cancel at any time)? (y/n)')\n
-			\let confirm=input('(Step 2/3) Would you like to first convert files in the plane to absolute paths? This will ensure that these files remain unchanged when the directory changes. (y / n / anything else cancels)')\n
-			\if confirm==?'y' || confirm==?'n'\n
-				\let confirm2=input('(Step 3/3) Would you like to write a copy of the current plane to file just in case? (y / n / anything else cancels)')\n
-				\if confirm2==?'y' || confirm==?'n'\n
-					\let curwd=getcwd()\n
-					\if confirm2=='y'\n
-						\exe TXBkyCmd.W\n
+		\let t:txb.settings['autoexe']=settings_values[4]\n
+			\if prevVal[4]!=#t:txb.settings.autoexe\n
+				\if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
+					\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
+					\let s:kc__msg.=' (Autoexe settings applied to current splits)'\n
+				\else\n
+					\let s:kc__msg.=' (Only appended splits will inherit new autoexe)'\n
+				\en\n
+			\en\n
+		\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
+			\let t:panL=settings_values[5]\n
+		\let t:txb.settings['kbd x pan speed']=settings_values[6]\n
+			\let t:aniStepH=settings_values[6]\n
+		\let t:txb.settings['kbd y pan speed']=settings_values[7]\n
+			\let t:aniStepV=settings_values[7]\n
+		\let t:txb.settings['mouse pan speed']=settings_values[8]\n
+			\let t:mouseAcc=settings_values[8]\n
+		\let t:txb.settings['lines per map grid']=settings_values[9]\n
+			\let t:mapL=settings_values[9]\n
+		\let t:txb.settings['map cell width']=settings_values[10]\n
+		\let t:txb.settings['map cell height']=settings_values[11]\n
+		\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
+			\if 'y'==?input('Are you sure you want to change the working directory (Step 1/3 ... you can cancel at any time)? (y/n)')\n
+				\let confirm=input('(Step 2/3) Would you like to first convert files in the plane to absolute paths? This will ensure that these files remain unchanged when the directory changes. (y / n / anything else cancels)')\n
+				\if confirm==?'y' || confirm==?'n'\n
+					\let confirm2=input('(Step 3/3) Would you like to write a copy of the current plane to file just in case? (y / n / anything else cancels)')\n
+					\if confirm2==?'y' || confirm==?'n'\n
+						\let curwd=getcwd()\n
+						\if confirm2=='y'\n
+							\exe TXBkyCmd.W\n
+						\en\n
+						\if confirm=='y'\n
+							\exe 'cd' fnameescape(t:txb_wd)
+							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
+						\en\n
+						\let t:txb.settings['working dir']=settings_values[12]\n
+						\let t:txb_wd=settings_values[12]\n
+						\exe 'cd' fnameescape(t:txb_wd)\n
+						\let t:txb_name=map(copy(t:txb_name),'fnameescape(fnamemodify(v:val,'':p''))')\n
+						\exe 'cd' fnameescape(curwd)\n
+						\let s:kc__msg.=' (Working dir changed)'\n
 					\en\n
-					\if confirm=='y'\n
-                        \exe 'cd' fnameescape(t:txb_wd)
-                        \call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
-					\en\n
-					\let t:txb.settings['working dir']=settings_values[12]\n
-					\let t:txb_wd=settings_values[12]\n
-					\exe 'cd' fnameescape(t:txb_wd)\n
-					\let t:txb_name=map(copy(t:txb_name),'fnameescape(fnamemodify(v:val,'':p''))')\n
- 					\exe 'cd' fnameescape(curwd)\n
-					\let s:kc__msg.=' (Working dir changed)'\n
 				\en\n
 			\en\n
 		\en\n
-	\en\n
-	\if exists('w:txbi')\n
-		\let t:txb.size[w:txbi]=settings_values[14]\n
-		\let t:txb.exe[w:txbi]=settings_values[15]\n
-		\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
-			\let t:txb_name[w:txbi]=sp__newfname[0]\n
-			\let t:txb.name[w:txbi]=sp__newfname[1]\n
-			\exe 'e' t:txb_name[w:txbi]\n
+		\if exists('w:txbi')\n
+			\let t:txb.size[w:txbi]=settings_values[14]\n
+			\let t:txb.exe[w:txbi]=settings_values[15]\n
+			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
+				\let t:txb_name[w:txbi]=sp__newfname[0]\n
+				\let t:txb.name[w:txbi]=sp__newfname[1]\n
+				\exe 'e' t:txb_name[w:txbi]\n
+			\en\n
 		\en\n
-	\en\n
-	\echohl NONE\n
-	\call s:redraw()\n
-\else\n
-	\let s:kc__msg='Cancelled'\n
-\en"
+		\echohl NONE\n
+		\call s:redraw()\n
+	\else\n
+		\let s:kc__msg='Cancelled'\n
+	\en"
 let s:sp__cursor=0
 let s:sp__offset=0
 fun! s:settingsPager(keys,vals,errorcheck)
@@ -1163,102 +1165,116 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	return exitcode
 endfun
 let s:settingscom={}
-let s:settingscom.68="echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
-\if confirm==?'y'\n
-	\for k in [1,3,4,5,6,7,8,9,10,11]\n
-		\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
-	\endfor\n
-	\for k in [12,14,15,16]\n
-		\let vals[k]=prevVal[k]\n
-	\endfor\n
-\en"
+let s:settingscom.68=
+	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
+	\if confirm==?'y'\n
+		\for k in [1,3,4,5,6,7,8,9,10,11]\n
+			\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
+		\endfor\n
+		\for k in [12,14,15,16]\n
+			\let vals[k]=prevVal[k]\n
+		\endfor\n
+	\en"
 let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.99=
-\"if keys[cursor]==?'current file'\n
-	\let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-	\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
-	\exe 'cd' fnameescape(prevwd)\n
-\elseif keys[cursor]==?'working dir'\n
-	\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-\elseif vals[cursor] isnot '##label##'\n
-	\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
-\en\n"
-let s:settingscom.83="for i in range(len(keys))\n
-	\let a:vals[i]=vals[i]\n
-\endfor\n
-\let continue=0\n
-\let exitcode=1"
+	\"if keys[cursor]==?'current file'\n
+		\let prevwd=getcwd()\n
+		\exe 'cd' fnameescape(t:txb_wd)\n
+		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
+		\exe 'cd' fnameescape(prevwd)\n
+	\elseif keys[cursor]==?'working dir'\n
+		\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+	\elseif vals[cursor] isnot '##label##'\n
+		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+	\en\n"
+let s:settingscom.83=
+	\"for i in range(len(keys))\n
+		\let a:vals[i]=vals[i]\n
+	\endfor\n
+	\let continue=0\n
+	\let exitcode=1"
 let s:settingscom.27=s:settingscom.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['working dir']=['~',"if isdirectory(input)\n
-	\let vals[cursor]=fnamemodify(input,':p')\n
-\else\n
-	\let smsg.='Error: Not a valid directory'\n
-\en",'for files in plane with relative paths']
+let s:ErrorCheck['working dir']=['~',
+	\"if isdirectory(input)\n
+		\let vals[cursor]=fnamemodify(input,':p')\n
+	\else\n
+		\let smsg.='Error: Not a valid directory'\n
+	\en",'for files in plane with relative paths']
 let s:ErrorCheck['current file']=['','let vals[cursor]=input','file associated with this split']
 let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
 let s:ErrorCheck['current width']=[60,
-\"let input=str2nr(input)|if input<=2\n
-	\let smsg.='Error: current split width must be >2'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'width of current split']
+	\"let input=str2nr(input)|if input<=2\n
+		\let smsg.='Error: current split width must be >2'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'width of current split']
 let s:ErrorCheck['split width']=[60,
-\"let input=str2nr(input)|if input<=2\n
-	\let smsg.='Error: default split width must be >2'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'default value ([c]hange value and [S]ave for the option to apply to current splits)']
-let s:ErrorCheck['lines panned by j,k']=[15,"let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: lines panned by j,k must be >=0'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'j k y u b n will place the top line at multiples of this number']
-let s:ErrorCheck['kbd x pan speed']=[9,"let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: x pan speed must be >=0'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'keyboard pan animation speed horizontal']
-let s:ErrorCheck['kbd y pan speed']=[2,"let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: y pan speed must be >=0'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'keyboard pan animation speed vertical']
+	\"let input=str2nr(input)|if input<=2\n
+		\let smsg.='Error: default split width must be >2'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'default value ([c]hange value and [S]ave for the option to apply to current splits)']
+let s:ErrorCheck['lines panned by j,k']=[15,
+	\"let input=str2nr(input)\n
+	\if input<=0\n
+		\let smsg.='Error: lines panned by j,k must be >=0'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'j k y u b n will place the top line at multiples of this number']
+let s:ErrorCheck['kbd x pan speed']=[9,
+	\"let input=str2nr(input)\n
+	\if input<=0\n
+		\let smsg.='Error: x pan speed must be >=0'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'keyboard pan animation speed horizontal']
+	let s:ErrorCheck['kbd y pan speed']=[2,"let input=str2nr(input)|if input<=0\n
+		\let smsg.='Error: y pan speed must be >=0'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'keyboard pan animation speed vertical']
 let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"]
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
-\"unlet! inList|let inList=type(input)==3? input : eval(input)\n
-\if type(inList)!=3\n
-	\let smsg.='Error: mouse pan speed must evaluate to a list'\n
-\elseif empty(inList)\n
-	\let smsg.='list must be non-empty'\n
-\elseif inList[0]\n
-	\let smsg.='Error: first element of mouse speed list must be 0'\n
-\elseif eval(join(map(copy(inList),'v:val<0'),'+'))\n
-	\let smsg.='Error: mouse speed list must be non-negative'\n
-\else\n
-	\let vals[cursor]=copy(inList)\n
-\en",'for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
-let s:ErrorCheck['lines per map grid']=[45,"let input=str2nr(input)|if input<=0\n
-	\let smsg.='Error: lines per map grid must be >=0'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'Each map grid is 1 split and this many lines']
-let s:ErrorCheck['map cell height']=[2,"let input=str2nr(input)|if input<=0 || input>10\n
-	\let smsg.='Error: map cell height must be between 0 and 10'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'integer between 1 and 10']
-let s:ErrorCheck['map cell width']=[5,"let input=str2nr(input)|if input<=0 || input>10\n
-	\let smsg.='Error: map cell width must be between 0 and 10'\n
-\else\n
-	\let vals[cursor]=input\n
-\en",'integer between 1 and 10']
+	\"unlet! inList\n
+	\let inList=type(input)==3? input : eval(input)\n
+	\if type(inList)!=3\n
+		\let smsg.='Error: mouse pan speed must evaluate to a list'\n
+	\elseif empty(inList)\n
+		\let smsg.='list must be non-empty'\n
+	\elseif inList[0]\n
+		\let smsg.='Error: first element of mouse speed list must be 0'\n
+	\elseif eval(join(map(copy(inList),'v:val<0'),'+'))\n
+		\let smsg.='Error: mouse speed list must be non-negative'\n
+	\else\n
+		\let vals[cursor]=copy(inList)\n
+	\en",'for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
+let s:ErrorCheck['lines per map grid']=[45,
+	\"let input=str2nr(input)\n
+	\if input<=0\n
+		\let smsg.='Error: lines per map grid must be >=0'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'Each map grid is 1 split and this many lines']
+let s:ErrorCheck['map cell height']=[2,
+	\"let input=str2nr(input)\n
+	\if input<=0 || input>10\n
+		\let smsg.='Error: map cell height must be between 0 and 10'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'integer between 1 and 10']
+let s:ErrorCheck['map cell width']=[5,
+	\"let input=str2nr(input)\n
+	\if input<=0 || input>10\n
+		\let smsg.='Error: map cell width must be between 0 and 10'\n
+	\else\n
+		\let vals[cursor]=input\n
+	\en",'integer between 1 and 10']
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
@@ -1533,45 +1549,48 @@ let TXBkyCmd[-1]='let s:kc__continue=0'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
-let TXBkyCmd.D="redr\n
-\if input('Really delete current column (y/n)? ')==?'y'\n
-	\let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
-	\if t_index!=-1\n
-		\call remove(t:txb.name,t_index)\n
-		\call remove(t:txb_name,t_index)\n
-		\call remove(t:txb.size,t_index)\n
-		\call remove(t:txb.exe,t_index)\n
-		\let t:txb_len=len(t:txb.name)\n
-	\en\n
-	\winc W\n
-	\call s:saveCursPos()\n
-	\call s:redraw()\n
-\en\n
-\let s:kc__continue=0|call s:updateCursPos()" 
-let TXBkyCmd.A="let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
-\if t_index!=-1\n
-	\let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-	\if empty(file)\n
-		\let s:kc__msg='File name is empty'\n
-	\else\n
-		\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
-		\call insert(t:txb.name,file,w:txbi+1)\n
-		\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
-		\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
-		\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
-		\let t:txb_len=len(t:txb.name)\n
-		\if len(s:gridnames)<t:txb_len\n
-			\let s:gridnames=s:getGridNames(t:txb_len+50)\n
+let TXBkyCmd.D=
+	\"redr\n
+	\if input('Really delete current column (y/n)? ')==?'y'\n
+		\let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
+		\if t_index!=-1\n
+			\call remove(t:txb.name,t_index)\n
+			\call remove(t:txb_name,t_index)\n
+			\call remove(t:txb.size,t_index)\n
+			\call remove(t:txb.exe,t_index)\n
+			\let t:txb_len=len(t:txb.name)\n
 		\en\n
+		\winc W\n
+		\call s:saveCursPos()\n
 		\call s:redraw()\n
 	\en\n
-	\exe 'cd' fnameescape(prevwd)\n
-\else\n
-	\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
-\en\n
-\let s:kc__continue=0|call s:updateCursPos()" 
+	\let s:kc__continue=0\n
+	\call s:updateCursPos()" 
+let TXBkyCmd.A=
+	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
+	\if t_index!=-1\n
+		\let prevwd=getcwd()\n
+		\exe 'cd' fnameescape(t:txb_wd)\n
+		\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
+		\if empty(file)\n
+			\let s:kc__msg='File name is empty'\n
+		\else\n
+			\let s:kc__msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
+			\call insert(t:txb.name,file,w:txbi+1)\n
+			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
+			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
+			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
+			\let t:txb_len=len(t:txb.name)\n
+			\if len(s:gridnames)<t:txb_len\n
+				\let s:gridnames=s:getGridNames(t:txb_len+50)\n
+			\en\n
+			\call s:redraw()\n
+		\en\n
+		\exe 'cd' fnameescape(prevwd)\n
+	\else\n
+		\let s:kc__msg='Current file not in plane! HOTKEY r redraw before appending.'\n
+	\en\n
+	\let s:kc__continue=0|call s:updateCursPos()" 
 
 fun! s:redraw()
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
