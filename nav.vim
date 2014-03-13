@@ -322,19 +322,19 @@ fun! TXBinit(...)
 			exe 'silent! nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict[1] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
-			echo "\nSettings Saved!"
-			if t_dict['working dir']!=#prev_workingdir
+			if t_dict[3]!=#prev_workingdir
 				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				let plane.name=plane_name_save
-				sleep 100m
-				echo "\n..."
-				sleep 100m
-				echo "\n..."
-				sleep 100m
-				echo "\nReinitializing plane..."
-				sleep 200m
-				call TXBinit(plane)
 			en
+			echo "\nApplying Settings ..."
+			sleep 200m
+			echon "."
+			sleep 200m
+			echon "."
+			sleep 200m
+			echon "."
+			sleep 200m
+			call TXBinit(plane)
 		else
 			redr|echo "Cancelled"
 		en
