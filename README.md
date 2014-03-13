@@ -6,21 +6,22 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 <dt>Installation and Startup</dt>
 <dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
 
-Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try typing <samp>&nbsp;\*&nbsp;</samp> for all files in the directory or, say, <samp>&nbsp;plane*&nbsp;</samp>   for a list of files beginning with 'plane'. You can also name a single file and append others as needed.</dd>
+Start by navigating to the WORKING DIRECTORY. Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try a pattern like <samp>&nbsp;\*.txt&nbsp;</samp>, or you can name a single file and append others as needed. Note that you only need to navigate to the plane's working directory when you first create it.</dd>
 
 <dt>Navigating the plane</dt>
 <dd>Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`| ← ↓ ↑ → | | `F1` | *help*
+`h``j``k``l`| ← ↓ ↑ → | | `F1`[1] | *help*
 `y``u``b``n`| ↖ ↗ ↙ ↘  ||`A`| *append split*
 `r`  | *redraw*    | | `D`|*delete settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S` __*__ | *edit settings* | |`W` __**__| *write plane to file*
-\* _If you accidentally make the hotkey (default_ `F10` _) inaccessible, you can evoke_ <samp>:call TXBinit()</samp> _and press_ `S` _to change settings._  
-\** _The last plane is also automatically saved between sessions in the viminfo file and suggested on_ `F10` _the next session._
+`S`[2] | *edit settings* | |`W`[3]| *write plane to file*
+[1] _The help pager will also display warnings about possibly troublesome settings_
+[2] _If you accidentally make the hotkey (default_ `F10` _) inaccessible, you can evoke_ <samp>:call TXBinit()</samp> _and press_ `S` _to change settings._  
+[3] _The last plane is also automatically saved between sessions in the viminfo file and suggested on_ `F10` _the next session._
 </dd>
 
 <dt>Using the map</dt>
@@ -49,10 +50,10 @@ Positioning commands can move the cursor and the split from their default positi
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp>__*__ | *virtual split width*
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp>[1] | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-\* _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
+\[1] _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
 </dd>
 
 <dt>Anchoring Lines</dt>
