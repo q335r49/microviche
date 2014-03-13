@@ -252,7 +252,6 @@ fun! TXBinit(...)
 		elseif type(seed)==4
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [R] to remove unreadable files and overwrite [S] for settings [F1] for help [esc] to cancel"
