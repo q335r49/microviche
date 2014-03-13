@@ -6,32 +6,34 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 <dt>Installation and Startup</dt>
 <dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
 
-Start by navigating to the WORKING DIRECTORY. Press `F10` to bring up the prompt <samp>>&nbsp;Enter file pattern or type HELP:</samp>. You can try a pattern like <samp>&nbsp;\*.txt&nbsp;</samp>, or you can name a single file and append others as needed. Note that you only need to navigate to the plane's working directory when you first create it.</dd>
+Navigate to the **working directory** to be associated with the plane (you only need to do this when you first create it). Press `F10` to bring up a prompt for files. You can try a pattern like <samp>&nbsp;\*.txt&nbsp;</samp>, or you can name a single file and append others as needed.</dd>
 
 <dt>Navigating the plane</dt>
 <dd>Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`| ← ↓ ↑ → | | `F1`[1] | *help*
+`h``j``k``l`| ← ↓ ↑ → | | `F1` [1] | *help*
 `y``u``b``n`| ↖ ↗ ↙ ↘  ||`A`| *append split*
 `r`  | *redraw*    | | `D`|*delete settings* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S`[2] | *edit settings* | |`W`[3]| *write plane to file*
-[1] _The help pager will also display warnings about possibly troublesome settings_
-[2] _If you accidentally make the hotkey (default_ `F10` _) inaccessible, you can evoke_ <samp>:call TXBinit()</samp> _and press_ `S` _to change settings._  
-[3] _The last plane is also automatically saved between sessions in the viminfo file and suggested on_ `F10` _the next session._
+`S` [2] | *edit settings* | |`W` [3]| *write plane to file*
+[1] The help pager will also display warnings about possibly problematic settings.  
+[2] If the hotkey (default `F10`) becomes inaccessible, evoke <samp>:call TXBinit()</samp> and press `S` to change settings.  
+[3] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 </dd>
 
 <dt>Using the map</dt>
 <dd>Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
-Mouse | Action | | Mouse | Action
+Mouse [1] | Action | | Mouse | Action
 --- | --- | --- | --- | ---
 `click`|*select block*||`click``click`|*goto block*
-`drag` | *pan* | | `drag` to top left corner | *(in plane) show map*
+`drag` | *pan* | | `drag` to top left corner [2] | *(in plane) show map*
 `click` top left corner|*exit map*|||
+[1] gVim does not support the mouse in map mode.  
+[2] 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
@@ -50,10 +52,10 @@ Positioning commands can move the cursor and the split from their default positi
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp>[1] | *virtual split width*
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp> [1] | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-\[1] _By default,_ <samp>s</samp> _will not shift the split offscreen, regardless of count. But specifying, eg,_ <samp>15W</samp> _would allow_ <samp>s</samp> _to shift all but 15 columns offscreen. Likewise,_ <samp>15WC</samp> _would center the split as though it were of width 15._
+[1] By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 </dd>
 
 <dt>Anchoring Lines</dt>
@@ -67,11 +69,10 @@ Key | Action | | Key | Action
 <dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
 
 ####Tips
-<dt>Saved File</dt>
+<dt>Save File</dt>
 <dd>If you are having issues, or just curious, try looking through the file that you `hotkey``W`rote to file. It's an easy way modify settings.</dd>
-<dt>Mouse</dt>
-<dd>If you are running vim in the terminal and the mouse doesn't work, try setting 'ttymouse' to either 'sgr' or 'xterm2' via <samp>&nbsp;:set ttymouse=sgr&nbsp;</samp>. Most other modes except for 'xterm', which is unsupported, should work, but may take a speed penalty. In map mode, only 'sgr', 'xterm2', and 'xterm' will work. gVim supports the mouse in the plane but not the map.</dd>
-<dd>Autocommands for *BufEnter*, *BufLeave*, *WinEnter*, and *WinLeave* (<samp>:autocmd BufEnter</samp> to list), can cause slowdown for mouse panning in the plane because a single panning step may switch buffers several times. Consider slimming down those autcommands or using *BufRead* or *BufHidden* instead.</dd>
+<dt>Warnings</dt>
+<dd>The help pager `hotkey``F1` also gives warnings about problematic settings.</dd>
 <dt>Long splits</dt>
 <dd>Vim can't scroll past the end of a split, so you may experience unexpected jumps when working at the end of a particularly long split. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
 <dt>gVim Issues</dt>
