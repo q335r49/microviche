@@ -242,35 +242,36 @@ fun! TXBinit(...)
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n    Restore map and plane and remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+				let msg.="\n-> Press [R] to remove unreadable files and load last plane [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[82]
 			else
-				let msg.="\nRestore last session (map and plane)?\n -> Type ENTER / ESC / S for settings / F1 for help:"
+				let msg.="\nWorking dir: " . plane.settings['working dir']
+				let msg.="\n -> Press [enter] to restore last session [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==4
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be removed from the plane; make sure you are in the right directory!"
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n    Load map and plane AND remove unreadable files?\n -> Type R to confirm / ESC / S for settings / F1 for help: "
+				let msg.="\n -> Press [R] to remove unreadable files and overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[82]
 			else
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n    Load map and plane?\n -> Type L to confirm / ESC / S for settings / F1 for help:"
+				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[76]
 			en
 		elseif type(seed)==1
 			if exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo. (Save by loading last plane and pressing HOTKEY W)"
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n    Load plane?\n-> Type L to confirm overwrite / ESC / S for Settings / F1 for help:"
+				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[76]
 			else
 				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\nUse current pattern '".seed."'?\n -> Type ENTER / ESC / S for Settings / F1 for help:"
+				let msg.="\n -> Press [enter] to load [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[10,13]
 			en
 		else
