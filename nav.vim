@@ -1095,8 +1095,8 @@ let TXBkyCmd.S=
 			\let t:txb.size[w:txbi]=settings_values[14]\n
 			\let t:txb.exe[w:txbi]=settings_values[15]\n
 			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
-				\let t:txb_name[w:txbi]=sp__newfname[0]\n
-				\let t:txb.name[w:txbi]=sp__newfname[1]\n
+				\let t:txb_name[w:txbi]=s:sp__newfname[0]\n
+				\let t:txb.name[w:txbi]=s:sp__newfname[1]\n
 				\exe 'e' t:txb_name[w:txbi]\n
 			\en\n
 		\en\n
