@@ -1139,7 +1139,11 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
-				echo a:keys[i] (vals[i] isnot '##label##'? ': '.vals[i] : '')
+				if vals[i] isnot '##label##'
+					echo a:keys[i] ':' vals[i]
+				else
+					echo a:keys[i]
+				en
 			elseif i<len
 				if vals[i] isnot '##label##'
 					echohl NONE
