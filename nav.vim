@@ -1552,7 +1552,7 @@ fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:kc__continue=0|let s:kc__msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc__continue
 		let t_r=line('.')/t:mapL
-		echon s:gridnames[w:txbi] t_r ' ' empty(s:kc__msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc__msg
+		echon '[' s:gridnames[w:txbi] t_r '] ' empty(s:kc__msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc__msg
 		let s:kc__msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc__msg)
