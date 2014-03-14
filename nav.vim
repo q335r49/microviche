@@ -1115,8 +1115,7 @@ let TXBkyCmd.S=
 		\let s:kc_msg='Cancelled'\n
 	\en"
 
-let s:sp_cursor=0
-let s:sp_offset=0
+let s:sp_pos=[0,0]
 fun! s:settingsPager(keys,vals,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
@@ -1124,9 +1123,9 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let vals=deepcopy(a:vals)
 	let len=len(a:keys)
 	let [&more,&ch]=[0,len<8? len+3 : 11] 
-	let cursor=s:sp_cursor<0? 0 : s:sp_cursor>=len? len-1 : s:sp_cursor
+	let cursor=s:sp_pos[0]<0? 0 : s:sp_pos[0]>=len? len-1 : s:sp_pos[0]
 	let height=&ch>3? &ch-3 : 1
-	let offset=s:sp_offset<0? 0 : s:sp_offset>len-height? (len-height>=0? len-height : 0) : s:sp_offset
+	let offset=s:sp_pos[1]<0? 0 : s:sp_pos[1]>len-height? (len-height>=0? len-height : 0) : s:sp_pos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
@@ -1134,35 +1133,28 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
-					if vals[i] isnot '##label##'
-						echo a:keys[i] ':' vals[i]
-					else
-						echo a:keys[i]
-					en
-				echohl None
+				echo a:keys[i] (vals[i] isnot '##label##'? ': '.vals[i] : '')
 			elseif i<len
 				if vals[i] isnot '##label##'
+					echohl NONE
 					echo a:keys[i] ':' vals[i]
 				else
 					echohl Title
-						echo a:keys[i]
-					echohl NONE
+					echo a:keys[i]
 				en
 			en
 		endfor
 		if !empty(smsg)
 			echohl WarningMsg
-				echo smsg
-			echohl NONE
+			echo smsg
 		else
 			echohl MoreMsg
 			echo get(a:errorcheck,a:keys[cursor],'')[2]
-			echohl NONE
 		en
 		let smsg=''
 		let input=''
 		let c=getchar()
-		exe get(s:settingscom,c,'')
+		exe get(s:sp_exe,c,'')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 		if !empty(input)
@@ -1171,12 +1163,12 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	endwhile
 	let [&more,&ch]=settings
 	redr
-	let s:sp_cursor=cursor
-	let s:sp_offset=offset
+	let s:sp_pos=[cursor,offset]
+	echohl NONE
 	return exitcode
 endfun
-let s:settingscom={}
-let s:settingscom.68=
+let s:sp_exe={}
+let s:sp_exe.68=
 	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 	\if confirm==?'y'\n
 		\for k in [1,3,4,5,6,7,8,9,10,11]\n
@@ -1186,12 +1178,12 @@ let s:settingscom.68=
 			\let vals[k]=prevVal[k]\n
 		\endfor\n
 	\en"
-let s:settingscom.113="let continue=0|let exitcode=0"
-let s:settingscom.106='let cursor+=1'
-let s:settingscom.107='let cursor-=1'
-let s:settingscom.103='let cursor=0'
-let s:settingscom.71='let cursor=len-1'
-let s:settingscom.99=
+let s:sp_exe.113="let continue=0|let exitcode=0"
+let s:sp_exe.106='let cursor+=1'
+let s:sp_exe.107='let cursor-=1'
+let s:sp_exe.103='let cursor=0'
+let s:sp_exe.71='let cursor=len-1'
+let s:sp_exe.99=
 	\"if a:keys[cursor]==?'current file'\n
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
@@ -1203,13 +1195,13 @@ let s:settingscom.99=
 	\elseif vals[cursor] isnot '##label##'\n
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\en\n"
-let s:settingscom.83=
+let s:sp_exe.83=
 	\"for i in range(len)\n
 		\let a:vals[i]=vals[i]\n
 	\endfor\n
 	\let continue=0\n
 	\let exitcode=1"
-let s:settingscom.27=s:settingscom.113
+let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
 let s:ErrorCheck['working dir']=['~',
