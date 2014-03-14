@@ -309,6 +309,8 @@ fun! TXBinit(...)
 		let t:aniStepV=t:txb.settings['kbd y pan speed']
 		let t:mouseAcc=t:txb.settings['mouse pan speed']
 		let t:mapL=t:txb.settings['lines per map grid']
+		let t:mBlockH=t:txb.settings['map cell height']
+		let t:mBlockW=t:txb.settings['map cell width']
 		let t:txb_wd=t:txb.settings['working dir']
 		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
@@ -852,8 +854,6 @@ endfun
 
 let TXBkyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mapL)'
 fun! s:navMap(array,c_ini,r_ini)
-	let t:mBlockH=get(t:txb.settings,'map cell height',2)
-	let t:mBlockW=get(t:txb.settings,'map cell width',5)
 	let s:ms_num='01'
     let s:ms_posmes=(line('.')%t:mapL? line('.')%t:mapL.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
 	let s:ms_initbk=[a:r_ini,a:c_ini]
