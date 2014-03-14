@@ -413,7 +413,7 @@ endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! <SID>initDragDefault()
-	if exists('t:txb')
+	if exists('w:txbi')
 		call s:saveCursPos()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
@@ -428,7 +428,7 @@ fun! <SID>initDragDefault()
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
 					exe "norm! \<leftmouse>"
-					if !exists('t:txb')
+					if !exists('w:txbi')
 						return ''
 					en
 					let [b0,wrap]=[winbufnr(0),&wrap]
@@ -504,11 +504,11 @@ let TXBmsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
-		if exists("t:txb")
+		if exists("w:txbi")
 			let t_r=line('.')/t:mapL
 			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
-	elseif !exists('t:txb')
+	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
 		if &wrap && v:mouse_col%winwidth(0)==1
 			exe "norm! \<leftmouse>"
@@ -537,7 +537,7 @@ fun! <SID>doDragSGR()
 		if exists('t:txb')
 			if k[1:]==[1,1]
 				call TXBdoCmd('o')
-			else
+			elseif exists('w:txbi')
 				let t_r=line('.')/t:mapL
 				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 			en
@@ -560,11 +560,11 @@ let TXBmsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
-		if exists("t:txb")
+		if exists("w:txbi")
 			let t_r=line('.')/t:mapL
 			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
-	elseif !exists('t:txb')
+	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
 		if &wrap && v:mouse_col%winwidth(0)==1
 			exe "norm! \<leftmouse>"
@@ -590,7 +590,7 @@ fun! <SID>doDragXterm2()
 		if exists('t:txb')
 			if k[1:]==[33,33]
 				call TXBdoCmd('o')
-			else
+			elseif exists('w:txbi')
 				let t_r=line('.')/t:mapL
 				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 			en
