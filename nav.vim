@@ -1569,7 +1569,9 @@ let TXBkyCmd["\e"]=TXBkyCmd.q
 
 let TXBkyCmd.D=
 	\"redr\n
-	\if input('Really delete current column (y/n)? ')==?'y'\n
+	\if t:txb_len==1\n
+		\let s:kc__msg='Cannot delete last split!'\n
+	\elseif input('Really delete current column (y/n)? ')==?'y'\n
 		\let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 		\if t_index!=-1\n
 			\call remove(t:txb.name,t_index)\n
@@ -1581,6 +1583,7 @@ let TXBkyCmd.D=
 		\winc W\n
 		\call s:saveCursPos()\n
 		\call s:redraw()\n
+		\let s:kc__msg='(Split deleted)'\n
 	\en\n
 	\let s:kc__continue=0\n
 	\call s:updateCursPos()" 
