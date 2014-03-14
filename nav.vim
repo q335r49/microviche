@@ -1114,37 +1114,37 @@ let TXBkyCmd.S=
 	\else\n
 		\let s:kc__msg='Cancelled'\n
 	\en"
+
 let s:sp__cursor=0
 let s:sp__offset=0
 fun! s:settingsPager(keys,vals,errorcheck)
 	let settings=[&more,&ch]
 	let continue=1
 	let smsg=''
-	let keys=a:keys
 	let vals=deepcopy(a:vals)
-	let [&more,&ch]=[0,len(keys)<8? len(keys)+3 : 11] 
-	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(keys)? len(keys)-1 : s:sp__cursor
+	let [&more,&ch]=[0,len(a:keys)<8? len(a:keys)+3 : 11] 
+	let cursor=s:sp__cursor<0? 0 : s:sp__cursor>=len(a:keys)? len(a:keys)-1 : s:sp__cursor
 	let height=&ch>3? &ch-3 : 1
-	let offset=s:sp__offset<0? 0 : s:sp__offset>len(keys)-height? (len(keys)-height>=0? len(keys)-height : 0) : s:sp__offset
+	let offset=s:sp__offset<0? 0 : s:sp__offset>len(a:keys)-height? (len(a:keys)-height>=0? len(a:keys)-height : 0) : s:sp__offset
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
-		echo '== j/k:up/down [c]hange [S]ave [Q]uit [D]efaults =='
+		echo '== j/k:up/down g/G:top/bottom [c]hange [S]ave [Q]uit [D]efaults =='
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
 					if vals[i] isnot '##label##'
-						echo keys[i] ':' vals[i]
+						echo a:keys[i] ':' vals[i]
 					else
-						echo keys[i]
+						echo a:keys[i]
 					en
 				echohl None
-			elseif i<len(keys)
+			elseif i<len(a:keys)
 				if vals[i] isnot '##label##'
-					echo keys[i] ':' vals[i]
+					echo a:keys[i] ':' vals[i]
 				else
 					echohl Title
-						echo keys[i]
+						echo a:keys[i]
 					echohl NONE
 				en
 			en
@@ -1155,17 +1155,17 @@ fun! s:settingsPager(keys,vals,errorcheck)
 			echohl NONE
 		else
 			echohl MoreMsg
-			echo get(a:errorcheck,keys[cursor],'')[2]
+			echo get(a:errorcheck,a:keys[cursor],'')[2]
 			echohl NONE
 		en
 		let smsg=''
 		let input=''
 		let c=getchar()
 		exe get(s:settingscom,c,'')
-		let cursor=cursor<0? 0 : cursor>=len(keys)? len(keys)-1 : cursor
+		let cursor=cursor<0? 0 : cursor>=len(a:keys)? len(a:keys)-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 		if !empty(input)
-			exe get(a:errorcheck,keys[cursor],[0,'let vals[cursor]=input'])[1]
+			exe get(a:errorcheck,a:keys[cursor],[0,'let vals[cursor]=input'])[1]
 		en
 	endwhile
 	let [&more,&ch]=settings
@@ -1179,7 +1179,7 @@ let s:settingscom.68=
 	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 	\if confirm==?'y'\n
 		\for k in [1,3,4,5,6,7,8,9,10,11]\n
-			\let vals[k]=get(a:errorcheck,keys[k],[vals[k]])[0]\n
+			\let vals[k]=get(a:errorcheck,a:keys[k],[vals[k]])[0]\n
 		\endfor\n
 		\for k in [12,14,15,16]\n
 			\let vals[k]=prevVal[k]\n
@@ -1188,20 +1188,22 @@ let s:settingscom.68=
 let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
+let s:settingscom.103='let cursor=0'
+let s:settingscom.71='let cursor=len(a:keys)-1'
 let s:settingscom.99=
-	\"if keys[cursor]==?'current file'\n
+	\"if a:keys[cursor]==?'current file'\n
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
 		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
 		\let s:sp__newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 		\exe 'cd' fnameescape(prevwd)\n
-	\elseif keys[cursor]==?'working dir'\n
+	\elseif a:keys[cursor]==?'working dir'\n
 		\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
 	\elseif vals[cursor] isnot '##label##'\n
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\en\n"
 let s:settingscom.83=
-	\"for i in range(len(keys))\n
+	\"for i in range(len(a:keys))\n
 		\let a:vals[i]=vals[i]\n
 	\endfor\n
 	\let continue=0\n
