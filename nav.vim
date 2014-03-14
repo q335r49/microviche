@@ -366,7 +366,7 @@ let TXBkyCmd["\<c-l>"]=
 \en\n
 \let s:kc_continue=0\n
 \let s:kc_msg='(Anchor set)'"
-let TXBkyCmd["\<c-a>"]="let s:kc_msg=s:anchor(1)|let s:kc_continue=0"
+let TXBkyCmd["\<c-a>"]="windo let s:kc_msg.=s:anchor(1)|let s:kc_continue=0"
 fun! s:anchor(interactive)
 	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
 	1
@@ -384,7 +384,7 @@ fun! s:anchor(interactive)
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
 					let &cul=cul
-					return "ERROR: Not enough blank lines to restore current marker."
+					return "\nERROR: Not enough blank lines to restore current marker."
 				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -404,8 +404,7 @@ fun! s:anchor(interactive)
 			if mark<line && mark>=0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
-					echoerr "Not enough blank lines to restore current marker!"
-					return 1
+					return "\nERROR: Not enough blank lines to restore current marker."
 				else
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
@@ -416,7 +415,7 @@ fun! s:anchor(interactive)
 		endwhile
 	en
 	exe restoreView
-	return "Realign complete: ".expand('%')
+	return "\nRealign complete: ".expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
