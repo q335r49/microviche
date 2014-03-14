@@ -359,7 +359,7 @@ fun! TXBinit(...)
 endfun
 
 let TXBkyCmd["\<c-l>"]=
-\"if getline('.')[:3]!==#'txb:'\n
+\"if getline('.')[:3]!=#'txb:'\n
 	\exe 'norm! 0itxb:'.line('.').' '\n
 \else\n
 	\exe 'norm! 0cEtxb:'.line('.').' '\n
