@@ -132,9 +132,9 @@ let TXBkyCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:txb_wd)\n
 	\let s:kc__continue=0\n
-	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings[''default file name'']') && type(t:txb.settings['default file name'])<=1? t:txb.settings['default file name'] : '','file')\n
+	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
 	\if !empty(input)\n
-		\let t:txb.settings['default file name']=input\n
+		\let t:txb.settings.writefile=input\n
 		\let error=s:writePlaneToFile(t:txb,input)\n
 		\if (error/10)\n
 			\let s:kc__msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
@@ -312,7 +312,7 @@ fun! TXBinit(...)
 		let t:txb_wd=t:txb.settings['working dir']
 		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["working dir","default file name","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp() 
