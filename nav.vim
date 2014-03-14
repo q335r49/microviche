@@ -1598,7 +1598,9 @@ let TXBkyCmd.A=
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
 		\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if empty(file)\n
+		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file) || fnamemodify(t:txb_name[((w:txbi+1)%t:txb_len)],':p')==#fnamemodify(file)) && 'y'!=?input('It is generally not a good idea to have ADJACENT duplicate splits: a bug in Vim will cause drawing problems during panning if the buffer is modified. Are you sure you want to append an adjascent duplicate split? (y/n)')\n
+			\let s:kc_msg='adjascent duplicate file not appended'\n
+		\elseif empty(file)\n
 			\let s:kc_msg='File name is empty'\n
 		\else\n
 			\let s:kc_msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
