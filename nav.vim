@@ -1122,10 +1122,11 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let continue=1
 	let smsg=''
 	let vals=deepcopy(a:vals)
-	let [&more,&ch]=[0,len(a:keys)<8? len(a:keys)+3 : 11] 
-	let cursor=s:sp_cursor<0? 0 : s:sp_cursor>=len(a:keys)? len(a:keys)-1 : s:sp_cursor
+	let len=len(a:keys)
+	let [&more,&ch]=[0,len<8? len+3 : 11] 
+	let cursor=s:sp_cursor<0? 0 : s:sp_cursor>=len? len-1 : s:sp_cursor
 	let height=&ch>3? &ch-3 : 1
-	let offset=s:sp_offset<0? 0 : s:sp_offset>len(a:keys)-height? (len(a:keys)-height>=0? len(a:keys)-height : 0) : s:sp_offset
+	let offset=s:sp_offset<0? 0 : s:sp_offset>len-height? (len-height>=0? len-height : 0) : s:sp_offset
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	while continue
 		redr!
@@ -1139,7 +1140,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 						echo a:keys[i]
 					en
 				echohl None
-			elseif i<len(a:keys)
+			elseif i<len
 				if vals[i] isnot '##label##'
 					echo a:keys[i] ':' vals[i]
 				else
@@ -1162,7 +1163,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		let input=''
 		let c=getchar()
 		exe get(s:settingscom,c,'')
-		let cursor=cursor<0? 0 : cursor>=len(a:keys)? len(a:keys)-1 : cursor
+		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 		if !empty(input)
 			exe get(a:errorcheck,a:keys[cursor],[0,'let vals[cursor]=input'])[1]
@@ -1189,7 +1190,7 @@ let s:settingscom.113="let continue=0|let exitcode=0"
 let s:settingscom.106='let cursor+=1'
 let s:settingscom.107='let cursor-=1'
 let s:settingscom.103='let cursor=0'
-let s:settingscom.71='let cursor=len(a:keys)-1'
+let s:settingscom.71='let cursor=len-1'
 let s:settingscom.99=
 	\"if a:keys[cursor]==?'current file'\n
 		\let prevwd=getcwd()\n
@@ -1203,7 +1204,7 @@ let s:settingscom.99=
 		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
 	\en\n"
 let s:settingscom.83=
-	\"for i in range(len(a:keys))\n
+	\"for i in range(len)\n
 		\let a:vals[i]=vals[i]\n
 	\endfor\n
 	\let continue=0\n
