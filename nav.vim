@@ -61,8 +61,8 @@ fun! s:printHelp()
 	redir END
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
-	\.(len(split(laggyAu,"\n"))>4? "\n** WARNING ** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n** WARNING ** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n** WARNING ** POSSIBLE SLOW TTYMOUSE setting detected\nIn some cases, 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
+	\.(len(split(laggyAu,"\n"))>4? "\n**WARNING** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n**WARNING** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n**WARNING** POSSIBLE SLOW TTYMOUSE setting detected\nIn some cases, 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
 	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
 	\\nStart by navigating to a WORKING DIRECTORY. Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
 	\\nYou can now use the MOUSE to pan, or press HOTKEY followed by:
@@ -137,7 +137,7 @@ let TXBkyCmd.W=
 		\let t:txb.settings.writefile=input\n
 		\let error=s:writePlaneToFile(t:txb,input)\n
 		\if (error/10)\n
-			\let s:kc_msg.='** Warning **\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
+			\let s:kc_msg.='**Warning**\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
 		\en\n
 		\if error%10==-1\n
 			\let s:kc_msg.='** ERROR **\n    File not writable'\n
@@ -252,15 +252,21 @@ fun! TXBinit(...)
 		elseif type(seed)==4
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
+				if exists('g:TXB') && type(g:TXB)==4
+					let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
+				en
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [R] to remove unreadable files and overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[82]
-			else
+			elseif exists('g:TXB') && type(g:TXB)==4
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[76]
+			else
+				let msg.="\nWorking dir: " . plane.settings['working dir']
+				let msg.="\n -> Press [enter] to restore last session [S] for settings [F1] for help [esc] to cancel"
+				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==1
 			if exists('g:TXB') && type(g:TXB)==4
@@ -1252,7 +1258,11 @@ let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\if type(input)==3\n
 		\let inList=input\n
 	\elseif type(input)==1\n
-		\let inList=eval(input)\n
+		\try\n
+			\let inList=eval(input)\n
+		\catch\n
+			\let inList=''\n
+		\endtry\n
 	\else\n
 		\let inList=''\n
 	\en\n
