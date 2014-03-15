@@ -1,6 +1,6 @@
 "Hosted at https://github.com/q335r49/textabyss
 
-if &cp|se nocompatible|en              "[Vital] Enable vim features, sets ttymouse
+if &cp|se nocompatible|en              "[Vital] Enable vim features
 se noequalalways                       "[Vital] Needed for correct panning
 se winwidth=1                          "[Vital] Needed for correct panning
 se winminwidth=0                       "[Vital] Needed For correct panning
@@ -59,10 +59,11 @@ fun! s:printHelp()
 		silent au WinEnter
 		silent au WinLeave
 	redir END
+	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
 	let WarningsAndSuggestions=(v:version<=703? "\n> Warning: Vim not up to date - This script runs best on Vim >= 7.4." : '')
 	\.(v:version<=703 && !has('patch30')? "\n> Warning: Viminfo not writable - Vim < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "> Warning: Automatic redraw on resize disabled for gVim because of the unpredictability of resizing in gVim. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : &ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '')
+	\.(has('gui_running')? "\n> Warning: Automatic redraw on resize disabled - gVim resizing occurs unpredictably. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : ttymouseWorks? (&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '') : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
@@ -96,21 +97,21 @@ fun! s:printHelp()
 	\\n    Z                         Adjust map block size
 	\\n    T                         Toggle color
 	\\n    q                         Quit"
-	\.(!has("gui_running")? "\n[3] doubleclick               Go to block
+	\.(ttymouseWorks? "\n[3] doubleclick               Go to block
 	\\n    drag                      Pan
 	\\n    click topleft corner      Quit
 	\\n    drag to topleft corner    (in the plane) Show map
-	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) " : "\n[Mouse is unsupported in gVim]
-	\\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.
-	\\n(2) ")."You can press <tab> to autocomplete from currently defined highlights.
+	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'.\n(2)"
+	\:"\n    [Mouse in map mode is unsupported in gVim or Windows]\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.\n(2)")
+	\." You can press <tab> to autocomplete from currently defined highlights.
 	\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
 	\\n    j k l                     Cursor up / down / right
 	\\n    s                         Shift view left 1 split
 	\\n    r R                       Shift view down / up 1 row
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
-	\\n    W                         Virtual width - By default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered.".(!has("gui_running")? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
+	\\n    W                         Virtual width - By default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
+	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\nTips:\n* Try looking through the file you [W]rote to file -- you can change lots of settings at once that way.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
 	\\n* When working at the end of a LONG SPLIT you may experience unexpected jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
