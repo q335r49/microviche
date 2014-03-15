@@ -974,7 +974,10 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 		\let s:mp_msg=' Change aborted (press ''x'' to clear)'\n
 	\en\n",
 \"g":'let s:mp_continue=2',
-\"Z":'let t_in=[input(s:disp_str."\nBlock width (1-10): ",t:mp_clW),input("\nBlock height (1-10): ",t:mp_clH)]|let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW|let t:mp_clH=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clH|let [t:txb.settings["map cell height"],t:txb.settings["map cell width"],s:mp_redr,s:mp_rows,s:mp_cols]=[t:mp_clH,t:mp_clW,1,(&ch-1)/t:mp_clH,(&columns-1)/t:mp_clW]',
+\"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
+	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
+	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
+	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr,s:mp_rows,s:mp_cols]=[t:mp_clH,t:mp_clW,1,(&ch-1)/t:mp_clH,(&columns-1)/t:mp_clW]",
 \"I":'if s:mp_c<len(s:mp_array)|call insert(s:mp_array,[],s:mp_c)|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." inserted"|en',
 \"D":'if s:mp_c<len(s:mp_array) && input(s:disp_str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:mp_array,s:mp_c)|let s:last_yanked_is_column=1|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." deleted"|en',
 \"O":'let s:copied_column=s:mp_c<len(s:mp_array)? deepcopy(s:mp_array[s:mp_c]) : []|let s:mp_msg=" Col ".(s:mp_c)." Obtained"|let s:last_yanked_is_column=1'}
