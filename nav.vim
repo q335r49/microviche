@@ -60,10 +60,14 @@ fun! s:printHelp()
 		silent au WinLeave
 	redir END
 	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
-	let WarningsAndSuggestions=(v:version<=703? "\n> Warning: Vim not up to date - This script runs best on Vim >= 7.4." : '')
-	\.(v:version<=703 && !has('patch30')? "\n> Warning: Viminfo not writable - Vim < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with [hotkey] W." : '')
+	let WarningsAndSuggestions=
+	\ (v:version<704 || v:version==704 && !has('patch131')? "\n> Warning: Vim < 7.4.131 - A few patches addressing scrollbind issues have since been released." : '')
+	\.(v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind will not sync on mouse panning until you release the mouse button": '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane cannot be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: Automatic redraw on resize disabled - gVim resizing occurs unpredictably. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : ttymouseWorks? (&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '') : '')
+	\.(has('gui_running')? "\n> Warning: Automatic redraw on resize disabled - gVim resizing occurs unpredictably. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : '')
+	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance." : '')
+	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, provides extra features." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
