@@ -1127,9 +1127,10 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let height=&ch>3? &ch-3 : 1
 	let offset=s:sp_pos[1]<0? 0 : s:sp_pos[1]>len-height? (len-height>=0? len-height : 0) : s:sp_pos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
+	echohl MoreMsg
 	while continue
 		redr!
-		echo '== j/k:up/down g/G:top/bottom [c]hange [S]ave [Q]uit [D]efaults =='
+		echo 'Change Settings: [j] up [k] down [g] top [G] bottom [c]hange [S]ave [q]uit [D]efault'
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
@@ -1227,7 +1228,7 @@ let s:ErrorCheck['split width']=[60,
 		\let smsg.='Error: default split width must be > 2'\n
 	\else\n
 		\let vals[cursor]=input\n
-	\en",'default value ([c]hange value and [S]ave for the option to apply to current splits)']
+	\en",'default width for new splits; [c]hange value and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['lines panned by j,k']=[15,
 	\"let input=str2nr(input)\n
 	\if input<=0\n
@@ -1250,7 +1251,7 @@ let s:ErrorCheck['kbd y pan speed']=[2,
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed vertical']
 let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"]
-let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default autoexe on unhide (for newly appended splits; [c]hange value and [S]ave for the option to apply to current splits)']
+let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\"unlet! inList\n
 	\if type(input)==3\n
