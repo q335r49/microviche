@@ -18,10 +18,10 @@ se scrolloff=0                         "ensures correct vertical panning
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
-exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
 if !has("gui_running")
@@ -34,9 +34,9 @@ if !has("gui_running")
 	endfun
 	augroup TXB
 		if v:version > 703 || v:version==703 && has("patch748")
-			au VimResized * if exists('t:txb') | call <SID>centerCursor(screenrow(),screencol()) | en
+			au VimResized * if exists('w:txbi') | call <SID>centerCursor(screenrow(),screencol()) | en
 		else
-			au VimResized * if exists('t:txb') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
+			au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 		en
 	augroup END
 	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
@@ -294,7 +294,7 @@ fun! TXBinit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("t:txb")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
 			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
