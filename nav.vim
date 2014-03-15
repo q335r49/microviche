@@ -59,12 +59,15 @@ fun! s:printHelp()
 		silent au WinEnter
 		silent au WinLeave
 	redir END
+	let WarningsAndSuggestions=(v:version<=703? "\n> Warning: Vim not up to date - This script runs best on Vim >= 7.4. The mouse vertical panning animation, among other things, doesn't work for 7.3 (fixes incoming)" : '')
+	\.(v:version<=703 && !has('patch30')? "\n> Warning: Viminfo not writable - Vim < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W." : '')
+	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
+	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
-	\.(len(split(laggyAu,"\n"))>4? "\n**WARNING** POSSIBLE MOUSE LAG due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning.\nRecommended: Slimming down autocommands (':au Bufenter' to list); using 'BufRead' or 'BufHidden'\n" : "")
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n**WARNING** PANNING DISABLED because ttymouse is 'xterm'.\nRecommended: ':set ttymouse=xterm2' or 'sgr'.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n**WARNING** POSSIBLE SLOW TTYMOUSE setting detected\nIn some cases, 'set ttymouse=xterm2' or 'sgr' may give better performance.\n" : "")
+	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
-	\\nStart by navigating to a WORKING DIRECTORY. Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
+	\\nStarting up:\nNavigate to the WORKING DIRECTORY. Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
 	\\nYou can now use the MOUSE to pan, or press HOTKEY followed by:
 	\\n[1] h j k l y u b n           Pan cardinally & diagonally
 	\\n    r                         Redraw
@@ -155,19 +158,6 @@ fun! TXBinit(...)
 	let seed=a:0? a:1 : -99
 	let msg=''
 	if seed is -99
-		if !has("gui_running")
-			if &ttymouse==?"xterm"
-				let msg.="\n**WARNING**\n    ttymouse is set to 'xterm', which doesn't report mouse dragging.\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr'"
-			elseif &ttymouse!=?"xterm2" && &ttymouse!=?"sgr"
-				let msg.="\n**WARNING**\n    Try ':set ttymouse=xterm2' or ':set ttymouse=sgr' for better panning performance"
-			en
-		en
-		if v:version <= 703
-			let msg.="\n**WARNING**\n    Textabyss runs best on Vim version >= 7.4. The mouse vertical panning animation, among other things, doesn't work for 7.3 (fix incoming)."
-			if v:version==703 && !has('patch30')
-				let msg.="\n**WARNING**\n    Vim version < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W."
-			en
-		en
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
 		else
