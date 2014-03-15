@@ -190,23 +190,23 @@ fun! TXBinit(...)
 		en
 	endfor
 	exe 'cd' fnameescape(prevwd)
-	let msg="\n\n ---- ".len(filtered)." unreadable files or directories, ".len(plane.name)." readable files ----".msg
-	if !empty(filtered)
-		let msg="\n\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n").msg
-	en
+	let msg=(empty(plane.name)? '' : "\n ---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n"))
+	\.(empty(filtered)? '' : "\n\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n"))
+	\"\n\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir'] .msg
 	if !empty(plane.name)
-		let msg="\n---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n").msg
-	en
-	if !empty(plane.name)
+		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		if curbufix!=-1
+			let restoremsg=" in CURRENT tab"
+		else
+			let restoremsg=" in NEW tab"
+		en
 		if seed is -99
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n-> Press [R] to remove unreadable files and load last plane [S] for settings [F1] for help [esc] to cancel"
+				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[82]
 			else
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [enter] to restore last session [S] for settings [F1] for help [esc] to cancel"
+				let msg.="\n\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==4
@@ -215,46 +215,34 @@ fun! TXBinit(...)
 				if exists('g:TXB') && type(g:TXB)==4
 					let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				en
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [R] to remove unreadable files and overwrite [S] for settings [F1] for help [esc] to cancel"
+				let msg.="\n\n -> [R]emove unreadable, overwrite, and load ".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[82]
 			elseif exists('g:TXB') && type(g:TXB)==4
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
-				let confirm_keys=[76]
+				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
+				let confirm_keys=[79]
 			else
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [enter] to restore last session [S] for settings [F1] for help [esc] to cancel"
+				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==1
 			if exists('g:TXB') && type(g:TXB)==4
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
-				let confirm_keys=[76]
+				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
+				let confirm_keys=[79]
 			else
-				let msg.="\nWorking dir: " . plane.settings['working dir']
-				let msg.="\n -> Press [enter] to load [S] for settings [F1] for help [esc] to cancel"
+				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
 		else
 			let confirm_keys=[]
-		en
-		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
-		if curbufix!=-1
-			let msg.="\n(Since current buffer is in plane, plane will be loaded in current tab)"
-		else
-			let msg.="\n(Plane will be loaded in a new tab)"
 		en
 		ec msg
 		let c=getchar()
 	elseif !empty(filtered) || type(seed)==4
 		let confirm_keys=[]
 		let msg.="\n(No readable files remain -- make sure working dir is correct)"
-		let msg.="\nWorking dir: " . plane.settings['working dir']
-		let msg.="\n -> Type S for Settings / F1 for help / Any other key to try a file pattern"
+		let msg.="\n\n -> [S] Settings [F1] help [any other key] cancel"
 		ec msg
 		let c=getchar()
 	else
