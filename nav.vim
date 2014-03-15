@@ -59,28 +59,28 @@ fun! s:printHelp()
 		silent au WinEnter
 		silent au WinLeave
 	redir END
-	let WarningsAndSuggestions=(v:version<=703? "\n> Warning: Vim not up to date - This script runs best on Vim >= 7.4. The mouse vertical panning animation, among other things, doesn't work for 7.3 (fixes incoming)" : '')
-	\.(v:version<=703 && !has('patch30')? "\n> Warning: Viminfo not writable - Vim < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with HOTKEY W." : '')
+	let WarningsAndSuggestions=(v:version<=703? "\n> Warning: Vim not up to date - This script runs best on Vim >= 7.4." : '')
+	\.(v:version<=703 && !has('patch30')? "\n> Warning: Viminfo not writable - Vim < 7.3.30; plane and map cannot be saved to the viminfo, but you can write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "" : &ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '')
+	\.(has('gui_running')? "> Warning: Automatic redraw on resize disabled for gVim because of the unpredictability of resizing in gVim. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : &ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance.\n" : (&ttymouse!=?"xterm2" && &ttymouse!=?"sgr")? "\n> Suggestion: Try other ttymouse settings - It is possible that 'set ttymouse=xterm2' or 'sgr' may give better mouse performance." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
-	\."\nCurrent HOTKEY: ".g:TXB_HOTKEY."\n
-	\\nStarting up:\nNavigate to the WORKING DIRECTORY. Press HOTKEY to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
-	\\nYou can now use the MOUSE to pan, or press HOTKEY followed by:
+	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
+	\\nStarting up:\nNavigate to the WORKING DIRECTORY. Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
+	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n           Pan cardinally & diagonally
 	\\n    r                         Redraw
 	\\n    o                         Open map
 	\\n    D A                       Delete / Append split
 	\\n    <f1>                      Show this message
-	\\n[2] S                         Settings (working dir, HOTKEY, etc.)
+	\\n[2] S                         Settings (working dir, [hotkey], etc.)
 	\\n    W                         Write to file
 	\\n    ^X                        Delete hidden buffers
 	\\n[3] ^L ^A                     Insert line anchor / Re-anchor
 	\\n    q <esc>                   Abort
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) If HOTKEY becomes inaccessible, reset via: ':call TXBinit()', press S
+	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough to remove."
 	\."\n\nIn map mode:
 	\\n[1] h j k l y u b n           Move cardinally & diagonally
@@ -243,13 +243,13 @@ fun! TXBinit(...)
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				if exists('g:TXB') && type(g:TXB)==4
-					let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
+					let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				en
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [R] to remove unreadable files and overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[82]
 			elseif exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[76]
@@ -260,7 +260,7 @@ fun! TXBinit(...)
 			en
 		elseif type(seed)==1
 			if exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing HOTKEY W."
+				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				let msg.="\nWorking dir: " . plane.settings['working dir']
 				let msg.="\n -> Press [L] to overwrite [S] for settings [F1] for help [esc] to cancel"
 				let confirm_keys=[76]
@@ -518,7 +518,7 @@ fun! <SID>initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[line('w0'),line('.')]
+		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -574,7 +574,7 @@ fun! <SID>initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:nav_state=[line('w0'),line('.')]
+		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -609,11 +609,20 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]))
-	let s:nav_state[0]=max([1,a:dy>0? s:nav_state[0]-get(t:msSp,a:dy,t:msSp[-1]) : s:nav_state[0]+get(t:msSp,-a:dy,t:msSp[-1])])
-	exe 'norm! '.s:nav_state[0].'zt'
-	let s:nav_state[1]=s:nav_state[1]<line('w0')? line('w0') : line('w$')<s:nav_state[1]? line('w$') : s:nav_state[1]
-	exe s:nav_state[1]
-	echon s:gridnames[w:txbi] s:nav_state[1]/t:mp_L ' ' get(get(t:txb.map,w:txbi,[]),s:nav_state[1]/t:mp_L,'')[:&columns-9]
+	if a:dy>0
+		let spd=a:dy<len(t:msSp)? t:msSp[a:dy] : t:msSp[-1]
+		let s:line0=s:line0>spd? s:line0-spd : 1
+	else
+		let s:line0=s:line0+get(t:msSp,-a:dy,t:msSp[-1])
+	en
+	let dif=line('w0')-s:line0
+	if dif>0
+		exe 'norm! '.dif."\<c-y>"
+	elseif dif<0
+		exe 'norm! '.-dif."\<c-e>"
+	en
+	let t_r=line('.')/t:mp_L
+	echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 endfun
 
 fun! s:getGridNames(len)
@@ -1609,7 +1618,7 @@ let TXBkyCmd.A=
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
-		\let s:kc_msg='Current file not in plane! HOTKEY r redraw before appending.'\n
+		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
 	\let s:kc_continue=0|call s:updateCursPos()" 
 

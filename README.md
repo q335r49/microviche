@@ -72,7 +72,7 @@ Key | Action | | Key | Action
 <dt>Save File</dt>
 <dd>If you are having issues, or just curious, try looking through the file that you `hotkey``W`rote to file. It's an easy way modify settings.</dd>
 <dt>Warnings</dt>
-<dd>The help pager `hotkey``F1` also gives warnings about problematic settings.</dd>
+<dd>Accessing help `hotkey``F1` also gives warnings about problems specific to your vim setup.</dd>
 <dt>Long splits</dt>
 <dd>Vim can't scroll past the end of a split, so you may experience unexpected jumps when working at the end of a particularly long split. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.</dd>
 <dt>gVim Issues</dt>
