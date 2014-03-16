@@ -59,11 +59,18 @@ Syntax | Action | | Syntax | Action
 </dd>
 
 <dt>Anchoring Lines</dt>
-<dd>Line anchors address the problem that insertions at a higher lines misalign lower lines. An anchor is a line beginning with *txb:line number*, eg, <samp>&nbsp;txb:455&nbsp;</samp>. Re-anchoring starts at the top of the split and tries to restore all displaced anchors by removing or inserting immediately preceding blank lines. If there aren't enough blank lines to remove the process aborts with an error message. The following commands manipulate anchors:
-
+The following commands manupulate in-file labels:
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`F10``Ctrl-L` | *insert anchor* | | `F10``Ctrl-A` | *re-anchor split*
+`F10``Ctrl-L` | *insert label* | | `F10``Ctrl-A` | *realign visible area*
+Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered labels. Re`A`lign (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it and (2) changes the map cell to <samp>label#highlight#position</samp>.
+Examples | Action
+--- | ---
+<samp>txb:345 Blah blah</samp> | Move to 345
+<samp>txb:345: Blah blah</samp> | Move to 345, label map 'Blah blah'
+<samp>txb: Blah#Title#CM</samp> | Label 'Blah', highlight 'Title', position 'CM'
+<samp>txb: Blah##CM</samp> | Label 'Blah', position 'CM'
+
 </dd>
 <dt>Toggling Scrollbind</dt>
 <dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>

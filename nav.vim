@@ -72,53 +72,63 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\nStarting up:\nNavigate to the WORKING DIRECTORY. Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others. Note that you only need to navigate to a plane's working directory when you first create it.\n
+	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
-	\\n[1] h j k l y u b n           Pan cardinally & diagonally
-	\\n    r                         Redraw
-	\\n    o                         Open map
-	\\n    D A                       Delete / Append split
-	\\n    <f1>                      Show this message
-	\\n[2] S                         Settings (working dir, [hotkey], etc.)
-	\\n    W                         Write to file
-	\\n    ^X                        Delete hidden buffers
-	\\n[3] ^L ^A                     Insert line anchor / Re-anchor
-	\\n    q <esc>                   Abort
+	\\n[1] h j k l y u b n      Pan cardinally & diagonally
+	\\n    r                    Redraw
+	\\n    o                    Open map
+	\\n    D A                  Delete / Append split
+	\\n    <f1>                 Show this message
+	\\n[2] S                    Settings (working dir, [hotkey], etc.)
+	\\n    W                    Write to file
+	\\n    ^X                   Delete hidden buffers
+	\\n[3] ^L ^A                Insert label / Re-Align labels
+	\\n    q <esc>              Abort
+	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
-	\\n(3) Insertions at the top of a split misalign everything below. An anchor is a line beginning with 'txb:current line', eg, 'txb:455'. Re-anchor tries to restore displaced anchors in a split by removing or inserting *immediately preceding* blank lines, aborting if there aren't enough to remove."
-	\."\n\nIn map mode:
-	\\n[1] h j k l y u b n           Move cardinally & diagonally
-	\\n    0 $                       Beginning / end of line
-	\\n    H M L                     High / Middle / Low of screen
-	\\n    x                         Clear and obtain cell
-	\\n    o O                       Obtain cell / Obtain column
-	\\n    p P                       Put obtained after / before
-	\\n[2] c                         Change label, color, position
-	\\n    .                         (in plane) execute label position
-	\\n    g <cr>                    Go to block and exit map
-	\\n    I D                       Insert / Delete and obtain column
-	\\n    Z                         Adjust map block size
-	\\n    T                         Toggle color
-	\\n    q                         Quit"
-	\.(ttymouseWorks? "\n[3] doubleclick               Go to block
-	\\n    drag                      Pan
-	\\n    click topleft corner      Quit
-	\\n    drag to topleft corner    (in the plane) Show map
+	\\n(3) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. Re[^A]lign:
+	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
+	\\n+ changes the map cell to [label#highlight#position] (see MAP MODE (2) below)
+	\\nExamples:
+	\\n    txb:345 Blah blah    Move to 345
+	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
+	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
+	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
+	\\n\n\\CMAP MODE:\n
+	\\n[1] h j k l y u b n      Move cardinally & diagonally
+	\\n    0 $                  Beginning / end of line
+	\\n    H M L                High / Middle / Low of screen
+	\\n    x                    Clear and obtain cell
+	\\n    o O                  Obtain cell / Obtain column
+	\\n    p P                  Put obtained after / before
+	\\n[2] c                    Change label, color, position
+	\\n    .                    (in plane) execute label position
+	\\n    g <cr>               Go to block and exit map
+	\\n    I D                  Insert / Delete and obtain column
+	\\n    Z                    Adjust map block size
+	\\n    T                    Toggle color
+	\\n    q                    Quit"
+	\.(ttymouseWorks? "\n[3] doubleclick          Go to block
+	\\n    drag                 Pan
+	\\n    click NW corner      Quit
+	\\n    drag to NW corner    (in the plane) Show map
+	\\n----------
 	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'.\n(2)"
-	\:"\n    [Mouse in map mode is unsupported in gVim or Windows]\n(1) Movement keys take counts, capped at 99. Eg, 3j will descend 3 rows.\n(2)")
+	\:"\n    [Mouse in map mode is unsupported in gVim or Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'.\n(2)")
 	\." You can press <tab> to autocomplete from currently defined highlights.
-	\\nPositioning commands move the jump from its default position (split at left edge, cursor at the top left corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
+	\\nPositioning commands move the jump from its default position (split at left edge, cursor at NW corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
 	\\n    j k l                     Cursor up / down / right
 	\\n    s                         Shift view left 1 split
 	\\n    r R                       Shift view down / up 1 row
 	\\n    C                         Centered split horizontally (ignore s)
 	\\n    M                         Center cursor vertically (ignore r R)
-	\\n    W                         Virtual width - By default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
+	\\n    W                         Virtual width (see below)
+	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
-	\."\n\nTips:\n* Try looking through the file you [W]rote to file -- you can change lots of settings at once that way.
+	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
-	\\n* When working at the end of a LONG SPLIT you may experience unexpected jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
+	\\n* When working at the end of a LONG SPLIT you may experience jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
 endfun
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
@@ -376,8 +386,11 @@ fun! s:anchor(interactive,automap)
 				elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
 					exe 'norm! '.(mark-line)."O\ej"
 				en
+				let head=4+len(mark)+1
+			else
+				let head=3
 			en
-			if a:automap && L[4+len(mark)+1]==#':'
+			if a:automap && L[head]==#':'
 				let r=line('.')/t:mp_L
 				let c=w:txbi
 				if c>=len(s:mp_array)
@@ -387,10 +400,11 @@ fun! s:anchor(interactive,automap)
 					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
 				en
 				let prevlbl=get(split(s:mp_array[c][r],'#'),0,'')
-				if empty(prevlbl) || prevlbl==#get(split(L[4+len(mark)+3:],'#'),0,'')
-					let s:mp_array[c][r]=L[4+len(mark)+3:]
+				let head+=2
+				if empty(prevlbl) || prevlbl==#get(split(L[head:],'#'),0,'')
+					let s:mp_array[c][r]=L[head:]
 				else
-					let log.="\n".line.': Could not change label; map cell already occupied'
+					let ec "\n".line.': Could not change label; map cell already occupied'
 				en
 			en
 			let line=search('^txb:','W')
@@ -416,8 +430,11 @@ fun! s:anchor(interactive,automap)
 					let log.="\n".line.": Inserted blank lines to restore to: ".mark
 					exe 'norm! '.(mark-line)."O\ej"
 				en
+				let head=4+len(mark)+1
+			else
+				let head=3
 			en
-			if a:automap && L[4+len(mark)+1:]!~'\S'
+			if a:automap && L[head]==#':'
 				let r=line('.')/t:mp_L
 				let c=w:txbi
 				if c>=len(s:mp_array)
@@ -426,10 +443,12 @@ fun! s:anchor(interactive,automap)
 				if r>=len(s:mp_array[c])
 					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
 				en
-				let prevlbl=get(split('#',s:mp_array[c][r]),0,'')
-				if empty(prevlbl) || prevlbl[0]!~'\S'
-					let s:mp_array[c][r]=L[4+len(mark)+1:]
-					let log.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
+				let prevlbl=get(split(s:mp_array[c][r],'#'),0,'')
+				let head+=2
+				if empty(prevlbl) || prevlbl==#get(split(L[head:],'#'),0,'')
+					let s:mp_array[c][r]=L[head:]
+				else
+					let log.="\n".line.': Could not change label; map cell already occupied'
 				en
 			en
 			let line=search('^txb:','W')
