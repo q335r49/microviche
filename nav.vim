@@ -349,9 +349,13 @@ let TXBkyCmd["\<c-l>"]=
 \en\n
 \let s:kc_continue=0\n
 \let s:kc_msg='(Anchor set)'"
-let TXBkyCmd["\<c-a>"]="windo let s:kc_msg.=s:anchor(1)|let s:kc_continue=0"
+
+let TXBkyCmd["\<c-a>"]=
+\"let restoreView='norm! '.winnr().'\<c-w>w'.line('w0').'zt'.line('.').'G'.virtcol('.').'|'\n
+\windo let s:kc_msg.=s:anchor(0)\n
+\let s:kc_continue=0\n
+\exe restoreView"
 fun! s:anchor(interactive)
-	let restoreView='norm! '.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
 	1
 	let line=search('^txb:','W')
 	if a:interactive
@@ -377,28 +381,33 @@ fun! s:anchor(interactive)
 			let line=search('^txb:','W')
 		endwhile
 	  	let &cul=cul
+		return "\nRealign complete: ".expand('%')
 	else
+		let msg=''
 		while line
 			let mark=matchstr(getline('.')[4:],'^\d*')
 			if empty(mark)
 				let line=search('^txb:','W')
+				let msg.="\n".line.": No line specified"
 				continue
 			en
 			if mark<line && mark>=0
 				let insertions=line-mark
 				if prevnonblank(line-1)>=mark
-					return "\nERROR: Not enough blank lines to restore current marker."
+					let msg.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
+					return msg
 				else
+					let msg.="\n".line.": Removed blank lines to restore to: ".mark
 					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
 			elseif mark>line
+				let msg.="\n".line.": Inserted blank lines to restore to: ".mark
 				exe 'norm! '.(mark-line)."O\ej"
 			en
 			let line=search('^txb:','W')
 		endwhile
+		return msg."\nRealign complete: ".expand('%')
 	en
-	exe restoreView
-	return "\nRealign complete: ".expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
