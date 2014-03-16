@@ -361,66 +361,70 @@ let TXBkyCmd["\<c-l>"]=
 \let s:kc_continue=0\n
 \let s:kc_msg='(Anchor set)'"
 
-let TXBkyCmd["\<c-a>"]=
-\"let restoreView='norm! '.winnr().'\<c-w>w'.line('w0').'zt'.line('.').'G'.virtcol('.').'|'\n
-\windo let s:kc_msg.=s:anchor(0,0)\n
-\let s:kc_continue=0\n
-\exe restoreView"
-fun! s:anchor(interactive,automap)
-	1
-	let line=search('^txb:','W')
+let TXBkyCmd["\<c-a>"]="let s:kc_continue=0|call s:anchor()"
+fun! s:anchor()
 	let log=''
-	while line
-		let mark=matchstr(getline('.')[4:],'^\d*')
-		if !empty(mark)
-			if mark<line && mark>0
-				let insertions=line-mark
-				if prevnonblank(line-1)>=mark
-					let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
-					let log.="\nRealign failed! ".w:txbi.":".expand('%')
-					let log.="\nABORTED"
-					return log
-				else
-					let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-				en
-			elseif mark>line
-				let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
-				exe 'norm! '.(mark-line)."O\ej"
-			en
-			let head=4+len(mark)+1
-		else
-			let head=3
+	let warnlog=''
+	let restoreView='norm! '.winnr().'\<c-w>w'.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
+    for i in range(winnr('$'))
+		exe i.'winc w'
+		if !exists('w:txbi')
+        	continue
 		en
-		if a:automap && L[head]==#':'
-			let r=line('.')/t:mp_L
-			let c=w:txbi
-			if c>=len(s:mp_array)
-				call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
+		1
+		let line=search('^txb:','W')
+		while line
+			let mark=matchstr(getline('.')[4:],'^\d*')
+			if !empty(mark)
+				if mark<line && mark>0
+					let insertions=line-mark
+					if prevnonblank(line-1)>=mark
+						let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
+						let log.="\nRealign failed! ".w:txbi.":".expand('%')
+						return log.warnlog."\nABORTED"
+					else
+						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
+						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+					en
+				elseif mark>line
+					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
+					exe 'norm! '.(mark-line)."O\ej"
+				en
+				let head=4+len(mark)+1
+			else
+				let head=3
 			en
-			if r>=len(s:mp_array[c])
-				call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
-			en
-			let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
-			let head+=2
-			let splitLbl=split(L[head:],'#',1)
-			if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
-				if len(splitLbl)<2
-					if len(splitLbl) && !empty(splitLbl[0])
-						let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
+			if L[head]==#':'
+				let r=line('.')/t:mp_L
+				let c=w:txbi
+				if c>=len(s:mp_array)
+					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
+				en
+				if r>=len(s:mp_array[c])
+					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
+				en
+				let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
+				let head+=2
+				let splitLbl=split(L[head:],'#',1)
+				if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
+					if len(splitLbl)<2
+						if len(splitLbl) && !empty(splitLbl[0])
+							let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
+							let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
+						en
+					else
+						let s:mp_array[c][r]=L[head:]
 						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
 					en
 				else
-					let s:mp_array[c][r]=L[head:]
-					let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
+					let warnlog.="\n".line.': Could not change label; map cell already occupied'
 				en
-			else
-				let log.="\n".line.': Could not change label; map cell already occupied'
 			en
-		en
-		let line=search('^txb:','W')
-	endwhile
-	return log."\nRealign complete: ".w:txbi.":"expand('%')
+			let line=search('^txb:','W')
+		endwhile
+	endfor
+	exe restoreView
+	return log.warnlog."\nSUCCESS: ".w:txbi.":"expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
