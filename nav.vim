@@ -352,31 +352,45 @@ let TXBkyCmd["\<c-l>"]=
 
 let TXBkyCmd["\<c-a>"]=
 \"let restoreView='norm! '.winnr().'\<c-w>w'.line('w0').'zt'.line('.').'G'.virtcol('.').'|'\n
-\windo let s:kc_msg.=s:anchor(0)\n
+\windo let s:kc_msg.=s:anchor(0,0)\n
 \let s:kc_continue=0\n
 \exe restoreView"
-fun! s:anchor(interactive)
+fun! s:anchor(interactive,automap)
 	1
 	let line=search('^txb:','W')
 	if a:interactive
 	   	let [cul,&cul]=[&cul,1]
 		while line
 			redr
-			let mark=matchstr(getline('.')[4:],'^\d*')
-			if empty(mark)
-				let line=search('^txb:','W')
-				continue
-			en
-			if mark<line && mark>0
-				let insertions=line-mark
-				if prevnonblank(line-1)>=mark
-					let &cul=cul
-					return "\nERROR: Not enough blank lines to restore current marker."
-				elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+			let L=getline('.')
+			let mark=matchstr(L[4:],'^\d*')
+			if !empty(mark)
+				if mark<line && mark>0
+					let insertions=line-mark
+					if prevnonblank(line-1)>=mark
+						let &cul=cul
+						return "\nERROR: Not enough blank lines to restore current marker."
+					elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
+						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+					en
+				elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
+					exe 'norm! '.(mark-line)."O\ej"
 				en
-			elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
-				exe 'norm! '.(mark-line)."O\ej"
+			en
+			if a:automap && L[4+len(mark)+1:]!~'\S'
+				let r=line('.')/t:mp_L
+				let c=w:txbi
+				if c>=len(s:mp_array)
+					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
+				en
+				if r>=len(s:mp_array[c])
+					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
+				en
+				let prevlbl=get(split('#',s:mp_array[c][r]),0,'')
+				if empty(prevlbl) || prevlbl[0]!~'\S'
+					let s:mp_array[c][r]=L[4+len(mark)+1:]!~'\S'
+					let msg.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
+				en
 			en
 			let line=search('^txb:','W')
 		endwhile
@@ -386,23 +400,36 @@ fun! s:anchor(interactive)
 		let msg=''
 		while line
 			let mark=matchstr(getline('.')[4:],'^\d*')
-			if empty(mark)
-				let line=search('^txb:','W')
-				let msg.="\n".line.": No line specified"
-				continue
-			en
-			if mark<line && mark>=0
-				let insertions=line-mark
-				if prevnonblank(line-1)>=mark
-					let msg.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
-					return msg
-				else
-					let msg.="\n".line.": Removed blank lines to restore to: ".mark
-					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+			if !empty(mark)
+				if mark<line && mark>0
+					let insertions=line-mark
+					if prevnonblank(line-1)>=mark
+						let msg.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
+						let msg.="\nRealign aborted: ".expand('%')
+						return msg
+					else
+						let msg.="\n".line.": Removed blank lines to restore to: ".mark
+						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
+					en
+				elseif mark>line
+					let msg.="\n".line.": Inserted blank lines to restore to: ".mark
+					exe 'norm! '.(mark-line)."O\ej"
 				en
-			elseif mark>line
-				let msg.="\n".line.": Inserted blank lines to restore to: ".mark
-				exe 'norm! '.(mark-line)."O\ej"
+			en
+			if a:automap && L[4+len(mark)+1:]!~'\S'
+				let r=line('.')/t:mp_L
+				let c=w:txbi
+				if c>=len(s:mp_array)
+					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
+				en
+				if r>=len(s:mp_array[c])
+					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
+				en
+				let prevlbl=get(split('#',s:mp_array[c][r]),0,'')
+				if empty(prevlbl) || prevlbl[0]!~'\S'
+					let s:mp_array[c][r]=L[4+len(mark)+1:]
+					let msg.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
+				en
 			en
 			let line=search('^txb:','W')
 		endwhile
