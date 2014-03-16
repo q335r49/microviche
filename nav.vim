@@ -369,86 +369,58 @@ let TXBkyCmd["\<c-a>"]=
 fun! s:anchor(interactive,automap)
 	1
 	let line=search('^txb:','W')
-	if a:interactive
-	   	let [cul,&cul]=[&cul,1]
-		while line
-			redr
-			let L=getline('.')
-			let mark=matchstr(L[4:],'^\d*')
-			if !empty(mark)
-				if mark<line && mark>0
-					let insertions=line-mark
-					if prevnonblank(line-1)>=mark
-						let &cul=cul
-						return "\nERROR: Not enough blank lines to restore current marker."
-					elseif input('Remove '.insertions.' blank lines here (y/n)?','y')==?'y'
-						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-					en
-				elseif mark>line && input('Insert '.(mark-line).' line here (y/n)?','y')==?'y'
-					exe 'norm! '.(mark-line)."O\ej"
+	let log=''
+	while line
+		let mark=matchstr(getline('.')[4:],'^\d*')
+		if !empty(mark)
+			if mark<line && mark>0
+				let insertions=line-mark
+				if prevnonblank(line-1)>=mark
+					let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
+					let log.="\nRealign failed! ".w:txbi.":".expand('%')
+					let log.="\nABORTED"
+					return log
+				else
+					let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
+					exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 				en
-				let head=4+len(mark)+1
-			else
-				let head=3
+			elseif mark>line
+				let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
+				exe 'norm! '.(mark-line)."O\ej"
 			en
-			if a:automap && L[head]==#':'
-				let r=line('.')/t:mp_L
-				let c=w:txbi
-				if c>=len(s:mp_array)
-					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
-				en
-				if r>=len(s:mp_array[c])
-					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
-				en
-				let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
-				let head+=2
-				let splitLbl=split(L[head:],'#',1)
-				if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
-					if len(splitLbl)<2
-						if len(splitLbl) && !empty(splitLbl[0])
-							let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
-						en
-					else
-						let s:mp_array[c][r]=L[head:]
+			let head=4+len(mark)+1
+		else
+			let head=3
+		en
+		if a:automap && L[head]==#':'
+			let r=line('.')/t:mp_L
+			let c=w:txbi
+			if c>=len(s:mp_array)
+				call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
+			en
+			if r>=len(s:mp_array[c])
+				call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
+			en
+			let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
+			let head+=2
+			let splitLbl=split(L[head:],'#',1)
+			if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
+				if len(splitLbl)<2
+					if len(splitLbl) && !empty(splitLbl[0])
+						let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
+						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
 					en
 				else
-					let ec "\n".line.': Could not change label; map cell already occupied'
+					let s:mp_array[c][r]=L[head:]
+					let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
 				en
-			en
-			let line=search('^txb:','W')
-		endwhile
-	  	let &cul=cul
-		return "\nRealign complete: ".expand('%')
-	else
-		let log=''
-		while line
-			let mark=matchstr(getline('.')[4:],'^\d*')
-			if !empty(mark)
-				if mark<line && mark>0
-					let insertions=line-mark
-					if prevnonblank(line-1)>=mark
-						let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
-						let log.="\nRealign aborted: ".w:txbi.":".expand('%')
-						return log
-					else
-						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
-						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-					en
-				elseif mark>line
-					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
-					exe 'norm! '.(mark-line)."O\ej"
-				en
-				let head=4+len(mark)+1
 			else
-				let head=3
+				let log.="\n".line.': Could not change label; map cell already occupied'
 			en
-
-			"TODO: COPY ABOVE
-
-			let line=search('^txb:','W')
-		endwhile
-		return log."\nRealign complete: ".w:txbi.":"expand('%')
-	en
+		en
+		let line=search('^txb:','W')
+	endwhile
+	return log."\nRealign complete: ".w:txbi.":"expand('%')
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
