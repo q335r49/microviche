@@ -82,14 +82,15 @@ fun! s:printHelp()
 	\\n[2] S                    Settings (working dir, [hotkey], etc.)
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
-	\\n[3] ^L ^A                Insert label / Re-Align labels
+	\\n[3] ^L                   Insert label
+	\\n    ^A                   Automap and realign visible splits
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
-	\\n(3) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. Re[^A]lign:
+	\\n(3) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. [^A]utomap:
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
-	\\n+ changes the map cell to [label#highlight#position] (see MAP MODE (2) below)
+	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
 	\\nExamples:
 	\\n    txb:345 Blah blah    Move to 345
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
@@ -118,12 +119,12 @@ fun! s:printHelp()
 	\:"\n    [Mouse in map mode is unsupported in gVim or Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'.\n(2)")
 	\." You can press <tab> to autocomplete from currently defined highlights.
 	\\nPositioning commands move the jump from its default position (split at left edge, cursor at NW corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
-	\\n    j k l                     Cursor up / down / right
-	\\n    s                         Shift view left 1 split
-	\\n    r R                       Shift view down / up 1 row
-	\\n    C                         Centered split horizontally (ignore s)
-	\\n    M                         Center cursor vertically (ignore r R)
-	\\n    W                         Virtual width (see below)
+	\\n    j k l                Cursor up / down / right
+	\\n    s                    Shift view left 1 split
+	\\n    r R                  Shift view down / up 1 row
+	\\n    C                    Centered split horizontally (ignore s)
+	\\n    M                    Center cursor vertically (ignore r R)
+	\\n    W                    Virtual width (see below)
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
