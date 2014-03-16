@@ -377,7 +377,7 @@ fun! s:anchor(interactive,automap)
 					exe 'norm! '.(mark-line)."O\ej"
 				en
 			en
-			if a:automap && L[4+len(mark)+1:]!~'\S'
+			if a:automap && L[4+len(mark)+1]==#':'
 				let r=line('.')/t:mp_L
 				let c=w:txbi
 				if c>=len(s:mp_array)
@@ -386,10 +386,11 @@ fun! s:anchor(interactive,automap)
 				if r>=len(s:mp_array[c])
 					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
 				en
-				let prevlbl=get(split('#',s:mp_array[c][r]),0,'')
-				if empty(prevlbl) || prevlbl[0]!~'\S'
-					let s:mp_array[c][r]=L[4+len(mark)+1:]!~'\S'
-					let msg.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
+				let prevlbl=get(split(s:mp_array[c][r],'#'),0,'')
+				if empty(prevlbl) || prevlbl==#get(split(L[4+len(mark)+3:],'#'),0,'')
+					let s:mp_array[c][r]=L[4+len(mark)+3:]
+				else
+					let log.="\n".line.': Could not change label; map cell already occupied'
 				en
 			en
 			let line=search('^txb:','W')
@@ -397,22 +398,22 @@ fun! s:anchor(interactive,automap)
 	  	let &cul=cul
 		return "\nRealign complete: ".expand('%')
 	else
-		let msg=''
+		let log=''
 		while line
 			let mark=matchstr(getline('.')[4:],'^\d*')
 			if !empty(mark)
 				if mark<line && mark>0
 					let insertions=line-mark
 					if prevnonblank(line-1)>=mark
-						let msg.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
-						let msg.="\nRealign aborted: ".expand('%')
-						return msg
+						let log.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
+						let log.="\nRealign aborted: ".expand('%')
+						return log
 					else
-						let msg.="\n".line.": Removed blank lines to restore to: ".mark
+						let log.="\n".line.": Removed blank lines to restore to: ".mark
 						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 					en
 				elseif mark>line
-					let msg.="\n".line.": Inserted blank lines to restore to: ".mark
+					let log.="\n".line.": Inserted blank lines to restore to: ".mark
 					exe 'norm! '.(mark-line)."O\ej"
 				en
 			en
@@ -428,12 +429,12 @@ fun! s:anchor(interactive,automap)
 				let prevlbl=get(split('#',s:mp_array[c][r]),0,'')
 				if empty(prevlbl) || prevlbl[0]!~'\S'
 					let s:mp_array[c][r]=L[4+len(mark)+1:]
-					let msg.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
+					let log.="\n".line.': Map label added @ ('.r.','.c.') - '.s:mp_array[c][r]
 				en
 			en
 			let line=search('^txb:','W')
 		endwhile
-		return msg."\nRealign complete: ".expand('%')
+		return log."\nRealign complete: ".expand('%')
 	en
 endfun
 
