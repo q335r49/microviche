@@ -58,18 +58,21 @@ Syntax | Action | | Syntax | Action
 [1] By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 </dd>
 
-<dt>Anchoring Lines</dt>
-The following commands manupulate in-file labels:
+<dt>Automatic Labeling and Realigning</dt>
+Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered in-plane labels. The following commands manupulate these labels:
+
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`F10``Ctrl-L` | *insert label* | | `F10``Ctrl-A` | *realign visible area*
-Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered labels. Re`A`lign (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it and (2) changes the map cell to <samp>label#highlight#position</samp>.
-Examples | Action
+`F10``Ctrl-L` | *insert label* | | `F10``Ctrl-A` | *realign visible splits*
+
+Re`^A`lign (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it, throwing an error message on failure, and (2) changes the map cell to <samp>label#highlight#position</samp> if it is not occupied with a different label already, throwing a warning on failure.
+
+Example | Action
 --- | ---
-<samp>txb:345 Blah blah</samp> | Move to 345
-<samp>txb:345: Blah blah</samp> | Move to 345, label map 'Blah blah'
-<samp>txb: Blah#Title#CM</samp> | Label 'Blah', highlight 'Title', position 'CM'
-<samp>txb: Blah##CM</samp> | Label 'Blah', position 'CM'
+<samp>txb:345 Blah blah</samp> | *move to 345*
+<samp>txb:345: Blah blah</samp> | *move to 345, label map 'Blah blah'*
+<samp>txb: Blah#Title#CM</samp> | *label 'Blah', highlight 'Title', position 'CM'*
+<samp>txb: Blah##CM</samp> | *label 'Blah', position 'CM'*
 
 </dd>
 <dt>Toggling Scrollbind</dt>
