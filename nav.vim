@@ -400,10 +400,17 @@ fun! s:anchor(interactive,automap)
 				if r>=len(s:mp_array[c])
 					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
 				en
-				let prevlbl=get(split(s:mp_array[c][r],'#'),0,'')
+				let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
 				let head+=2
-				if empty(prevlbl) || prevlbl==#get(split(L[head:],'#'),0,'')
-					let s:mp_array[c][r]=L[head:]
+				let splitLbl=split(L[head:],'#',1)
+				if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
+					if len(splitLbl)<2
+						if len(splitLbl) && !empty(splitLbl[0])
+							let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
+						en
+					else
+						let s:mp_array[c][r]=L[head:]
+					en
 				else
 					let ec "\n".line.': Could not change label; map cell already occupied'
 				en
@@ -420,41 +427,27 @@ fun! s:anchor(interactive,automap)
 				if mark<line && mark>0
 					let insertions=line-mark
 					if prevnonblank(line-1)>=mark
-						let log.="\n".line.": ERROR: Not enough blank lines to restore to line ".mark
-						let log.="\nRealign aborted: ".expand('%')
+						let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
+						let log.="\nRealign aborted: ".w:txbi.":".expand('%')
 						return log
 					else
-						let log.="\n".line.": Removed blank lines to restore to: ".mark
+						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
 						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
 					en
 				elseif mark>line
-					let log.="\n".line.": Inserted blank lines to restore to: ".mark
+					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
 					exe 'norm! '.(mark-line)."O\ej"
 				en
 				let head=4+len(mark)+1
 			else
 				let head=3
 			en
-			if a:automap && L[head]==#':'
-				let r=line('.')/t:mp_L
-				let c=w:txbi
-				if c>=len(s:mp_array)
-					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
-				en
-				if r>=len(s:mp_array[c])
-					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
-				en
-				let prevlbl=get(split(s:mp_array[c][r],'#'),0,'')
-				let head+=2
-				if empty(prevlbl) || prevlbl==#get(split(L[head:],'#'),0,'')
-					let s:mp_array[c][r]=L[head:]
-				else
-					let log.="\n".line.': Could not change label; map cell already occupied'
-				en
-			en
+
+			"TODO: COPY ABOVE
+
 			let line=search('^txb:','W')
 		endwhile
-		return log."\nRealign complete: ".expand('%')
+		return log."\nRealign complete: ".w:txbi.":"expand('%')
 	en
 endfun
 
