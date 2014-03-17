@@ -406,18 +406,13 @@ fun! s:anchor()
 				let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
 				let head+=2
 				let splitLbl=split(L[head:],'#',1)
-				if empty(prevlbl) || prevlbl==#get(splitLbl,0,'')
-					if len(splitLbl)<2
-						if len(splitLbl) && !empty(splitLbl[0])
-							let s:mp_array[c][r]=splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM'
-							let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
-						en
-					else
-						let s:mp_array[c][r]=L[head:]
+				if !empty(splitLbl) && !empty(splitLbl[0]) && splitLbl[0]!=prevlbl
+					if empty(prevlbl)
+						let s:mp_array[c][r]=len(splitLbl)<2? splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
 						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
+					else
+						let warnlog.="\n".line.': Could not change label; map cell already occupied'
 					en
-				else
-					let warnlog.="\n".line.': Could not change label; map cell already occupied'
 				en
 			en
 			let line=search('^txb:','W')
