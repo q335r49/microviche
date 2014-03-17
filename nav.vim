@@ -1668,13 +1668,13 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							let warnlog.="\n".w:txbi.":".line.": ERROR: Insufficient preceding blank lines to move label to line ".lref
+							let warnlog.='MVER'."\t".ccol."\t".line."\t".lref."\n"
 						else
-							let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".lref
+							let log.='move'."\t".ccol."\t".line."\t".lref."\n"
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 						en
 					else
-						let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".lref
+						let log.='move'."\t".ccol."\t".line."\t".lref."\n"
 						exe 'norm! '.(lref-line)."O\ej"
 					en
 				en
@@ -1687,14 +1687,14 @@ fun! s:redraw(...)
 					if r>=len(s:mp_array[ccol])
 						call extend(s:mp_array[ccol],repeat([''],r+1-len(s:mp_array[ccol])))
 					en
-					let autolbl=split(L[head:],'#',1)
+					let autolbl=split(L[head :],'#',1)
 					let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
 					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
 						if empty(prevlbl)
 							let s:mp_array[ccol][r]=len(autolbl)<2? autolbl[0].'#'.get(autolbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
-							let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[ccol][r]
+							let log.='labl'."\t".ccol."\t".line."\t".autolbl[0]."\n"
 						else
-							let warnlog="\n".line.': WARNING: Map cell already occupied by different label!'.warnlog
+							let warnlog.='LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl."\n"
 						en
 					en
 				en
@@ -1704,7 +1704,7 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbRedrawLog=log.warnlog
+	let g:TxbReformatLog=log.warnlog
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
@@ -1717,7 +1717,7 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=!a:0? '(redraw complete)' : empty(warnlog)? "(redraw complete; ':ec TxbRedrawLog' to see changes)" : "ERRORS ENCOUNTERED; ':ec TxbRedrawLog' to review."
+	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? 'Reformat complete (no changes)' : empty(warnlog)? ''':ec TxbReformatLog'' to view changes' : 'Reformatting errors! '':ec TxbReformatLog'' to review.'
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
