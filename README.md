@@ -62,15 +62,14 @@ Syntax | Action | | Syntax | Action
 <dt>Reformating</dt>
 <dd>Lines of the following form are considered labels:</dd>
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
-<dd>For every visible split, in addition to `r`edrawing, `R`eformat:
-(1) moves labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines
-(2) remaps the region unless autolabeling conflicts with a preexisting user label. (Automatically generated labels are distinguished from user set labels by a trailing <samp>A</samp> in the position syntax)</dd>
+<dd>`R`eformat, in addition to `r`edrawing, will:  
+(1) move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
+(2) remap the region unless autolabeling conflicts with a preexisting user label. (Automatically generated labels are distinguished from user set labels by a trailing <samp>A</samp> in the position syntax)</dd>
 <dd>Examples:  
   <samp>&nbsp;txb:345 Blah blah&nbsp;</samp> -- *move to 345*  
   <samp>&nbsp;txb:345: Blah blah</samp> -- *move to 345, label map 'Blah blah'*  
   <samp>&nbsp;txb: Blah#Title#CM</samp> -- *label 'Blah', highlight 'Title', position 'CM'*  
   <samp>&nbsp;txb: Blah blah##CM</samp> -- *label 'Blah blah', position 'CM'*
-
 </dd>
 
 </dd>
