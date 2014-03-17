@@ -777,7 +777,7 @@ fun! s:doSyntax(stmt)
 		return
 	en
 	let num=''
-	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0}
+	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0,'A':0}
 	for t in range(len(a:stmt))
 		if a:stmt[t]=~'\d'
 			let num.=a:stmt[t]
@@ -1693,7 +1693,7 @@ fun! s:redraw(...)
 					let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
 					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
 						if empty(prevlbl)
-							let s:mp_array[ccol][r]=len(autolbl)<2? autolbl[0].'#'.get(autolbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
+							let s:mp_array[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.get(autolbl,2,line%t:mp_L? line%t:mp_L.'jCM' : 'CM').'A'
 							let log.='labl'."\t".ccol."\t".line."\t".autolbl[0]."\n"
 						else
 							let warnlog.='LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl."\n"
