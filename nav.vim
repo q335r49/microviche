@@ -122,6 +122,7 @@ fun! s:printHelp()
 	\\n    C                    Centered split horizontally (ignore s)
 	\\n    M                    Center cursor vertically (ignore r R)
 	\\n    W                    Virtual width (see below)
+	\\n    A                    used interally to mark automapped labels
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
@@ -1661,6 +1662,7 @@ fun! s:redraw(...)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		if a:0
+			call map(s:mp_array[ccol],'v:val[-1:]==#"A"? "" : v:val')
 			1
 			let line=search('^txb:','W')
 			while line

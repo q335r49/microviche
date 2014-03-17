@@ -60,9 +60,12 @@ Syntax | Action | | Syntax | Action
 </dd>
 
 <dt>Reformat</dt>
-<dd>Labels are lines that have the following form  
+<dd>Lines of the following form are considered labels:
 <samp>txb[:line num][: label#highlght#position]</samp>  
-In addition to `r`edrawing, `R`eformat (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it (logging an error message on failure) and (2) changes the map cell to <samp>label#highlight#position</samp> unless it is already occupied by a different label (in which case it logs a warning message). You can review changes, warnings, and errors via <samp>:call TxbRedrawLog</samp>. Some example labels:  
+For every visible split, in addition to `r`edrawing, `R`eformat:
+(1) moves labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines
+(2) remaps the region unless autolabeling conflicts with user labels (automatic labels are distinguished with an <samp>A</samp>).
+Some example labels:  
 <samp>txb:345 Blah blah&nbsp;</samp>   *move to 345*  
 <samp>txb:345: Blah blah</samp>   *move to 345, label map 'Blah blah'*  
 <samp>txb: Blah#Title#CM</samp>   *label 'Blah', highlight 'Title', position 'CM'*  
