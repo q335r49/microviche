@@ -352,76 +352,6 @@ let TXBkyCmd.W=
 	\en\n
 	\exe 'cd' fnameescape(prevwd)"
 
-let TXBkyCmd["\<c-l>"]=
-\"if getline('.')[:3]!=#'txb:'\n
-	\exe 'norm! 0itxb:'.line('.').' '\n
-\else\n
-	\exe 'norm! 0cEtxb:'.line('.').' '\n
-\en\n
-\let s:kc_continue=0\n
-\let s:kc_msg='(Anchor set)'"
-
-let TXBkyCmd["\<c-a>"]="let s:kc_continue=0|call s:anchor()"
-fun! s:anchor()
-	let log=''
-	let warnlog=''
-	let restoreView='norm! '.winnr().'\<c-w>w'.line('w0').'zt'.line('.').'G'.virtcol('.').'|'
-    for i in range(winnr('$'))
-		exe i.'winc w'
-		if !exists('w:txbi')
-        	continue
-		en
-		1
-		let line=search('^txb:','W')
-		while line
-			let mark=matchstr(getline('.')[4:],'^\d*')
-			if !empty(mark)
-				if mark<line && mark>0
-					let insertions=line-mark
-					if prevnonblank(line-1)>=mark
-						let log.="\n".w:txbi.":".line.": ERROR: Not enough blank lines to restore to line ".mark
-						let log.="\nRealign failed! ".w:txbi.":".expand('%')
-						return log.warnlog."\nABORTED"
-					else
-						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".mark
-						exe 'norm! kd'.(insertions==1? 'd' : (insertions-1).'k')
-					en
-				elseif mark>line
-					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".mark
-					exe 'norm! '.(mark-line)."O\ej"
-				en
-				let head=4+len(mark)+1
-			else
-				let head=3
-			en
-			if L[head]==#':'
-				let r=line('.')/t:mp_L
-				let c=w:txbi
-				if c>=len(s:mp_array)
-					call extend(s:mp_array,eval('['.join(repeat(['[]'],c+1-len(s:mp_array)),',').']'))
-				en
-				if r>=len(s:mp_array[c])
-					call extend(s:mp_array[c],repeat([''],r+1-len(s:mp_array[c])))
-				en
-				let prevlbl=get(split(s:mp_array[c][r],'#',1),0,'')
-				let head+=2
-				let splitLbl=split(L[head:],'#',1)
-				if !empty(splitLbl) && !empty(splitLbl[0]) && splitLbl[0]!=prevlbl
-					if empty(prevlbl)
-						let s:mp_array[c][r]=len(splitLbl)<2? splitLbl[0].'#'.get(splitLbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
-						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[c][r]
-					else
-						let warnlog.="\n".line.': Could not change label; map cell already occupied'
-					en
-				en
-			en
-			let line=search('^txb:','W')
-		endwhile
-	endfor
-	exe restoreView
-	return log.warnlog."\nSUCCESS: ".w:txbi.":"expand('%')
-endfun
-
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! <SID>initDragDefault()
 	if exists('w:txbi')
@@ -1640,7 +1570,7 @@ let TXBkyCmd.A=
 	\en\n
 	\let s:kc_continue=0|call s:updateCursPos()" 
 
-fun! s:redraw()
+fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi') || get(t:txb_name,w:txbi,'')!=#name0
 		let ix=index(t:txb_name,name0)
@@ -1715,6 +1645,10 @@ fun! s:redraw()
 	winc =
 	winc b
 	let ccol=colb
+
+	let log=''
+	let warnlog=''
+
     for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1729,9 +1663,50 @@ fun! s:redraw()
 			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
+		let line=a:0? search('^txb:','W') : 0
+		while line
+			let L=getline('.')[4:]
+			let lref=matchstr(L,'^\d*')
+			if !empty(lref) && lref!=line
+				if lref<line
+					let deletions=line-lref
+					if prevnonblank(line-1)>=lref
+						let warnlog.="\n".w:txbi.":".line.": ERROR: Insufficient preceding blank lines to move label to line ".lref
+					else
+						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".lref
+						exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
+					en
+				else
+					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".lref
+					exe 'norm! '.(lref-line)."O\ej"
+				en
+			en
+			let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
+			if head
+				let r=line('.')/t:mp_L
+				if ccol>=len(s:mp_array)
+					call extend(s:mp_array,eval('['.join(repeat(['[]'],ccol+1-len(s:mp_array)),',').']'))
+				en
+				if r>=len(s:mp_array[ccol])
+					call extend(s:mp_array[ccol],repeat([''],r+1-len(s:mp_array[ccol])))
+				en
+				let autolbl=split(L[head:],'#',1)
+				let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
+				if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
+					if empty(prevlbl)
+						let s:mp_array[ccol][r]=len(autolbl)<2? autolbl[0].'#'.get(autolbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
+						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[ccol][r]
+					else
+						let warnlog="\n".line.': WARNING: Map cell already occupied by different label!'.warnlog
+					en
+				en
+			en
+			let line=search('^txb:','W')
+		endwhile
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
+	let g:TxbRedrawLog=log.warnlog
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
@@ -1744,8 +1719,10 @@ fun! s:redraw()
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
+	let s:kc_msg=empty(warnlog)? "(redraw complete; ':ec TxbRedrawLog' to see changes)" : "ERRORS ENCOUNTERED; ':ec TxbRedrawLog' to review."
 endfun
-let TXBkyCmd.r="call s:redraw()|redr|let s:kc_msg='(redrawn)'|let s:kc_continue=0|call s:updateCursPos()" 
+let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
+let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
 
 fun! s:saveCursPos()
 	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
