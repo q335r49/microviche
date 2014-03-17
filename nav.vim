@@ -1519,6 +1519,8 @@ let TXBkyCmd[-1]='let s:kc_continue=0'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
+let TXBkyCmd["\<c-l>"]="exe getline('.')[:3]!=#'txb:'? 'norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(Label set)'"
+
 let TXBkyCmd.D=
 	\"redr\n
 	\if t:txb_len==1\n
@@ -1539,6 +1541,7 @@ let TXBkyCmd.D=
 	\en\n
 	\let s:kc_continue=0\n
 	\call s:updateCursPos()" 
+
 let TXBkyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\if t_index!=-1\n
