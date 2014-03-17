@@ -15,13 +15,14 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l`| ← ↓ ↑ → | | `F1` [1] | *help*
 `y``u``b``n`| ↖ ↗ ↙ ↘  ||`A`| *append split*
-`r`  | *redraw*    | | `D`|*delete settings* 
+`r` `R` [2]  | *redraw / Reformat*    | | `D`|*delete split* 
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S` [2] | *edit settings* | |`W` [3]| *write plane to file*
+`S` [3] | *edit settings* | |`W` [4]| *write plane to file*
 [1] The help pager will also display warnings about possibly problematic settings.  
-[2] If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
-[3] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
+[2] See below for a description of `R`eformatting
+[3] If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
+[4] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 </dd>
 
 <dt>Using the map</dt>
@@ -58,14 +59,8 @@ Syntax | Action | | Syntax | Action
 [1] By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 </dd>
 
-<dt>Automatic Labeling and Realigning</dt>
-<dd>Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered labels. The following commands manupulate these labels:
-
-Key | Action | | Key | Action
---- | --- | --- | --- | ---
-`F10``Ctrl-L` | *insert label* | | `F10``Ctrl-A` | *automap and realign visible splits*
-
-`^A`utomap (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it (aborting with an error message on failure) and (2) changes the map cell to <samp>label#highlight#position</samp> unless it is already occupied by a different label, in which case it prints a warning message. Some examples:  
+<dt>Reformat</dt>
+<dd>Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered labels. In addition to `r`edrawing, `R`eformat (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it (logging an error message on failure) and (2) changes the map cell to <samp>label#highlight#position</samp> unless it is already occupied by a different label (in which case it logs a warning message). You can review changes, warnings, and errors via <samp>:call TxbRedrawLog</samp>. Some example labels:  
 <samp>txb:345 Blah blah&nbsp;</samp>   *move to 345*
 <samp>txb:345: Blah blah</samp>   *move to 345, label map 'Blah blah'*
 <samp>txb: Blah#Title#CM</samp>   *label 'Blah', highlight 'Title', position 'CM'*

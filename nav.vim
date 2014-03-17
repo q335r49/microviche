@@ -75,20 +75,17 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n    r                    Redraw
+	\\n[2] r R                  Redraw / Reformat
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
-	\\n[2] S                    Settings (working dir, [hotkey], etc.)
+	\\n[3] S                    Settings (working dir, [hotkey], etc.)
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
-	\\n[3] ^L                   Insert label
-	\\n    ^A                   Automap and realign visible splits
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
-	\\n(3) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. [^A]utomap:
+	\\n(2) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. In addition to redrawing, [R]eformat:
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
 	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
 	\\nExamples:
@@ -96,6 +93,7 @@ fun! s:printHelp()
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
+	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
 	\\n    0 $                  Beginning / end of line
