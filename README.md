@@ -14,8 +14,8 @@ Navigate to the **working directory** to be associated with the plane (you only 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l`| ← ↓ ↑ → | | `F1` [1] | *help*
-`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A`| *append split*
-`r` `R` [2]  | *redraw / Reformat*    | | `D`|*delete split* 
+`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` 'D'| *append / delete split*
+`r` | *redraw*    | | `R` 'L' [2] |*reformat / insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` [3] | *edit settings* | |`W` [4]| *write plane to file*

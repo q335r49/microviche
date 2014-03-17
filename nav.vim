@@ -1684,6 +1684,7 @@ fun! s:redraw(...)
 						exe 'norm! '.(lref-line)."O\ej"
 					en
 				en
+				let line=line('.')
 				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
 				if head
 					let r=line('.')/t:mp_L
@@ -1710,7 +1711,7 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbReformatLog=log."ERRORS:\n".warnlog[:-2]
+	let g:TxbReformatLog=log.warnlog[:-2]
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
@@ -1725,7 +1726,7 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=(!a:0)? '(redraw complete)' : ":echo g:TxbReformatLog\n".g:TxbReformatLog
+	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? '(reformat complete; no changes made)' : "echo g:TxbReformatLog\n".g:TxbReformatLog
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
