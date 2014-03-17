@@ -20,7 +20,7 @@ Key | Action | | Key | Action
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` [3] | *edit settings* | |`W` [4]| *write plane to file*
 [1] The help pager will also display warnings about possibly problematic settings.  
-[2] See below for a description of `R`eformatting
+[2] See below for a description of `R`eformatting  
 [3] If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 [4] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 </dd>
@@ -60,10 +60,12 @@ Syntax | Action | | Syntax | Action
 </dd>
 
 <dt>Reformat</dt>
-<dd>Lines of the form <samp>txb[:line num][: label#highlght#position]</samp> are considered labels. In addition to `r`edrawing, `R`eformat (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it (logging an error message on failure) and (2) changes the map cell to <samp>label#highlight#position</samp> unless it is already occupied by a different label (in which case it logs a warning message). You can review changes, warnings, and errors via <samp>:call TxbRedrawLog</samp>. Some example labels:  
-<samp>txb:345 Blah blah&nbsp;</samp>   *move to 345*
-<samp>txb:345: Blah blah</samp>   *move to 345, label map 'Blah blah'*
-<samp>txb: Blah#Title#CM</samp>   *label 'Blah', highlight 'Title', position 'CM'*
+<dd>Labels are lines that have the following form  
+<samp>txb[:line num][: label#highlght#position]</samp>  
+In addition to `r`edrawing, `R`eformat (1) moves labels to <samp>line num</samp> by inserting or removing blank lines directly above it (logging an error message on failure) and (2) changes the map cell to <samp>label#highlight#position</samp> unless it is already occupied by a different label (in which case it logs a warning message). You can review changes, warnings, and errors via <samp>:call TxbRedrawLog</samp>. Some example labels:  
+<samp>txb:345 Blah blah&nbsp;</samp>   *move to 345*  
+<samp>txb:345: Blah blah</samp>   *move to 345, label map 'Blah blah'*  
+<samp>txb: Blah#Title#CM</samp>   *label 'Blah', highlight 'Title', position 'CM'*  
 <samp>txb: Blah blah##CM</samp>   *label 'Blah blah', position 'CM'*
 </dd>
 

@@ -61,9 +61,8 @@ fun! s:printHelp()
 	redir END
 	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
 	let WarningsAndSuggestions=
-	\ (v:version<704 || v:version==704 && !has('patch131')? "\n> Warning: Vim < 7.4.131 - A few patches addressing scrollbind issues have since been released." : '')
-	\.(v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind will not sync on mouse panning until you release the mouse button": '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane cannot be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
+	\ (v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind won't sync on mouse panning until you release the mouse button": '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane can't be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
 	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' may provide better performance." : '')
@@ -199,9 +198,9 @@ fun! TXBinit(...)
 		en
 	endfor
 	exe 'cd' fnameescape(prevwd)
-	let msg=(empty(plane.name)? '' : "\n ---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n"))
-	\.(empty(filtered)? '' : "\n\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n"))
-	\"\n\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir'] .msg
+	let msg=(empty(plane.name)? '' : "\n ---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n")."\n")
+	\.(empty(filtered)? '' : "\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n")."\n")
+	\."\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir']."\n".msg
 	if !empty(plane.name)
 		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix!=-1
@@ -1546,8 +1545,8 @@ let TXBkyCmd.A=
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
 		\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || fnamemodify(t:txb_name[((w:txbi+1)%t:txb_len)],':p')==#fnamemodify(file,':p')) && 'y'!=?input('It is generally not a good idea to have ADJACENT duplicate splits: a bug in Vim will cause drawing problems during panning if the buffer is modified. Are you sure you want to append an adjascent duplicate split? (y/n)')\n
-			\let s:kc_msg='adjascent duplicate file not appended'\n
+		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:txb_name[(w:txbi+1)%t:txb_len]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING: Adjascent duplicate splits\n    An unpatched bug in Vim causes errors when panning modified adjacent duplicate splits. Continue with append? (y/n)')\n
+			\let s:kc_msg='File not appended'\n
 		\elseif empty(file)\n
 			\let s:kc_msg='File name is empty'\n
 		\else\n
@@ -1643,10 +1642,8 @@ fun! s:redraw(...)
 	winc =
 	winc b
 	let ccol=colb
-
 	let log=''
 	let warnlog=''
-
     for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1661,46 +1658,49 @@ fun! s:redraw(...)
 			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
-		let line=a:0? search('^txb:','W') : 0
-		while line
-			let L=getline('.')[4:]
-			let lref=matchstr(L,'^\d*')
-			if !empty(lref) && lref!=line
-				if lref<line
-					let deletions=line-lref
-					if prevnonblank(line-1)>=lref
-						let warnlog.="\n".w:txbi.":".line.": ERROR: Insufficient preceding blank lines to move label to line ".lref
-					else
-						let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".lref
-						exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
-					en
-				else
-					let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".lref
-					exe 'norm! '.(lref-line)."O\ej"
-				en
-			en
-			let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
-			if head
-				let r=line('.')/t:mp_L
-				if ccol>=len(s:mp_array)
-					call extend(s:mp_array,eval('['.join(repeat(['[]'],ccol+1-len(s:mp_array)),',').']'))
-				en
-				if r>=len(s:mp_array[ccol])
-					call extend(s:mp_array[ccol],repeat([''],r+1-len(s:mp_array[ccol])))
-				en
-				let autolbl=split(L[head:],'#',1)
-				let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
-				if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
-					if empty(prevlbl)
-						let s:mp_array[ccol][r]=len(autolbl)<2? autolbl[0].'#'.get(autolbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
-						let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[ccol][r]
-					else
-						let warnlog="\n".line.': WARNING: Map cell already occupied by different label!'.warnlog
-					en
-				en
-			en
+		if a:0
+			1
 			let line=search('^txb:','W')
-		endwhile
+			while line
+				let L=getline('.')[4:]
+				let lref=matchstr(L,'^\d*')
+				if !empty(lref) && lref!=line
+					if lref<line
+						let deletions=line-lref
+						if prevnonblank(line-1)>=lref
+							let warnlog.="\n".w:txbi.":".line.": ERROR: Insufficient preceding blank lines to move label to line ".lref
+						else
+							let log.="\n".w:txbi.":".line.": Removed blank lines to restore to: ".lref
+							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
+						en
+					else
+						let log.="\n".w:txbi.":".line.": Inserted blank lines to restore to: ".lref
+						exe 'norm! '.(lref-line)."O\ej"
+					en
+				en
+				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
+				if head
+					let r=line('.')/t:mp_L
+					if ccol>=len(s:mp_array)
+						call extend(s:mp_array,eval('['.join(repeat(['[]'],ccol+1-len(s:mp_array)),',').']'))
+					en
+					if r>=len(s:mp_array[ccol])
+						call extend(s:mp_array[ccol],repeat([''],r+1-len(s:mp_array[ccol])))
+					en
+					let autolbl=split(L[head:],'#',1)
+					let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
+					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
+						if empty(prevlbl)
+							let s:mp_array[ccol][r]=len(autolbl)<2? autolbl[0].'#'.get(autolbl,1,'').'#'.(line%t:mp_L? line%t:mp_L.'j' : '').'CM' : L[head:]
+							let log.="\n".w:txbi.":".line.": Inserted label: ".s:ms_array[ccol][r]
+						else
+							let warnlog="\n".line.': WARNING: Map cell already occupied by different label!'.warnlog
+						en
+					en
+				en
+				let line=search('^txb:','W')
+			endwhile
+		en
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
@@ -1717,7 +1717,7 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=empty(warnlog)? "(redraw complete; ':ec TxbRedrawLog' to see changes)" : "ERRORS ENCOUNTERED; ':ec TxbRedrawLog' to review."
+	let s:kc_msg=!a:0? '(redraw complete)' : empty(warnlog)? "(redraw complete; ':ec TxbRedrawLog' to see changes)" : "ERRORS ENCOUNTERED; ':ec TxbRedrawLog' to review."
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
