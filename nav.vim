@@ -74,7 +74,8 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n[2] r R                  Redraw / Reformat
+	\\n    r                    redraw
+	\\n[2] R L                  Reformat / insert label
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
@@ -92,6 +93,7 @@ fun! s:printHelp()
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
+	\\nL makes this process easier by inserting txb:line num
 	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
@@ -1520,7 +1522,7 @@ let TXBkyCmd[-1]='let s:kc_continue=0'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
-let TXBkyCmd["\<c-l>"]="exe getline('.')[:3]!=#'txb:'? 'norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(Label set)'"
+let TXBkyCmd.L="exe getline('.')[:3]!=#'txb:'? 'norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
 let TXBkyCmd.D=
 	\"redr\n
