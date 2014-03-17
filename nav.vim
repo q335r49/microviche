@@ -1583,8 +1583,7 @@ fun! s:redraw(...)
 		en
 	en
 	let win0=winnr()
-	let pos=[bufnr('%'),line('w0')]
-	exe win0==1? "norm! mt" : "norm! mt0"
+	let pos=[bufnr('%'),line('w0'),line('.'), virtcol('.')]
 	if win0==1 && !&wrap
 		let offset=virtcol('.')-wincol()
 		if offset<t:txb.size[w:txbi]
@@ -1716,7 +1715,9 @@ fun! s:redraw(...)
 		windo 1
 		se scrollopt=ver,jump
 	endtry
-	exe "norm!" bufwinnr(pos[0])."\<c-w>w".pos[1]."zt`t"
+	exe bufwinnr(pos[0]).'winc w'
+	let offset=virtcol('.')-wincol()
+	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
