@@ -14,13 +14,13 @@ Navigate to the **working directory** to be associated with the plane (you only 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l`| ← ↓ ↑ → | | `F1` [1] | *help*
-`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` 'D'| *append / delete split*
-`r` | *redraw*    | | `R` 'L' [2] |*reformat / insert label*
+`y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
+`r` | *redraw*    | | `R` `L` [2] |*reformat / insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` [3] | *edit settings* | |`W` [4]| *write plane to file*
 [1] The help pager will also display warnings about possibly problematic settings.  
-[2] See below for a description of `R`eformatting  
+[2] See **Reformating** below.  
 [3] If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 [4] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 </dd>
@@ -59,17 +59,16 @@ Syntax | Action | | Syntax | Action
 [1] By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 </dd>
 
-<dt>Reformat</dt>
+<dt>Reformating</dt>
 <dd>Lines of the following form are considered labels:
 <samp>txb[:line num][: label#highlght#position]</samp>  
 For every visible split, in addition to `r`edrawing, `R`eformat:
 (1) moves labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines
-(2) remaps the region unless autolabeling conflicts with user labels (automatic labels are distinguished with an <samp>A</samp>).
-Some example labels:  
-<samp>txb:345 Blah blah&nbsp;</samp>   *move to 345*  
-<samp>txb:345: Blah blah</samp>   *move to 345, label map 'Blah blah'*  
-<samp>txb: Blah#Title#CM</samp>   *label 'Blah', highlight 'Title', position 'CM'*  
-<samp>txb: Blah blah##CM</samp>   *label 'Blah blah', position 'CM'*
+(2) remaps the region unless autolabeling conflicts with a preexisting user label.
+* <samp>txb:345 Blah blah&nbsp;</samp> -- *move to 345*  
+* <samp>txb:345: Blah blah</samp> -- *move to 345, label map 'Blah blah'*  
+* <samp>txb: Blah#Title#CM</samp> -- *label 'Blah', highlight 'Title', position 'CM'*  
+* <samp>txb: Blah blah##CM</samp> -- *label 'Blah blah', position 'CM'*
 </dd>
 
 </dd>
