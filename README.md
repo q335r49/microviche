@@ -69,6 +69,7 @@ Syntax | Action | | Syntax | Action
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp> - *move to 345, label map 'Blah blah'*  
 <samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;</samp> - *label 'Blah', highlight 'Title', position 'CM'*  
 <samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp> - *label 'Blah blah', position 'CM'*
+<samp>&nbsp;txb: Blah###Ignored&nbsp;</samp> - *label 'Blah'*
 
 </dd>
 <dt>Toggling Scrollbind</dt>

@@ -89,6 +89,7 @@ fun! s:printHelp()
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
+	\\n    txb: Blah###Ignored  Label 'Blah'
 	\\nL facilitates this process by inserting txb:[line num]
 	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n\n\\CMAP MODE:\n
