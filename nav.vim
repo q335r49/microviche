@@ -93,7 +93,7 @@ fun! s:printHelp()
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
-	\\nL makes this process easier by inserting txb:line num
+	\\nL facilitates this process by inserting txb:[line num]
 	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
@@ -995,6 +995,14 @@ let TXBkyCmd.S=
 		\en\n
 		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
+		\if exists('w:txbi')\n
+			\let t:txb.size[w:txbi]=settings_values[14]\n
+			\let t:txb.exe[w:txbi]=settings_values[15]\n
+			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
+				\let t:txb_name[w:txbi]=s:sp_newfname[0]\n
+				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
+			\en\n
+		\en\n
 		\let t:txb.settings['split width']=settings_values[3]\n
 			\if prevVal[3]!=#t:txb.settings['split width']\n
 				\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
@@ -1050,15 +1058,6 @@ let TXBkyCmd.S=
 				\en\n
 			\en\n
 			\let s:kc_msg.=wd_msg\n
-		\en\n
-		\if exists('w:txbi')\n
-			\let t:txb.size[w:txbi]=settings_values[14]\n
-			\let t:txb.exe[w:txbi]=settings_values[15]\n
-			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
-				\let t:txb_name[w:txbi]=s:sp_newfname[0]\n
-				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
-				\exe 'e' t:txb_name[w:txbi]\n
-			\en\n
 		\en\n
 		\echohl NONE\n
 		\call s:redraw()\n
@@ -1575,12 +1574,21 @@ let TXBkyCmd.A=
 
 fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
-	if !exists('w:txbi') || get(t:txb_name,w:txbi,'')!=#name0
+	if !exists('w:txbi')
 		let ix=index(t:txb_name,name0)
 		if ix==-1
 			only
 			exe 'e' t:txb_name[0]
 			let w:txbi=0
+		else
+			let w:txbi=ix
+		en
+	elseif get(t:txb_name,w:txbi,'')!=#name0
+		let ix=index(t:txb_name,name0)
+		if ix==-1
+			let prev_txbi=w:txbi
+			exe 'e' t:txb_name[prev_txbi]
+			let w:txbi=prev_txbi
 		else
 			let w:txbi=ix
 		en
@@ -1726,7 +1734,7 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? '(reformat complete; no changes made)' : "echo g:TxbReformatLog\n".g:TxbReformatLog
+	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? '(reformat complete; no changes made)' : ":echo g:TxbReformatLog\n".g:TxbReformatLog
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
