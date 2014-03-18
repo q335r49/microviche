@@ -1692,7 +1692,7 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							call add(log,'MVER'."\t".ccol."\t".line."\t".lref)
+							call add(log,'EMOV'."\t".ccol."\t".line."\t".lref)
 						else
 							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
@@ -1720,9 +1720,9 @@ fun! s:redraw(...)
 							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						elseif t:txb.map[ccol][r][-1]==#'A'
-							call add(log,'CONF'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
+							call add(log,'ECNF'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						else
-							call add(log,'LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
+							call add(log,'EOCC'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						en
 					en
 				en
