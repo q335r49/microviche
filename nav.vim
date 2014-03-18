@@ -1703,7 +1703,8 @@ fun! s:redraw(...)
 					let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
 					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
 						if empty(prevlbl)
-							let s:mp_array[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.get(autolbl,2,line%t:mp_L? line%t:mp_L.'jCM' : 'CM').'A'
+							let row=line%t:mp_L
+							let s:mp_array[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						else
 							call add(log,'LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
