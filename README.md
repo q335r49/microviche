@@ -49,7 +49,7 @@ Key | Action | | Key | Action
 <dt>Label color and position
 <dd>When `c`hanging a label in the map, you're also prompted for a (optional) highlight group and (optional) position. You can press `tab` at the highlight prompt for auto-completion from the list of currently defined highlights.
 
-Positioning commands can move the cursor and the split from their default positions (top left corner and leftmost split, respectively). For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. Also, when movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
+Positioning commands can move the cursor and the split from their default positions (top left corner and leftmost split, respectively). For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. When movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
@@ -63,7 +63,7 @@ Syntax | Action | | Syntax | Action
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
 <dd>Lines of the above form are considered labels. `R`eformat, in addition to `r`edrawing, will:  
 (1) move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
-(2) remap the region unless autolabeling conflicts with a preexisting user label. (Automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>autolable##CMA</samp>)</dd>
+(2) remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>autolable##CMA</samp>. Note that for autolabels, the initial position has the label line, which is what you would expect. For example <samp>txb:: Label##CM</samp> would center the *label line* and not the first line of of the plane associated with that map cell.)</dd>
 <dd>Examples:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp> - *move to 345*  
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp> - *move to 345, label map 'Blah blah'*  
