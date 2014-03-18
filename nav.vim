@@ -41,7 +41,7 @@ else
 en
 
 fun! s:SID()
-  return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
+	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfun
 
 let TXBmsCmd={}
@@ -214,7 +214,7 @@ fun! TXBinit(...)
 				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[82]
 			else
-				let msg.="\n\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
+				let msg.="\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
 		elseif type(seed)==4
@@ -227,7 +227,7 @@ fun! TXBinit(...)
 				let confirm_keys=[82]
 			elseif exists('g:TXB') && type(g:TXB)==4
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
-				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
+				let msg.="\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[79]
 			else
 				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
@@ -239,7 +239,7 @@ fun! TXBinit(...)
 				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[79]
 			else
-				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
+				let msg.="\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
 		else
@@ -1719,6 +1719,8 @@ fun! s:redraw(...)
 							let row=line%t:mp_L
 							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
+						elseif t:txb.map[ccol][r][-1]==#'A'
+							call add(log,'CONF'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						else
 							call add(log,'LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						en
