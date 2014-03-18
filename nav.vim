@@ -33,11 +33,7 @@ if !has("gui_running")
 		exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
 	endfun
 	augroup TXB
-		if v:version > 703 || v:version==703 && has("patch748")
-			au VimResized * if exists('w:txbi') | call <SID>centerCursor(screenrow(),screencol()) | en
-		else
-			au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
-		en
+		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	augroup END
 	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
 else
@@ -1655,8 +1651,7 @@ fun! s:redraw(...)
 	winc =
 	winc b
 	let ccol=colb
-	let log=''
-	let warnlog=''
+	let log=[]
     for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1682,13 +1677,13 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							let warnlog.='MVER'."\t".ccol."\t".line."\t".lref."\n"
+							call add(log,'MVER'."\t".ccol."\t".line."\t".lref)
 						else
-							let log.='move'."\t".ccol."\t".line."\t".lref."\n"
+							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 						en
 					else
-						let log.='move'."\t".ccol."\t".line."\t".lref."\n"
+						call add(log,'move'."\t".ccol."\t".line."\t".lref)
 						exe 'norm! '.(lref-line)."O\ej"
 					en
 				en
@@ -1707,9 +1702,9 @@ fun! s:redraw(...)
 					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
 						if empty(prevlbl)
 							let s:mp_array[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.get(autolbl,2,line%t:mp_L? line%t:mp_L.'jCM' : 'CM').'A'
-							let log.='labl'."\t".ccol."\t".line."\t".autolbl[0]."\n"
+							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						else
-							let warnlog.='LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl."\n"
+							call add(log,'LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						en
 					en
 				en
@@ -1719,7 +1714,7 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbReformatLog=log.warnlog[:-2]
+	let g:TxbReformatLog=join(log,"\n")
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
