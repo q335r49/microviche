@@ -751,6 +751,18 @@ fun! s:navMapKeyHandler(c)
 					call s:mp_displayfunc()
 				en
 			en
+		elseif g:TXBmsmsg[0]==4
+			let s:mp_roff=s:mp_roff>1? s:mp_roff-1 : 0
+			let s:mp_r=s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r
+			call s:getMapDisp()
+			call s:mp_displayfunc()
+			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
+		elseif g:TXBmsmsg[0]==5
+			let s:mp_roff=s:mp_roff+1
+			let s:mp_r=s:mp_r<s:mp_roff? s:mp_roff : s:mp_r
+			call s:getMapDisp()
+			call s:mp_displayfunc()
+			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
 		en
 		call feedkeys("\<plug>TxbY")
 	else
@@ -1463,19 +1475,19 @@ fun! <SID>getchar()
 		call s:dochar()
 	en
 endfun
-"mouse    leftdown leftdrag leftup
+"mouse    leftdown leftdrag leftup  scollup scrolldown
 "xterm    32                35
 "xterm2   32       64       35
-"sgr      0M       32M      0m 
-"TXBmsmsg 1        2        3            else 0
+"sgr      0M       32M      0m      64      65
+"TXBmsmsg 1        2        3       4       5           else 0
 fun! <SID>getmouse()
 	if &ttymouse=~?'xterm'
 		let g:TXBmsmsg=[getchar(0)*0+getchar(0),getchar(0)-32,getchar(0)-32]
-		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==64? 2 : g:TXBmsmsg[0]==32? 1 : g:TXBmsmsg[0]==35? 3 : 0
+		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==64? 2 : g:TXBmsmsg[0]==32? 1 : g:TXBmsmsg[0]==35? 3 : g:TXBmsmsg[0]==96? 4 : g:TXBmsmsg[0]==97? 5 : 0
 	elseif &ttymouse==?'sgr'
 		let g:TXBmsmsg=split(join(map([getchar(0)*0+getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)],'type(v:val)? v:val : nr2char(v:val)'),''),';')
 		let g:TXBmsmsg=len(g:TXBmsmsg)> 2? [str2nr(g:TXBmsmsg[0]).g:TXBmsmsg[2][len(g:TXBmsmsg[2])-1],str2nr(g:TXBmsmsg[1]),str2nr(g:TXBmsmsg[2])] : [0,0,0]
-		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==#'32M'? 2 : g:TXBmsmsg[0]==#'0M'? 1 : (g:TXBmsmsg[0]==#'0m' || g:TXBmsmsg[0]==#'32K') ? 3 : 0
+		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==#'32M'? 2 : g:TXBmsmsg[0]==#'0M'? 1 : (g:TXBmsmsg[0]==#'0m' || g:TXBmsmsg[0]==#'32K') ? 3 : g:TXBmsmsg[0][:1]==#'64'? 4 : g:TXBmsmsg[0][:1]==#'65'? 5 : 0
 	else
 		let g:TXBmsmsg=[0,0,0]
 	en
