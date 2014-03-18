@@ -1561,7 +1561,7 @@ let TXBkyCmd.A=
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
 		\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:txb_name[(w:txbi+1)%t:txb_len]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING: Adjascent duplicate splits\n    An unpatched bug in Vim causes errors when panning modified adjacent duplicate splits. Continue with append? (y/n)')\n
+		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:txb_name[(w:txbi+1)%t:txb_len]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\n**WARNING**\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
 			\let s:kc_msg='File not appended'\n
 		\elseif empty(file)\n
 			\let s:kc_msg='File name is empty'\n
@@ -1682,7 +1682,7 @@ fun! s:redraw(...)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		if a:0
-			call map(s:mp_array[ccol],'v:val[-1:]==#"A"? "" : v:val')
+			call map(t:txb.map[ccol],'v:val[-1:]==#"A"? "" : v:val')
 			1
 			let line=search('^txb:','W')
 			while line
@@ -1706,18 +1706,18 @@ fun! s:redraw(...)
 				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
 				if head
 					let r=line('.')/t:mp_L
-					if ccol>=len(s:mp_array)
-						call extend(s:mp_array,eval('['.join(repeat(['[]'],ccol+1-len(s:mp_array)),',').']'))
+					if ccol>=len(t:txb.map)
+						call extend(t:txb.map,eval('['.join(repeat(['[]'],ccol+1-len(t:txb.map)),',').']'))
 					en
-					if r>=len(s:mp_array[ccol])
-						call extend(s:mp_array[ccol],repeat([''],r+1-len(s:mp_array[ccol])))
+					if r>=len(t:txb.map[ccol])
+						call extend(t:txb.map[ccol],repeat([''],r+1-len(t:txb.map[ccol])))
 					en
 					let autolbl=split(L[head :],'#',1)
-					let prevlbl=get(split(s:mp_array[ccol][r],'#',1),0,'')
+					let prevlbl=get(split(t:txb.map[ccol][r],'#',1),0,'')
 					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
 						if empty(prevlbl)
 							let row=line%t:mp_L
-							let s:mp_array[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
+							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						else
 							call add(log,'LBER'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
