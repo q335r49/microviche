@@ -60,23 +60,22 @@ Syntax | Action | | Syntax | Action
 </dd>
 
 <dt>Reformating</dt>
-<dd>Lines of the following form are considered labels:</dd>
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
-<dd>`R`eformat, in addition to `r`edrawing, will:  
+<dd>Lines of the above form are considered labels. `R`eformat, in addition to `r`edrawing, will:  
 (1) move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
 (2) remap the region unless autolabeling conflicts with a preexisting user label. (Automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>autolable##CMA</samp>)</dd>
 <dd>Examples:  
-  <samp>&nbsp;txb:345 Blah blah&nbsp;</samp> -- *move to 345*  
-  <samp>&nbsp;txb:345: Blah blah</samp> -- *move to 345, label map 'Blah blah'*  
-  <samp>&nbsp;txb: Blah#Title#CM</samp> -- *label 'Blah', highlight 'Title', position 'CM'*  
-  <samp>&nbsp;txb: Blah blah##CM</samp> -- *label 'Blah blah', position 'CM'*
+<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp> - *move to 345*  
+<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp> - *move to 345, label map 'Blah blah'*  
+<samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;</samp> - *label 'Blah', highlight 'Title', position 'CM'*  
+<samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp> - *label 'Blah blah', position 'CM'*
 
 </dd>
 <dt>Toggling Scrollbind</dt>
 <dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap **no**scb cole=2</samp>. Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
 
 ####Tips
-* Editing the **save file** you `hotkey``W`rote is an easy way modify settings.
+* Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
 * `hotkey``F1` help also gives **warnings** specific to your vim setup.
 * Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
 * **Redrawing on zoom** (via <samp>:au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
