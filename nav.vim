@@ -314,39 +314,12 @@ fun! TXBinit(...)
 	let &more=more
 endfun
 
-fun! s:writePlaneToFile(plane,file)
-	let lines=[]
-	let data=string(a:plane)
-	if stridx(data,"\n")!=-1
-		let error=-10
-		let data=substitute(data,"\n",'''."\\n".''',"g")
-	else
-		let error=0
-	en
-	call add(lines,'unlet! txb_temp_plane')
-	call add(lines,'let txb_temp_plane='.data)
-	call add(lines,"call TXBinit(txb_temp_plane)")
-	return writefile(lines,a:file)+error
-endfun
 let TXBkyCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:txb_wd)\n
 	\let s:kc_continue=0\n
 	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\if !empty(input)\n
-		\let t:txb.settings.writefile=input\n
-		\let error=s:writePlaneToFile(t:txb,input)\n
-		\if (error/10)\n
-			\let s:kc_msg.='**Warning**\n    Plane data, unexpectedly, contains newlines, which can''t be predictably written to file.\n    (Are you using filenames containing the newline character?)\n    A workaround will be attempted, but there is a chance problems on restoration.\n'\n
-		\en\n
-		\if error%10==-1\n
-			\let s:kc_msg.='** ERROR **\n    File not writable'\n
-		\else\n
-			\let s:kc_msg.=' Plane written to file. Use '':source '.input.''' to restore'\n
-		\en\n
-	\else\n
-		\let s:kc_msg.=' (file write aborted)'\n
-	\en\n
+	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : ' Plane written to file. Use '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
