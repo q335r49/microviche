@@ -70,6 +70,14 @@ Syntax | Action | | Syntax | Action
 <samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;</samp> - *label 'Blah', highlight 'Title', position 'CM'*  
 <samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp> - *label 'Blah blah', position 'CM'*
 <samp>&nbsp;txb: Blah###Ignored&nbsp;</samp> - *label 'Blah'*
+<dd><samp>TxbReformatLog<\samp> contains a list of chances and errors made:
+<dd>Examples
+<samp>&nbsp;move 15 78 70&nbsp;&nbsp;</samp> - *In split 15, line 78 was moved to line 70*
+<samp>&nbsp;labl 15 78 Blah</samp> - *Line 78 of split 15 was labeled 'Blah'*
+<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;</samp> - *Move error (not enough blank lines to remove)* 
+<samp>&nbsp;EOCC 15 78 Blah</samp> - *Label failed; cell already occupied by user label*
+<samp>&nbsp;ECNF 15 78 Blah</samp> - *Label failed; multiple autolabels for one cell*
+
 
 </dd>
 <dt>Toggling Scrollbind</dt>
