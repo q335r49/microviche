@@ -753,31 +753,6 @@ fun! s:navMapKeyHandler(c)
 	en
 endfun
 
-fun! s:doSyntax(stmt)
-	if empty(a:stmt)
-		return
-	en
-	let num=''
-	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0,'A':0}
-	for t in range(len(a:stmt))
-		if a:stmt[t]=~'\d'
-			let num.=a:stmt[t]
-		elseif has_key(com,a:stmt[t])
-			let com[a:stmt[t]]+=empty(num)? 1 : num
-			let num=''
-		else
-			echoerr '"'.a:stmt[t].'" is not a recognized command, view positioning aborted.'
-			return
-		en
-	endfor
-	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
-	if com.C
-		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
-	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:mp_c-1,s:mp_c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
-	en
-endfun
-
 let TXBkyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
 fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_num='01'
@@ -1299,6 +1274,31 @@ fun! s:gotoPos(col,row)
 		only
 		call s:redraw()
 		exe 'norm!' (a:row? a:row : 1).'zt'
+	en
+endfun
+
+fun! s:doSyntax(stmt)
+	if empty(a:stmt)
+		return
+	en
+	let num=''
+	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0,'A':0}
+	for t in range(len(a:stmt))
+		if a:stmt[t]=~'\d'
+			let num.=a:stmt[t]
+		elseif has_key(com,a:stmt[t])
+			let com[a:stmt[t]]+=empty(num)? 1 : num
+			let num=''
+		else
+			echoerr '"'.a:stmt[t].'" is not a recognized command, view positioning aborted.'
+			return
+		en
+	endfor
+	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
+	if com.C
+		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
+	elseif com.s
+		call s:nav(-min([eval(join(map(range(s:mp_c-1,s:mp_c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
 	en
 endfun
 
