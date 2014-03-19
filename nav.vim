@@ -70,18 +70,18 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n    r                    redraw
-	\\n[2] R L                  Reformat / insert label
+	\\n[2] r R L                redraw / Redraw & Remap / Label
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
-	\\n[3] S                    Settings (working dir, [hotkey], etc.)
+	\\n[3] S                    Settings
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. In addition to redrawing, [R]eformat:
+	\\n(2) Lines of the form 'txb[:line num][: label#highlght#position]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
+	\\n[R]edrawing (in addition to [r]edrawing):
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
 	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
 	\\nExamples:
@@ -90,7 +90,6 @@ fun! s:printHelp()
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
 	\\n    txb: Blah###Ignored  Label 'Blah'
-	\\nL facilitates this process by inserting txb:[line num]
 	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
@@ -121,7 +120,6 @@ fun! s:printHelp()
 	\\n    C                    Centered split horizontally (ignore s)
 	\\n    M                    Center cursor vertically (ignore r R)
 	\\n    W                    Virtual width (see below)
-	\\n    A                    used interally to mark automapped labels
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
@@ -1700,7 +1698,7 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbReformatLog=join(log,"\n")
+	let g:TxbRemapLog=join(log,"\n")
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
@@ -1715,7 +1713,7 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? '(reformat complete; no changes made)' : ":echo g:TxbReformatLog\n".g:TxbReformatLog
+	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbRemapLog)? '(reformat complete; no changes made)' : ":echo g:TxbRemapLog\n".g:TxbRemapLog
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 

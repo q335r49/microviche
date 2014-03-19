@@ -15,12 +15,12 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l`| ← ↓ ↑ → | | `F1` [1] | *help*
 `y``u``b``n`| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` | *redraw*    | | `R` `L` [2] |*reformat / insert label*
+`r` `R` [2]| *redraw / redraw & remap* | | `L` [2] | insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` [3] | *edit settings* | |`W` [4]| *write plane to file*
 [1] The help pager will also display warnings about possibly problematic settings.  
-[2] See **Reformating** below.  
+[2] See **Automapping** below.  
 [3] If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 [4] The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 </dd>
@@ -59,9 +59,9 @@ Syntax | Action | | Syntax | Action
 [1] By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 </dd>
 
-<dt>Reformating</dt>
+<dt>Automapping</dt>
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
-<dd>Lines of the above form are considered labels. `R`eformat, in addition to `r`edrawing, will:  
+<dd>Lines of the above form are considered labels. `R`edraw will:  
 * move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
 * remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>label##CMA</samp>. Note that the initial position for its positioning syntax is the label line and not the top of the grid, which is what you would expect. For example <samp>txb: label##CM</samp> would center the label line and not the first line of of the plane associated with that map cell.)</dd>
 <dd>Possible labels:  
@@ -82,9 +82,11 @@ Syntax | Action | | Syntax | Action
 <dt>Toggling Scrollbind</dt>
 <dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
 
-####Tips
+<dt>Tips</dt>
+<dd>
 * Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
 * `hotkey``F1` help also gives **warnings** specific to your vim setup.
 * Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
-* **Redrawing on zoom** (via <samp>:au VimResize</samp>) is disabled for gVim because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
+* In gVim, **redrawing on zoom** is disabled because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
 * **Horizontal splits** aren't supported and may interfere with panning.
+</dd>
