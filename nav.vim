@@ -932,7 +932,7 @@ let TXBkyCmd.S=
 	\let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])<=1? t:txb.settings['map cell height'] : 2]\n
 	\let [settings_names[12],settings_values[12]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
 	\if exists('w:txbi')\n
-		\let [settings_names[13],settings_values[13]]=['    -- Current Split --','##label##']\n
+		\let [settings_names[13],settings_values[13]]=['    -- Split '.w:txbi.' --','##label##']\n
 		\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
 		\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
 		\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
