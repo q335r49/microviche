@@ -442,15 +442,13 @@ let TXBmsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
-		if exists("w:txbi")
+		if exists('w:txbi')
 			let t_r=line('.')/t:mp_L
 			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
-		if &wrap && v:mouse_col%winwidth(0)==1
-			exe "norm! \<leftmouse>"
-		elseif !&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol
+		if &wrap && (v:mouse_col%winwidth(0)==1 || v:mouse_lnum>line('w$')) || !&wrap && (v:mouse_col>=winwidth(0)+winsaveview().leftcol || v:mouse_lnum>line('w$'))
 			exe "norm! \<leftmouse>"
 		else
 			let s:prevCoord=[0,0,0]
@@ -498,15 +496,13 @@ let TXBmsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
-		if exists("w:txbi")
+		if exists('w:txbi')
 			let t_r=line('.')/t:mp_L
 			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
-		if &wrap && v:mouse_col%winwidth(0)==1
-			exe "norm! \<leftmouse>"
-		elseif !&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol
+		if &wrap && (v:mouse_col%winwidth(0)==1 || v:mouse_lnum>line('w$')) || !&wrap && (v:mouse_col>=winwidth(0)+winsaveview().leftcol || v:mouse_lnum>line('w$'))
 			exe "norm! \<leftmouse>"
 		else
 			let s:prevCoord=[0,0,0]
