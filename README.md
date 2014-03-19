@@ -62,20 +62,20 @@ Syntax | Action | | Syntax | Action
 <dt>Reformating</dt>
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
 <dd>Lines of the above form are considered labels. `R`eformat, in addition to `r`edrawing, will:  
-(1) move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
-(2) remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>autolable##CMA</samp>. Note that for autolabels, the initial position has the label line, which is what you would expect. For example <samp>txb:: Label##CM</samp> would center the *label line* and not the first line of of the plane associated with that map cell.)</dd>
-<dd>Examples:  
-<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
-<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
-<samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title', position 'CM'*  
-<samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp>*label 'Blah blah', position 'CM'*  
-<samp>&nbsp;txb: Blah###Ignored&nbsp;</samp>*label 'Blah'*
-<dd>The string <samp>TxbReformatLog</samp> contains a list of chances and errors made. Some examples:  
-<samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
-<samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
-<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Move failed; not enough blank lines to remove*  
-<samp>&nbsp;EOCC 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Label failed; cell already occupied by user label*  
-<samp>&nbsp;ECNF 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Label failed; multiple autolabels for one cell*  
+* move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
+* remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>label##CMA</samp>. Note that the initial position for its positioning syntax is the label line and not the top of the grid, which is what you would expect. For example <samp>txb: label##CM</samp> would center the label line and not the first line of of the plane associated with that map cell.)</dd>
+<dd>Possible labels:  
+<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
+<samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title', position 'CM'*  
+<samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;&nbsp;</samp>*label 'Blah blah', position 'CM'*  
+<samp>&nbsp;txb: Blah###Ignored&nbsp;&nbsp;</samp>*label 'Blah'*
+<dd>Possible <samp>:ec TxbReformatLog</samp> entries:  
+<samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
+<samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
+<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
+<samp>&nbsp;EOCC 15 78 Blah bleh&nbsp;</samp>*Error: cell already occupied by user label 'bleh'*  
+<samp>&nbsp;ECNF 15 78 Blah bleh&nbsp;</samp>*Error: autolabel 'bleh' was already specified for cell*  
 
 
 </dd>
