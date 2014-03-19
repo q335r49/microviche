@@ -1651,6 +1651,9 @@ fun! s:redraw(...)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		if a:0
+			if ccol>=len(t:txb.map)
+				call extend(t:txb.map,eval('['.join(repeat(['[]'],ccol+1-len(t:txb.map)),',').']'))
+			en
 			call map(t:txb.map[ccol],'v:val[-1:]==#"A"? "" : v:val')
 			1
 			let line=search('^txb:','W')
@@ -1675,9 +1678,6 @@ fun! s:redraw(...)
 				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
 				if head
 					let r=line('.')/t:mp_L
-					if ccol>=len(t:txb.map)
-						call extend(t:txb.map,eval('['.join(repeat(['[]'],ccol+1-len(t:txb.map)),',').']'))
-					en
 					if r>=len(t:txb.map[ccol])
 						call extend(t:txb.map[ccol],repeat([''],r+1-len(t:txb.map[ccol])))
 					en
