@@ -68,7 +68,7 @@ Syntax | Action | | Syntax | Action
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
 <samp>&nbsp;txb: Blah#Title#CM&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title', position 'CM'*  
-<samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp>*label 'Blah blah', position 'CM'*
+<samp>&nbsp;txb: Blah blah##CM&nbsp;&nbsp;</samp>*label 'Blah blah', position 'CM'*  
 <samp>&nbsp;txb: Blah###Ignored&nbsp;</samp>*label 'Blah'*
 <dd>The string <samp>TxbReformatLog</samp> contains a list of chances and errors made. Some examples:  
 <samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
