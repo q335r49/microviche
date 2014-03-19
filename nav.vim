@@ -1501,7 +1501,7 @@ let TXBkyCmd[-1]='let s:kc_continue=0'
 let TXBkyCmd[-99]=""
 let TXBkyCmd["\e"]=TXBkyCmd.q
 
-let TXBkyCmd.L="exe getline('.')[:3]!=#'txb:'? 'norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
+let TXBkyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
 let TXBkyCmd.D=
 	\"redr\n
