@@ -1387,14 +1387,15 @@ fun! s:blockPan(dx,y,...)
 endfun
 let s:Y1='let s:kc_y=s:kc_y/t:kpLn*t:kpLn+s:kc_num*t:kpLn|'
 let s:Ym1='let s:kc_y=max([1,s:kc_y/t:kpLn*t:kpLn-s:kc_num*t:kpLn])|'
-	let TXBkyCmd.h='cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)'
-	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()'
-	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()' 
-	let TXBkyCmd.l='cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
-	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
-	let TXBkyCmd.n=s:Y1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+let TXBkyCmd.h='cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)'
+let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()'
+let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()' 
+let TXBkyCmd.l='cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
+let TXBkyCmd.u=s:Ym1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+let TXBkyCmd.b =s:Y1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
+let TXBkyCmd.n=s:Y1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+unlet s:Y1 s:Ym1
 let TXBkyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
 let TXBkyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
 let TXBkyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
@@ -2015,3 +2016,5 @@ fun! s:nav(N)
 		return extrashift
 	en
 endfun
+
+delf s:SID
