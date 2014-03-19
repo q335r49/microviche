@@ -1684,16 +1684,13 @@ fun! s:redraw(...)
 						call extend(t:txb.map[ccol],repeat([''],r+1-len(t:txb.map[ccol])))
 					en
 					let autolbl=split(L[head :],'#',1)
-					let prevlbl=get(split(t:txb.map[ccol][r],'#',1),0,'')
-					if !empty(autolbl) && !empty(autolbl[0]) && autolbl[0]!=prevlbl
-						if empty(prevlbl)
+					if !empty(autolbl) && !empty(autolbl[0])
+						if empty(t:txb.map[ccol][r])
 							let row=line%t:mp_L
 							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
-						elseif t:txb.map[ccol][r][-1]==#'A'
-							call add(log,'ECNF'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
 						else
-							call add(log,'EOCC'."\t".ccol."\t".line."\t".autolbl[0]."\t".prevlbl)
+							call add(log,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
 						en
 					en
 				en
