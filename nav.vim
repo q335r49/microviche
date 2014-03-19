@@ -1010,7 +1010,9 @@ let TXBkyCmd.S=
 		\let t:txb.settings['lines per map grid']=settings_values[9]\n
 			\let t:mp_L=settings_values[9]\n
 		\let t:txb.settings['map cell width']=settings_values[10]\n
+			\let t:mp_clW=settings_values[10]\n
 		\let t:txb.settings['map cell height']=settings_values[11]\n
+			\let t:mp_clH=settings_values[11]\n
 		\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
 			\let wd_msg=' (Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
