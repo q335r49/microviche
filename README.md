@@ -2,12 +2,11 @@
 <img hspace='20' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
 </p>
 
-###Textabyss lets you pan and zoom through text archives
-
-It's written in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+###Textabyss lets you pan and zoom through an archive
+... and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
-- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
+- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [download dir]/nav.vim</samp>
 - (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
@@ -84,7 +83,8 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 
 ####Tips
 - Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
-* You can **turn off scrollbinding** (so the plane becomes a list of independently scrolling columns) by changing <samp>autoexe</samp>: open `F10``S`ettings and `c`hange <samp>autoexe</samp> from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). `S`ave and input <samp>y</samp> when prompted to apply to all splits.
-- Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in Vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
-- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
+- You can **turn off scrollbinding** (so columns scroll independently) via `F10``S`ettings by `c`hanging <samp>autoexe</samp> (the <samp>Plane</samp> setting and not the <samp>Split</samp> setting) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp>. `S`ave and enter <samp>y</samp> at the 'apply to all' prompt.
+- The view may jump when moving away from the end of a **long split** since Vim can't scroll beyond the end of a split. One solution is to pad blank lines so that the working region is mostly a large rectangle. It might be helpful in that case to remap `G` in normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
+- **Keyboard commands** can be accessed via the <samp>TXBdoCmd(key)</samp> function.
+- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp> when you change your font size.
 - **Horizontal splits** aren't supported and may interfere with panning.
