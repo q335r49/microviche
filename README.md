@@ -7,47 +7,44 @@
 It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
-1. **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
-1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
-1. Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
+- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
+- (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
+- Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Basic commands
 Pan with the mouse or press `F10` followed by:
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l` [1]| ← ↓ ↑ → | | `F1` [2] | *help*
-`y``u``b``n` [1]| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` [3]| *redraw / redraw & remap* | | `L` [3] | *insert label*
+`h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
+`y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
+`r` `R` <sup>3</sup>| *redraw / redraw & remap* | | `L` <sup>3</sup> | *insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
-`S` [4] | *settings* | |`W` [5]| *write to file*
-1. Movements take a count. Eg, `3j`=`jjj`.
-1. Help will also display warnings and suggestions specific to your Vim setup.  
-1. See [Automapping](#automapping) below.  
-1. If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
-1. The last used plane is also saved in the viminfo and suggested on `F10` the next session.
+`S` <sup>4</sup> | *settings* | |`W` <sup>5</sup>| *write to file*
+<sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
+<sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
+<sup>3</sup> See [Automapping](#automapping) below.  
+<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
+<sup>5</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
 ####Map Commands
 Press `F10``o` to access the map:
 
-Mouse [1] | Action | | Mouse | Action
---- | --- | --- | --- | ---
-`click`|*select block*||`click``click`|*goto block*
-`drag` | *pan* | | `drag` to top left corner [2] | *(in plane) show map*
-`click` top left corner|*exit map*|||
-1. gVim does not support the mouse in map mode.  
-2. 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
-
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l` | ← ↓ ↑ → | | `c` | *change label (see below)*
-`y``u``b``n` | ↖ ↗ ↙ ↘  | | `g` `enter` | *goto block* 
-`0` `$` | *start / end of row* | | `I` `D` | *insert / delete and obtain column*
-`H` `M` `L` | *high / middle / low row* | | `Z` | *adjust map block size (Zoom)*
-`x` | *clear and obtain cell* | | `T` | *toggle color*
-`o` `O` | *obtain cell / column*| | `F1` |*help*
-`p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
+`click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` | ← ↓ ↑ → 
+`drag` | *pan* || `y``u``b``n` | ↖ ↗ ↙ ↘  
+`click` NW corner <sup>2</sup>|*exit map*||`g` `enter` | *goto block* 
+`drag` to NW corner <sup>2</sup> | *(in plane) show map* || `c` <sup>3</sup> | *change label*
+`H` `M` `L` | *high / middle / low row* || `0` `$` | *start / end of row*
+`I` `D` | *insert / delete & obtain col* || `Z` | *adjust map zoom*
+`x` | *delete & obtain cell* || `T` | *toggle color*
+`o` `O` | *obtain cell / col*|| `q` `esc`|*quit*
+`p` `P` | *put obtained after / before*|| `F1` | *help*
+<sup>1</sup> gVim does not support the mouse in map mode.  
+<sup>2</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
+<sup>3</sup> See [Label Syntax](#label-syntax) below.
 
 ####Label Syntax
 When `c`hanging a map lable, you're also prompted for optional highlighting and positioning commands:
@@ -57,10 +54,10 @@ When `c`hanging a map lable, you're also prompted for optional highlighting and 
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
-<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp> [\*] | *virtual split width*
+<samp>j k l</samp>|*cursor down / up / right*| |<samp>W</samp> <sup>1</sup> | *virtual split width*
 <samp>r R</samp>|*shift view down / up 1 row*| |<samp>M</samp> | *center cursor vertically (ignore* <samp>r R</samp>*)*
 <samp>s</samp>|*shift view left 1 split*| |<samp>C</samp> | *center split horizontally (ignore* <samp>s</samp>*)*
-\* By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
+<sup>1</sup> By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 
 ####Automapping
 `R`edraw operates on all visible splits. When it encounters a line of the form:
@@ -86,8 +83,8 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 
 
 ####Tips
-1. Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
+- Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
 * You can **turn off scrollbinding** (so the plane becomes a list of independently scrolling columns) by changing <samp>autoexe</samp>: open `F10``S`ettings and `c`hange <samp>autoexe</samp> from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). `S`ave and input <samp>y</samp> when prompted to apply to all splits.
-1. Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in Vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
-1. In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
-1. **Horizontal splits** aren't supported and may interfere with panning.
+- Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in Vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
+- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
+- **Horizontal splits** aren't supported and may interfere with panning.
