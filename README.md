@@ -4,9 +4,9 @@ is a **pannable, zoomable plane** for working on large amounts of text, implemen
 
 <dl>
 <dt>Installation and Startup</dt>
-<dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)** (latest version), open vim, and type: <samp>&nbsp;:source [download directory]/nav.vim&nbsp;</samp>. If the latest version is giving major errors, try one of the [older releases](https://github.com/q335r49/textabyss/releases).
+<dd>**[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)**, open vim, and type: <samp>source [download directory]/nav.vim</samp>.
 
-Navigate to the **working directory** to be associated with the plane (you only need to do this when you first create it). Press `F10` to bring up a prompt for files. You can try a pattern like <samp>&nbsp;\*.txt&nbsp;</samp>, or you can name a single file and append others as needed.</dd>
+Navigate to the **working directory** to be associated with the plane (you only need to do this to you create a plane). Press `F10` to bring up a prompt for files. You can try a pattern like <samp>*.txt</samp>, or you can name a single file and append others as needed.</dd>
 
 <dt>Navigating the plane</dt>
 <dd>Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
@@ -47,9 +47,9 @@ Key | Action | | Key | Action
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
 <dt>Label color and position
-<dd>When `c`hanging a label in the map, you're also prompted for a (optional) highlight group and (optional) position. You can press `tab` at the highlight prompt for auto-completion from the list of currently defined highlights.
+<dd>When `c`hanging a label in the map, you're also prompted for an optional highlight group and optional position. You can press `tab` at the highlight prompt to auto-complete from currently defined highlights.
 
-Positioning commands can move the cursor and the split from their default positions (top left corner and leftmost split, respectively). For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. When movement is defined for a block, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
+Positioning commands move the cursor and the split from their initial position at the top left corner and leftmost split, respectively. For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. When movement is defined for a grid, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
@@ -63,7 +63,7 @@ Syntax | Action | | Syntax | Action
 <dd><samp>txb[:line num][: label#highlght#position]</samp></dd>
 <dd>Lines of the above form are considered labels. `R`edraw will:  
 * move labels to <samp>line num</samp> by inserting or removing immediately preceding blank lines  
-* remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, eg, <samp>label##CMA</samp>. Note that the initial position for its positioning syntax is the label line and not the top of the grid, which is what you would expect. For example <samp>txb: label##CM</samp> would center the label line and not the first line of of the plane associated with that map cell.)</dd>
+* remap the region unless autolabeling conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, ie, <samp>label##CMA</samp>. Note that the initial position for positioning syntax is the label line and not the first line of the map grid, which is what you would expect.)</dd>
 <dd>Possible labels:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
@@ -79,12 +79,10 @@ Syntax | Action | | Syntax | Action
 
 
 </dd>
-<dt>Toggling Scrollbind</dt>
-<dd>You can turn off global scrollbind (so the plane becomes a list of independently scrolling articles) by changing the <samp>autoexe</samp> value: open up the settings interface by pressing `F10``S`, and `c`hange the <samp>autoexe</samp> from its default of <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). Press `S` to save. When prompted whether to retroactively apply to existing splits, input <samp>y</samp>.</dd>
-
 <dt>Tips</dt>
 <dd>
 * Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
+* You can **turn off scrollbinding** (so the plane becomes a list of independently scrolling columns) by changing <samp>autoexe</samp>: open `F10``S`ettings and `c`hange <samp>autoexe</samp> from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). `S`ave and input <samp>y</samp> when prompted to apply to all splits.
 * `hotkey``F1` help also gives **warnings** specific to your vim setup.
 * Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that you are rarely working past the end of a split, ie, so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
 * In gVim, **redrawing on zoom** is disabled because of the frequency and unpredictability of when resizing occurs. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
