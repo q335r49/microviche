@@ -4,7 +4,7 @@
 
 ###Textabyss lets you pan and zoom through text archives
 
-It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+It's written in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
 - **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
