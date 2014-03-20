@@ -1,8 +1,10 @@
-<img hspace='20' align='right' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
+<p align="center">
+<img hspace='20' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
+</p>
 
 ####Textabyss lets you pan and zoom through text archives.
 
-It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support, a color map, (optional) automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**.
+It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support and automatic mapping. Check out the **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
 1. **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
