@@ -1,11 +1,17 @@
-#Textabyss
-<img hspace='20' align='left' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
-is a **pannable, zoomable plane** for working on large amounts of text, implemented as a script for **[Vim](http://www.vim.org)**. It is primarily intended as an archive for prose but also works well for note taking, planning, margin notes, and brainstorming. It supports both the mouse and keyboard and features a color map. Check out the **[youtube video](http://www.youtube.com/watch?v=xkED6Mv_4bc).**
+
+
+<p align="center">
+<img hspace='20' align='right' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/textabyss-animation-optimized.gif" width="400" height="150" alt="animation"/>
+</p>
+
+Textabyss lets you pan and zoom through text archives!
+
+It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support, a color map, (optional) automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**.
 
 ####Installation and Startup
-1. **[Download nav.vim](https://raw.github.com/q335r49/textabyss/master/nav.vim)**, open Vim, and type: <samp>source [download directory]/nav.vim</samp>.  
-1. Navigate to the plane's **working directory** via <samp>:cd [working dir]</samp>. (Only necessary when creating a new plane.)  
-1. Press `F10` to evoke a file pattern prompt. You can try a pattern like <samp>*.txt</samp>, or you can name a single file and append others as needed.
+1. **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
+1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd</samp> 
+1. Evoke a file prompt with `F10`. You can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Navigating
 Once in the plane, move around by dragging the mouse or by pressing `F10` followed by `←` `↓` `↑` `→` or `h` `j` `k` `l`. Steps are **15 lines** x **1 split** (column). Panning keys take a count: for example, `F10``3``j` is the same as `F10``j``j``j`. The complete list of commands (access by pressing `F10` first) is: 
@@ -23,7 +29,7 @@ Key | Action | | Key | Action
 3. If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 4. The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
-####Using the map
+####Labeling the map
 Press `F10``o` to access the map. Each map cell corresponds to **45 lines** x **1 split** (column) in the plane. As above, you can navigate with the mouse or via (optionally count-prefixed) `←` `↓` `↑` `→`, `h` `j` `k` `l`. The complete list of commands in map mode is:
 
 Mouse [1] | Action | | Mouse | Action
