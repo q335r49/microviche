@@ -28,7 +28,7 @@ Key | Action | | Key | Action
 1. If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 1. The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
-####Using the map
+####Map Commands
 Press `F10``o` to access the map:
 
 Mouse [1] | Action | | Mouse | Action
@@ -49,7 +49,7 @@ Key | Action | | Key | Action
 `o` `O` | *obtain cell / column*| | `F1` |*help*
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
-####Label color and position
+####Label Syntax
 When `c`hanging a map lable, you're also prompted for optional highlighting and positioning commands:
 
 * You can press `tab` at the highlight prompt to auto-complete from currently defined highlights.
