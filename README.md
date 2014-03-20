@@ -8,8 +8,8 @@ It is implemented in **[Vim](http://www.vim.org)** script and has great mouse su
 
 ####Installation and Startup
 1. **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
-1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd</samp> 
-1. Evoke a file prompt with `F10`. You can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
+1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
+1. Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Basic commands
 Pan with the mouse or press `F10` followed by:
