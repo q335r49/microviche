@@ -4,12 +4,12 @@
 
 ###Textabyss lets you pan and zoom through text archives
 
-It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support and automatic mapping. Check out the **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+It is implemented in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
 1. **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open Vim, and <samp>:source [download dir]/nav.vim</samp>
-1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd</samp> 
-1. Evoke a file prompt with `F10`. You can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
+1. (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
+1. Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Basic commands
 Pan with the mouse or press `F10` followed by:
@@ -28,7 +28,7 @@ Key | Action | | Key | Action
 1. If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
 1. The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
-####Using the map
+####Map Commands
 Press `F10``o` to access the map:
 
 Mouse [1] | Action | | Mouse | Action
@@ -49,7 +49,7 @@ Key | Action | | Key | Action
 `o` `O` | *obtain cell / column*| | `F1` |*help*
 `p` `P` | *put obtained after / before*| |`q` `esc`|*quit*
 
-####Label color and position
+####Label Syntax
 When `c`hanging a map lable, you're also prompted for optional highlighting and positioning commands:
 
 * You can press `tab` at the highlight prompt to auto-complete from currently defined highlights.
