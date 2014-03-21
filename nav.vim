@@ -1293,63 +1293,48 @@ fun! s:doSyntax(stmt)
 endfun
 
 fun! s:blockPan(dx,y,...)
-	let cury=line('w0')
+	let l0=line('w0')
 	let absolute_x=exists('a:1')? a:1 : 0
 	let dir=absolute_x? absolute_x : a:dx
-	let y=a:y>cury?  (a:y-cury-1)/t:kpLn+1 : a:y<cury? -(cury-a:y-1)/t:kpLn-1 : 0
-	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.t:kpLn.'*'.t:kpLn.'+'.t:kpLn : 'let y_dest=!y? cury : cury>'.t:kpLn.'? (cury-1)/'.t:kpLn.'*'.t:kpLn.' : 1'
-	let pan_y=(y>=0? 'let cury=cury+'.t:kpSpV.'<y_dest? cury+'.t:kpSpV.' : y_dest' : 'let cury=cury-'.t:kpSpV.'>y_dest? cury-'.t:kpSpV.' : y_dest')."\n
-		\if cury>line('$')\n
-			\let longlinefound=0\n
-			\for i in range(winnr('$')-1)\n
-				\winc w\n
-				\if line('$')>=cury\n
-					\exe 'norm!' cury.'zt'\n
-					\let longlinefound=1\n
-					\break\n
-				\en\n
-			\endfor\n
-			\if !longlinefound\n
-				\exe 'norm! Gzt'\n
-			\en\n
-		\else\n
-			\exe 'norm!' cury.'zt'\n
-		\en"
+	let i=0
 	if dir>0
-		let i=0
 		let continue=1
 		while continue
-			exe update_ydest
 			let buf0=winbufnr(1)
 			while winwidth(1)>t:kpSpH
 				call s:nav(t:kpSpH)
-				exe pan_y
+				let dif=line('w0')-a:y
+				if dif
+					exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+				en
 				redr
 			endwhile
 			if winbufnr(1)==buf0
 				call s:nav(winwidth(1))
 			en
-			while cury!=y_dest
-				exe pan_y
+			let dif=line('w0')-a:y
+			while dif
+				exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+				let dif=line('w0')-a:y
 				redr
 			endwhile
-			let y+=y>0? -1 : y<0? 1 : 0
 			let i+=1
 			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i<a:dx
 		endwhile
 	elseif dir<0
-		let i=0
 		let ix=getwinvar(1,'txbi')
 		let continue=!(absolute_x && ix==a:dx && winwidth(1)>=t:txb.size[ix])
 		while continue
-			exe update_ydest
 			if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
 				call s:nav(-4)
 			en
 			let ix=getwinvar(1,'txbi')
 			while winwidth(1)<t:txb.size[ix]-t:kpSpH && !(winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()<t:kpSpH)) && getwinvar(1,'txbi')==ix
 				call s:nav(-t:kpSpH)
-				exe pan_y
+				let dif=line('w0')-a:y
+				if dif
+					exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+				en
 				redr
 			endwhile
 			if winnr('$')==1
@@ -1359,22 +1344,21 @@ fun! s:blockPan(dx,y,...)
 			elseif getwinvar(1,'txbi')==ix
 				call s:nav(winwidth(1)-t:txb.size[ix])
 			en
-			while cury!=y_dest
-				exe pan_y
+			let dif=line('w0')-a:y
+			while dif
+				exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+				let dif=line('w0')-a:y
 				redr
 			endwhile
-			let y+=y>0? -1 : y<0? 1 : 0
 			let i-=1
 			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i>a:dx
 		endwhile
 	en
-	while y
-		exe update_ydest
-		while cury!=y_dest
-			exe pan_y
-			redr
-		endwhile
-		let y+=y>0? -1 : y<0? 1 : 0
+	let dif=line('w0')-a:y
+	while dif
+		exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+		let dif=line('w0')-a:y
+		redr
 	endwhile
 endfun
 let s:Y1='let s:kc_y=s:kc_y/t:kpLn*t:kpLn+s:kc_num*t:kpLn|'

@@ -17,7 +17,7 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` <sup>3</sup>| *redraw / Reemap* | | `L` <sup>3</sup> | *insert label*
+`r` `R` <sup>3</sup>| *redraw / Remap* | | `L` <sup>3</sup> | *insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` <sup>4</sup> | *settings* | |`W` <sup>5</sup>| *write to file*
