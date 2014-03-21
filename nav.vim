@@ -1292,66 +1292,69 @@ fun! s:doSyntax(stmt)
 	en
 endfun
 
-fun! s:blockPan(dx,y,...)
+fun! s:blockPan(sp,y,off)
 	let l0=line('w0')
 	let i=0
-	if a:dx>0
-		let continue=1
-		while continue
-			let buf0=winbufnr(1)
-			while winwidth(1)>t:kpSpH
-				call s:nav(t:kpSpH)
-				let dif=line('w0')-a:y
-				if dif
-					exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
-				en
-				redr
-			endwhile
-			if winbufnr(1)==buf0
-				call s:nav(winwidth(1))
-			en
+	let cSp=getwinvar(1,'txbi')
+	let cOff=winwidth(1)>t:txb.size[cSp]? t:txb.size[cSp] : winwidth(1)
+	let dir=cSp>a:sp? -1 : cSp<a:sp? 1 : cOff>a:off? -1 : cOff<a:off? 1 : 0
+	while cSp<a:sp
+		while winwidth(1)>t:kpSpH
+			call s:nav(t:kpSpH)
 			let dif=line('w0')-a:y
-			while dif
-				exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
-				let dif=line('w0')-a:y
-				redr
-			endwhile
-			let i+=1
-			let continue=a:0? getwinvar(1,'txbi')!=a:dx : i<a:dx
+			exe dif? dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>" : ''
+			redr
 		endwhile
-	elseif a:dx<0
+		if cSp==getwinar(1,'txbi')
+			call s:nav(winwidth(1))
+		en
+		let dif=line('w0')-a:y
+		while dif
+			exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+			let dif=line('w0')-a:y
+			redr
+		endwhile
+		let cSp=getwinar(1,'txbi')
+	endwhile
+
+	while cSp>a:sp
+		if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
+			call s:nav(-4)
+		en
 		let ix=getwinvar(1,'txbi')
-		let continue=!(a:0 && ix==a:dx && winwidth(1)>=t:txb.size[ix])
-		while continue
-			if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
-				call s:nav(-4)
-			en
-			let ix=getwinvar(1,'txbi')
-			while winwidth(1)<t:txb.size[ix]-t:kpSpH && !(winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()<t:kpSpH)) && getwinvar(1,'txbi')==ix
-				call s:nav(-t:kpSpH)
-				let dif=line('w0')-a:y
-				if dif
-					exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
-				en
-				redr
-			endwhile
-			if winnr('$')==1
-				if !&wrap && virtcol('.')-wincol()
-					call s:nav(-virtcol('.')+wincol())
-				endif
-			elseif getwinvar(1,'txbi')==ix
-				call s:nav(winwidth(1)-t:txb.size[ix])
-			en
+		while winwidth(1)<t:txb.size[ix]-t:kpSpH && !(winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()<t:kpSpH)) && getwinvar(1,'txbi')==ix
+			call s:nav(-t:kpSpH)
 			let dif=line('w0')-a:y
-			while dif
+			if dif
 				exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
-				let dif=line('w0')-a:y
-				redr
-			endwhile
-			let i-=1
-			let continue=a:0? getwinvar(1,'txbi')!=-a:dx : i>a:dx
+			en
+			redr
 		endwhile
-	en
+		if winnr('$')==1
+			if !&wrap && virtcol('.')-wincol()
+				call s:nav(-virtcol('.')+wincol())
+			endif
+		elseif getwinvar(1,'txbi')==ix
+			call s:nav(winwidth(1)-t:txb.size[ix])
+		en
+		let dif=line('w0')-a:y
+		while dif
+			exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
+			let dif=line('w0')-a:y
+			redr
+		endwhile
+		let i-=1
+		let continue=a:0? getwinvar(1,'txbi')!=a:sp : i>a:sp
+	endwhile
+
+	let ix=getwinvar(1,'txbi')
+	let continue=!(a:0 && ix==a:sp && winwidth(1)>=t:txb.size[ix])
+
+		let cOff=winwidth(1)>t:txb.size[cSp]? t:txb.size[cSp] : winwidth(1)
+		while cOff>a:off
+
+		endwhile
+
 	let dif=line('w0')-a:y
 	while dif
 		exe dif>0? 'norm! '.(dif>t:kpSpV? t:kpSpV : dif)."\<c-y>" : 'norm! '.(-dif>t:kpSpV? t:kpSpV : -dif)."\<c-e>"
