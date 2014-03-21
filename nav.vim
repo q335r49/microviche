@@ -1294,10 +1294,8 @@ endfun
 
 fun! s:blockPan(dx,y,...)
 	let l0=line('w0')
-	let absolute_x=exists('a:1')? a:1 : 0
-	let dir=absolute_x? absolute_x : a:dx
 	let i=0
-	if dir>0
+	if a:dx>0
 		let continue=1
 		while continue
 			let buf0=winbufnr(1)
@@ -1319,11 +1317,11 @@ fun! s:blockPan(dx,y,...)
 				redr
 			endwhile
 			let i+=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i<a:dx
+			let continue=a:0? getwinvar(1,'txbi')!=a:dx : i<a:dx
 		endwhile
-	elseif dir<0
+	elseif a:dx<0
 		let ix=getwinvar(1,'txbi')
-		let continue=!(absolute_x && ix==a:dx && winwidth(1)>=t:txb.size[ix])
+		let continue=!(a:0 && ix==a:dx && winwidth(1)>=t:txb.size[ix])
 		while continue
 			if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
 				call s:nav(-4)
@@ -1351,7 +1349,7 @@ fun! s:blockPan(dx,y,...)
 				redr
 			endwhile
 			let i-=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i>a:dx
+			let continue=a:0? getwinvar(1,'txbi')!=-a:dx : i>a:dx
 		endwhile
 	en
 	let dif=line('w0')-a:y
