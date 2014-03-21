@@ -17,7 +17,7 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` <sup>3</sup>| *redraw / redraw & remap* | | `L` <sup>3</sup> | *insert label*
+`r` `R` <sup>3</sup>| *redraw / Reemap* | | `L` <sup>3</sup> | *insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` <sup>4</sup> | *settings* | |`W` <sup>5</sup>| *write to file*
@@ -59,12 +59,12 @@ Syntax | Action | | Syntax | Action
 <sup>1</sup> By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 
 ####Automapping
-Automatically generated labels have many advantages over explicitly `c`hanging labels. `R`edraw remaps all visible splits by processing lines of the form:
+'R'emap, in addition to `r`edrawing, will update the map to reflect the layout of all visible splits by processing lines of the form:
 
 <samp>txb[:line num][: label#highlght#position]</samp>
 
 * The line is moved to <samp>line num</samp> by inserting or removing immediately preceding blank lines
-* The label is inserted into the map unless it conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, ie, <samp>label##CMA</samp>. Note that the initial position when evaluating syntax is the label line and not the first line of the map grid, which is what you would expect.)
+* The label is inserted into the map unless it conflicts with a preexisting user label. (Automatic labels are differentiated internally by a trailing <samp>A</samp>.)
 
 Examples:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  

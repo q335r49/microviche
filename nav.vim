@@ -70,7 +70,7 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n[2] r R L                redraw / Redraw & Remap / Label
+	\\n[2] r R L                redraw / Remap / Label
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
@@ -81,7 +81,7 @@ fun! s:printHelp()
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
 	\\n(2) Lines of the form 'txb[:line num][: label#highlght#position]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
-	\\n[R]edrawing (in addition to [r]edrawing):
+	\\n[R]emap (in addition to [r]edrawing):
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
 	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
 	\\nExamples:
@@ -1545,6 +1545,40 @@ let TXBkyCmd.A=
 	\en\n
 	\let s:kc_continue=0|call s:updateCursPos()" 
 
+let TXBkyCmd.W=
+	\"let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
+	\let s:kc_continue=0\n
+	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
+	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
+	\exe 'cd' fnameescape(prevwd)"
+
+fun! s:saveCursPos()
+	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
+endfun
+fun! s:updateCursPos(...)
+    let default_scrolloff=a:0? a:1 : 0
+	let win=bufwinnr(t:txb_cPos[0])
+	if win!=-1
+		if winnr('$')==1 || win==1
+			winc t
+			let offset=virtcol('.')-wincol()+1
+			let width=offset+winwidth(0)-3
+			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]<offset? offset : width<=t:txb_cPos[2]? width : t:txb_cPos[2]).'|'
+		elseif win!=1
+			exe win.'winc w'
+			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]>winwidth(win)? '0g$' : t:txb_cPos[2].'|')
+		en
+	elseif default_scrolloff==1 || !default_scrolloff && t:txb_cPos[3]>w:txbi
+		winc b
+		exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
+	else
+		winc t
+		exe "norm! ".(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').'g0'
+	en
+	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.')]
+endfun
+
 fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi')
@@ -1709,7 +1743,7 @@ fun! s:redraw(...)
 	if !a:0
 		let s:kc_msg='(redraw complete)'
 	elseif empty(elog)
-		let s:kc_msg='(:ec TxbRemapLog to see changes)'
+		let s:kc_msg='(Remap complete, :ec TxbRemapLog to see changes)'
 		let g:TxbRemapLog=join(log,"\n")
 	else
 		let g:TxbRemapLog=join(elog,"\n")
@@ -1719,40 +1753,6 @@ fun! s:redraw(...)
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
-
-let TXBkyCmd.W=
-	\"let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let s:kc_continue=0\n
-	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : ' Plane written to file. Use '':source '.input.''' to restore']\n
-	\exe 'cd' fnameescape(prevwd)"
-
-fun! s:saveCursPos()
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
-endfun
-fun! s:updateCursPos(...)
-    let default_scrolloff=a:0? a:1 : 0
-	let win=bufwinnr(t:txb_cPos[0])
-	if win!=-1
-		if winnr('$')==1 || win==1
-			winc t
-			let offset=virtcol('.')-wincol()+1
-			let width=offset+winwidth(0)-3
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]<offset? offset : width<=t:txb_cPos[2]? width : t:txb_cPos[2]).'|'
-		elseif win!=1
-			exe win.'winc w'
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]>winwidth(win)? '0g$' : t:txb_cPos[2].'|')
-		en
-	elseif default_scrolloff==1 || !default_scrolloff && t:txb_cPos[3]>w:txbi
-		winc b
-		exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
-	else
-		winc t
-		exe "norm! ".(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').'g0'
-	en
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.')]
-endfun
 
 fun! s:nav(N)
 	let c_bf=bufnr('')
