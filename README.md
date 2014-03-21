@@ -59,7 +59,7 @@ Syntax | Action | | Syntax | Action
 <sup>1</sup> By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 
 ####Automapping
-`R`edraw operates on all visible splits. When it encounters a line of the form:
+Automatically generated labels have many advantages over explicitly `c`hanging labels. `R`edraw remaps all visible splits by processing lines of the form:
 
 <samp>txb[:line num][: label#highlght#position]</samp>
 
