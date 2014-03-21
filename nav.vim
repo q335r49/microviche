@@ -312,14 +312,6 @@ fun! TXBinit(...)
 	let &more=more
 endfun
 
-let TXBkyCmd.W=
-	\"let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let s:kc_continue=0\n
-	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : ' Plane written to file. Use '':source '.input.''' to restore']\n
-	\exe 'cd' fnameescape(prevwd)"
-
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! <SID>initDragDefault()
 	if exists('w:txbi')
@@ -1637,6 +1629,7 @@ fun! s:redraw(...)
 	winc b
 	let ccol=colb
 	let log=[]
+	let elog=[]
     for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1665,7 +1658,7 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							call add(log,'EMOV'."\t".ccol."\t".line."\t".lref)
+							call add(elog,'EMOV'."\t".ccol."\t".line."\t".lref)
 						else
 							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
@@ -1689,7 +1682,7 @@ fun! s:redraw(...)
 							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						else
-							call add(log,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
+							call add(elog,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
 						en
 					en
 				en
@@ -1699,7 +1692,6 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbRemapLog=join(log,"\n")
 	se scrollopt=ver,jump
 	try
 		exe "silent norm! :syncbind\<cr>"
@@ -1714,10 +1706,27 @@ fun! s:redraw(...)
 	if len(s:gridnames)<t:txb_len
 		let s:gridnames=s:getGridNames(t:txb_len+50)
 	en
-	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbRemapLog)? '(reformat complete; no changes made)' : ":echo g:TxbRemapLog\n".g:TxbRemapLog
+	if !a:0
+		let s:kc_msg='(redraw complete)'
+	elseif empty(elog)
+		let s:kc_msg='(:ec TxbRemapLog to see changes)'
+		let g:TxbRemapLog=join(log,"\n")
+	else
+		let g:TxbRemapLog=join(elog,"\n")
+		let s:kc_msg=":ec TxbRemapLog to review errors:\n".g:TxbRemapLog
+		let g:TxbRemapLog.=join(log,"\n")
+	en
 endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
+
+let TXBkyCmd.W=
+	\"let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
+	\let s:kc_continue=0\n
+	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
+	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : ' Plane written to file. Use '':source '.input.''' to restore']\n
+	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:saveCursPos()
 	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
