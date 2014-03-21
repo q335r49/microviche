@@ -81,6 +81,7 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 <samp>&nbsp;ECNF 15 78 Blah bleh&nbsp;</samp>*Error: autolabel 'bleh' was already specified for cell*  
 
 ####Tips
+- Whenever possible, use in-plane labels rather than `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert splits.
 - Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
 - You can **turn off scrollbinding** (so columns scroll independently) via `F10``S`ettings by `c`hanging <samp>autoexe</samp> (the <samp>Plane</samp> setting and not the <samp>Split</samp> setting) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp>. `S`ave and enter <samp>y</samp> at the 'apply to all' prompt.
 - The view will jump when moving away from the end of a **long split** since Vim doesn't scroll beyond the end of a split. One solution is to pad blank lines so that the working region is mostly rectanglar. It might be helpful in that case to remap `G` in normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the last line.
