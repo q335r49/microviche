@@ -1502,8 +1502,8 @@ fun! s:blockPan(sp,y,off)
 			redr
 		endwhile
 	elseif cOff>a:off
-		while cOff-a:off>t:kpSpH && getwinvar(1,'txb')==cSp
-			call s:nav(-t:kpSpH)
+		while cOff>a:off && getwinvar(1,'txb')==cSp
+			call s:nav(cOff-a:off>t:kpSpH : t:kpSpH : cOff-a:off)
 			let dif=line('w0')-a:y
 			exe dif>t:kpSpV? upPan : dif<t:kpSpV? dnPan : !dif? '' : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.-dif."\<c-e>"
 			let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
