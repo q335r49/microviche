@@ -261,9 +261,6 @@ fun! TXBinit(...)
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txb_len=len(t:txb.name)
-		if !exists('s:gridNames') || len(s:gridNames)<t:txb_len+50
-			let s:gridnames=s:getGridNames(t:txb_len+50)
-		en
 	    let t:kpLn=t:txb.settings['lines panned by j,k']
 		let t:kpSpH=t:txb.settings['kbd x pan speed']
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
@@ -320,11 +317,11 @@ fun! <SID>initDragDefault()
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
 			let t_r=v:mouse_lnum/t:mp_L
-			echon s:gridnames[getwinvar(v:mouse_win,'txbi')] t_r ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),t_r,'')[:&columns-9]
+			echon getwinvar(v:mouse_win,'txbi') '-' t_r ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),t_r,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
 			let t_r=line('.')/t:mp_L
-			let ecstr=s:gridnames[w:txbi].t_r.' '.get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			let ecstr=w:txbi.' '.t_r.' '.get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -355,7 +352,7 @@ fun! <SID>initDragDefault()
 		en
 		call s:updateCursPos()
 		let t_r=line('.')/t:mp_L
-		echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+		echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -407,7 +404,7 @@ fun! <SID>initDragSGR()
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
 			let t_r=line('.')/t:mp_L
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -438,7 +435,7 @@ fun! <SID>doDragSGR()
 				call TXBdoCmd('o')
 			elseif exists('w:txbi')
 				let t_r=line('.')/t:mp_L
-				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 			en
 		en
 		return
@@ -461,7 +458,7 @@ fun! <SID>initDragXterm2()
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
 			let t_r=line('.')/t:mp_L
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -489,7 +486,7 @@ fun! <SID>doDragXterm2()
 				call TXBdoCmd('o')
 			elseif exists('w:txbi')
 				let t_r=line('.')/t:mp_L
-				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 			en
 		en
 		return
@@ -522,21 +519,7 @@ fun! s:navPlane(dx,dy)
 		exe 'norm! '.-dif."\<c-e>"
 	en
 	let t_r=line('.')/t:mp_L
-	echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
-endfun
-
-fun! s:getGridNames(len)
-	let alpha=map(range(65,90),'nr2char(v:val)')
-	let powers=[26,676,17576]
-	let array1=map(range(powers[0]),'alpha[v:val%26]." "')
-	if a:len<=powers[0]
-		return array1
-	elseif a:len<=powers[0]+powers[1]
-		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-	else
-		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-	en
+	echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 endfun
 
 fun! s:getMapDisp()          
@@ -645,7 +628,7 @@ fun! s:printMapDisp()
 		exe s:disp_colorv[p]
 		echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
 	endfor
-	echon get(s:gridnames,s:mp_c,'--') s:mp_r s:mp_msg
+	echon s:mp_c '-' s:mp_r s:mp_msg
 	let s:mp_msg=''
 endfun
 fun! s:printMapDispNoHL()
@@ -663,7 +646,7 @@ fun! s:printMapDispNoHL()
 		echon s:disp_str[i : i+len-1]
 	en
 	echohl NONE
-	echon s:disp_str[i+len :] get(s:gridnames,s:mp_c,'--') s:mp_r s:mp_msg
+	echon s:disp_str[i+len :] s:mp_c '-' s:mp_r s:mp_msg
 	let s:mp_msg=''
 endfun
 
@@ -1394,14 +1377,14 @@ fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue
 		let t_r=line('.')/t:mp_L
-		echon '[' s:gridnames[w:txbi] t_r '] ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc_msg
+		echon w:txbi '.' t_r ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc_msg
 		let s:kc_msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc_msg)
 		redr|ec s:kc_msg
 	else
 		let t_r=line('.')/t:mp_L
-		redr|echo '(done)' s:gridnames[w:txbi].t_r get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-17]
+		redr|echo '(done)' w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-17]
 	en
 endfun
 let TXBkyCmd.q="let s:kc_continue=0"
@@ -1449,9 +1432,6 @@ let TXBkyCmd.A=
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\let t:txb_len=len(t:txb.name)\n
-			\if len(s:gridnames)<t:txb_len\n
-				\let s:gridnames=s:getGridNames(t:txb_len+50)\n
-			\en\n
 			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
@@ -1696,9 +1676,6 @@ fun! s:redraw(...)
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
-	if len(s:gridnames)<t:txb_len
-		let s:gridnames=s:getGridNames(t:txb_len+50)
-	en
 	if !a:0
 		let s:kc_msg='(redraw complete)'
 	elseif empty(elog)
@@ -1986,3 +1963,4 @@ fun! s:nav(N)
 endfun
 
 delf s:SID
+let BP=function('s:blockPan')
