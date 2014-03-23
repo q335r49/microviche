@@ -1864,6 +1864,9 @@ fun! s:nav(N,L)
 						1winc w
 						norm! 0
 					en
+					exe cL
+					let dif=line('w0')-a:L
+					exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
 					return
 				en
 			en
