@@ -1711,7 +1711,7 @@ endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
 
-fun! s:nav(N)
+fun! s:nav(N,L)
 	let cBf=bufnr('')
 	let cVc=virtcol('.')
 	let cL0=line('w0')
@@ -1997,16 +1997,14 @@ fun! s:nav(N)
 	en
 	se scrollopt=ver,jump
     if dosyncbind
-		if s:syncOK
-			exe "norm! :syncbind\<cr>"
-		else
+		if !s:syncOK
 			windo 1
-			exe "norm! :syncbind\<cr>"
 		en
-		exe cL0
-		norm! zt
-		exe cL
+		exe "norm! :syncbind\<cr>"
 	en
+	exe cL
+	let dif=line('w0')-a:L
+	exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
 	return extrashift
 endfun
 
