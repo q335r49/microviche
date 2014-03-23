@@ -1517,10 +1517,9 @@ fun! s:blockPan(sp,off,y,relative)
 	let ll=line('$')
 	let dif=l0-a:y
 	while dif && !(a:y>l0 && l0==ll)
-		exe dif>t:kpSpV? upPan : dif<-t:kpSpV? dnPan : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
+		exe dif>t:kpSpV? 'norm! '.t:kpSpV."\<c-y>" : dif<-t:kpSpV? 'norm! '.t:kpSpV."\<c-e>" : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
 		let l0=line('w0')
 		let dif=l0-a:y
-		echon dif
 		redr
 	endwhile
 endfun
