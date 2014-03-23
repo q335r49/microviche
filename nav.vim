@@ -416,7 +416,6 @@ fun! <SID>initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -470,7 +469,6 @@ fun! <SID>initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -504,7 +502,7 @@ fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? get(s:panAcc,a:dy,s:panAcc[-1])."\<c-y>" : a:dy<0? get(s:panAcc,-a:dy,s:panAcc[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? s:line0+get(t:msSp,-a:dy,t:msSp[-1]) : s:line0+get(t:msSp,a:dy,t:msSp[-1]))
+	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
 	let t_r=line('.')/t:mp_L
 	echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
 endfun
