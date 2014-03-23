@@ -1275,6 +1275,10 @@ fun! s:doSyntax(stmt)
 	en
 endfun
 
+fun! TxbGetOffset()
+	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
+endfun
+
 fun! s:blockPan(sp,off,y,relative)
 	let upPan="norm! ".t:kpSpV."\<c-y>"
 	let dnPan="norm! ".t:kpSpV."\<c-e>"
@@ -1286,7 +1290,6 @@ fun! s:blockPan(sp,off,y,relative)
 	else
 		let dir=fSp-cSp+(fSp==cSp)*(cOff-a:off)
 	en
-	"exe PRINT('dir|cSp|fSp')
 	if dir>0
 		while 1
 			let cSp=getwinvar(1,'txbi')
@@ -1350,17 +1353,14 @@ fun! s:blockPan(sp,off,y,relative)
 	endwhile
 endfun
 
-let s:Y1='let s:kc_y=s:kc_y/t:kpLn*t:kpLn+s:kc_num*t:kpLn|'
-let s:Ym1='let s:kc_y=max([1,s:kc_y/t:kpLn*t:kpLn-s:kc_num*t:kpLn])|'
-let TXBkyCmd.h='cal s:blockPan(-s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(1)'
-let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos()'
-let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos()' 
-let TXBkyCmd.l='cal s:blockPan(s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(1)' 
-let TXBkyCmd.u=s:Ym1.'cal s:blockPan(s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-let TXBkyCmd.b =s:Y1.'cal s:blockPan(-s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(1)' 
-let TXBkyCmd.n=s:Y1.'cal s:blockPan(s:kc_num,0,s:kc_y,1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-unlet s:Y1 s:Ym1
+let TXBkyCmd.h='cal s:blockPan(-s:kc_num,0,line(''w0''),1)|let s:kc_num="01"|call s:updateCursPos(1)'
+let TXBkyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num="01"|call s:updateCursPos()'
+let TXBkyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num="01"|call s:updateCursPos()' 
+let TXBkyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+let TXBkyCmd.y='cal s:blockPan(-s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num="01"|call s:updateCursPos(1)' 
+let TXBkyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
+let TXBkyCmd.b='cal s:blockPan(-s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num="01"|call s:updateCursPos(1)' 
+let TXBkyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num="01"|call s:updateCursPos(-1)' 
 let TXBkyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
 let TXBkyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
 let TXBkyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
@@ -1441,7 +1441,6 @@ endfun
 
 fun! TXBdoCmd(inicmd)
 	let s:kc_num='01'
-	let s:kc_y=line('w0')
 	let s:kc_continue=1
 	let s:kc_msg=''
 	call s:saveCursPos()
