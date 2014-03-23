@@ -1712,11 +1712,11 @@ endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
 
-fun! s:nav(N)
-	let c_bf=bufnr('')
-	let c_vc=virtcol('.')
-	let l0=line('w0')
-	let alignmentcmd='norm! '.l0'.'zt'
+fun! s:nav(N,line)
+	let cBf=bufnr('')
+	let cVc=virtcol('.')
+	let cL0=line('w0')
+	let alignmentcmd='norm! '.cL0'.'zt'
 	let dosyncbind=0
 	if a:N<0
 		let N=-a:N
@@ -1759,7 +1759,7 @@ fun! s:nav(N)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1773,19 +1773,19 @@ fun! s:nav(N)
 			endwhile
 			let offset=t:txb.size[w:txbi]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				winc b
 				norm! 0g$
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+			elseif cWn!=1
+				exe cWn.'winc w'
+				exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 			en
 		else
 			let tcol=w:txbi
 			let loff=&wrap? -N-extrashift : virtcol('.')-wincol()-N-extrashift
 			if loff>=0
-				exe 'norm! '.(N+extrashift).(bufwinnr(c_bf)==-1? 'zhg$' : 'zh')
+				exe 'norm! '.(N+extrashift).(bufwinnr(cBf)==-1? 'zhg$' : 'zh')
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
@@ -1795,7 +1795,7 @@ fun! s:nav(N)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1810,7 +1810,7 @@ fun! s:nav(N)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+						if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 							let dosyncbind=1
 						elseif !dosyncbind
 							exe alignmentcmd
@@ -1823,10 +1823,10 @@ fun! s:nav(N)
 					se scrollopt=ver,jump
 					windo se wfw
 				en
-				let c_wn=bufwinnr(c_bf)
-				if c_wn!=-1
-					exe c_wn.'winc w'
-					exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+				let cWn=bufwinnr(cBf)
+				if cWn!=-1
+					exe cWn.'winc w'
+					exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 				else
 					norm! 0g$
 				en
@@ -1872,7 +1872,7 @@ fun! s:nav(N)
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+			if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 				let dosyncbind=1
 			else
 				exe alignmentcmd
@@ -1883,13 +1883,13 @@ fun! s:nav(N)
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
 		else
 			if winwidth(1)==1
-				let c_wn=winnr()
+				let cWn=winnr()
 				winc t
 				hide
 				let N-=2
 				if N<=0
-					if c_wn!=1
-						exe (c_wn-1).'winc w'
+					if cWn!=1
+						exe (cWn-1).'winc w'
 					else
 						1winc w
 						norm! 0
@@ -1932,7 +1932,7 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
@@ -1947,14 +1947,14 @@ fun! s:nav(N)
 			winc t
 			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 			exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+			elseif cWn!=1
+				exe cWn.'winc w'
+				exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 			else
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		elseif &columns-t:txb.size[tcol]+loff>=2
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
@@ -1963,7 +1963,7 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
@@ -1974,36 +1974,36 @@ fun! s:nav(N)
 			endwhile
 			se scrollopt=ver,jump
 			windo se wfw
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				winc t
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
+			elseif cWn!=1
+				exe cWn.'winc w'
+				if cVc>=winwidth(0)
 					norm! 0g$
 				else
-					exe 'norm! '.c_vc.'|'
+					exe 'norm! '.cVc.'|'
 				en
 			else
 				winc t
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		else
 			let offset=loff-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
+			elseif cWn!=1
+				exe cWn.'winc w'
+				if cVc>=winwidth(0)
 					norm! 0g$
 				else
-					exe 'norm! '.c_vc.'|'
+					exe 'norm! '.cVc.'|'
 				en
 			else
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		en
 	en
