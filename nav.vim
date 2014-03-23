@@ -1474,24 +1474,20 @@ fun! s:blockPan(sp,off,y,relative)
 	let upPan="norm! ".t:kpSpV."\<c-y>"
 	let dnPan="norm! ".t:kpSpV."\<c-e>"
 	let cSp=getwinvar(1,'txbi')
-	let fSp=a:relative? ((cSp+a:sp)%t:txb_len+t:txb_len)%t:txb_len  : a:sp
+	let dSp=a:relative? ((cSp+a:sp)%t:txb_len+t:txb_len)%t:txb_len  : a:sp
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
-	if a:relative
-		let dir=a:sp
-	else
-		let dir=fSp-cSp+(fSp==cSp)*(cOff-a:off)
-	en
+	let dir=a:relative? a:sp : dSp-cSp+(dSp==cSp)*(cOff-a:off)
 	if dir>0
 		while 1
 			let cSp=getwinvar(1,'txbi')
-			if cSp==fSp-1
+			if cSp==dSp-1
 				if winwidth(1)+a:off>t:kpSpH
 					call s:nav(t:kpSpH)
 				else
 					call s:nav(winwidth(1)+a:off)
 					break
 				en
-			elseif cSp==fSp
+			elseif cSp==dSp
 				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
 				if cOff-a:off>t:kpSpH
 					call s:nav(t:kpSpH)
@@ -1509,14 +1505,14 @@ fun! s:blockPan(sp,off,y,relative)
 	elseif dir<0
 		while 1
 			let cSp=getwinvar(1,'txbi')
-			if cSp==fSp+1
-				if winwidth(1)+t:txb.size[fSp]-a:off>t:kpSpH
+			if cSp==dSp+1
+				if winwidth(1)+t:txb.size[dSp]-a:off>t:kpSpH
 					call s:nav(-t:kpSpH)
 				else
-					call s:nav(-winwidth(1)-t:txb.size[fSp]+a:off)
+					call s:nav(-winwidth(1)-t:txb.size[dSp]+a:off)
 					break
 				en
-			elseif cSp==fSp
+			elseif cSp==dSp
 				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
 				if cOff-a:off>t:kpSpH
 					call s:nav(-t:kpSpH)
