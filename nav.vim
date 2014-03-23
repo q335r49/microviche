@@ -1712,15 +1712,15 @@ endfun
 let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
 let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
 
-fun! s:nav(N,line)
+fun! s:nav(N)
 	let cBf=bufnr('')
 	let cVc=virtcol('.')
 	let cL0=line('w0')
-	let alignmentcmd='norm! '.cL0'.'zt'
+	let alignmentcmd='norm! '.cL0.'zt'
 	let dosyncbind=0
+	let extrashift=0
 	if a:N<0
 		let N=-a:N
-		let extrashift=0
 		if N<&columns
 			while winwidth(winnr('$'))<=N
 				winc b
@@ -1759,7 +1759,7 @@ fun! s:nav(N,line)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1795,7 +1795,7 @@ fun! s:nav(N,line)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1810,7 +1810,7 @@ fun! s:nav(N,line)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+						if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 							let dosyncbind=1
 						elseif !dosyncbind
 							exe alignmentcmd
@@ -1836,7 +1836,6 @@ fun! s:nav(N,line)
 	elseif a:N>0
 		let tcol=getwinvar(1,'txbi')
 		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
-		let extrashift=0
 		let N=a:N
 		let nobotresize=0
 		if N>=&columns
@@ -1872,7 +1871,7 @@ fun! s:nav(N,line)
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+			if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 				let dosyncbind=1
 			else
 				exe alignmentcmd
@@ -1932,7 +1931,7 @@ fun! s:nav(N,line)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
@@ -1963,7 +1962,7 @@ fun! s:nav(N,line)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
