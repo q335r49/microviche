@@ -1715,7 +1715,9 @@ let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()
 fun! s:nav(N)
 	let c_bf=bufnr('')
 	let c_vc=virtcol('.')
-	let alignmentcmd='norm! '.line('w0').'zt'
+	let l0=line('w0')
+	let alignmentcmd='norm! '.l0'.'zt'
+	let dosyncbind=0
 	if a:N<0
 		let N=-a:N
 		let extrashift=0
@@ -1757,7 +1759,11 @@ fun! s:nav(N)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+					let dosyncbind=1
+				else
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				winc l
 				se wfw
@@ -1789,7 +1795,11 @@ fun! s:nav(N)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				exe alignmentcmd
+				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+					let dosyncbind=1
+				else
+					exe alignmentcmd
+				en
 				exe t:txb.exe[tcol]
 				se scrollopt=ver,jump
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
@@ -1800,7 +1810,11 @@ fun! s:nav(N)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						exe alignmentcmd
+						if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+							let dosyncbind=1
+						elseif !dosyncbind
+							exe alignmentcmd
+						en
 						exe t:txb.exe[nextcol]
 						norm! 0
 						let spaceremaining-=t:txb.size[nextcol]+1
@@ -1818,7 +1832,7 @@ fun! s:nav(N)
 				en
 			en
 		en
-		return -extrashift
+		let extrashift=-extrashift
 	elseif a:N>0
 		let tcol=getwinvar(1,'txbi')
 		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
@@ -1858,7 +1872,11 @@ fun! s:nav(N)
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			exe alignmentcmd
+			if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+				let dosyncbind=1
+			else
+				exe alignmentcmd
+			en
 			exe t:txb.exe[tcol]
 			se scrollopt=ver,jump
 			only
@@ -1914,7 +1932,11 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+					let dosyncbind=1
+				elseif !dosyncbind
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				winc h
 				se wfw
@@ -1941,7 +1963,11 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<l0 && stridx(t:txb.exe[nextcol],'noscb')!=-1
+					let dosyncbind=1
+				elseif !dosyncbind
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				norm! 0
 				let spaceremaining-=t:txb.size[nextcol]+1
@@ -1980,8 +2006,17 @@ fun! s:nav(N)
 				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
 			en
 		en
-		return extrashift
 	en
+    if dosyncbind
+		try
+			exe "silent norm! :syncbind\<cr>"
+		catch
+			se scrollopt=jump
+			windo 1
+			se scrollopt=ver,jump
+		endtry
+	en
+	return extrashift
 endfun
 
 delf s:SID
