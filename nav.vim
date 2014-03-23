@@ -314,12 +314,10 @@ fun! <SID>initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let t_r=v:mouse_lnum/t:mp_L
-			echon getwinvar(v:mouse_win,'txbi') '-' t_r ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),t_r,'')[:&columns-9]
+			echon getwinvar(v:mouse_win,'txbi') '-' v:mouse_lnum ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),v:mouse_lnum/t:mp_L,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
-			let t_r=line('.')/t:mp_L
-			let ecstr=w:txbi.' '.t_r.' '.get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			let ecstr=w:txbi.' '.line('.').' '.get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -349,8 +347,7 @@ fun! <SID>initDragDefault()
 			endwhile
 		en
 		call s:updateCursPos()
-		let t_r=line('.')/t:mp_L
-		echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+		echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -401,8 +398,7 @@ fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
-			let t_r=line('.')/t:mp_L
-			echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -431,8 +427,7 @@ fun! <SID>doDragSGR()
 			if k[1:]==[1,1]
 				call TXBdoCmd('o')
 			elseif exists('w:txbi')
-				let t_r=line('.')/t:mp_L
-				echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
 		en
 		return
@@ -454,8 +449,7 @@ fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
-			let t_r=line('.')/t:mp_L
-			echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -481,8 +475,7 @@ fun! <SID>doDragXterm2()
 			if k[1:]==[33,33]
 				call TXBdoCmd('o')
 			elseif exists('w:txbi')
-				let t_r=line('.')/t:mp_L
-				echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
 		en
 		return
@@ -502,8 +495,7 @@ fun! s:panWin(dx,dy)
 endfun
 fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
-	let t_r=line('.')/t:mp_L
-	echon w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+	echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 endfun
 
 fun! s:getMapDisp()          
@@ -1356,15 +1348,13 @@ endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:TXBkyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue
-		let t_r=line('.')/t:mp_L
-		echon w:txbi '.' t_r ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc_msg
+		echon w:txbi '.' line('.') ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9] : s:kc_msg
 		let s:kc_msg=''
 		call feedkeys("\<plug>TxbZ") 
 	elseif !empty(s:kc_msg)
 		redr|ec s:kc_msg
 	else
-		let t_r=line('.')/t:mp_L
-		redr|echo '(done)' w:txbi '-' t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-17]
+		redr|echo '(done)' w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-17]
 	en
 endfun
 let TXBkyCmd.q="let s:kc_continue=0"
