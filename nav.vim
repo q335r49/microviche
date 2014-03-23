@@ -122,8 +122,7 @@ fun! s:printHelp()
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
-	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
-	\\n* When working at the end of a LONG SPLIT you may experience jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
+	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.",width,(&columns-width)/2),s:help_bookmark)
 endfun
 let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
