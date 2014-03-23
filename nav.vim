@@ -1690,10 +1690,10 @@ fun! s:redraw(...)
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
 	se scrollopt=ver,jump
-	if s:syncOK
+	if !s:syncOK
 		windo 1
 	en
-	syncbind
+	exe "norm! :syncbind\<cr>"
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
@@ -2007,15 +2007,15 @@ fun! s:nav(N)
 		en
 	en
     if dosyncbind
-		if !s:syncOK
-			windo 1
-			syncbind
-			exe cL0
-			zt
-			exe cL
+		if s:syncOK
+			exe "norm! :syncbind\<cr>"
 		else
-			syncbind
+			windo 1
+			exe "norm! :syncbind\<cr>"
 		en
+		exe cL0
+		norm! zt
+		exe cL
 	en
 	return extrashift
 endfun
