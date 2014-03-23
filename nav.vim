@@ -1818,7 +1818,7 @@ fun! s:nav(N,L)
 		let tcol=getwinvar(1,'txbi')
 		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
 		let N=a:N
-		let nobotresize=0
+		let botalreadysized=0
 		if N>=&columns
 			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
@@ -1878,14 +1878,16 @@ fun! s:nav(N,L)
 				en
 			en
 			let shifted=0
-			while winwidth(1)<=N
+			let w1=winwidth(1)
+			while w1<=N
 				let w2=winwidth(2)
-				let extrashift=winwidth(1)==N
-				let shifted+=winwidth(1)+1
+				let extrashift=w1==N
+				let shifted+=w1+1
 				winc t
 				hide
-				if winwidth(1)==w2
-					let nobotresize=1
+				let w1=winwidth(1)
+				if w1==w2
+					let botalreadysized+=w1
 				en
 				let tcol=(tcol+1)%t:txb_len
 				let loff=0
@@ -1895,16 +1897,14 @@ fun! s:nav(N,L)
 		en
 		let wf=winwidth(1)-N
 		if wf+N!=&columns
-			if !nobotresize
-				winc b
-				exe 'vert res+'.N
-				if virtcol('.')!=wincol()
-					norm! 0
-				en
-				winc t	
-				if winwidth(1)!=wf
-					exe 'vert res'.wf
-				en
+			winc b
+			exe 'vert res+'.(N-botalreadysized)
+			if virtcol('.')!=wincol()
+				norm! 0
+			en
+			winc t	
+			if winwidth(1)!=wf
+				exe 'vert res'.wf
 			en
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
 				winc b
