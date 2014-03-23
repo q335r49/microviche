@@ -24,6 +24,8 @@ augroup TXB
 	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
 augroup END
 
+let s:syncOK=v:version>704 || v:version==704 && has('patch131')
+
 if !has("gui_running")
 	fun! <SID>centerCursor(row,col)
 		let restoreView='norm! '.virtcol('.').'|'
@@ -1688,13 +1690,10 @@ fun! s:redraw(...)
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
 	se scrollopt=ver,jump
-	try
-		exe "silent norm! :syncbind\<cr>"
-	catch
-		se scrollopt=jump
+	if s:syncOK
 		windo 1
-		se scrollopt=ver,jump
-	endtry
+	en
+	syncbind
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
@@ -1716,6 +1715,7 @@ fun! s:nav(N)
 	let cBf=bufnr('')
 	let cVc=virtcol('.')
 	let cL0=line('w0')
+	let cL=line('.')
 	let alignmentcmd='norm! '.cL0.'zt'
 	let dosyncbind=0
 	let extrashift=0
@@ -2007,13 +2007,15 @@ fun! s:nav(N)
 		en
 	en
     if dosyncbind
-		try
-			exe "silent norm! :syncbind\<cr>"
-		catch
-			se scrollopt=jump
+		if !s:syncOK
 			windo 1
-			se scrollopt=ver,jump
-		endtry
+			syncbind
+			exe cL0
+			zt
+			exe cL
+		else
+			syncbind
+		en
 	en
 	return extrashift
 endfun
