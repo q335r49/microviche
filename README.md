@@ -24,7 +24,7 @@ Key | Action | | Key | Action
 <sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> See [Automapping](#automapping) below.  
-<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
+<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>5</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
 ####Map Commands
@@ -81,9 +81,9 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 <samp>&nbsp;ECNF 15 78 Blah bleh&nbsp;</samp>*Error: autolabel 'bleh' was already specified for cell*  
 
 ####Tips
-- Whenever possible, use in-plane labels rather than `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert splits.
+- Whenever possible, use in-plane labels rather than `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert or remove splits.
 - Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
 - You can **turn off scrollbinding** (so columns scroll independently) via `F10``S`ettings by `c`hanging <samp>autoexe</samp> (the <samp>Plane</samp> setting and not the <samp>Split</samp> setting) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp>. `S`ave and enter <samp>y</samp> at the 'apply to all' prompt.
-- To automate **keyboard commands**, <samp>:call TXBdoCmd(key)</samp>
-- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. You can always redraw with `hotkey``r`, but you can also set up a scheme to automatically <samp>:call TXBdoCmd('r')</samp>, such as when you change your font size.
+- To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
+- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. You can always redraw with `hotkey``r`, but you can also set up a scheme to automatically <samp>:call TxbExe('r')</samp>, such as when you change your font size.
 - **Horizontal splits** aren't supported and may interfere with panning.
