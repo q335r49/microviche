@@ -1872,32 +1872,35 @@ fun! s:nav(N,L)
 			en
 			let shifted=0
 			let w1=winwidth(1)
-			while w1<=N
+			while w1<=N-botalreadysized
 				let w2=winwidth(2)
 				let extrashift=w1==N
 				let shifted=w1+1
 				winc t
 				hide
-				let w1=winwidth(1)
-				if w1==w2
-					let botalreadysized+=w1
+				if winwidth(1)==w2
+					let botalreadysized+=w1+1
 				en
 				let tcol=(tcol+1)%t:txb_len
 				let loff=0
+				let w1=winwidth(1)
 			endw
 			let N+=extrashift
 			let loff+=N-shifted
 		en
-		let wf=winwidth(1)-N
-		if wf+N!=&columns
-			winc b
-			exe 'vert res+'.(N-botalreadysized)
-			if virtcol('.')!=wincol()
-				norm! 0
-			en
-			winc t	
-			if winwidth(1)!=wf
-				exe 'vert res'.wf
+		let ww1=winwidth(1)
+		if ww1!=&columns
+			let N=N-botalreadysized
+			if N
+				winc b
+				exe 'vert res+'.N
+				if virtcol('.')!=wincol()
+					norm! 0
+				en
+				winc t	
+				if winwidth(1)!=ww1-N
+					exe 'vert res'.ww1-N
+				en
 			en
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
 				winc b
