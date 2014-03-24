@@ -3,7 +3,6 @@
 </p>
 
 ###Textabyss lets you pan and zoom through text archives
-
 It's written in **[Vim](http://www.vim.org)** script and has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Installation and Startup
@@ -18,14 +17,14 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` <sup>3</sup>| *redraw / redraw & remap* | | `L` <sup>3</sup> | *insert label*
+`r` `R` <sup>3</sup>| *redraw / Remap* | | `L` <sup>3</sup> | *insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` <sup>4</sup> | *settings* | |`W` <sup>5</sup>| *write to file*
 <sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> See [Automapping](#automapping) below.  
-<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TXBinit()</samp> and press `S` to change.  
+<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>5</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
 ####Map Commands
@@ -60,12 +59,12 @@ Syntax | Action | | Syntax | Action
 <sup>1</sup> By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 
 ####Automapping
-`R`edraw operates on all visible splits. When it encounters a line of the form:
+'R'emap, in addition to `r`edrawing, will update the map to reflect the layout of all visible splits by processing lines of the form:
 
 <samp>txb[:line num][: label#highlght#position]</samp>
 
 * The line is moved to <samp>line num</samp> by inserting or removing immediately preceding blank lines
-* The label is inserted into the map unless it conflicts with a preexisting user label. (Details: automatic labels are marked internally by a trailing <samp>A</samp> in the position syntax, ie, <samp>label##CMA</samp>. Note that the initial position when evaluating syntax is the label line and not the first line of the map grid, which is what you would expect.)
+* The label is inserted into the map unless it conflicts with a preexisting user label. (Automatic labels are differentiated internally by a trailing <samp>A</samp>.)
 
 Examples:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
@@ -81,10 +80,10 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 <samp>&nbsp;EOCC 15 78 Blah bleh&nbsp;</samp>*Error: cell already occupied by user label 'bleh'*  
 <samp>&nbsp;ECNF 15 78 Blah bleh&nbsp;</samp>*Error: autolabel 'bleh' was already specified for cell*  
 
-
 ####Tips
+- Whenever possible, use in-plane labels rather than `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert or remove splits.
 - Editing the **save file** you `hotkey``W`rote is an easy way to modify settings.
-* You can **turn off scrollbinding** (so the plane becomes a list of independently scrolling columns) by changing <samp>autoexe</samp>: open `F10``S`ettings and `c`hange <samp>autoexe</samp> from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> (make sure to change the setting for the <samp>PLANE</samp> and not the <samp>SPLIT</samp>). `S`ave and input <samp>y</samp> when prompted to apply to all splits.
-- Vim can't scroll past the end of a split, so scrolling may jump when moving away from the end of a **long split**. One solution might be to pad blank lines to the end of every split so that the working region is mostly a large rectangle. It might be helpful, in that case, to remap `G` in Vim's normal mode [to go to the next non-blank line](https://github.com/q335r49/textabyss/wiki/G-gg-remappings) rather than the very last line.
-- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. Redrawing will have to be done manually with `F10``r`. Alternatively, you can set up a scheme to automatically redraw via <samp>:call TXBdoCmd('r')</samp>, for example, whenever you change your font. (Incidentally, all keyboard commands can be accessed via the <samp>TXBdoCmd(key)</samp> function.)
+- You can **turn off scrollbinding** (so columns scroll independently) via `F10``S`ettings by `c`hanging <samp>autoexe</samp> (the <samp>Plane</samp> setting and not the <samp>Split</samp> setting) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp>. `S`ave and enter <samp>y</samp> at the 'apply to all' prompt.
+- To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
+- In gVim, **automatic redrawing** is disabled because of the frequency and unpredictability of resizing. You can always redraw with `hotkey``r`, but you can also set up a scheme to automatically <samp>:call TxbExe('r')</samp>, such as when you change your font size.
 - **Horizontal splits** aren't supported and may interfere with panning.

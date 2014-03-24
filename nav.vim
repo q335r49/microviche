@@ -4,38 +4,42 @@ if &cp|se nocompatible|en              "[Vital] Enable vim features
 se noequalalways                       "[Vital] Needed for correct panning
 se winwidth=1                          "[Vital] Needed for correct panning
 se winminwidth=0                       "[Vital] Needed For correct panning
-se viminfo+=!                          "Needed to save map and plane in between sessions
+
 se sidescroll=1                        "Smoother panning
 se nostartofline                       "Keeps cursor in the same position when panning
 se mouse=a                             "Enables mouse
 se lazyredraw                          "Less redraws
 se virtualedit=all                     "Makes leftmost split align correctly
 se hidden                              "Suppresses error messages when a modified buffer pans offscreen
-hi default link TXBmapSel Visual       "default hilight for map label selection
-hi default link TXBmapSelEmpty Visual  "default hilight for map empty selection
+hi default link TxbMapSel Visual       "default hilight for map label selection
+hi default link TxbMapSelEmpty Visual  "default hilight for map empty selection
 se scrolloff=0                         "ensures correct vertical panning
+if empty(&viminfo)                     "Needed to save map and plane in between sessions
+	se viminfo=!,'100
+else
+	se viminfo+=!
+en
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
-exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 augroup END
+
+let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 
 if !has("gui_running")
 	fun! <SID>centerCursor(row,col)
-		let restoreView='norm! '.virtcol('.').'|'
 		call s:redraw()
-		call s:nav(a:col/2-&columns/4)
-		let dy=&lines/4-a:row/2
-		exe dy>0? restoreView.dy."\<c-y>" : dy<0? restoreView.(-dy)."\<c-e>" : restoreView
+		call s:nav(a:col/2-&columns/4,line('w0')-winheight(0)/4+a:row/2)
 	endfun
 	augroup TXB
 		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	augroup END
-	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+	nn <silent> <leftmouse> :exe get(TxbMsCmd,&ttymouse,TxbMsCmd.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
@@ -44,8 +48,8 @@ fun! s:SID()
 	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfun
 
-let TXBmsCmd={}
-let TXBkyCmd={}
+let TxbMsCmd={}
+let TxbKyCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -60,28 +64,28 @@ fun! s:printHelp()
 	\ (v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind won't sync on mouse panning until you release the mouse button": '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane can't be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : '')
+	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TxbExe('r')' to redraw" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' is recommended." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, allows mouse panning in map mode and overall smoother panning." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern, eg '*.txt', or you can enter a file name and later [A]ppend others.\n
+	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n    r                    redraw
-	\\n[2] R L                  Reformat / insert label
+	\\n[2] r R L                redraw / Remap / Label
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
-	\\n[3] S                    Settings (working dir, [hotkey], etc.)
+	\\n[3] S                    Settings
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) Lines of the form \"txb[:line num][: label#highlght#position]\" are considered labels. In addition to redrawing, [R]eformat:
+	\\n(2) Lines of the form 'txb[:line num][: label#highlght#position]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
+	\\n[R]emap (in addition to [r]edrawing):
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
 	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
 	\\nExamples:
@@ -90,8 +94,7 @@ fun! s:printHelp()
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
 	\\n    txb: Blah###Ignored  Label 'Blah'
-	\\nL facilitates this process by inserting txb:[line num]
-	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
+	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
 	\\n    0 $                  Beginning / end of line
@@ -121,16 +124,14 @@ fun! s:printHelp()
 	\\n    C                    Centered split horizontally (ignore s)
 	\\n    M                    Center cursor vertically (ignore r R)
 	\\n    W                    Virtual width (see below)
-	\\n    A                    used interally to mark automapped labels
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
 	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
-	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.
-	\\n* When working at the end of a LONG SPLIT you may experience jumps when leaving that split because Vim can't scroll past the end of the file. One solution would be to pad blank lines so the working area is mostly a rectangle.",width,(&columns-width)/2),s:help_bookmark)
+	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.",width,(&columns-width)/2),s:help_bookmark)
 endfun
-let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
+let TxbKyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
-fun! TXBinit(...)
+fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
@@ -192,8 +193,8 @@ fun! TXBinit(...)
 	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
 			call add(filtered,remove(plane.name,i))
-			call remove(plane.size,i)	
-			call remove(plane.exe,i)	
+			call remove(plane.size,i)
+			call remove(plane.exe,i)
 			call remove(abs_paths,i)
 		en
 	endfor
@@ -263,9 +264,6 @@ fun! TXBinit(...)
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txb_len=len(t:txb.name)
-		if !exists('s:gridNames') || len(s:gridNames)<t:txb_len+50
-			let s:gridnames=s:getGridNames(t:txb_len+50)
-		en
 	    let t:kpLn=t:txb.settings['lines panned by j,k']
 		let t:kpSpH=t:txb.settings['kbd x pan speed']
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
@@ -279,7 +277,7 @@ fun! TXBinit(...)
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
-		call s:printHelp() 
+		call s:printHelp()
 	elseif c is 83
 		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
 		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
@@ -290,15 +288,15 @@ fun! TXBinit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
 			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
-				call TXBinit(-99)
+				call TxbInit(-99)
 			else
 				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				let plane.name=plane_name_save
-				call TXBinit(plane)
+				call TxbInit(plane)
 			en
 		else
 			redr|echo "Cancelled"
@@ -308,19 +306,11 @@ fun! TXBinit(...)
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
-			call TXBinit(input)
+			call TxbInit(input)
 		en
 	en
 	let &more=more
 endfun
-
-let TXBkyCmd.W=
-	\"let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
-	\let s:kc_continue=0\n
-	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : ' Plane written to file. Use '':source '.input.''' to restore']\n
-	\exe 'cd' fnameescape(prevwd)"
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! <SID>initDragDefault()
@@ -329,12 +319,10 @@ fun! <SID>initDragDefault()
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
 			call s:updateCursPos()
-			let t_r=v:mouse_lnum/t:mp_L
-			echon s:gridnames[getwinvar(v:mouse_win,'txbi')] t_r ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),t_r,'')[:&columns-9]
+			echon getwinvar(v:mouse_win,'txbi') '-' v:mouse_lnum ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),v:mouse_lnum/t:mp_L,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
-			let t_r=line('.')/t:mp_L
-			let ecstr=s:gridnames[w:txbi].t_r.' '.get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			let ecstr=w:txbi.' '.line('.').' '.get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			while c!="\<leftrelease>"
 				if v:mouse_win!=w0
 					let w0=v:mouse_win
@@ -351,8 +339,8 @@ fun! <SID>initDragDefault()
 					else
 						let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 					en
-					let [x,xs]=x && nx? [x,s:nav(x-nx)] : [x? x : nx,0]
-					exe 'norm! '.bufwinnr(b0)."\<c-w>w".(l0>0? l0 : 1).'zt'
+					exe 'norm! '.bufwinnr(b0)."\<c-w>w"
+					let [x,xs]=x && nx? [x,s:nav(x-nx,l0)] : [x? x : nx,0]
 					let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 					redr
 					ec ecstr
@@ -364,8 +352,7 @@ fun! <SID>initDragDefault()
 			endwhile
 		en
 		call s:updateCursPos()
-		let t_r=line('.')/t:mp_L
-		echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+		echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
 		call feedkeys("\<leftmouse>")
@@ -410,14 +397,13 @@ fun! <SID>initDragDefault()
 	en
 	return ''
 endfun
-let TXBmsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
+let TxbMsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
 
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
-			let t_r=line('.')/t:mp_L
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -430,7 +416,6 @@ fun! <SID>initDragSGR()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
@@ -445,10 +430,9 @@ fun! <SID>doDragSGR()
 		nunmap <esc>[<
 		if exists('t:txb')
 			if k[1:]==[1,1]
-				call TXBdoCmd('o')
+				call TxbExe('o')
 			elseif exists('w:txbi')
-				let t_r=line('.')/t:mp_L
-				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
 		en
 		return
@@ -459,19 +443,18 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
+let TxbMsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
 
 fun! <SID>initDragXterm()
 	return "norm! \<leftmouse>"
 endfun
-let TXBmsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
+let TxbMsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
-			let t_r=line('.')/t:mp_L
-			echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+			echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 		en
 	elseif !exists('w:txbi')
 		exe v:mouse_win.'winc w'
@@ -484,7 +467,6 @@ fun! <SID>initDragXterm2()
 		en
 	else
 		let s:prevCoord=[0,0,0]
-		let s:line0=line('w0')
 		let s:dragHandler=function("s:navPlane")
 		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
@@ -496,10 +478,9 @@ fun! <SID>doDragXterm2()
 		nunmap <esc>[M
 		if exists('t:txb')
 			if k[1:]==[33,33]
-				call TXBdoCmd('o')
+				call TxbExe('o')
 			elseif exists('w:txbi')
-				let t_r=line('.')/t:mp_L
-				echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
 		en
 		return
@@ -511,45 +492,18 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
+let TxbMsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
 let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? get(s:panAcc,a:dy,s:panAcc[-1])."\<c-y>" : a:dy<0? get(s:panAcc,-a:dy,s:panAcc[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]))
-	if a:dy>0
-		let spd=a:dy<len(t:msSp)? t:msSp[a:dy] : t:msSp[-1]
-		let s:line0=s:line0>spd? s:line0-spd : 1
-	else
-		let s:line0=s:line0+get(t:msSp,-a:dy,t:msSp[-1])
-	en
-	let dif=line('w0')-s:line0
-	if dif>0
-		exe 'norm! '.dif."\<c-y>"
-	elseif dif<0
-		exe 'norm! '.-dif."\<c-e>"
-	en
-	let t_r=line('.')/t:mp_L
-	echon s:gridnames[w:txbi] t_r ' ' get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9]
+	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
+	echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 endfun
 
-fun! s:getGridNames(len)
-	let alpha=map(range(65,90),'nr2char(v:val)')
-	let powers=[26,676,17576]
-	let array1=map(range(powers[0]),'alpha[v:val%26]." "')
-	if a:len<=powers[0]
-		return array1
-	elseif a:len<=powers[0]+powers[1]
-		return extend(array1,map(range(a:len-powers[0]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-	else
-		call extend(array1,map(range(powers[1]),'alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-		return extend(array1,map(range(a:len-len(array1)),'alpha[v:val/powers[1]%26].alpha[v:val/powers[0]%26].alpha[v:val%26]." "'))
-	en
-endfun
-
-fun! s:getMapDisp()          
+fun! s:getMapDisp()
 	let pad=repeat(' ',&columns+20)
 	let s:disp_r=s:mp_cols*t:mp_clW+1
 	let l=s:disp_r*t:mp_clH
@@ -638,12 +592,12 @@ fun! s:printMapDisp()
 	if notempty
 		let endmark=len(s:mp_array[s:mp_c][s:mp_r])
 		let endmark=(sel+endmark)%s:disp_r<sel%s:disp_r? endmark-(sel+endmark)%s:disp_r-1 : endmark
-		echohl TXBmapSel
+		echohl TxbMapSel
 		echon s:mp_array[s:mp_c][s:mp_r][:endmark-1]
 		let endmark=sel+endmark
 	else
 		let endmark=sel+t:mp_clW
-		echohl TXBmapSelEmpty
+		echohl TxbMapSelEmpty
 		echon s:disp_str[sel : endmark-1]
 	en
 	while s:disp_color[p]<endmark
@@ -655,7 +609,7 @@ fun! s:printMapDisp()
 		exe s:disp_colorv[p]
 		echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
 	endfor
-	echon get(s:gridnames,s:mp_c,'--') s:mp_r s:mp_msg
+	echon s:mp_c '-' s:mp_r s:mp_msg
 	let s:mp_msg=''
 endfun
 fun! s:printMapDispNoHL()
@@ -665,15 +619,15 @@ fun! s:printMapDispNoHL()
 	if len
 		let len=len(s:mp_array[s:mp_c][s:mp_r])
 		let len=(i+len)%s:disp_r<i%s:disp_r? len-(i+len)%s:disp_r-1 : len
-		echohl TXBmapSel
+		echohl TxbMapSel
 		echon s:mp_array[s:mp_c][s:mp_r][:len]
 	else
 		let len=t:mp_clW
-		echohl TXBmapSelEmpty
+		echohl TxbMapSelEmpty
 		echon s:disp_str[i : i+len-1]
 	en
 	echohl NONE
-	echon s:disp_str[i+len :] get(s:gridnames,s:mp_c,'--') s:mp_r s:mp_msg
+	echon s:disp_str[i+len :] s:mp_c '-' s:mp_r s:mp_msg
 	let s:mp_msg=''
 endfun
 
@@ -694,7 +648,7 @@ fun! s:navMapKeyHandler(c)
 				let [&ch,&more,&ls,&stal]=s:mp_settings
 				return
 			elseif s:mp_prevcoord[0]==1
-				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2] 
+				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2]
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
 						let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
@@ -753,7 +707,7 @@ fun! s:navMapKeyHandler(c)
 	en
 endfun
 
-let TXBkyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
+let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
 fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_num='01'
     let s:mp_posmes=(line('.')%t:mp_L? line('.')%t:mp_L.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
@@ -776,7 +730,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_displayfunc=function('s:printMapDisp')
 	call s:getMapDisp()
 	call s:mp_displayfunc()
-	let g:TXBkeyhandler=function("s:navMapKeyHandler")
+	let g:TxbKeyHandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:last_yanked_is_column=0
@@ -886,7 +840,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
+let TxbKyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -914,7 +868,7 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let TXBkyCmd.S=
+let TxbKyCmd.S=
 	\"let s:kc_continue=0\n
 	\let settings_names=range(17)\n
 	\let settings_values=range(17)\n
@@ -946,7 +900,7 @@ let TXBkyCmd.S=
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\if exists('w:txbi')\n
 			\let t:txb.size[w:txbi]=settings_values[14]\n
@@ -997,7 +951,7 @@ let TXBkyCmd.S=
 					\if confirm2==?'y' || confirm2==?'n'\n
 						\let curwd=getcwd()\n
 						\if confirm2=='y'\n
-							\exe g:TXBkyCmd.W\n
+							\exe g:TxbKyCmd.W\n
 						\en\n
 						\if confirm=='y'\n
 							\exe 'cd' fnameescape(t:txb_wd)\n
@@ -1027,7 +981,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let smsg=''
 	let vals=deepcopy(a:vals)
 	let len=len(a:keys)
-	let [&more,&ch]=[0,len<8? len+3 : 11] 
+	let [&more,&ch]=[0,len<8? len+3 : 11]
 	let cursor=s:sp_pos[0]<0? 0 : s:sp_pos[0]>=len? len-1 : s:sp_pos[0]
 	let height=&ch>3? &ch-3 : 1
 	let offset=s:sp_pos[1]<0? 0 : s:sp_pos[1]>len-height? (len-height>=0? len-height : 0) : s:sp_pos[1]
@@ -1155,7 +1109,7 @@ let s:ErrorCheck['kbd y pan speed']=[2,
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed vertical']
-let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"]
+let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbInit()', and press S to reset"]
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\"unlet! inList\n
@@ -1296,121 +1250,34 @@ fun! s:doSyntax(stmt)
 	endfor
 	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
 	if com.C
-		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]))
+		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]),line('w0'))
 	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:mp_c-1,s:mp_c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]))
+		call s:nav(-min([eval(join(map(range(s:mp_c-1,s:mp_c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]),line('w0'))
 	en
 endfun
 
-fun! s:blockPan(dx,y,...)
-	let cury=line('w0')
-	let absolute_x=exists('a:1')? a:1 : 0
-	let dir=absolute_x? absolute_x : a:dx
-	let y=a:y>cury?  (a:y-cury-1)/t:kpLn+1 : a:y<cury? -(cury-a:y-1)/t:kpLn-1 : 0
-	let update_ydest=y>=0? 'let y_dest=!y? cury : cury/'.t:kpLn.'*'.t:kpLn.'+'.t:kpLn : 'let y_dest=!y? cury : cury>'.t:kpLn.'? (cury-1)/'.t:kpLn.'*'.t:kpLn.' : 1'
-	let pan_y=(y>=0? 'let cury=cury+'.t:kpSpV.'<y_dest? cury+'.t:kpSpV.' : y_dest' : 'let cury=cury-'.t:kpSpV.'>y_dest? cury-'.t:kpSpV.' : y_dest')."\n
-		\if cury>line('$')\n
-			\let longlinefound=0\n
-			\for i in range(winnr('$')-1)\n
-				\winc w\n
-				\if line('$')>=cury\n
-					\exe 'norm!' cury.'zt'\n
-					\let longlinefound=1\n
-					\break\n
-				\en\n
-			\endfor\n
-			\if !longlinefound\n
-				\exe 'norm! Gzt'\n
-			\en\n
-		\else\n
-			\exe 'norm!' cury.'zt'\n
-		\en"
-	if dir>0
-		let i=0
-		let continue=1
-		while continue
-			exe update_ydest
-			let buf0=winbufnr(1)
-			while winwidth(1)>t:kpSpH
-				call s:nav(t:kpSpH)
-				exe pan_y
-				redr
-			endwhile
-			if winbufnr(1)==buf0
-				call s:nav(winwidth(1))
-			en
-			while cury!=y_dest
-				exe pan_y
-				redr
-			endwhile
-			let y+=y>0? -1 : y<0? 1 : 0
-			let i+=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i<a:dx
-		endwhile
-	elseif dir<0
-		let i=0
-		let ix=getwinvar(1,'txbi')
-		let continue=!(absolute_x && ix==a:dx && winwidth(1)>=t:txb.size[ix])
-		while continue
-			exe update_ydest
-			if winwidth(1)>=t:txb.size[getwinvar(1,'txbi')] || winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()==0)
-				call s:nav(-4)
-			en
-			let ix=getwinvar(1,'txbi')
-			while winwidth(1)<t:txb.size[ix]-t:kpSpH && !(winnr('$')==1 && (&wrap || !&wrap && virtcol('.')-wincol()<t:kpSpH)) && getwinvar(1,'txbi')==ix
-				call s:nav(-t:kpSpH)
-				exe pan_y
-				redr
-			endwhile
-			if winnr('$')==1
-				if !&wrap && virtcol('.')-wincol()
-					call s:nav(-virtcol('.')+wincol())
-				endif
-			elseif getwinvar(1,'txbi')==ix
-				call s:nav(winwidth(1)-t:txb.size[ix])
-			en
-			while cury!=y_dest
-				exe pan_y
-				redr
-			endwhile
-			let y+=y>0? -1 : y<0? 1 : 0
-			let i-=1
-			let continue=absolute_x? (getwinvar(1,'txbi')==a:dx? 0 : 1) : i>a:dx
-		endwhile
-	en
-	while y
-		exe update_ydest
-		while cury!=y_dest
-			exe pan_y
-			redr
-		endwhile
-		let y+=y>0? -1 : y<0? 1 : 0
-	endwhile
-endfun
-let s:Y1='let s:kc_y=s:kc_y/t:kpLn*t:kpLn+s:kc_num*t:kpLn|'
-let s:Ym1='let s:kc_y=max([1,s:kc_y/t:kpLn*t:kpLn-s:kc_num*t:kpLn])|'
-	let TXBkyCmd.h='cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)'
-	let TXBkyCmd.j=s:Y1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()'
-	let TXBkyCmd.k=s:Ym1.'cal s:blockPan(0,s:kc_y)|let s:kc_num="01"|call s:updateCursPos()' 
-	let TXBkyCmd.l='cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-	let TXBkyCmd.y=s:Ym1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
-	let TXBkyCmd.u=s:Ym1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-	let TXBkyCmd.b =s:Y1.'cal s:blockPan(-s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(1)' 
-	let TXBkyCmd.n=s:Y1.'cal s:blockPan(s:kc_num,s:kc_y)|let s:kc_num="01"|call s:updateCursPos(-1)' 
-let TXBkyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TXBkyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
-let TXBkyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
-let TXBkyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
-let TXBkyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
-let TXBkyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
-let TXBkyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
-let TXBkyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
-let TXBkyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
-let TXBkyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TXBkyCmd["\<up>"]=TXBkyCmd.k
-let TXBkyCmd["\<down>"]=TXBkyCmd.j
-let TXBkyCmd["\<left>"]=TXBkyCmd.h
-let TXBkyCmd["\<right>"]=TXBkyCmd.l
+let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
+let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
+let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
+let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
+let TxbKyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
+let TxbKyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
+let TxbKyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
+let TxbKyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
+let TxbKyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
+let TxbKyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
+let TxbKyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd["\<up>"]=TxbKyCmd.k
+let TxbKyCmd["\<down>"]=TxbKyCmd.j
+let TxbKyCmd["\<left>"]=TxbKyCmd.h
+let TxbKyCmd["\<right>"]=TxbKyCmd.l
 
 fun! s:snapToGrid()
 	let [ix,l0]=[w:txbi,line('.')]
@@ -1426,14 +1293,14 @@ fun! s:snapToGrid()
 		only
 		exe 'norm! '.y.'zt0'
 	elseif winwidth(0)<t:txb.size[ix]
-		call s:nav(-winwidth(0)+t:txb.size[ix]) 
-		exe 'norm! '.y.'zt0'
+		call s:nav(-winwidth(0)+t:txb.size[ix],y)
+		norm! 0
 	elseif winwidth(0)>t:txb.size[ix]
 		exe 'norm! '.y.'zt0'
 		call s:redraw()
 	en
 endfun
-let TXBkyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()' 
+let TxbKyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()'
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1464,7 +1331,7 @@ fun! <SID>getmouse()
 	en
 	while getchar(0) isnot 0
 	endwhile
-	call g:TXBkeyhandler(-1)	
+	call g:TxbKeyHandler(-1)
 endfun
 fun! s:dochar()
 	let [k,c]=['',getchar()]
@@ -1472,40 +1339,37 @@ fun! s:dochar()
 		let k.=type(c)==0? nr2char(c) : c
 		let c=getchar(0)
 	endwhile
-	call g:TXBkeyhandler(k)
+	call g:TxbKeyHandler(k)
 endfun
 
-fun! TXBdoCmd(inicmd)
+fun! TxbExe(inicmd)
 	let s:kc_num='01'
-	let s:kc_y=line('w0')
 	let s:kc_continue=1
 	let s:kc_msg=''
 	call s:saveCursPos()
-	let g:TXBkeyhandler=function("s:doCmdKeyhandler")
+	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TXBkyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
+	exe get(g:TxbKyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue
-		let t_r=line('.')/t:mp_L
-		echon '[' s:gridnames[w:txbi] t_r '] ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-9] : s:kc_msg
+		echon w:txbi '.' line('.') ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9] : s:kc_msg
 		let s:kc_msg=''
-		call feedkeys("\<plug>TxbZ") 
+		call feedkeys("\<plug>TxbZ")
 	elseif !empty(s:kc_msg)
 		redr|ec s:kc_msg
 	else
-		let t_r=line('.')/t:mp_L
-		redr|echo '(done)' s:gridnames[w:txbi].t_r get(get(t:txb.map,w:txbi,[]),t_r,'')[:&columns-17]
+		redr|echo '(done)' w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-17]
 	en
 endfun
-let TXBkyCmd.q="let s:kc_continue=0"
-let TXBkyCmd[-1]='let s:kc_continue=0'
-let TXBkyCmd[-99]=""
-let TXBkyCmd["\e"]=TXBkyCmd.q
+let TxbKyCmd.q="let s:kc_continue=0"
+let TxbKyCmd[-1]='let s:kc_continue=0'
+let TxbKyCmd[-99]=""
+let TxbKyCmd["\e"]=TxbKyCmd.q
 
-let TXBkyCmd.L="exe getline('.')[:3]!=#'txb:'? 'norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
+let TxbKyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
-let TXBkyCmd.D=
+let TxbKyCmd.D=
 	\"redr\n
 	\if t:txb_len==1\n
 		\let s:kc_msg='Cannot delete last split!'\n
@@ -1524,9 +1388,9 @@ let TXBkyCmd.D=
 		\let s:kc_msg='(Split deleted)'\n
 	\en\n
 	\let s:kc_continue=0\n
-	\call s:updateCursPos()" 
+	\call s:updateCursPos()"
 
-let TXBkyCmd.A=
+let TxbKyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
@@ -1543,16 +1407,120 @@ let TXBkyCmd.A=
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\let t:txb_len=len(t:txb.name)\n
-			\if len(s:gridnames)<t:txb_len\n
-				\let s:gridnames=s:getGridNames(t:txb_len+50)\n
-			\en\n
 			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
 		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
-	\let s:kc_continue=0|call s:updateCursPos()" 
+	\let s:kc_continue=0|call s:updateCursPos()"
+
+let TxbKyCmd.W=
+	\"let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:txb_wd)\n
+	\let s:kc_continue=0\n
+	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
+	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
+	\exe 'cd' fnameescape(prevwd)"
+
+fun! s:saveCursPos()
+	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
+endfun
+fun! s:updateCursPos(...)
+    let default_scrolloff=a:0? a:1 : 0
+	let win=bufwinnr(t:txb_cPos[0])
+	if win!=-1
+		if winnr('$')==1 || win==1
+			winc t
+			let offset=virtcol('.')-wincol()+1
+			let width=offset+winwidth(0)-3
+			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]<offset? offset : width<=t:txb_cPos[2]? width : t:txb_cPos[2]).'|'
+		elseif win!=1
+			exe win.'winc w'
+			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]>winwidth(win)? '0g$' : t:txb_cPos[2].'|')
+		en
+	elseif default_scrolloff==1 || !default_scrolloff && t:txb_cPos[3]>w:txbi
+		winc b
+		exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
+	else
+		winc t
+		exe "norm! ".(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').'g0'
+	en
+	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
+endfun
+
+fun! s:getOffset()
+	let cSp=getwinvar(1,'txbi')
+	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
+endfun
+fun! s:blockPan(sp,off,y,relative)
+	let cSp=getwinvar(1,'txbi')
+	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
+	let dSp=(a:relative? cSp+a:sp+t:txb_len : a:sp+t:txb_len)%t:txb_len
+	let dir=a:relative? a:sp+(!a:sp)*(cOff-a:off) : dSp-cSp+(dSp==cSp)*(cOff-a:off)
+	if dir>0
+		while 1
+			let l0=line('w0')
+			let dif=a:y-l0
+			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
+			let cSp=getwinvar(1,'txbi')
+			if !((cSp-dSp+1)%t:txb_len)
+				if winwidth(1)+a:off>t:kpSpH
+					call s:nav(t:kpSpH,yn)
+				else
+					call s:nav(winwidth(1)+a:off,yn)
+					break
+				en
+			elseif cSp==dSp
+				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
+				if a:off-cOff>t:kpSpH
+					call s:nav(t:kpSpH,yn)
+				else
+					call s:nav(a:off-cOff,yn)
+					break
+				en
+			else
+				call s:nav(t:kpSpH,yn)
+			en
+			redr
+		endwhile
+	elseif dir<0
+		while 1
+			let l0=line('w0')
+			let dif=a:y-l0
+			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
+			let cSp=getwinvar(1,'txbi')
+			if !((cSp-dSp-1)%t:txb_len)
+				if winwidth(1)+t:txb.size[dSp]-a:off>t:kpSpH
+					call s:nav(-t:kpSpH,yn)
+				else
+					call s:nav(-winwidth(1)-t:txb.size[dSp]+a:off,yn)
+					break
+				en
+			elseif cSp==dSp
+				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
+				if cOff-a:off>t:kpSpH
+					call s:nav(-t:kpSpH,yn)
+				else
+					call s:nav(a:off-cOff,yn)
+					break
+				en
+			else
+				call s:nav(-t:kpSpH,yn)
+			en
+			redr
+		endwhile
+	en
+	let l0=line('w0')
+	let ll=line('$')
+	let dif=l0-a:y
+	while dif && !(a:y>l0 && l0==ll)
+		exe dif>t:kpSpV? 'norm! '.t:kpSpV."\<c-y>" : dif<-t:kpSpV? 'norm! '.t:kpSpV."\<c-e>" : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
+		let l0=line('w0')
+		let dif=l0-a:y
+		redr
+	endwhile
+endfun
 
 fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
@@ -1638,6 +1606,7 @@ fun! s:redraw(...)
 	winc b
 	let ccol=colb
 	let log=[]
+	let elog=[]
     for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1666,7 +1635,7 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							call add(log,'EMOV'."\t".ccol."\t".line."\t".lref)
+							call add(elog,'EMOV'."\t".ccol."\t".line."\t".lref)
 						else
 							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
@@ -1690,7 +1659,7 @@ fun! s:redraw(...)
 							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
 							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 						else
-							call add(log,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
+							call add(elog,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
 						en
 					en
 				en
@@ -1700,59 +1669,38 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
-	let g:TxbReformatLog=join(log,"\n")
 	se scrollopt=ver,jump
-	try
-		exe "silent norm! :syncbind\<cr>"
-	catch
-		se scrollopt=jump
+	if s:badSync
 		windo 1
-		se scrollopt=ver,jump
-	endtry
+	en
+	exe "norm! :syncbind\<cr>"
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
-	if len(s:gridnames)<t:txb_len
-		let s:gridnames=s:getGridNames(t:txb_len+50)
-	en
-	let s:kc_msg=(!a:0)? '(redraw complete)' : empty(g:TxbReformatLog)? '(reformat complete; no changes made)' : ":echo g:TxbReformatLog\n".g:TxbReformatLog
-endfun
-let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
-let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
-
-fun! s:saveCursPos()
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
-endfun
-fun! s:updateCursPos(...)
-    let default_scrolloff=a:0? a:1 : 0
-	let win=bufwinnr(t:txb_cPos[0])
-	if win!=-1
-		if winnr('$')==1 || win==1
-			winc t
-			let offset=virtcol('.')-wincol()+1
-			let width=offset+winwidth(0)-3
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]<offset? offset : width<=t:txb_cPos[2]? width : t:txb_cPos[2]).'|'
-		elseif win!=1
-			exe win.'winc w'
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]>winwidth(win)? '0g$' : t:txb_cPos[2].'|')
-		en
-	elseif default_scrolloff==1 || !default_scrolloff && t:txb_cPos[3]>w:txbi
-		winc b
-		exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
+	if !a:0
+		let s:kc_msg='(redraw complete)'
+	elseif empty(elog)
+		let s:kc_msg='(Remap complete, :ec TxbRemapLog to see changes)'
+		let g:TxbRemapLog=join(log,"\n")
 	else
-		winc t
-		exe "norm! ".(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').'g0'
+		let g:TxbRemapLog=join(elog,"\n")
+		let s:kc_msg=":ec TxbRemapLog to review errors:\n".g:TxbRemapLog
+		let g:TxbRemapLog.=join(log,"\n")
 	en
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.')]
 endfun
+let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()"
+let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()"
 
-fun! s:nav(N)
-	let c_bf=bufnr('')
-	let c_vc=virtcol('.')
-	let alignmentcmd='norm! '.line('w0').'zt'
+fun! s:nav(N,L)
+	let cBf=bufnr('')
+	let cVc=virtcol('.')
+	let cL0=line('w0')
+	let cL=line('.')
+	let alignmentcmd='norm! '.cL0.'zt'
+	let dosyncbind=0
+	let extrashift=0
 	if a:N<0
 		let N=-a:N
-		let extrashift=0
 		if N<&columns
 			while winwidth(winnr('$'))<=N
 				winc b
@@ -1774,7 +1722,7 @@ fun! s:nav(N)
 				if winwidth(1)==1
 					winc l
 					se nowfw
-					winc t 
+					winc t
 					exe 'vert res+'.(N+extrashift)
 					winc l
 					se wfw
@@ -1791,7 +1739,11 @@ fun! s:nav(N)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+					let dosyncbind=1
+				else
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				winc l
 				se wfw
@@ -1801,19 +1753,19 @@ fun! s:nav(N)
 			endwhile
 			let offset=t:txb.size[w:txbi]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				winc b
 				norm! 0g$
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+			elseif cWn!=1
+				exe cWn.'winc w'
+				exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 			en
 		else
 			let tcol=w:txbi
 			let loff=&wrap? -N-extrashift : virtcol('.')-wincol()-N-extrashift
 			if loff>=0
-				exe 'norm! '.(N+extrashift).(bufwinnr(c_bf)==-1? 'zhg$' : 'zh')
+				exe 'norm! '.(N+extrashift).(bufwinnr(cBf)==-1? 'zhg$' : 'zh')
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
@@ -1823,7 +1775,11 @@ fun! s:nav(N)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				exe alignmentcmd
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+					let dosyncbind=1
+				else
+					exe alignmentcmd
+				en
 				exe t:txb.exe[tcol]
 				se scrollopt=ver,jump
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
@@ -1834,7 +1790,11 @@ fun! s:nav(N)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						exe alignmentcmd
+						if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+							let dosyncbind=1
+						elseif !dosyncbind
+							exe alignmentcmd
+						en
 						exe t:txb.exe[nextcol]
 						norm! 0
 						let spaceremaining-=t:txb.size[nextcol]+1
@@ -1843,22 +1803,21 @@ fun! s:nav(N)
 					se scrollopt=ver,jump
 					windo se wfw
 				en
-				let c_wn=bufwinnr(c_bf)
-				if c_wn!=-1
-					exe c_wn.'winc w'
-					exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+				let cWn=bufwinnr(cBf)
+				if cWn!=-1
+					exe cWn.'winc w'
+					exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 				else
 					norm! 0g$
 				en
 			en
 		en
-		return -extrashift
+		let extrashift=-extrashift
 	elseif a:N>0
 		let tcol=getwinvar(1,'txbi')
 		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
-		let extrashift=0
 		let N=a:N
-		let nobotresize=0
+		let botalreadysized=0
 		if N>=&columns
 			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
@@ -1887,59 +1846,69 @@ fun! s:nav(N)
 				let tcol=(tcol+1)%t:txb_len
 				let loff=0
 			else
-				let loff+=toshift	
+				let loff+=toshift
 			en
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			exe alignmentcmd
+			if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+				let dosyncbind=1
+			else
+				exe alignmentcmd
+			en
 			exe t:txb.exe[tcol]
 			se scrollopt=ver,jump
 			only
 			exe 'norm! 0'.(loff>0? loff.'zl' : '')
 		else
 			if winwidth(1)==1
-				let c_wn=winnr()
+				let cWn=winnr()
 				winc t
 				hide
 				let N-=2
 				if N<=0
-					if c_wn!=1
-						exe (c_wn-1).'winc w'
+					if cWn!=1
+						exe (cWn-1).'winc w'
 					else
 						1winc w
 						norm! 0
 					en
+					exe cL
+					let dif=line('w0')-a:L
+					exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
 					return
 				en
 			en
 			let shifted=0
-			while winwidth(1)<=N
+			let w1=winwidth(1)
+			while w1<=N-botalreadysized
 				let w2=winwidth(2)
-				let extrashift=winwidth(1)==N
-				let shifted+=winwidth(1)+1
+				let extrashift=w1==N
+				let shifted=w1+1
 				winc t
 				hide
 				if winwidth(1)==w2
-					let nobotresize=1
+					let botalreadysized+=w1+1
 				en
 				let tcol=(tcol+1)%t:txb_len
 				let loff=0
+				let w1=winwidth(1)
 			endw
 			let N+=extrashift
 			let loff+=N-shifted
 		en
-		let wf=winwidth(1)-N
-		if wf+N!=&columns
-			if !nobotresize
+		let ww1=winwidth(1)
+		if ww1!=&columns
+			let N=N-botalreadysized
+			if N
 				winc b
 				exe 'vert res+'.N
 				if virtcol('.')!=wincol()
 					norm! 0
 				en
-				winc t	
-				if winwidth(1)!=wf
-					exe 'vert res'.wf
+				winc t
+				if winwidth(1)!=ww1-N
+					exe 'vert res'.(ww1-N)
 				en
 			en
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
@@ -1948,7 +1917,11 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+					let dosyncbind=1
+				elseif !dosyncbind
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				winc h
 				se wfw
@@ -1959,14 +1932,14 @@ fun! s:nav(N)
 			winc t
 			let offset=t:txb.size[tcol]-winwidth(1)-virtcol('.')+wincol()
 			exe (!offset || &wrap)? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				exe c_vc>=winwidth(0)? 'norm! 0g$' : 'norm! '.c_vc.'|'
+			elseif cWn!=1
+				exe cWn.'winc w'
+				exe cVc>=winwidth(0)? 'norm! 0g$' : 'norm! '.cVc.'|'
 			else
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		elseif &columns-t:txb.size[tcol]+loff>=2
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
@@ -1975,45 +1948,60 @@ fun! s:nav(N)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				exe alignmentcmd
+				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+					let dosyncbind=1
+				elseif !dosyncbind
+					exe alignmentcmd
+				en
 				exe t:txb.exe[nextcol]
 				norm! 0
 				let spaceremaining-=t:txb.size[nextcol]+1
 			endwhile
 			se scrollopt=ver,jump
 			windo se wfw
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				winc t
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
+			elseif cWn!=1
+				exe cWn.'winc w'
+				if cVc>=winwidth(0)
 					norm! 0g$
 				else
-					exe 'norm! '.c_vc.'|'
+					exe 'norm! '.cVc.'|'
 				en
 			else
 				winc t
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		else
 			let offset=loff-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-			let c_wn=bufwinnr(c_bf)
-			if c_wn==-1
+			let cWn=bufwinnr(cBf)
+			if cWn==-1
 				norm! g0
-			elseif c_wn!=1
-				exe c_wn.'winc w'
-				if c_vc>=winwidth(0)
+			elseif cWn!=1
+				exe cWn.'winc w'
+				if cVc>=winwidth(0)
 					norm! 0g$
 				else
-					exe 'norm! '.c_vc.'|'
+					exe 'norm! '.cVc.'|'
 				en
 			else
-				exe (c_vc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.c_vc.'|')
+				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
 		en
-		return extrashift
 	en
+    if dosyncbind
+		if s:badSync
+			windo 1
+		en
+		exe "norm! :syncbind\<cr>"
+	en
+	exe cL
+	let dif=line('w0')-a:L
+	exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
+	return extrashift
 endfun
+
+delf s:SID
