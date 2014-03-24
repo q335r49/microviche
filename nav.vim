@@ -188,8 +188,8 @@ fun! TxbInit(...)
 	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
 			call add(filtered,remove(plane.name,i))
-			call remove(plane.size,i)	
-			call remove(plane.exe,i)	
+			call remove(plane.size,i)
+			call remove(plane.exe,i)
 			call remove(abs_paths,i)
 		en
 	endfor
@@ -272,7 +272,7 @@ fun! TxbInit(...)
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
-		call s:printHelp() 
+		call s:printHelp()
 	elseif c is 83
 		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
 		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
@@ -498,7 +498,7 @@ fun! s:navPlane(dx,dy)
 	echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 endfun
 
-fun! s:getMapDisp()          
+fun! s:getMapDisp()
 	let pad=repeat(' ',&columns+20)
 	let s:disp_r=s:mp_cols*t:mp_clW+1
 	let l=s:disp_r*t:mp_clH
@@ -643,7 +643,7 @@ fun! s:navMapKeyHandler(c)
 				let [&ch,&more,&ls,&stal]=s:mp_settings
 				return
 			elseif s:mp_prevcoord[0]==1
-				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2] 
+				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2]
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
 						let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
@@ -976,7 +976,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 	let smsg=''
 	let vals=deepcopy(a:vals)
 	let len=len(a:keys)
-	let [&more,&ch]=[0,len<8? len+3 : 11] 
+	let [&more,&ch]=[0,len<8? len+3 : 11]
 	let cursor=s:sp_pos[0]<0? 0 : s:sp_pos[0]>=len? len-1 : s:sp_pos[0]
 	let height=&ch>3? &ch-3 : 1
 	let offset=s:sp_pos[1]<0? 0 : s:sp_pos[1]>len-height? (len-height>=0? len-height : 0) : s:sp_pos[1]
@@ -1253,12 +1253,12 @@ endfun
 
 let TxbKyCmd.h='cal s:blockPan(-s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
 let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
-let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()' 
-let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
-let TxbKyCmd.y='cal s:blockPan(-s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
-let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
-let TxbKyCmd.b='cal s:blockPan(-s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
-let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
+let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
+let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.y='cal s:blockPan(-s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.b='cal s:blockPan(-s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
 let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
 let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
 let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
@@ -1288,14 +1288,14 @@ fun! s:snapToGrid()
 		only
 		exe 'norm! '.y.'zt0'
 	elseif winwidth(0)<t:txb.size[ix]
-		call s:nav(-winwidth(0)+t:txb.size[ix],y) 
+		call s:nav(-winwidth(0)+t:txb.size[ix],y)
 		norm! 0
 	elseif winwidth(0)>t:txb.size[ix]
 		exe 'norm! '.y.'zt0'
 		call s:redraw()
 	en
 endfun
-let TxbKyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()' 
+let TxbKyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()'
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1326,7 +1326,7 @@ fun! <SID>getmouse()
 	en
 	while getchar(0) isnot 0
 	endwhile
-	call g:TxbKeyHandler(-1)	
+	call g:TxbKeyHandler(-1)
 endfun
 fun! s:dochar()
 	let [k,c]=['',getchar()]
@@ -1350,7 +1350,7 @@ fun! s:doCmdKeyhandler(c)
 	if s:kc_continue
 		echon w:txbi '.' line('.') ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9] : s:kc_msg
 		let s:kc_msg=''
-		call feedkeys("\<plug>TxbZ") 
+		call feedkeys("\<plug>TxbZ")
 	elseif !empty(s:kc_msg)
 		redr|ec s:kc_msg
 	else
@@ -1383,7 +1383,7 @@ let TxbKyCmd.D=
 		\let s:kc_msg='(Split deleted)'\n
 	\en\n
 	\let s:kc_continue=0\n
-	\call s:updateCursPos()" 
+	\call s:updateCursPos()"
 
 let TxbKyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
@@ -1408,7 +1408,7 @@ let TxbKyCmd.A=
 	\else\n
 		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
-	\let s:kc_continue=0|call s:updateCursPos()" 
+	\let s:kc_continue=0|call s:updateCursPos()"
 
 let TxbKyCmd.W=
 	\"let prevwd=getcwd()\n
@@ -1679,8 +1679,8 @@ fun! s:redraw(...)
 		let g:TxbRemapLog.=join(log,"\n")
 	en
 endfun
-let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
-let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
+let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()"
+let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1713,7 +1713,7 @@ fun! s:nav(N,L)
 				if winwidth(1)==1
 					winc l
 					se nowfw
-					winc t 
+					winc t
 					exe 'vert res+'.(N+extrashift)
 					winc l
 					se wfw
@@ -1837,7 +1837,7 @@ fun! s:nav(N,L)
 				let tcol=(tcol+1)%t:txb_len
 				let loff=0
 			else
-				let loff+=toshift	
+				let loff+=toshift
 			en
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
@@ -1897,7 +1897,7 @@ fun! s:nav(N,L)
 				if virtcol('.')!=wincol()
 					norm! 0
 				en
-				winc t	
+				winc t
 				if winwidth(1)!=ww1-N
 					exe 'vert res'.ww1-N
 				en
