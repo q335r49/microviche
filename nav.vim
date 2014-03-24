@@ -24,7 +24,7 @@ augroup TXB
 	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 augroup END
 
-let s:syncOK=v:version>704 || v:version==704 && has('patch131')
+let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 
 if !has("gui_running")
 	fun! <SID>centerCursor(row,col)
@@ -1665,7 +1665,7 @@ fun! s:redraw(...)
 		let ccol=ccol? ccol-1 : t:txb_len-1
 	endfor
 	se scrollopt=ver,jump
-	if !s:syncOK
+	if s:badSync
 		windo 1
 	en
 	exe "norm! :syncbind\<cr>"
@@ -1988,7 +1988,7 @@ fun! s:nav(N,L)
 		en
 	en
     if dosyncbind
-		if !s:syncOK
+		if s:badSync
 			windo 1
 		en
 		exe "norm! :syncbind\<cr>"
