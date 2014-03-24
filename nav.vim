@@ -4,7 +4,7 @@ if &cp|se nocompatible|en              "[Vital] Enable vim features
 se noequalalways                       "[Vital] Needed for correct panning
 se winwidth=1                          "[Vital] Needed for correct panning
 se winminwidth=0                       "[Vital] Needed For correct panning
-se viminfo+=!                          "Needed to save map and plane in between sessions
+
 se sidescroll=1                        "Smoother panning
 se nostartofline                       "Keeps cursor in the same position when panning
 se mouse=a                             "Enables mouse
@@ -14,6 +14,11 @@ se hidden                              "Suppresses error messages when a modifie
 hi default link TxbMapSel Visual       "default hilight for map label selection
 hi default link TxbMapSelEmpty Visual  "default hilight for map empty selection
 se scrolloff=0                         "ensures correct vertical panning
+if empty(&viminfo)                     "Needed to save map and plane in between sessions
+	se viminfo=!,'100
+else
+	se viminfo+=!
+en
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
