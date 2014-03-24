@@ -1210,23 +1210,6 @@ let s:pagercom.100=s:pagercom.32
 let s:pagercom.117=s:pagercom.98
 let s:pagercom.27=s:pagercom.113
 
-fun! s:gotoPos(col,row)
-	let name=get(t:txb_name,a:col,-1)
-	if name==-1
-		echoerr "Split ".a:col." does not exist."
-	else
-		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
-			winc t
-			exe 'e '.name
-			let w:txbi=a:col
-		en
-		norm! 0
-		only
-		call s:redraw()
-		exe 'norm!' (a:row? a:row : 1).'zt'
-	en
-endfun
-
 fun! s:doSyntax(stmt)
 	if empty(a:stmt)
 		return
@@ -1449,6 +1432,24 @@ fun! s:getOffset()
 	let cSp=getwinvar(1,'txbi')
 	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
 endfun
+
+fun! s:gotoPos(col,row)
+	let name=get(t:txb_name,a:col,-1)
+	if name==-1
+		echoerr "Split ".a:col." does not exist."
+	else
+		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+			winc t
+			exe 'e '.name
+			let w:txbi=a:col
+		en
+		norm! 0
+		only
+		call s:redraw()
+		exe 'norm!' (a:row? a:row : 1).'zt'
+	en
+endfun
+
 fun! s:blockPan(sp,off,y,relative)
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
