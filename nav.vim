@@ -11,17 +11,17 @@ se mouse=a                             "Enables mouse
 se lazyredraw                          "Less redraws
 se virtualedit=all                     "Makes leftmost split align correctly
 se hidden                              "Suppresses error messages when a modified buffer pans offscreen
-hi default link TXBmapSel Visual       "default hilight for map label selection
-hi default link TXBmapSelEmpty Visual  "default hilight for map empty selection
+hi default link TxbMapSel Visual       "default hilight for map label selection
+hi default link TxbMapSelEmpty Visual  "default hilight for map empty selection
 se scrolloff=0                         "ensures correct vertical panning
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
-exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 augroup END
 
 let s:syncOK=v:version>704 || v:version==704 && has('patch131')
@@ -34,7 +34,7 @@ if !has("gui_running")
 	augroup TXB
 		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	augroup END
-	nn <silent> <leftmouse> :exe get(TXBmsCmd,&ttymouse,TXBmsCmd.default)()<cr>
+	nn <silent> <leftmouse> :exe get(TxbMsCmd,&ttymouse,TxbMsCmd.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
@@ -43,8 +43,8 @@ fun! s:SID()
 	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfun
 
-let TXBmsCmd={}
-let TXBkyCmd={}
+let TxbMsCmd={}
+let TxbKyCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -59,7 +59,7 @@ fun! s:printHelp()
 	\ (v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind won't sync on mouse panning until you release the mouse button": '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane can't be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TXBdoCmd('r')' to redraw" : '')
+	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TxbExe('r')' to redraw" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' is recommended." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, allows mouse panning in map mode and overall smoother panning." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -89,7 +89,7 @@ fun! s:printHelp()
 	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
 	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
 	\\n    txb: Blah###Ignored  Label 'Blah'
-	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TXBinit()', press S
+	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
 	\\n    0 $                  Beginning / end of line
@@ -124,9 +124,9 @@ fun! s:printHelp()
 	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
 	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.",width,(&columns-width)/2),s:help_bookmark)
 endfun
-let TXBkyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
+let TxbKyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
-fun! TXBinit(...)
+fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let [more,&more]=[&more,0]
 	let seed=a:0? a:1 : -99
@@ -283,15 +283,15 @@ fun! TXBinit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TXBdoCmd" : "TXBinit"}(-99)<cr>'
+			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
 			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
-				call TXBinit(-99)
+				call TxbInit(-99)
 			else
 				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				let plane.name=plane_name_save
-				call TXBinit(plane)
+				call TxbInit(plane)
 			en
 		else
 			redr|echo "Cancelled"
@@ -301,7 +301,7 @@ fun! TXBinit(...)
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
-			call TXBinit(input)
+			call TxbInit(input)
 		en
 	en
 	let &more=more
@@ -392,7 +392,7 @@ fun! <SID>initDragDefault()
 	en
 	return ''
 endfun
-let TXBmsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
+let TxbMsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
 
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
@@ -425,7 +425,7 @@ fun! <SID>doDragSGR()
 		nunmap <esc>[<
 		if exists('t:txb')
 			if k[1:]==[1,1]
-				call TXBdoCmd('o')
+				call TxbExe('o')
 			elseif exists('w:txbi')
 				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
@@ -438,12 +438,12 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
+let TxbMsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
 
 fun! <SID>initDragXterm()
 	return "norm! \<leftmouse>"
 endfun
-let TXBmsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
+let TxbMsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
@@ -473,7 +473,7 @@ fun! <SID>doDragXterm2()
 		nunmap <esc>[M
 		if exists('t:txb')
 			if k[1:]==[33,33]
-				call TXBdoCmd('o')
+				call TxbExe('o')
 			elseif exists('w:txbi')
 				echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 			en
@@ -487,7 +487,7 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TXBmsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
+let TxbMsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
 let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)
@@ -587,12 +587,12 @@ fun! s:printMapDisp()
 	if notempty
 		let endmark=len(s:mp_array[s:mp_c][s:mp_r])
 		let endmark=(sel+endmark)%s:disp_r<sel%s:disp_r? endmark-(sel+endmark)%s:disp_r-1 : endmark
-		echohl TXBmapSel
+		echohl TxbMapSel
 		echon s:mp_array[s:mp_c][s:mp_r][:endmark-1]
 		let endmark=sel+endmark
 	else
 		let endmark=sel+t:mp_clW
-		echohl TXBmapSelEmpty
+		echohl TxbMapSelEmpty
 		echon s:disp_str[sel : endmark-1]
 	en
 	while s:disp_color[p]<endmark
@@ -614,11 +614,11 @@ fun! s:printMapDispNoHL()
 	if len
 		let len=len(s:mp_array[s:mp_c][s:mp_r])
 		let len=(i+len)%s:disp_r<i%s:disp_r? len-(i+len)%s:disp_r-1 : len
-		echohl TXBmapSel
+		echohl TxbMapSel
 		echon s:mp_array[s:mp_c][s:mp_r][:len]
 	else
 		let len=t:mp_clW
-		echohl TXBmapSelEmpty
+		echohl TxbMapSelEmpty
 		echon s:disp_str[i : i+len-1]
 	en
 	echohl NONE
@@ -702,7 +702,7 @@ fun! s:navMapKeyHandler(c)
 	en
 endfun
 
-let TXBkyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
+let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
 fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_num='01'
     let s:mp_posmes=(line('.')%t:mp_L? line('.')%t:mp_L.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
@@ -725,7 +725,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_displayfunc=function('s:printMapDisp')
 	call s:getMapDisp()
 	call s:mp_displayfunc()
-	let g:TXBkeyhandler=function("s:navMapKeyHandler")
+	let g:TxbKeyHandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:last_yanked_is_column=0
@@ -835,7 +835,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-let TXBkyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
+let TxbKyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -863,7 +863,7 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let TXBkyCmd.S=
+let TxbKyCmd.S=
 	\"let s:kc_continue=0\n
 	\let settings_names=range(17)\n
 	\let settings_values=range(17)\n
@@ -895,7 +895,7 @@ let TXBkyCmd.S=
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TXBdoCmd\" : \"TXBinit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\if exists('w:txbi')\n
 			\let t:txb.size[w:txbi]=settings_values[14]\n
@@ -946,7 +946,7 @@ let TXBkyCmd.S=
 					\if confirm2==?'y' || confirm2==?'n'\n
 						\let curwd=getcwd()\n
 						\if confirm2=='y'\n
-							\exe g:TXBkyCmd.W\n
+							\exe g:TxbKyCmd.W\n
 						\en\n
 						\if confirm=='y'\n
 							\exe 'cd' fnameescape(t:txb_wd)\n
@@ -1104,7 +1104,7 @@ let s:ErrorCheck['kbd y pan speed']=[2,
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed vertical']
-let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TXBinit()', and press S to reset"]
+let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbInit()', and press S to reset"]
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\"unlet! inList\n
@@ -1251,28 +1251,28 @@ fun! s:doSyntax(stmt)
 	en
 endfun
 
-let TXBkyCmd.h='cal s:blockPan(-s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
-let TXBkyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
-let TXBkyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()' 
-let TXBkyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
-let TXBkyCmd.y='cal s:blockPan(-s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
-let TXBkyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
-let TXBkyCmd.b='cal s:blockPan(-s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
-let TXBkyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
-let TXBkyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TXBkyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
-let TXBkyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
-let TXBkyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
-let TXBkyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
-let TXBkyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
-let TXBkyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
-let TXBkyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
-let TXBkyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
-let TXBkyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TXBkyCmd["\<up>"]=TXBkyCmd.k
-let TXBkyCmd["\<down>"]=TXBkyCmd.j
-let TXBkyCmd["\<left>"]=TXBkyCmd.h
-let TXBkyCmd["\<right>"]=TXBkyCmd.l
+let TxbKyCmd.h='cal s:blockPan(-s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
+let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
+let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()' 
+let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
+let TxbKyCmd.y='cal s:blockPan(-s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
+let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
+let TxbKyCmd.b='cal s:blockPan(-s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)' 
+let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)' 
+let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
+let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
+let TxbKyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
+let TxbKyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
+let TxbKyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
+let TxbKyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
+let TxbKyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
+let TxbKyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
+let TxbKyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd["\<up>"]=TxbKyCmd.k
+let TxbKyCmd["\<down>"]=TxbKyCmd.j
+let TxbKyCmd["\<left>"]=TxbKyCmd.h
+let TxbKyCmd["\<right>"]=TxbKyCmd.l
 
 fun! s:snapToGrid()
 	let [ix,l0]=[w:txbi,line('.')]
@@ -1295,7 +1295,7 @@ fun! s:snapToGrid()
 		call s:redraw()
 	en
 endfun
-let TXBkyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()' 
+let TxbKyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()' 
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1326,7 +1326,7 @@ fun! <SID>getmouse()
 	en
 	while getchar(0) isnot 0
 	endwhile
-	call g:TXBkeyhandler(-1)	
+	call g:TxbKeyHandler(-1)	
 endfun
 fun! s:dochar()
 	let [k,c]=['',getchar()]
@@ -1334,19 +1334,19 @@ fun! s:dochar()
 		let k.=type(c)==0? nr2char(c) : c
 		let c=getchar(0)
 	endwhile
-	call g:TXBkeyhandler(k)
+	call g:TxbKeyHandler(k)
 endfun
 
-fun! TXBdoCmd(inicmd)
+fun! TxbExe(inicmd)
 	let s:kc_num='01'
 	let s:kc_continue=1
 	let s:kc_msg=''
 	call s:saveCursPos()
-	let g:TXBkeyhandler=function("s:doCmdKeyhandler")
+	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TXBkyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
+	exe get(g:TxbKyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue
 		echon w:txbi '.' line('.') ' ' empty(s:kc_msg)? get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9] : s:kc_msg
 		let s:kc_msg=''
@@ -1357,14 +1357,14 @@ fun! s:doCmdKeyhandler(c)
 		redr|echo '(done)' w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-17]
 	en
 endfun
-let TXBkyCmd.q="let s:kc_continue=0"
-let TXBkyCmd[-1]='let s:kc_continue=0'
-let TXBkyCmd[-99]=""
-let TXBkyCmd["\e"]=TXBkyCmd.q
+let TxbKyCmd.q="let s:kc_continue=0"
+let TxbKyCmd[-1]='let s:kc_continue=0'
+let TxbKyCmd[-99]=""
+let TxbKyCmd["\e"]=TxbKyCmd.q
 
-let TXBkyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
+let TxbKyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
-let TXBkyCmd.D=
+let TxbKyCmd.D=
 	\"redr\n
 	\if t:txb_len==1\n
 		\let s:kc_msg='Cannot delete last split!'\n
@@ -1385,7 +1385,7 @@ let TXBkyCmd.D=
 	\let s:kc_continue=0\n
 	\call s:updateCursPos()" 
 
-let TXBkyCmd.A=
+let TxbKyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
@@ -1410,12 +1410,12 @@ let TXBkyCmd.A=
 	\en\n
 	\let s:kc_continue=0|call s:updateCursPos()" 
 
-let TXBkyCmd.W=
+let TxbKyCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:txb_wd)\n
 	\let s:kc_continue=0\n
 	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TXBinit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
+	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:saveCursPos()
@@ -1679,8 +1679,8 @@ fun! s:redraw(...)
 		let g:TxbRemapLog.=join(log,"\n")
 	en
 endfun
-let TXBkyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
-let TXBkyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
+let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()" 
+let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()" 
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1875,7 +1875,7 @@ fun! s:nav(N,L)
 			while w1<=N
 				let w2=winwidth(2)
 				let extrashift=w1==N
-				let shifted+=w1+1
+				let shifted=w1+1
 				winc t
 				hide
 				let w1=winwidth(1)
