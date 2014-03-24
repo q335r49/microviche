@@ -5,6 +5,7 @@ se noequalalways                       "[Vital] Needed for correct panning
 se winwidth=1                          "[Vital] Needed for correct panning
 se winminwidth=0                       "[Vital] Needed For correct panning
 
+exe 'se viminfo'.(empty(&viminfo)? "=!,'100" : '+=!')  "Saves map and plane in between sessions
 se sidescroll=1                        "Smoother panning
 se nostartofline                       "Keeps cursor in the same position when panning
 se mouse=a                             "Enables mouse
@@ -14,11 +15,6 @@ se hidden                              "Suppresses error messages when a modifie
 hi default link TxbMapSel Visual       "default hilight for map label selection
 hi default link TxbMapSelEmpty Visual  "default hilight for map empty selection
 se scrolloff=0                         "ensures correct vertical panning
-if empty(&viminfo)                     "Needed to save map and plane in between sessions
-	se viminfo=!,'100
-else
-	se viminfo+=!
-en
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
@@ -1607,7 +1603,7 @@ fun! s:redraw(...)
 	let ccol=colb
 	let log=[]
 	let elog=[]
-    for i in range(1,numcols)
+	for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
 			exe 'e' t:txb_name[ccol]
@@ -1739,7 +1735,7 @@ fun! s:nav(N,L)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+				if line('$')<cL0 && &scb
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1775,7 +1771,7 @@ fun! s:nav(N,L)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+				if line('$')<cL0 && &scb
 					let dosyncbind=1
 				else
 					exe alignmentcmd
@@ -1790,7 +1786,7 @@ fun! s:nav(N,L)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+						if line('$')<cL0 && &scb
 							let dosyncbind=1
 						elseif !dosyncbind
 							exe alignmentcmd
@@ -1851,7 +1847,7 @@ fun! s:nav(N,L)
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+			if line('$')<cL0 && &scb
 				let dosyncbind=1
 			else
 				exe alignmentcmd
@@ -1917,7 +1913,7 @@ fun! s:nav(N,L)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+				if line('$')<cL0 && &scb
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
@@ -1948,7 +1944,7 @@ fun! s:nav(N,L)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && stridx(t:txb.exe[w:txbi],'noscb')==-1
+				if line('$')<cL0 && &scb
 					let dosyncbind=1
 				elseif !dosyncbind
 					exe alignmentcmd
@@ -1992,7 +1988,7 @@ fun! s:nav(N,L)
 			en
 		en
 	en
-    if dosyncbind
+	if dosyncbind
 		if s:badSync
 			windo 1
 		en
