@@ -1464,10 +1464,10 @@ fun! s:blockPan(sp,off,y,relative)
 				en
 			elseif cSp==dSp
 				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
-				if cOff-a:off>t:kpSpH
+				if a:off-cOff>t:kpSpH
 					call s:nav(t:kpSpH,yn)
 				else
-					call s:nav(cOff-a:off,yn)
+					call s:nav(a:off-cOff,yn)
 					break
 				en
 			else
@@ -1493,7 +1493,7 @@ fun! s:blockPan(sp,off,y,relative)
 				if cOff-a:off>t:kpSpH
 					call s:nav(-t:kpSpH,yn)
 				else
-					call s:nav(-cOff+a:off,yn)
+					call s:nav(a:off-cOff,yn)
 					break
 				en
 			else
