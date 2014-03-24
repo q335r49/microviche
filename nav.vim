@@ -1899,7 +1899,7 @@ fun! s:nav(N,L)
 				en
 				winc t
 				if winwidth(1)!=ww1-N
-					exe 'vert res'.ww1-N
+					exe 'vert res'.(ww1-N)
 				en
 			en
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
