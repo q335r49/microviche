@@ -1448,7 +1448,7 @@ fun! s:blockPan(sp,off,y,relative)
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
 	let dSp=a:relative? ((cSp+a:sp+(cOff>0 && a:sp<0))%t:txb_len+t:txb_len)%t:txb_len  : a:sp
-	let dir=a:relative? a:sp : dSp-cSp+(dSp==cSp)*(cOff-a:off)
+	let dir=a:relative? a:sp+(!a:sp)*(cOff-a:off) : dSp-cSp+(dSp==cSp)*(cOff-a:off)
 	if dir>0
 		while 1
 			let l0=line('w0')
