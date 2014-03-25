@@ -1409,6 +1409,7 @@ endfun
 
 fun! s:blockPan(sp,off,y,mode)
 	if a:mode==2
+		call saveCursPos()
 		let txbi=(a:sp+t:txb_len)%t:txb_len
 		let name=t:txb_name[txbi]
 		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
@@ -1418,6 +1419,7 @@ fun! s:blockPan(sp,off,y,mode)
 		en
 		only
 		exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
+		call updateCursPos()
 		call s:redraw()
 		return
 	en
