@@ -19,8 +19,8 @@ Key | Action | | Key | Action
 `y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
 `r` `R` <sup>3</sup>| *redraw / Remap* | | `L` <sup>3</sup> | *insert label*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
-`.` | *snap to map grid* | |`q` `esc` | *abort*
 `S` <sup>4</sup> | *settings* | |`W` <sup>5</sup>| *write to file*
+`q` `esc` | *abort*| | |
 <sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> See [Automapping](#automapping) below.  
@@ -49,7 +49,7 @@ Key | Action | | Key | Action
 When `c`hanging a map lable, you're also prompted for optional highlighting and positioning commands:
 
 * You can press `tab` at the highlight prompt to auto-complete from currently defined highlights.
-* Positioning commands move the cursor and the split from their initial position at the top left corner and leftmost split, respectively. For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. When movement is defined for a grid, `F10``.` *snap to grid* will perform that movement. The complete syntax is:
+* Positioning commands move the cursor and the split from their initial position at the top left corner and leftmost split, respectively. For example, say you want to label a heading that occurs 20 lines down the block. You can center the split and position the cursor at the heading via <samp>&nbsp;C20j</samp>. The complete syntax is:
 
 Syntax | Action | | Syntax | Action
 --- | --- | --- | --- | ---
