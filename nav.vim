@@ -1658,6 +1658,7 @@ fun! s:redraw(...)
 		else
 			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
+			norm! 0
 		en
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
