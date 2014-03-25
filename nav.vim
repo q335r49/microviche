@@ -1607,13 +1607,6 @@ fun! s:redraw(...)
 		en
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
-		if i==numcols
-			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
-			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
-		else
-			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
-			exe 'vert res'.(dif>=0? '+'.dif : dif)
-		en
 		if a:0
 			if ccol>=len(t:txb.map)
 				call extend(t:txb.map,eval('['.join(repeat(['[]'],ccol+1-len(t:txb.map)),',').']'))
@@ -1658,6 +1651,13 @@ fun! s:redraw(...)
 				en
 				let line=search('^txb:','W')
 			endwhile
+		en
+		if i==numcols
+			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
+			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+		else
+			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
+			exe 'vert res'.(dif>=0? '+'.dif : dif)
 		en
 		winc h
 		let ccol=ccol? ccol-1 : t:txb_len-1
