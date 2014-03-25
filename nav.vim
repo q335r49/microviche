@@ -1256,29 +1256,6 @@ let TxbKyCmd["\<down>"]=TxbKyCmd.j
 let TxbKyCmd["\<left>"]=TxbKyCmd.h
 let TxbKyCmd["\<right>"]=TxbKyCmd.l
 
-fun! s:snapToGrid()
-	let [ix,l0]=[w:txbi,line('.')]
-	let y=l0>t:mp_L? l0-l0%t:mp_L : 1
-	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/t:mp_L,''),'#',1),2,'')
-	if !empty(poscom)
-		call s:doSyntax(s:blockPan(ix,0,y,2)? '' : poscom)
-		call s:saveCursPos()
-	elseif winnr()!=winnr('$')
-		exe 'norm! '.y.'zt0'
-		call s:redraw()
-	elseif t:txb.size[ix]>&columns
-		only
-		exe 'norm! '.y.'zt0'
-	elseif winwidth(0)<t:txb.size[ix]
-		call s:nav(-winwidth(0)+t:txb.size[ix],y)
-		norm! 0
-	elseif winwidth(0)>t:txb.size[ix]
-		exe 'norm! '.y.'zt0'
-		call s:redraw()
-	en
-endfun
-let TxbKyCmd['.']='call s:snapToGrid()|let s:kc_continue=0|call s:updateCursPos()'
-
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
 nno <silent> <plug>TxbZ :call <SID>getchar()<cr>

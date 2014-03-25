@@ -59,7 +59,7 @@ Syntax | Action | | Syntax | Action
 <sup>1</sup> By default, <samp>s</samp> will not shift the split offscreen, regardless of count. But specifying, eg, <samp>15W</samp> would allow <samp>s</samp> to shift all but 15 columns offscreen. Likewise, <samp>15WC</samp> would center the split as though it were of width 15.
 
 ####Automapping
-`R`emap, in addition to `r`edrawing, will update the map to reflect the layout of all visible splits by processing lines of the form:
+Automapping is recommended over `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert or remove splits. `R`emap, in addition to `r`edrawing, will update the map to reflect the layout of all visible splits by processing lines of the form:
 
 <samp>txb[:line num][: label#highlght#position]</samp>
 
@@ -81,8 +81,7 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 <samp>&nbsp;ECNF 15 78 Blah bleh&nbsp;</samp>*Error: autolabel 'bleh' was already specified for cell*  
 
 ####Tips
-- Automapping is recommended over `c`hanging labels in the map itself: you won't have to remap if you shift the text arround or insert or remove splits.
-- To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hang <samp>autoexe</samp> (the <samp>Plane</samp> setting and not the <samp>Split</samp> setting) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
+- To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> for the <samp>Plane</samp> (and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
 - To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
 - **Horizontal splits** aren't supported and will interfere with panning.
 - A **terminal emulator** is recommended over gVim because of better mouse control and automatic redrawing. For Windows, **[Cygwin](http://www.cygwin.com/)** running the (bundled) [mintty](https://code.google.com/p/mintty/) terminal emulator is recommended over gVim (in turn recommended over the Windows command prompt).
