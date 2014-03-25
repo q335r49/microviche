@@ -1,20 +1,20 @@
 "Hosted at https://github.com/q335r49/textabyss
 
-if &cp|se nocompatible|en              "[Vital] Enable vim features
-se noequalalways                       "[Vital] Needed for correct panning
-se winwidth=1                          "[Vital] Needed for correct panning
-se winminwidth=0                       "[Vital] Needed For correct panning
+if &cp|se nocompatible|en                     "[Vital] Enable vim features
+se noequalalways                              "[Vital] Needed for correct panning
+se winwidth=1                                 "[Vital] Needed for correct panning
+se winminwidth=0                              "[Vital] Needed For correct panning
 
-exe 'se viminfo'.(empty(&viminfo)? "=!,'100" : '+=!')  "Saves map and plane in between sessions
-se sidescroll=1                        "Smoother panning
-se nostartofline                       "Keeps cursor in the same position when panning
-se mouse=a                             "Enables mouse
-se lazyredraw                          "Less redraws
-se virtualedit=all                     "Makes leftmost split align correctly
-se hidden                              "Suppresses error messages when a modified buffer pans offscreen
-hi default link TxbMapSel Visual       "default hilight for map label selection
-hi default link TxbMapSelEmpty Visual  "default hilight for map empty selection
-se scrolloff=0                         "ensures correct vertical panning
+exe 'se vi'.(empty(&vi)? "=!,'100" : '+=!')| "Saves map and plane in between sessions
+se sidescroll=1                              "Smoother panning
+se nostartofline                             "Keeps cursor in the same position when panning
+se mouse=a                                   "Enables mouse
+se lazyredraw                                "Less redraws
+se virtualedit=all                           "Makes leftmost split align correctly
+se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
+hi default link TxbMapSel Visual             "default hilight for map label selection
+hi default link TxbMapSelEmpty Visual        "default hilight for map empty selection
+se scrolloff=0                               "ensures correct vertical panning
 
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
