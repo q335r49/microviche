@@ -1433,19 +1433,20 @@ fun! s:getOffset()
 	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
 endfun
 
-fun! s:gotoPos(col,off,row)
-	let name=t:txb_name[(a:col+txb_len)%t:txb_len]
-	if name!=#fnameescape(fnamemodify(expand('%'),':p'))
-		winc t
-		exe 'e '.name
-		let w:txbi=a:col
-	en
-	only
-	exe 'norm! 0'.a:off.'zl'.(a:row? a:row : 1).'zt'
-	call s:redraw()
-endfun
-
 fun! s:blockPan(sp,off,y,mode)
+	if a:mode==2
+		let txbi=(a:sp+t:txb_len)%t:txb_len
+		let name=t:txb_name[txbi]
+		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+			winc t
+			exe 'e '.name
+			let w:txbi=txbi
+		en
+		only
+		exe 'norm! 0'.a:off.'zl'.(a:y? a:y : 1).'zt'
+		call s:redraw()
+		return
+	en
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
 	let dSp=(a:mode? cSp+a:sp+t:txb_len : a:sp+t:txb_len)%t:txb_len
