@@ -1433,28 +1433,23 @@ fun! s:getOffset()
 	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
 endfun
 
-fun! s:gotoPos(col,row)
-	let name=get(t:txb_name,a:col,-1)
-	if name==-1
-		echoerr "Split ".a:col." does not exist."
-	else
-		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
-			winc t
-			exe 'e '.name
-			let w:txbi=a:col
-		en
-		norm! 0
-		only
-		call s:redraw()
-		exe 'norm!' (a:row? a:row : 1).'zt'
+fun! s:gotoPos(col,off,row)
+	let name=t:txb_name[(a:col+txb_len)%t:txb_len]
+	if name!=#fnameescape(fnamemodify(expand('%'),':p'))
+		winc t
+		exe 'e '.name
+		let w:txbi=a:col
 	en
+	only
+	exe 'norm! 0'.a:off.'zl'.(a:row? a:row : 1).'zt'
+	call s:redraw()
 endfun
 
-fun! s:blockPan(sp,off,y,relative)
+fun! s:blockPan(sp,off,y,mode)
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
-	let dSp=(a:relative? cSp+a:sp+t:txb_len : a:sp+t:txb_len)%t:txb_len
-	let dir=a:relative? a:sp+(!a:sp)*(cOff-a:off) : dSp-cSp+(dSp==cSp)*(cOff-a:off)
+	let dSp=(a:mode? cSp+a:sp+t:txb_len : a:sp+t:txb_len)%t:txb_len
+	let dir=a:mode? a:sp+(!a:sp)*(cOff-a:off) : dSp-cSp+(dSp==cSp)*(cOff-a:off)
 	if dir>0
 		while 1
 			let l0=line('w0')
