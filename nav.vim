@@ -308,10 +308,10 @@ endfun
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 fun! <SID>initDragDefault()
 	if exists('w:txbi')
-		call s:saveCursPos()
+		let cpos=[line('.'),virtcol('.'),w:txbi]
 		let [c,w0]=[getchar(),-1]
 		if c!="\<leftdrag>"
-			call s:updateCursPos()
+			call s:setCursor(cpos[0],cpos[1],cpos[2])
 			echon getwinvar(v:mouse_win,'txbi') '-' v:mouse_lnum ' ' get(get(t:txb.map,getwinvar(v:mouse_win,'txbi'),[]),v:mouse_lnum/t:mp_L,'')[:&columns-9]
 			return "keepj norm! \<leftmouse>"
 		else
@@ -344,7 +344,7 @@ fun! <SID>initDragDefault()
 				endwhile
 			endwhile
 		en
-		call s:updateCursPos()
+		call s:setCursor(cpos[0],cpos[1],cpos[2])
 		echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 	else
 		let possav=[bufnr('%')]+getpos('.')[1:]
@@ -1335,16 +1335,16 @@ let TxbKyCmd.D=
 			\let t:txb_len=len(t:txb.name)\n
 		\en\n
 		\winc W\n
-		\call s:saveCursPos()\n
+		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw()\n
 		\let s:kc_msg='(Split deleted)'\n
 	\en\n
 	\let s:kc_continue=0\n
-	\call s:updateCursPos()"
+	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let TxbKyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
-	\call s:saveCursPos()\n
+	\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
@@ -1366,7 +1366,8 @@ let TxbKyCmd.A=
 	\else\n
 		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
-	\let s:kc_continue=0|call s:updateCursPos()"
+	\let s:kc_continue=0|call s:setCursor(cpos[0],cpos[1],cpos[2])"
+"
 
 let TxbKyCmd.W=
 	\"let prevwd=getcwd()\n
@@ -1376,40 +1377,34 @@ let TxbKyCmd.W=
 	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
-fun! s:saveCursPos()
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
-endfun
-fun! s:updateCursPos(...)
-    let default_scrolloff=a:0? a:1 : 0
-	let win=bufwinnr(t:txb_cPos[0])
-	if win!=-1
-		if winnr('$')==1 || win==1
-			winc t
-			let offset=virtcol('.')-wincol()+1
-			let width=offset+winwidth(0)-3
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]<offset? offset : width<=t:txb_cPos[2]? width : t:txb_cPos[2]).'|'
-		elseif win!=1
-			exe win.'winc w'
-			exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(t:txb_cPos[2]>winwidth(win)? '0g$' : t:txb_cPos[2].'|')
-		en
-	elseif default_scrolloff==1 || !default_scrolloff && t:txb_cPos[3]>w:txbi
-		winc b
-		exe 'norm! '.(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').(winnr('$')==1? 'g$' : '0g$')
-	else
-		winc t
-		exe "norm! ".(t:txb_cPos[1]<line('w0')? 'H' : line('w$')<t:txb_cPos[1]? 'L' : t:txb_cPos[1].'G').'g0'
-	en
-	let t:txb_cPos=[bufnr('%'),line('.'),virtcol('.'),w:txbi]
-endfun
-
 fun! s:getOffset()
 	let cSp=getwinvar(1,'txbi')
 	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
 endfun
 
+fun! s:setCursor(l,vc,ix)
+	let wt=getwinvar(1,'txbi')
+	let wb=wt+winnr('$')-1
+	if ix<wt
+		winc t
+		exe "norm! ".(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').'g0'
+	elseif ix>wb
+		winc b
+		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(wb==wt? 'g$' : '0g$')
+	elseif ix==wt
+		winc t
+		let offset=virtcol('.')-wincol()+1
+		let width=offset+winwidth(0)-3
+		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc<offset? offset : width<=a:vc? width : a:vc).'|'
+	else
+		exe (ix-wt+1).'winc w'
+		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc>winwidth(win)? '0g$' : '0'.a:vc.'|')
+	en
+endfun
+
 fun! s:blockPan(sp,off,y,mode)
 	if a:mode==2
-		call saveCursPos()
+		let cpos=[line('.'),virtcol('.'),w:txbi]
 		let txbi=(a:sp+t:txb_len)%t:txb_len
 		let name=t:txb_name[txbi]
 		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
@@ -1419,7 +1414,7 @@ fun! s:blockPan(sp,off,y,mode)
 		en
 		only
 		exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
-		call updateCursPos()
+		call setCursor(cpos[0],cpos[1],cpos[2])
 		call s:redraw()
 		return
 	en
