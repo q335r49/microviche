@@ -60,7 +60,7 @@ fun! s:printHelp()
 	\ (v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind won't sync on mouse panning until you release the mouse button": '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane can't be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r or ':call TxbExe('r')' to redraw" : '')
+	\.(has('gui_running')? "\n> Warning: gVim - Resizing occurs unpredictably in gVim and automatic redrawing on resize has been disabled. Press [hotkey] r to redraw or automate redrawing via ':call TxbExe('r')'" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' is recommended." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, allows mouse panning in map mode and overall smoother panning." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -121,9 +121,7 @@ fun! s:printHelp()
 	\\n    M                    Center cursor vertically (ignore r R)
 	\\n    W                    Virtual width (see below)
 	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
-	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : "")
-	\."\n\n\\CTIPS:\n\n* Editing the file you [hotkey][W]rote is an easy way to change settings.
-	\\n* HORIZONTAL SPLITS interfere with panning, consider using tabs instead.",width,(&columns-width)/2),s:help_bookmark)
+	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : ""),width,(&columns-width)/2),s:help_bookmark)
 endfun
 let TxbKyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
