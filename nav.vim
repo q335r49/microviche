@@ -1734,7 +1734,7 @@ fun! s:nav(N,L)
 				let w:txbi=nextcol
 				if line('$')<cL0 && &scb
 					let dosyncbind=1
-				else
+				elseif &scb
 					exe alignmentcmd
 				en
 				exe t:txb.exe[nextcol]
@@ -1770,7 +1770,7 @@ fun! s:nav(N,L)
 				let w:txbi=tcol
 				if line('$')<cL0 && &scb
 					let dosyncbind=1
-				else
+				elseif &scb
 					exe alignmentcmd
 				en
 				exe t:txb.exe[tcol]
@@ -1785,7 +1785,7 @@ fun! s:nav(N,L)
 						let w:txbi=nextcol
 						if line('$')<cL0 && &scb
 							let dosyncbind=1
-						elseif !dosyncbind
+						elseif !dosyncbind && &scb
 							exe alignmentcmd
 						en
 						exe t:txb.exe[nextcol]
@@ -1846,7 +1846,7 @@ fun! s:nav(N,L)
 			let w:txbi=tcol
 			if line('$')<cL0 && &scb
 				let dosyncbind=1
-			else
+			elseif &scb
 				exe alignmentcmd
 			en
 			exe t:txb.exe[tcol]
@@ -1912,7 +1912,7 @@ fun! s:nav(N,L)
 				let w:txbi=nextcol
 				if line('$')<cL0 && &scb
 					let dosyncbind=1
-				elseif !dosyncbind
+				elseif !dosyncbind && &scb
 					exe alignmentcmd
 				en
 				exe t:txb.exe[nextcol]
@@ -1943,7 +1943,7 @@ fun! s:nav(N,L)
 				let w:txbi=nextcol
 				if line('$')<cL0 && &scb
 					let dosyncbind=1
-				elseif !dosyncbind
+				elseif !dosyncbind && &scb
 					exe alignmentcmd
 				en
 				exe t:txb.exe[nextcol]
