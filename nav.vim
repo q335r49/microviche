@@ -1443,7 +1443,7 @@ fun! s:blockPan(sp,off,y,mode)
 			let w:txbi=txbi
 		en
 		only
-		exe 'norm! 0'.a:off.'zl'.(a:y? a:y : 1).'zt'
+		exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
 		call s:redraw()
 		return
 	en
