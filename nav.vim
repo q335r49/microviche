@@ -657,7 +657,7 @@ fun! s:navMapKeyHandler(c)
 					let s:mp_c=(g:TXBmsmsg[1]-1)/t:mp_clW+s:mp_coff
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
-						call s:doSyntax(s:gotoPos(s:mp_c,t:mp_L*s:mp_r)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
+						call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
 						return
 					en
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
@@ -696,7 +696,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mp_continue==2
 			let [&ch,&more,&ls,&stal]=s:mp_settings
-			call s:doSyntax(s:gotoPos(s:mp_c,t:mp_L*s:mp_r)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
+			call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
 		else
 			let [&ch,&more,&ls,&stal]=s:mp_settings
 		en
@@ -1263,7 +1263,7 @@ fun! s:snapToGrid()
 	let y=l0>t:mp_L? l0-l0%t:mp_L : 1
 	let poscom=get(split(get(get(t:txb.map,ix,[]),l0/t:mp_L,''),'#',1),2,'')
 	if !empty(poscom)
-		call s:doSyntax(s:gotoPos(ix,y)? '' : poscom)
+		call s:doSyntax(s:blockPan(ix,0,y,2)? '' : poscom)
 		call s:saveCursPos()
 	elseif winnr()!=winnr('$')
 		exe 'norm! '.y.'zt0'
