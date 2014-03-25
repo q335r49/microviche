@@ -12,8 +12,8 @@ se mouse=a                                   "Enables mouse
 se lazyredraw                                "Less redraws
 se virtualedit=all                           "Makes leftmost split align correctly
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
-hi default link TxbMapSel Visual             "default hilight for map label selection
-hi default link TxbMapSelEmpty Visual        "default hilight for map empty selection
+hi default link TxbMapSel Visual             "default highlight for map label selection
+hi default link TxbMapSelEmpty Visual        "default highlight for map empty selection
 se scrolloff=0                               "ensures correct vertical panning
 
 if !exists('g:TXB_HOTKEY')
@@ -70,7 +70,7 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n[2] r R L                redraw / Remap / Label
+	\\n[2] r R L                redraw / Remap / Label autotext
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
@@ -99,7 +99,6 @@ fun! s:printHelp()
 	\\n    o O                  Obtain cell / Obtain column
 	\\n    p P                  Put obtained after / before
 	\\n[2] c                    Change label, color, position
-	\\n    .                    (in plane) execute label position
 	\\n    g <cr>               Go to block and exit map
 	\\n    I D                  Insert / Delete and obtain column
 	\\n    Z                    Adjust map block size
@@ -1233,14 +1232,14 @@ fun! s:doSyntax(stmt)
 	en
 endfun
 
-let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
-let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
-let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos()'
-let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
-let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
-let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
-let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(1)'
-let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!|call s:updateCursPos(-1)'
+let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
 let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
 let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
 let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
@@ -1300,7 +1299,6 @@ fun! TxbExe(inicmd)
 	let s:kc_num='01'
 	let s:kc_continue=1
 	let s:kc_msg=''
-	call s:saveCursPos()
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
@@ -1346,6 +1344,7 @@ let TxbKyCmd.D=
 
 let TxbKyCmd.A=
 	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
+	\call s:saveCursPos()\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:txb_wd)\n
@@ -1657,8 +1656,8 @@ fun! s:redraw(...)
 		let g:TxbRemapLog.=join(log,"\n")
 	en
 endfun
-let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0|call s:updateCursPos()"
-let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0|call s:updateCursPos()"
+let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0"
+let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
