@@ -1732,10 +1732,12 @@ fun! s:nav(N,L)
 				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
 				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && &scb
-					let dosyncbind=1
-				elseif &scb
-					exe alignmentcmd
+				if &scb
+					if line('$')<cL0
+						let dosyncbind=1
+					else
+						exe alignmentcmd
+					en
 				en
 				exe t:txb.exe[nextcol]
 				winc l
@@ -1768,10 +1770,12 @@ fun! s:nav(N,L)
 				se scrollopt=jump
 				exe 'e' t:txb_name[tcol]
 				let w:txbi=tcol
-				if line('$')<cL0 && &scb
-					let dosyncbind=1
-				elseif &scb
-					exe alignmentcmd
+				if &scb
+					if line('$')<cL0
+						let dosyncbind=1
+					else
+						exe alignmentcmd
+					en
 				en
 				exe t:txb.exe[tcol]
 				se scrollopt=ver,jump
@@ -1783,10 +1787,12 @@ fun! s:nav(N,L)
 					while spaceremaining>=2
 						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 						let w:txbi=nextcol
-						if line('$')<cL0 && &scb
-							let dosyncbind=1
-						elseif !dosyncbind && &scb
-							exe alignmentcmd
+						if &scb
+							if line('$')<cL0
+								let dosyncbind=1
+							elseif !dosyncbind
+								exe alignmentcmd
+							en
 						en
 						exe t:txb.exe[nextcol]
 						norm! 0
@@ -1844,10 +1850,12 @@ fun! s:nav(N,L)
 			se scrollopt=jump
 			exe 'e' t:txb_name[tcol]
 			let w:txbi=tcol
-			if line('$')<cL0 && &scb
-				let dosyncbind=1
-			elseif &scb
-				exe alignmentcmd
+			if &scb
+				if line('$')<cL0
+					let dosyncbind=1
+				else
+					exe alignmentcmd
+				en
 			en
 			exe t:txb.exe[tcol]
 			se scrollopt=ver,jump
@@ -1910,10 +1918,12 @@ fun! s:nav(N,L)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && &scb
-					let dosyncbind=1
-				elseif !dosyncbind && &scb
-					exe alignmentcmd
+				if &scb
+					if line('$')<cL0
+						let dosyncbind=1
+					elseif !dosyncbind
+						exe alignmentcmd
+					en
 				en
 				exe t:txb.exe[nextcol]
 				winc h
@@ -1941,10 +1951,12 @@ fun! s:nav(N,L)
 				let nextcol=(w:txbi+1)%t:txb_len
 				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
 				let w:txbi=nextcol
-				if line('$')<cL0 && &scb
-					let dosyncbind=1
-				elseif !dosyncbind && &scb
-					exe alignmentcmd
+				if &scb
+					if line('$')<cL0
+						let dosyncbind=1
+					elseif !dosyncbinD
+						exe alignmentcmd
+					en
 				en
 				exe t:txb.exe[nextcol]
 				norm! 0
