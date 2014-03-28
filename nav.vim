@@ -64,7 +64,7 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' is recommended." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, allows mouse panning in map mode and overall smoother panning." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to Textabyss v1.7! (github.com/q335r49/textabyss)\n"
+	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.7! (github.com/q335r49/textabyss)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
@@ -826,6 +826,9 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"O":'let s:copied_column=s:mp_c<len(s:mp_array)? deepcopy(s:mp_array[s:mp_c]) : []|let s:mp_msg=" Col ".(s:mp_c)." Obtained"|let s:last_yanked_is_column=1'}
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
+
+
+
 fun! s:deleteHiddenBuffers()
 	let tpbl=[]
 	call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
@@ -1367,7 +1370,6 @@ let TxbKyCmd.A=
 		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
 	\let s:kc_continue=0|call s:setCursor(cpos[0],cpos[1],cpos[2])"
-"
 
 let TxbKyCmd.W=
 	\"let prevwd=getcwd()\n
