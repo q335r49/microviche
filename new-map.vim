@@ -5,7 +5,7 @@ let map=[
 \{},
 \{},
 \{},
-\{1:['one','red'],100:['one hundred','NONE']},
+\{1:['one','red'],100:['one hundred','']},
 \{},
 \{},
 \{1:['tessssst','Visual'],101:['aaaaaaaaaaarrrrr','ErrorMsg']},
@@ -58,11 +58,11 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 					en
 				else
 					let linestr=a:gridmap[j][i][0].pad[:padl-1-l].linestr
-					if 'NONE'==colors[0]
+					if empty(colors[0])
 						let coords[0]+=padl-l
 					else
 						call insert(coords,padl-l)
-						call insert(colors,'NONE')
+						call insert(colors,'')
 					en
 					if a:gridcolors[j][i]==colors[0]
 						let coords[0]+=l
@@ -77,11 +77,11 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 		if empty(a:gridmap[0][i])
 			let padl-=a:w
 			let linestr=pad[:padl-1].linestr
-			if 'NONE'==colors[0]
+			if empty(colors[0])
 				let coords[0]+=padl
 			else
 				call insert(coords,padl)
-				call insert(colors,'NONE')
+				call insert(colors,'')
 			en
 		en
 		call remove(colors,-1)
@@ -108,13 +108,21 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xoff,xlen,yoff,ylen)
 			continue
 		elseif i<curlb || i>curle
 			let ticker=0
-			for j in range(len(a:coords[i]))
+			let j=0
+			while ticker<a:xoff
+				let ticker+=a:coords[i][j]
+				let j+=1
+			endwhile
+			if ticker!=a:xoff
+				exe 'echohl' a:colors[i][j-1]
+				echon a:lines[i][a:xoff : ticker-1]
+			en
+			for j in range(j,len(a:coords[i])-1)
 				exe 'echohl' a:colors[i][j]
 				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
 				let ticker+=a:coords[i][j]
 			endfor 
 			echon "\n"
-			echohl NONE
 		else
 			let ix=i-curlb
 			let b=a:w*a:c
@@ -159,9 +167,9 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xoff,xlen,yoff,ylen)
 				let j+=1
 			endwhile
 			echon "\n"
-			echohl NONE
 		en
 	endfor
+	echohl
 endfun
 
 call ConvertToGrid(map,100,17)
@@ -169,21 +177,3 @@ call Grid2Str(gridmap,colormap,10,17)
 echo ''
 call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,0,10,0,100,0,20)
 finish
-
-
-
-
-
-fun! DisplayMap(lines, colors, coords)
-	for i in range(len(a:coords))
-		let ticker=0
-		for j in range(len(a:coords[i]))
-			exe 'echohl' empty(a:colors[i][j])? 'NONE' : a:colors[i][j]
-			echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
-			let ticker+=a:coords[i][j]
-		endfor 
-		echon "\n"
-		echohl NONE
-	endfor
-endfun
-
