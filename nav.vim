@@ -1831,8 +1831,8 @@ fun! s:navMapKeyHandler(c)
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
-				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
+				let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
+				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
 				call s:mp_displayfunc()
 			en
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1843,8 +1843,8 @@ fun! s:navMapKeyHandler(c)
 			elseif s:mp_prevcoord[0]==1
 				if &ttymouse=='xterm' && (s:mp_prevcoord[1]!=g:TXBmsmsg[1] || s:mp_prevcoord[2]!=g:TXBmsmsg[2])
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
-						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
+						let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
+						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
 						call s:mp_displayfunc()
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1855,7 +1855,7 @@ fun! s:navMapKeyHandler(c)
 						let [&ch,&more,&ls,&stal]=s:mp_settings
 						call  s:blockPan(s:mp_r,0,s:mp_c,2)
 						return
-					else
+					en
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
 					let s:mp_prevcoord=[0,0,0]
 					call s:mp_displayfunc()
