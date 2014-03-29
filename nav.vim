@@ -1227,10 +1227,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			if ccol>=len(t:txb.map)
-				call extend(t:txb.map,eval('['.join(repeat(['[]'],ccol+1-len(t:txb.map)),',').']'))
-			en
-			call map(t:txb.map[ccol],'v:val[-1:]==#"A"? "" : v:val')
+			let t:txb.map[ccol]={}
 			1
 			let line=search('^txb:','W')
 			while line
@@ -1253,19 +1250,10 @@ fun! s:redraw(...)
 				let line=line('.')
 				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
 				if head
-					let r=line('.')/t:mp_L
-					if r>=len(t:txb.map[ccol])
-						call extend(t:txb.map[ccol],repeat([''],r+1-len(t:txb.map[ccol])))
-					en
 					let autolbl=split(L[head :],'#',1)
 					if !empty(autolbl) && !empty(autolbl[0])
-						if empty(t:txb.map[ccol][r])
-							let row=line%t:mp_L
-							let t:txb.map[ccol][r]=autolbl[0].'#'.get(autolbl,1,'').'#'.(row? row.'r'.row.'j' : '').get(autolbl,2,'CM').'A'
-							call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
-						else
-							call add(elog,(t:txb.map[ccol][r][-1:-1]==#'A'? 'ECNF' : 'EOCC')."\t".ccol."\t".line."\t".autolbl[0]."\t".t:txb.map[ccol][r])
-						en
+						let t:txb.map[ccol][r]=autolbl
+						call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 					en
 				en
 				let line=search('^txb:','W')
