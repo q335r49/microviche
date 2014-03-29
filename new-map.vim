@@ -1,5 +1,5 @@
 let map=[
-\{14:['qerf','Title'],22:['rar','WarningMsg'],122:['abcdefghijklmnopqrstuvwxyz',''],222:['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz','purp'],333:['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz','violet']},
+\{14:['qerf','Title'],22:['rar','WarningMsg'],122:['abcdefghijklmnopqrstuvwxyz','r1_05'],222:['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz','purp'],333:['abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz','violet']},
 \{},
 \{1:['k;mn','WarningMsg'], 121:['kkkk','r1_01'], 113:['kkkkk','ErrorMsg'], 412:['lmlmlmlmm','Visual']},
 \{},
@@ -131,7 +131,7 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			endfor 
 			echon "\n"
 		else
-			let b=a:r*a:w
+			let b=a:c*a:w
 			let l=len(a:gridmap[a:c][a:r][i-curlb])
 			let e=b+l-1
 			let ticker=0
@@ -169,6 +169,7 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 					break
 				else
 					let ticker+=remove(curcoords,j)
+					let lastcolor=remove(curcolors,j)
 				en
 			endw
 			
@@ -207,5 +208,5 @@ call ConvertToGrid(map,100,17)
 call Grid2Str(gridmap,colormap,10,17)
 echo ''
 let debug=[]
-call DisplayMapCur(gridmap,lines,colorarr,coordarr,0,0,10,0,100,0,20)
+call DisplayMapCur(gridmap,lines,colorarr,coordarr,1,0,10,0,100,1,20)
 finish
