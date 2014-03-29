@@ -171,7 +171,9 @@ fun! TxbInit(...)
 		call extend(plane.size,repeat([exists("plane.settings['split width']")? plane.settings['split width'] : 60],len(plane.name)-len(plane.size)))
 	en
 	if !exists('plane.map')
-		let plane.map=[[]]
+		let plane.map=eval('['.join(repeat(['{}'],len(plane.name)),',').']')
+	elseif len(plane.map)<len(plane.name)
+		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.name)),',').']'))
 	en
 	if !exists('plane.exe')
 		let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
@@ -188,6 +190,7 @@ fun! TxbInit(...)
 			call add(filtered,remove(plane.name,i))
 			call remove(plane.size,i)
 			call remove(plane.exe,i)
+			call remove(plane.map,i)
 			call remove(abs_paths,i)
 		en
 	endfor
