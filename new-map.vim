@@ -33,15 +33,19 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 	let g:coordarr=[]
 	for i in range(a:maxlen)
 		let padl=a:w
-		let colors=[]
-		let coords=[]
+		let colors=['EOL']
+		let coords=['0']
 		let leng=len(a:gridmap)-1
 		if empty(a:gridmap[leng][i])
 			let linestr=''
 		else
 			let linestr=a:gridmap[leng][i][0]
-			call insert(colors,a:gridcolors[leng][i])
-			call insert(coords,len(a:gridmap[leng][i][0]))
+			if a:gridcolors[leng][i]==colors[0]
+            	let coords[0]+=len(a:gridmap[leng][i][0])
+			else
+				call insert(coords,len(a:gridmap[leng][i][0]))
+				call insert(colors,a:gridcolors[leng][i])
+			en
 		en
 		for j in range(leng-1,0,-1)
 			if empty(a:gridmap[j][i])
@@ -50,14 +54,26 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 				let l=len(a:gridmap[j][i][0])
 				if l>=padl
 					let linestr=a:gridmap[j][i][0][:padl-1].linestr
-					call insert(coords,padl)
-					call insert(colors,a:gridcolors[j][i])
+					if a:gridcolors[j][i]==colors[0]
+						let coords[0]+=padl
+					else
+						call insert(coords,padl)
+						call insert(colors,a:gridcolors[j][i])
+					en
 				else
 					let linestr=a:gridmap[j][i][0].pad[:padl-1-l].linestr
-					call insert(coords,padl-l)
-					call insert(colors,'NONE')
-					call insert(coords,l)
-					call insert(colors,a:gridcolors[j][i])
+					if a:gridcolors[j][i]==colors[0]
+                    	let coords[0]+=padl-l
+					else
+						call insert(coords,padl-l)
+						call insert(colors,'NONE')
+					en
+					if a:gridcolors[j][i]==colors[0]
+                    	let coords[0]+=l
+					else
+						call insert(coords,l)
+						call insert(colors,a:gridcolors[j][i])
+					en
 				en
 				let padl=a:w
 			en
@@ -65,9 +81,15 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 		if empty(a:gridmap[0][i])
 			let padl-=a:w
 			let linestr=pad[:padl-1].linestr
-			call insert(coords,padl)
-			call insert(colors,'NONE')
+			if 'NONE'==colors[0]
+				let coords[0]+=padl
+			else
+				call insert(coords,padl)
+				call insert(colors,'NONE')
+			en
 		en
+		call remove(colors,-1)
+		call remove(coords,-1)
 		call add(g:lines,linestr)
 		call add(g:colorarr,colors)
 		call add(g:coordarr,coords)
