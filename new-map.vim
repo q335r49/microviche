@@ -132,7 +132,8 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			echon "\n"
 		else
 			let b=a:r*a:w
-			let e=b+len(a:gridmap[a:r][a:c][i-a:r])-1
+			let l=len(a:gridmap[a:r][a:c][i-a:r])
+			let e=b+l-e
 			let ticker=0
 			let curcoords=copy(a:coords)
 			let curcolors=copy(a:colors)
@@ -140,14 +141,18 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			while j<len(curcoords)
 				let nextticker=ticker+curcoords[j]
 				if b==ticker
+					let curcoords[j]=l
+					let lastcolor=curcolors[j]
 					let curcolors[j]='TxbMapSel'
-					let j+=1
+					let ticker=nextticker
 					break
-				elseif b<nexticker
-					call insert(curcoords,b-ticker,j)
-					call insert(curcolors,'TxbMapSel',j)
+				elseif b<nextticker
+					let curcoords[j]=b-ticker
+					call insert(curcoords,l,j+1)
+					call insert(curcolors,'TxbMapSel',j+1)
+					let lastcolor=curcolors[j]
 					let j+=1
-					let curcoords[j]=nextticker-b
+					let ticker=nextticker
 					break
 				else
 					let ticker=nextticker
@@ -155,46 +160,35 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 				let j+=1
 			endw
 			while j<len(curcoords)
-				let nextticker=ticker+curcoords[j]
-				if e<nextticker
-					call insert(curcoords,e-b,j)
-					call insert(curcolors,'TxbMapSel',j)
-					let j+=1
-					let curcoords[j]=nextticker-e
+				if e<ticker
+					call insert(curcoords,ticker-e,j)
+					call insert(curcolors,lastcolor,j)
 					break
-				elseif e==nextticker
-					let curcoords[j-1]+=curcoords[j]
-					call remove(curcoords,j)
+				elseif e==ticker
 					break
-				elseif e>nextticker
-					let curcoords[j-1]+=curcoords[j]
-					let e-=curcoords[j]
-					call remove(curcoords,j)
-					let ticker=nextticker
+				else
+					let ticker+=remove(curcoords,j)
 				en
 			endw
-			if j==len(curcoords)
-				let curcoords[-1]+=e
-			en
 			let ticker=0
 			let j=0
 			while ticker<a:xb
-				let ticker+=a:coords[i][j]
+				let ticker+=curcoords[i][j]
 				let j+=1
 			endwhile
 			if ticker!=a:xb
 				exe 'echohl' a:colors[i][j-1]
 				echon a:lines[i][a:xb : ticker-1]
 			en
-			for j in range(j,len(a:coords[i])-1)
-				let nextticker=ticker+a:coords[i][j]
+			for j in range(j,len(curcoords[i])-1)
+				let nextticker=ticker+curcoords[i][j]
 				if nextticker>=a:xe
 					exe 'echohl' a:colors[i][j]
 					echon a:lines[i][ticker : a:xe-1]
 					break
 				else
 					exe 'echohl' a:colors[i][j]
-					echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
+					echon a:lines[i][ticker : ticker+curcoords[i][j]-1]
 					let ticker=nextticker
 				en
 			endfor 
