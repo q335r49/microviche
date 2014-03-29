@@ -93,10 +93,9 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 endfun
 
 fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
-	let h=len(a:gridmap[a:c][a:r])
-	if h
+	if !empty(a:gridmap[a:c][a:r])
 		let curlb=a:r
-		let curle=a:r+h-1
+		let curle=a:r+len(a:gridmap[a:c][a:r])-1
 	else
 		let curlb=a:r
 		let curle=a:r
@@ -132,8 +131,10 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			echon "\n"
 		else
 			let b=a:c*a:w
-			let l=len(a:gridmap[a:c][a:r][i-curlb])
+			let content=empty(a:gridmap[a:c][a:r])? repeat(' ',a:w) : a:gridmap[a:c][a:r][i-curlb]
+			let l=len(content)
 			let e=b+l-1
+			let curline=b? a:lines[i][:b-1].content.a:lines[i][e+1 :] : content.a:lines[i][e+1 :]
 			let ticker=0
 			let curcoords=copy(a:coords[i])
 			let curcolors=copy(a:colors[i])
@@ -172,10 +173,6 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 					let lastcolor=remove(curcolors,j)
 				en
 			endw
-			
-            call add(g:debug,curcoords)
-            call add(g:debug,curcolors)
-
 			let ticker=0
 			let j=0
 			while ticker<a:xb
@@ -184,17 +181,17 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			endwhile
 			if ticker!=a:xb
 				exe 'echohl' curcolors[j-1]
-				echon a:lines[i][a:xb : ticker-1]
+				echon curline[a:xb : ticker-1]
 			en
 			for j in range(j,len(curcoords)-1)
 				let nextticker=ticker+curcoords[j]
 				if nextticker>=a:xe
 					exe 'echohl' curcolors[j]
-					echon a:lines[i][ticker : a:xe-1]
+					echon curline[ticker : a:xe-1]
 					break
 				else
 					exe 'echohl' curcolors[j]
-					echon a:lines[i][ticker : ticker+curcoords[j]-1]
+					echon curline[ticker : ticker+curcoords[j]-1]
 					let ticker=nextticker
 				en
 			endfor 
@@ -208,5 +205,5 @@ call ConvertToGrid(map,100,17)
 call Grid2Str(gridmap,colormap,10,17)
 echo ''
 let debug=[]
-call DisplayMapCur(gridmap,lines,colorarr,coordarr,1,0,10,0,100,1,20)
+call DisplayMapCur(gridmap,lines,colorarr,coordarr,1,1,10,0,100,0,20)
 finish
