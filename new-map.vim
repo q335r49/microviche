@@ -94,7 +94,7 @@ endfun
 
 fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 	let h=len(a:gridmap[a:c][a:r])
-    if h
+	if h
 		let curlb=a:r
 		let curle=a:r+h-1
 	else
@@ -131,48 +131,73 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xb,xe,yb,ye)
 			endfor 
 			echon "\n"
 		else
-			let ix=i-curlb
-			let b=a:w*a:c
-			if empty(a:gridmap[a:c][a:r])
-				let e=b+a:w-1
-				let content=blank
-			else
-				let e=b+len(a:gridmap[a:c][a:r][ix])-1
-				let content=a:gridmap[a:c][a:r][ix][:e-b]
+			let b=a:r*a:w
+			let e=b+len(a:gridmap[a:r][a:c][i-a:r])-1
+			let ticker=0
+			let curcoords=copy(a:coords)
+			let curcolors=copy(a:colors)
+			let j=0
+			while j<len(curcoords)
+				let nextticker=ticker+curcoords[j]
+				if b==ticker
+					let curcolors[j]='TxbMapSel'
+					let j+=1
+					break
+				elseif b<nexticker
+					call insert(curcoords,b-ticker,j)
+					call insert(curcolors,'TxbMapSel',j)
+					let j+=1
+					let curcoords[j]=nextticker-b
+					break
+				else
+					let ticker=nextticker
+				en
+				let j+=1
+			endw
+			while j<len(curcoords)
+				let nextticker=ticker+curcoords[j]
+				if e<nextticker
+					call insert(curcoords,e-b,j)
+					call insert(curcolors,'TxbMapSel',j)
+					let j+=1
+					let curcoords[j]=nextticker-e
+					break
+				elseif e==nextticker
+					let curcoords[j-1]+=curcoords[j]
+					call remove(curcoords,j)
+					break
+				elseif e>nextticker
+					let curcoords[j-1]+=curcoords[j]
+					let e-=curcoords[j]
+					call remove(curcoords,j)
+					let ticker=nextticker
+				en
+			endw
+			if j==len(curcoords)
+				let curcoords[-1]+=e
 			en
-			let e=e>&columns-1? &columns-1 : e
 			let ticker=0
 			let j=0
-			let cl=len(a:coords[i])
-			while j<cl
+			while ticker<a:xb
+				let ticker+=a:coords[i][j]
+				let j+=1
+			endwhile
+			if ticker!=a:xb
+				exe 'echohl' a:colors[i][j-1]
+				echon a:lines[i][a:xb : ticker-1]
+			en
+			for j in range(j,len(a:coords[i])-1)
 				let nextticker=ticker+a:coords[i][j]
-			  	if nextticker>=b
+				if nextticker>=a:xe
 					exe 'echohl' a:colors[i][j]
-					echon b? a:lines[i][ticker : b-1] : ''
-					echohl TxbMapSel
-					echon content
-					while ticker<e && j<cl
-						let ticker+=a:coords[i][j]
-						let j+=1
-					endwhile
-					if j!=cl
-						exe 'echohl' a:colors[i][j-1]
-						echon a:lines[i][e+1 : ticker-1]
-					en
+					echon a:lines[i][ticker : a:xe-1]
 					break
 				else
 					exe 'echohl' a:colors[i][j]
 					echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
-					let ticker+=a:coords[i][j]
-					let j+=1
+					let ticker=nextticker
 				en
-			endwhile
-			while j<cl
-				exe 'echohl' a:colors[i][j]
-				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
-				let ticker+=a:coords[i][j]
-				let j+=1
-			endwhile
+			endfor 
 			echon "\n"
 		en
 	endfor
@@ -182,5 +207,5 @@ endfun
 call ConvertToGrid(map,100,17)
 call Grid2Str(gridmap,colormap,10,17)
 echo ''
-call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,0,10,2,71,0,20)
+call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,2,10,2,86,0,20)
 finish
