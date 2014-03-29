@@ -175,6 +175,11 @@ fun! TxbInit(...)
 	elseif len(plane.map)<len(plane.name)
 		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.name)),',').']'))
 	en
+	for i in range(len(plane.map))
+		if type(plane.map[i])!=4
+			let plane.map[i]={}
+		en
+	endfor
 	if !exists('plane.exe')
 		let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
 	elseif len(plane.exe)<len(plane.name)
