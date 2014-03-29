@@ -878,31 +878,6 @@ let s:pagercom.100=s:pagercom.32
 let s:pagercom.117=s:pagercom.98
 let s:pagercom.27=s:pagercom.113
 
-fun! s:doSyntax(stmt)
-	if empty(a:stmt)
-		return
-	en
-	let num=''
-	let com={'s':0,'r':0,'R':0,'j':0,'k':0,'l':0,'C':0,'M':0,'W':0,'A':0}
-	for t in range(len(a:stmt))
-		if a:stmt[t]=~'\d'
-			let num.=a:stmt[t]
-		elseif has_key(com,a:stmt[t])
-			let com[a:stmt[t]]+=empty(num)? 1 : num
-			let num=''
-		else
-			echoerr '"'.a:stmt[t].'" is not a recognized command, view positioning aborted.'
-			return
-		en
-	endfor
-	exe 'norm! '.(com.j>com.k? (com.j-com.k).'j' : com.j<com.k? (com.k-com.j).'k' : '').(com.l>winwidth(0)? 'g$' : com.l? com.l .'|' : '').(com.M>0? 'zz' : com.r>com.R? (com.r-com.R)."\<c-e>" : com.r<com.R? (com.R-com.r)."\<c-y>" : 'g')
-	if com.C
-		call s:nav(min([com.W? (com.W-&columns)/2 : (winwidth(0)-&columns)/2,0]),line('w0'))
-	elseif com.s
-		call s:nav(-min([eval(join(map(range(s:mp_c-1,s:mp_c-com.s,-1),'1+t:txb.size[(v:val+t:txb_len)%t:txb_len]'),'+')),!com.W? &columns-winwidth(0) : &columns>com.W? &columns-com.W : 0]),line('w0'))
-	en
-endfun
-
 let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
 let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
 let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
@@ -1655,13 +1630,212 @@ endfun
 
 
 
+
+
+
+
+
+
+let g:maxlen=120
+
+fun! ConvertToGrid()
+	let g:gridmap=range(len(t:txb.map))
+	let g:colormap=range(len(t:txb.map))
+	for i in copy(g:gridmap)
+		let g:gridmap[i]=eval('['.repeat('[],',g:maxlen-1).'[]]')
+		let g:colormap[i]=repeat([''],g:maxlen)
+		for j in keys(t:txb.map[i])
+			call add(g:gridmap[i][j/s:mp_L],t:txb.map[i][j][0])
+			if empty(g:colormap[i][j/s:mp_L])
+				let g:colormap[i][j/s:mp_L]=t:txb.map[i][j][1]
+			en
+		endfor
+	endfor
+endfun
+
+fun! s:getMapDisp()
+	let pad=repeat(' ',&columns+20)
+	let g:lines=[]
+	let g:colorarr=[]
+	let g:coordarr=[]
+	for i in range(g:maxlen)
+		let padl=s:mp_clW
+		let colors=['EOL']
+		let coords=['0']
+		let leng=len(g:gridmap)-1
+		if empty(g:gridmap[leng][i])
+			let linestr=''
+		else
+			let linestr=g:gridmap[leng][i][0]
+			call insert(coords,len(g:gridmap[leng][i][0]))
+			call insert(colors,g:colormap[leng][i])
+		en
+		for j in range(leng-1,0,-1)
+			if empty(g:gridmap[j][i])
+				let padl+=s:mp_clW
+			else
+				let l=len(g:gridmap[j][i][0])
+				if l>=padl
+					let linestr=g:gridmap[j][i][0][:padl-1].linestr
+					if g:colormap[j][i]==colors[0]
+						let coords[0]+=padl
+					else
+						call insert(coords,padl)
+						call insert(colors,g:colormap[j][i])
+					en
+				else
+					let linestr=g:gridmap[j][i][0].pad[:padl-1-l].linestr
+					if empty(colors[0])
+						let coords[0]+=padl-l
+					else
+						call insert(coords,padl-l)
+						call insert(colors,'')
+					en
+					if g:colormap[j][i]==colors[0]
+						let coords[0]+=l
+					else
+						call insert(coords,l)
+						call insert(colors,g:colormap[j][i])
+					en
+				en
+				let padl=s:mp_clW
+			en
+		endfor
+		if empty(g:gridmap[0][i])
+			let padl-=s:mp_clW
+			let linestr=pad[:padl-1].linestr
+			if empty(colors[0])
+				let coords[0]+=padl
+			else
+				call insert(coords,padl)
+				call insert(colors,'')
+			en
+		en
+		call remove(colors,-1)
+		call remove(coords,-1)
+		call add(g:lines,linestr)
+		call add(g:colorarr,colors)
+		call add(g:coordarr,coords)
+	endfor
+endfun
+
+fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
+	if !empty(g:gridmap[a:c][a:r])
+		let curlb=a:r
+		let curle=a:r+len(g:gridmap[a:c][a:r])-1
+	else
+		let curlb=a:r
+		let curle=a:r
+	en
+	let blank=repeat(' ',s:mp_clW)
+	for i in range(a:yb,a:ye)
+		if i>=len(g:coordarr) || i<0
+			echo ''
+			continue
+		elseif i<curlb || i>curle
+			let ticker=0
+			let j=0
+			while ticker<a:xb
+				let ticker+=g:coordarr[i][j]
+				let j+=1
+			endwhile
+			if ticker!=a:xb
+				exe 'echohl' g:colorarr[i][j-1]
+				echon g:lines[i][a:xb : ticker-1]
+			en
+			for j in range(j,len(g:coordarr[i])-1)
+				let nextticker=ticker+g:coordarr[i][j]
+				if nextticker>=a:xe
+					exe 'echohl' g:colorarr[i][j]
+					echon g:lines[i][ticker : a:xe-1]
+					break
+				else
+					exe 'echohl' g:colorarr[i][j]
+					echon g:lines[i][ticker : ticker+g:coordarr[i][j]-1]
+					let ticker=nextticker
+				en
+			endfor 
+			echon "\n"
+		else
+			let b=a:c*s:mp_clW
+			let content=empty(g:gridmap[a:c][a:r])? repeat(' ',s:mp_clW) : g:gridmap[a:c][a:r][i-curlb]
+			let l=len(content)
+			let e=b+l-1
+			let curline=b? g:lines[i][:b-1].content.g:lines[i][e+1 :] : content.g:lines[i][e+1 :]
+			let ticker=0
+			let curcoords=copy(g:coordarr[i])
+			let curcolors=copy(g:colorarr[i])
+			let j=0
+			while j<len(curcoords)
+				let nextticker=ticker+curcoords[j]
+				if b==ticker
+					let curcoords[j]=l
+					let lastcolor=curcolors[j]
+					let curcolors[j]='TxbMapSel'
+					let j+=1
+					let ticker=nextticker
+					break
+				elseif b<nextticker
+					let curcoords[j]=b-ticker
+					call insert(curcoords,l,j+1)
+					call insert(curcolors,'TxbMapSel',j+1)
+					let lastcolor=curcolors[j]
+					let j+=1
+					let ticker=nextticker
+					break
+				else
+					let ticker=nextticker
+				en
+				let j+=1
+			endw
+			while j<len(curcoords)
+				if e<ticker-1
+					call insert(curcoords,ticker-e-1,j)
+					call insert(curcolors,lastcolor,j)
+					break
+				elseif e==ticker-1
+					break
+				else
+					let ticker+=remove(curcoords,j)
+					let lastcolor=remove(curcolors,j)
+				en
+			endw
+			let ticker=0
+			let j=0
+			while ticker<a:xb
+				let ticker+=curcoords[j]
+				let j+=1
+			endwhile
+			if ticker!=a:xb
+				exe 'echohl' curcolors[j-1]
+				echon curline[a:xb : ticker-1]
+			en
+			for j in range(j,len(curcoords)-1)
+				let nextticker=ticker+curcoords[j]
+				if nextticker>=a:xe
+					exe 'echohl' curcolors[j]
+					echon curline[ticker : a:xe-1]
+					break
+				else
+					exe 'echohl' curcolors[j]
+					echon curline[ticker : ticker+curcoords[j]-1]
+					let ticker=nextticker
+				en
+			endfor 
+			echon "\n"
+		en
+	endfor
+	echohl
+endfun
+
 fun! s:navMapKeyHandler(c)
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
+				let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
+				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
 				call s:mp_displayfunc()
 			en
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1670,22 +1844,21 @@ fun! s:navMapKeyHandler(c)
 				let [&ch,&more,&ls,&stal]=s:mp_settings
 				return
 			elseif s:mp_prevcoord[0]==1
-				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2]
+				if &ttymouse=='xterm' && (s:mp_prevcoord[1]!=g:TXBmsmsg[1] || s:mp_prevcoord[2]!=g:TXBmsmsg[2])
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
+						let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
+						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
 						call s:mp_displayfunc()
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
 				else
-					let s:mp_r=g:TXBmsmsg[2]-&lines+&ch-1+s:mp_roff
-					let s:mp_c=g:TXBmsmsg[1]-1+s:mp_coff
+					let s:mp_r=(g:TXBmsmsg[2]-&lines+&ch-1+s:mp_roff)/t:mp_L
+					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
-						
-						"TODO: goto
-
+						call  s:blockPan(s:mp_r,0,s:mp_c,2)
 						return
-					en
+					else
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
 					let s:mp_prevcoord=[0,0,0]
 					call s:mp_displayfunc()
@@ -1708,9 +1881,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mp_continue==2
 			let [&ch,&more,&ls,&stal]=s:mp_settings
-
-        	"TODO: goto
-
+			call  s:blockPan(s:mp_r,0,s:mp_c,2)
 		else
 			let [&ch,&more,&ls,&stal]=s:mp_settings
 		en
@@ -1730,10 +1901,9 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_r=a:r_ini
 	let s:mp_c=a:c_ini
 	let s:mp_continue=1
-	let s:mp_rows=&ch-1
-	let s:mp_cols=&columns-1
-	let s:mp_roff=max([s:mp_r-s:mp_rows/2,0])
-	let s:mp_coff=max([s:mp_c*t:mp_clW-s:mp_cols/2,0])
+	let s:mp_roff=max([s:mp_r-&ch/2,0])
+	let s:mp_coff=max([s:mp_c*t:mp_clW-&columns/2,0])
+	call ConvertToGrid()
 	call s:getMapDisp()
 	call s:mp_displayfunc()
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
@@ -1768,7 +1938,7 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
 	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
 	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
-	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr,s:mp_rows,s:mp_cols]=[t:mp_clH,t:mp_clW,1,(&ch-1)/t:mp_clH,(&columns-1)/t:mp_clW]",
+	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr]=[t:mp_clH,t:mp_clW,1]",
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
 delf s:SID
