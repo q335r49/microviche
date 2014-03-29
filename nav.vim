@@ -1257,7 +1257,7 @@ fun! s:redraw(...)
 				if head
 					let autolbl=split(L[head :],'#',1)
 					if !empty(autolbl) && !empty(autolbl[0])
-						let t:txb.map[ccol][r]=autolbl
+						let t:txb.map[ccol][line]=[autolbl[0],len(autolbl)>1? autolbl[1] : '']
 						call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 					en
 				en
@@ -1641,9 +1641,9 @@ fun! ConvertToGrid()
 		let g:gridmap[i]=eval('['.repeat('[],',g:maxlen-1).'[]]')
 		let g:colormap[i]=repeat([''],g:maxlen)
 		for j in keys(t:txb.map[i])
-			call add(g:gridmap[i][j/s:mp_L],t:txb.map[i][j][0])
-			if empty(g:colormap[i][j/s:mp_L])
-				let g:colormap[i][j/s:mp_L]=t:txb.map[i][j][1]
+			call add(g:gridmap[i][j/t:mp_L],t:txb.map[i][j][0])
+			if empty(g:colormap[i][j/t:mp_L])
+				let g:colormap[i][j/t:mp_L]=t:txb.map[i][j][1]
 			en
 		endfor
 	endfor
@@ -1715,35 +1715,36 @@ fun! s:getMapDisp()
 	endfor
 endfun
 
-fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
-	if !empty(g:gridmap[a:c][a:r])
-		let curlb=a:r
-		let curle=a:r+len(g:gridmap[a:c][a:r])-1
+fun! s:mp_displayfunc()
+	let xe=s:mp_coff+&columns-1
+	if !empty(g:gridmap[s:mp_c][s:mp_r])
+		let curlb=s:mp_r
+		let curle=s:mp_r+len(g:gridmap[s:mp_c][s:mp_r])-1
 	else
-		let curlb=a:r
-		let curle=a:r
+		let curlb=s:mp_r
+		let curle=s:mp_r
 	en
 	let blank=repeat(' ',t:mp_clW)
-	for i in range(a:yb,a:ye)
+	for i in range(s:mp_roff,s:mp_roff+&ch-2)
 		if i>=len(g:coordarr) || i<0
 			echo ''
 			continue
 		elseif i<curlb || i>curle
 			let ticker=0
 			let j=0
-			while ticker<a:xb
+			while ticker<s:mp_coff
 				let ticker+=g:coordarr[i][j]
 				let j+=1
 			endwhile
-			if ticker!=a:xb
+			if ticker!=s:mp_coff
 				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][a:xb : ticker-1]
+				echon g:lines[i][s:mp_coff : ticker-1]
 			en
 			for j in range(j,len(g:coordarr[i])-1)
 				let nextticker=ticker+g:coordarr[i][j]
-				if nextticker>=a:xe
+				if nextticker>=xe
 					exe 'echohl' g:colorarr[i][j]
-					echon g:lines[i][ticker : a:xe-1]
+					echon g:lines[i][ticker : xe-1]
 					break
 				else
 					exe 'echohl' g:colorarr[i][j]
@@ -1753,8 +1754,8 @@ fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
 			endfor 
 			echon "\n"
 		else
-			let b=a:c*t:mp_clW
-			let content=empty(g:gridmap[a:c][a:r])? repeat(' ',t:mp_clW) : g:gridmap[a:c][a:r][i-curlb]
+			let b=s:mp_c*t:mp_clW
+			let content=empty(g:gridmap[s:mp_c][s:mp_r])? repeat(' ',t:mp_clW) : g:gridmap[s:mp_c][s:mp_r][i-curlb]
 			let l=len(content)
 			let e=b+l-1
 			let curline=b? g:lines[i][:b-1].content.g:lines[i][e+1 :] : content.g:lines[i][e+1 :]
@@ -1798,19 +1799,19 @@ fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
 			endw
 			let ticker=0
 			let j=0
-			while ticker<a:xb
+			while ticker<s:mp_coff
 				let ticker+=curcoords[j]
 				let j+=1
 			endwhile
-			if ticker!=a:xb
+			if ticker!=s:mp_coff
 				exe 'echohl' curcolors[j-1]
-				echon curline[a:xb : ticker-1]
+				echon curline[s:mp_coff : ticker-1]
 			en
 			for j in range(j,len(curcoords)-1)
 				let nextticker=ticker+curcoords[j]
-				if nextticker>=a:xe
+				if nextticker>=xe
 					exe 'echohl' curcolors[j]
-					echon curline[ticker : a:xe-1]
+					echon curline[ticker : xe-1]
 					break
 				else
 					exe 'echohl' curcolors[j]
