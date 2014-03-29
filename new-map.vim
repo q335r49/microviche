@@ -92,7 +92,7 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 	endfor
 endfun
 
-fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w)
+fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w,xoff,xlen,yoff,ylen)
 	let h=len(a:gridmap[a:c][a:r])
     if h
 		let curlb=a:r
@@ -102,8 +102,20 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w)
 		let curle=a:r
 	en
 	let blank=repeat(' ',a:w)
-	for i in range(len(a:coords))
-		if i>=curlb && i<=curle
+	for i in range(a:yoff,a:yoff+a:ylen-1)
+		if i>=len(a:coords)
+			echo ''
+			continue
+		elseif i<curlb || i>curle
+			let ticker=0
+			for j in range(len(a:coords[i]))
+				exe 'echohl' a:colors[i][j]
+				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
+				let ticker+=a:coords[i][j]
+			endfor 
+			echon "\n"
+			echohl NONE
+		else
 			let ix=i-curlb
 			let b=a:w*a:c
 			if empty(a:gridmap[a:c][a:r])
@@ -148,15 +160,6 @@ fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w)
 			endwhile
 			echon "\n"
 			echohl NONE
-		else
-			let ticker=0
-			for j in range(len(a:coords[i]))
-				exe 'echohl' a:colors[i][j]
-				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
-				let ticker+=a:coords[i][j]
-			endfor 
-			echon "\n"
-			echohl NONE
 		en
 	endfor
 endfun
@@ -164,7 +167,7 @@ endfun
 call ConvertToGrid(map,100,17)
 call Grid2Str(gridmap,colormap,10,17)
 echo ''
-call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,0,10)
+call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,0,10,0,100,0,20)
 finish
 
 
