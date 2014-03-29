@@ -1659,7 +1659,7 @@ fun! s:getMapDisp()
 	let g:colorarr=[]
 	let g:coordarr=[]
 	for i in range(g:maxlen)
-		let padl=s:mp_clW
+		let padl=t:mp_clW
 		let colors=['EOL']
 		let coords=['0']
 		let leng=len(g:gridmap)-1
@@ -1672,7 +1672,7 @@ fun! s:getMapDisp()
 		en
 		for j in range(leng-1,0,-1)
 			if empty(g:gridmap[j][i])
-				let padl+=s:mp_clW
+				let padl+=t:mp_clW
 			else
 				let l=len(g:gridmap[j][i][0])
 				if l>=padl
@@ -1698,11 +1698,11 @@ fun! s:getMapDisp()
 						call insert(colors,g:colormap[j][i])
 					en
 				en
-				let padl=s:mp_clW
+				let padl=t:mp_clW
 			en
 		endfor
 		if empty(g:gridmap[0][i])
-			let padl-=s:mp_clW
+			let padl-=t:mp_clW
 			let linestr=pad[:padl-1].linestr
 			if empty(colors[0])
 				let coords[0]+=padl
@@ -1727,7 +1727,7 @@ fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
 		let curlb=a:r
 		let curle=a:r
 	en
-	let blank=repeat(' ',s:mp_clW)
+	let blank=repeat(' ',t:mp_clW)
 	for i in range(a:yb,a:ye)
 		if i>=len(g:coordarr) || i<0
 			echo ''
@@ -1757,8 +1757,8 @@ fun! s:mp_displayfunc(r,c,xb,xe,yb,ye)
 			endfor 
 			echon "\n"
 		else
-			let b=a:c*s:mp_clW
-			let content=empty(g:gridmap[a:c][a:r])? repeat(' ',s:mp_clW) : g:gridmap[a:c][a:r][i-curlb]
+			let b=a:c*t:mp_clW
+			let content=empty(g:gridmap[a:c][a:r])? repeat(' ',t:mp_clW) : g:gridmap[a:c][a:r][i-curlb]
 			let l=len(content)
 			let e=b+l-1
 			let curline=b? g:lines[i][:b-1].content.g:lines[i][e+1 :] : content.g:lines[i][e+1 :]
@@ -1938,7 +1938,7 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
 	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
 	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
-	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr]=[t:mp_clH,t:mp_clW,1]",
+	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr]=[t:mp_clH,t:mp_clW,1]"}
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
 delf s:SID
