@@ -496,339 +496,6 @@ fun! s:navPlane(dx,dy)
 	echon w:txbi '-' line('.') ' ' get(get(t:txb.map,w:txbi,[]),line('.')/t:mp_L,'')[:&columns-9]
 endfun
 
-fun! s:getMapDisp()
-	let pad=repeat(' ',&columns+20)
-	let s:disp_r=s:mp_cols*t:mp_clW+1
-	let l=s:disp_r*t:mp_clH
-	let templist=repeat([''],t:mp_clH)
-	let last_entry_colored=copy(templist)
-	let s:disp_selmap=map(range(s:mp_rows),'repeat([0],s:mp_cols)')
-	let dispLines=[]
-	let s:disp_color=[]
-	let s:disp_colorv=[]
-	let extend_color='call extend(s:disp_color,'.join(map(templist,'"colorix[".v:key."]"'),'+').')'
-	let extend_colorv='call extend(s:disp_colorv,'.join(map(templist,'"colorvix[".v:key."]"'),'+').')'
-	let let_colorix='let colorix=['.join(map(templist,'"[]"'),',').']'
-	let let_colorvix=let_colorix[:8].'v'.let_colorix[9:]
-	let let_occ='let occ=['.repeat("'',",t:mp_clH)[:-2].']'
-	for i in range(s:mp_rows)
-		exe let_occ
-		exe let_colorix
-		exe let_colorvix
-		for j in range(s:mp_cols)
-			if !exists("s:mp_array[s:mp_coff+j][s:mp_roff+i]") || empty(s:mp_array[s:mp_coff+j][s:mp_roff+i])
-				let s:disp_selmap[i][j]=[i*l+j*t:mp_clW,0]
-				continue
-			en
-			let k=0
-			let cell_border=(j+1)*t:mp_clW
-			while k<t:mp_clH && len(occ[k])>=cell_border
-				let k+=1
-			endw
-			let parsed=split(s:mp_array[s:mp_coff+j][s:mp_roff+i],'#',1)
-			if k==t:mp_clH
-				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
-				if last_entry_colored[k]
-					let colorix[k][-1]-=len(occ[k])-(cell_border-1)
-				en
-				let occ[k]=occ[k][:cell_border-2].parsed[0]
-				let s:disp_selmap[i][j]=[i*l+k*s:disp_r+cell_border-1,len(parsed[0])]
-			else
-				let [s:disp_selmap[i][j],occ[k]]=len(occ[k])<j*t:mp_clW? [[i*l+k*s:disp_r+j*t:mp_clW,1],occ[k].pad[:j*t:mp_clW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp_r+j*t:mp_clW+(len(occ[k])%t:mp_clW),1],occ[k].parsed[0]]
-			en
-			if len(parsed)>1
-				call extend(colorix[k],[s:disp_selmap[i][j][0],s:disp_selmap[i][j][0]+len(parsed[0])])
-				call extend(colorvix[k],['echoh NONE','echoh '.parsed[1]])
-				let last_entry_colored[k]=1
-			else
-				let last_entry_colored[k]=0
-			en
-		endfor
-		for z in range(t:mp_clH)
-			if !empty(colorix[z]) && colorix[z][-1]%s:disp_r<colorix[z][-2]%s:disp_r
-				let colorix[z][-1]-=colorix[z][-1]%s:disp_r
-			en
-		endfor
-		exe extend_color
-		exe extend_colorv
-		let dispLines+=map(occ,'len(v:val)<s:mp_cols*t:mp_clW? v:val.pad[:s:mp_cols*t:mp_clW-len(v:val)-1]."\n" : v:val[:s:mp_cols*t:mp_clW-1]."\n"')
-	endfor
-	let s:disp_str=join(dispLines,'')
-	call add(s:disp_color,99999)
-	call add(s:disp_colorv,'echoh NONE')
-endfun
-
-fun! s:printMapDisp()
-	let [sel,notempty]=s:disp_selmap[s:mp_r-s:mp_roff][s:mp_c-s:mp_coff]
-	let colorl=len(s:disp_color)
-	let p=0
-	redr!
-	if sel
-		if sel>s:disp_color[0]
-			if s:disp_color[0]
-				exe s:disp_colorv[0]
-				echon s:disp_str[0 : s:disp_color[0]-1]
-			en
-			let p=1
-			while sel>s:disp_color[p]
-				exe s:disp_colorv[p]
-				echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
-				let p+=1
-			endwhile
-			exe s:disp_colorv[p]
-			echon s:disp_str[s:disp_color[p-1]:sel-1]
-		else
-		 	exe s:disp_colorv[0]
-			echon s:disp_str[:sel-1]
-		en
-	en
-	if notempty
-		let endmark=len(s:mp_array[s:mp_c][s:mp_r])
-		let endmark=(sel+endmark)%s:disp_r<sel%s:disp_r? endmark-(sel+endmark)%s:disp_r-1 : endmark
-		echohl TxbMapSel
-		echon s:mp_array[s:mp_c][s:mp_r][:endmark-1]
-		let endmark=sel+endmark
-	else
-		let endmark=sel+t:mp_clW
-		echohl TxbMapSelEmpty
-		echon s:disp_str[sel : endmark-1]
-	en
-	while s:disp_color[p]<endmark
-		let p+=1
-	endwhile
-	exe s:disp_colorv[p]
-	echon s:disp_str[endmark :s:disp_color[p]-1]
-	for p in range(p+1,colorl-1)
-		exe s:disp_colorv[p]
-		echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
-	endfor
-	echon s:mp_c '-' s:mp_r s:mp_msg
-	let s:mp_msg=''
-endfun
-fun! s:printMapDispNoHL()
-	redr!
-	let [i,len]=s:disp_selmap[s:mp_r-s:mp_roff][s:mp_c-s:mp_coff]
-	echon i? s:disp_str[0 : i-1] : ''
-	if len
-		let len=len(s:mp_array[s:mp_c][s:mp_r])
-		let len=(i+len)%s:disp_r<i%s:disp_r? len-(i+len)%s:disp_r-1 : len
-		echohl TxbMapSel
-		echon s:mp_array[s:mp_c][s:mp_r][:len]
-	else
-		let len=t:mp_clW
-		echohl TxbMapSelEmpty
-		echon s:disp_str[i : i+len-1]
-	en
-	echohl NONE
-	echon s:disp_str[i+len :] s:mp_c '-' s:mp_r s:mp_msg
-	let s:mp_msg=''
-endfun
-
-fun! s:navMapKeyHandler(c)
-	if a:c is -1
-		if g:TXBmsmsg[0]==1
-			let s:mp_prevcoord=copy(g:TXBmsmsg)
-		elseif g:TXBmsmsg[0]==2
-			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
-				let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
-				call s:getMapDisp()
-				call s:mp_displayfunc()
-			en
-			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
-		elseif g:TXBmsmsg[0]==3
-			if g:TXBmsmsg==[3,1,1]
-				let [&ch,&more,&ls,&stal]=s:mp_settings
-				return
-			elseif s:mp_prevcoord[0]==1
-				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2]
-					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
-						let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
-						call s:getMapDisp()
-						call s:mp_displayfunc()
-					en
-					let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
-				else
-					let s:mp_r=(g:TXBmsmsg[2]-&lines+&ch-1)/t:mp_clH+s:mp_roff
-					let s:mp_c=(g:TXBmsmsg[1]-1)/t:mp_clW+s:mp_coff
-					if [s:mp_r,s:mp_c]==s:mp_prevclick
-						let [&ch,&more,&ls,&stal]=s:mp_settings
-						call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
-						return
-					en
-					let s:mp_prevclick=[s:mp_r,s:mp_c]
-					let s:mp_prevcoord=[0,0,0]
-					let [roffn,coffn]=[s:mp_r<s:mp_roff? s:mp_r : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_r-s:mp_rows+1 : s:mp_roff,s:mp_c<s:mp_coff? s:mp_c : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_c-s:mp_cols+1 : s:mp_coff]
-					if [s:mp_roff,s:mp_coff]!=[roffn,coffn] || s:mp_redr
-						let [s:mp_roff,s:mp_coff,s:mp_redr]=[roffn,coffn,0]
-						call s:getMapDisp()
-					en
-					call s:mp_displayfunc()
-				en
-			en
-		elseif g:TXBmsmsg[0]==4
-			let s:mp_roff=s:mp_roff>1? s:mp_roff-1 : 0
-			let s:mp_r=s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r
-			call s:getMapDisp()
-			call s:mp_displayfunc()
-			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
-		elseif g:TXBmsmsg[0]==5
-			let s:mp_roff=s:mp_roff+1
-			let s:mp_r=s:mp_r<s:mp_roff? s:mp_roff : s:mp_r
-			call s:getMapDisp()
-			call s:mp_displayfunc()
-			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
-		en
-		call feedkeys("\<plug>TxbY")
-	else
-		exe get(s:mapdict,a:c,'let s:mp_msg=" Press f1 for help or q to quit"')
-		if s:mp_continue==1
-			let [roffn,coffn]=[s:mp_r<s:mp_roff? s:mp_r : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_r-s:mp_rows+1 : s:mp_roff,s:mp_c<s:mp_coff? s:mp_c : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_c-s:mp_cols+1 : s:mp_coff]
-			if [s:mp_roff,s:mp_coff]!=[roffn,coffn] || s:mp_redr
-				let [s:mp_roff,s:mp_coff,s:mp_redr]=[roffn,coffn,0]
-				call s:getMapDisp()
-			en
-			call s:mp_displayfunc()
-			call feedkeys("\<plug>TxbY")
-		elseif s:mp_continue==2
-			let [&ch,&more,&ls,&stal]=s:mp_settings
-			call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
-		else
-			let [&ch,&more,&ls,&stal]=s:mp_settings
-		en
-	en
-endfun
-
-let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
-fun! s:navMap(array,c_ini,r_ini)
-	let s:mp_num='01'
-    let s:mp_posmes=(line('.')%t:mp_L? line('.')%t:mp_L.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
-	let s:mp_initbk=[a:r_ini,a:c_ini]
-	let s:mp_settings=[&ch,&more,&ls,&stal]
-		let [&more,&ls,&stal]=[0,0,0]
-		let &ch=&lines
-	let s:mp_prevclick=[0,0]
-	let s:mp_prevcoord=[0,0,0]
-	let s:mp_array=a:array
-	let s:mp_msg=''
-	let s:mp_r=a:r_ini
-	let s:mp_c=a:c_ini
-	let s:mp_continue=1
-	let s:mp_redr=1
-	let s:mp_rows=(&ch-1)/t:mp_clH
-	let s:mp_cols=(&columns-1)/t:mp_clW
-	let s:mp_roff=max([s:mp_r-s:mp_rows/2,0])
-	let s:mp_coff=max([s:mp_c-s:mp_cols/2,0])
-	let s:mp_displayfunc=function('s:printMapDisp')
-	call s:getMapDisp()
-	call s:mp_displayfunc()
-	let g:TxbKeyHandler=function("s:navMapKeyHandler")
-	call feedkeys("\<plug>TxbY")
-endfun
-let s:last_yanked_is_column=0
-let s:map_bookmark=0
-let s:mapdict={"\e":"let s:mp_continue=0|redr",
-\"\<f1>":'call s:printHelp()',
-\"q":"let s:mp_continue=0",
-\"l":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
-\"h":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
-\"j":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
-\"k":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
-\"\<right>":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
-\"\<left>":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
-\"\<down>":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
-\"\<up>":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
-\"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
-\"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),s:mp_c+s:mp_num]|let s:mp_num='01'",
-\"b":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
-\"n":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,s:mp_c+s:mp_num]|let s:mp_num='01'",
-\"1":"let s:mp_num=s:mp_num is '01'? '1' : s:mp_num>98? s:mp_num : s:mp_num.'1'",
-\"2":"let s:mp_num=s:mp_num is '01'? '2' : s:mp_num>98? s:mp_num : s:mp_num.'2'",
-\"3":"let s:mp_num=s:mp_num is '01'? '3' : s:mp_num>98? s:mp_num : s:mp_num.'3'",
-\"4":"let s:mp_num=s:mp_num is '01'? '4' : s:mp_num>98? s:mp_num : s:mp_num.'4'",
-\"5":"let s:mp_num=s:mp_num is '01'? '5' : s:mp_num>98? s:mp_num : s:mp_num.'5'",
-\"6":"let s:mp_num=s:mp_num is '01'? '6' : s:mp_num>98? s:mp_num : s:mp_num.'6'",
-\"7":"let s:mp_num=s:mp_num is '01'? '7' : s:mp_num>98? s:mp_num : s:mp_num.'7'",
-\"8":"let s:mp_num=s:mp_num is '01'? '8' : s:mp_num>98? s:mp_num : s:mp_num.'8'",
-\"9":"let s:mp_num=s:mp_num is '01'? '9' : s:mp_num>98? s:mp_num : s:mp_num.'9'",
-\"0":"let [s:mp_c,s:mp_num]=s:mp_num is '01'? [s:mp_coff,s:mp_num] : [s:mp_c,s:mp_num>998? s:mp_num : s:mp_num.'0']",
-\"$":"let s:mp_c=s:mp_coff+s:mp_cols-1",
-\"H":"let s:mp_r=s:mp_roff",
-\"M":"let s:mp_r=s:mp_roff+s:mp_rows/2",
-\"L":"let s:mp_r=s:mp_roff+s:mp_rows-1",
-\"T":"let s:mp_displayfunc=s:mp_displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
-\"x":"if exists('s:mp_array[s:mp_c][s:mp_r]')|let @\"=s:mp_array[s:mp_c][s:mp_r]|let s:mp_array[s:mp_c][s:mp_r]=''|let s:mp_redr=1|en",
-\"o":"if exists('s:mp_array[s:mp_c][s:mp_r]')|let @\"=s:mp_array[s:mp_c][s:mp_r]|let s:mp_msg=' Cell obtained'|let s:last_yanked_is_column=0|en",
-\"p":"if s:last_yanked_is_column\n
-		\if s:mp_c+1>=len(s:mp_array)\n
-			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+2-len(s:mp_array)),',').']'))\n
-		\en\n
-		\call insert(s:mp_array,s:copied_column,s:mp_c+1)\n
-		\let s:mp_redr=1\n
-	\else\n
-		\if s:mp_c>=len(s:mp_array)\n
-			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
-		\en\n
-		\if s:mp_r>=len(s:mp_array[s:mp_c])\n
-			\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
-		\en\n
-		\let s:mp_array[s:mp_c][s:mp_r]=@\"\n
-		\let s:mp_redr=1\n
-	\en",
-\"P":"if s:last_yanked_is_column\n
-		\if s:mp_c>=len(s:mp_array)\n
-			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
-		\en\n
-		\call insert(s:mp_array,s:copied_column,s:mp_c)\n
-		\let s:mp_redr=1\n
-	\else\n
-		\if s:mp_c>=len(s:mp_array)\n
-			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
-		\en\n
-		\if s:mp_r>=len(s:mp_array[s:mp_c])\n
-			\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
-		\en\n
-		\let s:mp_array[s:mp_c][s:mp_r]=@\"\n
-		\let s:mp_redr=1\n
-	\en",
-\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:mp_array[s:mp_c][s:mp_r]')? s:mp_array[s:mp_c][s:mp_r] : '','#',1),['',''])[:2]\n
-	\let inLbl=input(s:disp_str.'Label: ',lblTxt)\n
-	\if !empty(inLbl)\n
-		\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
-		\if [s:mp_r,s:mp_c]==s:mp_initbk\n
-			\let inPos=input(empty(s:mp_posmes)? '\nPosition: ' : '\nPosition ('.s:mp_posmes.' will center current cursor position) :', empty(pos)? s:mp_posmes : pos)\n
-		\else\n
-			\let inPos=input('\nPosition: ',pos)\n
-		\en\n
-		\if stridx(inLbl.inHL.inPos,'#')!=-1\n
-			\let s:mp_msg=' ERROR: ''#'' is reserved for syntax and not allowed in the label text or settings'\n
-		\else\n
-			\if s:mp_c>=len(s:mp_array)\n
-				\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
-			\en\n
-			\if s:mp_r>=len(s:mp_array[s:mp_c])\n
-				\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
-			\en\n
-			\let s:mp_array[s:mp_c][s:mp_r]=strtrans(inLbl).'#'.strtrans(inHL).'#'.strtrans(inPos)\n
-			\let s:mp_redr=1\n
-		\en\n
-	\else\n
-		\let s:mp_msg=' Change aborted (press ''x'' to clear)'\n
-	\en\n",
-\"g":'let s:mp_continue=2',
-\"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
-	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
-	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
-	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr,s:mp_rows,s:mp_cols]=[t:mp_clH,t:mp_clW,1,(&ch-1)/t:mp_clH,(&columns-1)/t:mp_clW]",
-\"I":'if s:mp_c<len(s:mp_array)|call insert(s:mp_array,[],s:mp_c)|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." inserted"|en',
-\"D":'if s:mp_c<len(s:mp_array) && input(s:disp_str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:mp_array,s:mp_c)|let s:last_yanked_is_column=1|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." deleted"|en',
-\"O":'let s:copied_column=s:mp_c<len(s:mp_array)? deepcopy(s:mp_array[s:mp_c]) : []|let s:mp_msg=" Col ".(s:mp_c)." Obtained"|let s:last_yanked_is_column=1'}
-let s:mapdict["\<c-m>"]=s:mapdict.g
-
-
-
-
 fun! s:deleteHiddenBuffers()
 	let tpbl=[]
 	call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
@@ -1982,5 +1649,335 @@ fun! s:nav(N,L)
 	exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
 	return extrashift
 endfun
+
+fun! s:getMapDisp()
+	let pad=repeat(' ',&columns+20)
+	let s:disp_r=s:mp_cols*t:mp_clW+1
+	let l=s:disp_r*t:mp_clH
+	let templist=repeat([''],t:mp_clH)
+	let last_entry_colored=copy(templist)
+	let s:disp_selmap=map(range(s:mp_rows),'repeat([0],s:mp_cols)')
+	let dispLines=[]
+	let s:disp_color=[]
+	let s:disp_colorv=[]
+	let extend_color='call extend(s:disp_color,'.join(map(templist,'"colorix[".v:key."]"'),'+').')'
+	let extend_colorv='call extend(s:disp_colorv,'.join(map(templist,'"colorvix[".v:key."]"'),'+').')'
+	let let_colorix='let colorix=['.join(map(templist,'"[]"'),',').']'
+	let let_colorvix=let_colorix[:8].'v'.let_colorix[9:]
+	let let_occ='let occ=['.repeat("'',",t:mp_clH)[:-2].']'
+	for i in range(s:mp_rows)
+		exe let_occ
+		exe let_colorix
+		exe let_colorvix
+		for j in range(s:mp_cols)
+			if !exists("s:mp_array[s:mp_coff+j][s:mp_roff+i]") || empty(s:mp_array[s:mp_coff+j][s:mp_roff+i])
+				let s:disp_selmap[i][j]=[i*l+j*t:mp_clW,0]
+				continue
+			en
+			let k=0
+			let cell_border=(j+1)*t:mp_clW
+			while k<t:mp_clH && len(occ[k])>=cell_border
+				let k+=1
+			endw
+			let parsed=split(s:mp_array[s:mp_coff+j][s:mp_roff+i],'#',1)
+			if k==t:mp_clH
+				let k=min(map(templist,'len(occ[v:key])*30+v:key'))%30
+				if last_entry_colored[k]
+					let colorix[k][-1]-=len(occ[k])-(cell_border-1)
+				en
+				let occ[k]=occ[k][:cell_border-2].parsed[0]
+				let s:disp_selmap[i][j]=[i*l+k*s:disp_r+cell_border-1,len(parsed[0])]
+			else
+				let [s:disp_selmap[i][j],occ[k]]=len(occ[k])<j*t:mp_clW? [[i*l+k*s:disp_r+j*t:mp_clW,1],occ[k].pad[:j*t:mp_clW-len(occ[k])-1].parsed[0]] : [[i*l+k*s:disp_r+j*t:mp_clW+(len(occ[k])%t:mp_clW),1],occ[k].parsed[0]]
+			en
+			if len(parsed)>1
+				call extend(colorix[k],[s:disp_selmap[i][j][0],s:disp_selmap[i][j][0]+len(parsed[0])])
+				call extend(colorvix[k],['echoh NONE','echoh '.parsed[1]])
+				let last_entry_colored[k]=1
+			else
+				let last_entry_colored[k]=0
+			en
+		endfor
+		for z in range(t:mp_clH)
+			if !empty(colorix[z]) && colorix[z][-1]%s:disp_r<colorix[z][-2]%s:disp_r
+				let colorix[z][-1]-=colorix[z][-1]%s:disp_r
+			en
+		endfor
+		exe extend_color
+		exe extend_colorv
+		let dispLines+=map(occ,'len(v:val)<s:mp_cols*t:mp_clW? v:val.pad[:s:mp_cols*t:mp_clW-len(v:val)-1]."\n" : v:val[:s:mp_cols*t:mp_clW-1]."\n"')
+	endfor
+	let s:disp_str=join(dispLines,'')
+	call add(s:disp_color,99999)
+	call add(s:disp_colorv,'echoh NONE')
+endfun
+
+fun! s:printMapDisp()
+	let [sel,notempty]=s:disp_selmap[s:mp_r-s:mp_roff][s:mp_c-s:mp_coff]
+	let colorl=len(s:disp_color)
+	let p=0
+	redr!
+	if sel
+		if sel>s:disp_color[0]
+			if s:disp_color[0]
+				exe s:disp_colorv[0]
+				echon s:disp_str[0 : s:disp_color[0]-1]
+			en
+			let p=1
+			while sel>s:disp_color[p]
+				exe s:disp_colorv[p]
+				echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
+				let p+=1
+			endwhile
+			exe s:disp_colorv[p]
+			echon s:disp_str[s:disp_color[p-1]:sel-1]
+		else
+		 	exe s:disp_colorv[0]
+			echon s:disp_str[:sel-1]
+		en
+	en
+	if notempty
+		let endmark=len(s:mp_array[s:mp_c][s:mp_r])
+		let endmark=(sel+endmark)%s:disp_r<sel%s:disp_r? endmark-(sel+endmark)%s:disp_r-1 : endmark
+		echohl TxbMapSel
+		echon s:mp_array[s:mp_c][s:mp_r][:endmark-1]
+		let endmark=sel+endmark
+	else
+		let endmark=sel+t:mp_clW
+		echohl TxbMapSelEmpty
+		echon s:disp_str[sel : endmark-1]
+	en
+	while s:disp_color[p]<endmark
+		let p+=1
+	endwhile
+	exe s:disp_colorv[p]
+	echon s:disp_str[endmark :s:disp_color[p]-1]
+	for p in range(p+1,colorl-1)
+		exe s:disp_colorv[p]
+		echon s:disp_str[s:disp_color[p-1] : s:disp_color[p]-1]
+	endfor
+	echon s:mp_c '-' s:mp_r s:mp_msg
+	let s:mp_msg=''
+endfun
+fun! s:printMapDispNoHL()
+	redr!
+	let [i,len]=s:disp_selmap[s:mp_r-s:mp_roff][s:mp_c-s:mp_coff]
+	echon i? s:disp_str[0 : i-1] : ''
+	if len
+		let len=len(s:mp_array[s:mp_c][s:mp_r])
+		let len=(i+len)%s:disp_r<i%s:disp_r? len-(i+len)%s:disp_r-1 : len
+		echohl TxbMapSel
+		echon s:mp_array[s:mp_c][s:mp_r][:len]
+	else
+		let len=t:mp_clW
+		echohl TxbMapSelEmpty
+		echon s:disp_str[i : i+len-1]
+	en
+	echohl NONE
+	echon s:disp_str[i+len :] s:mp_c '-' s:mp_r s:mp_msg
+	let s:mp_msg=''
+endfun
+
+fun! s:navMapKeyHandler(c)
+	if a:c is -1
+		if g:TXBmsmsg[0]==1
+			let s:mp_prevcoord=copy(g:TXBmsmsg)
+		elseif g:TXBmsmsg[0]==2
+			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+				let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
+				let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
+				call s:getMapDisp()
+				call s:mp_displayfunc()
+			en
+			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
+		elseif g:TXBmsmsg[0]==3
+			if g:TXBmsmsg==[3,1,1]
+				let [&ch,&more,&ls,&stal]=s:mp_settings
+				return
+			elseif s:mp_prevcoord[0]==1
+				if &ttymouse=='xterm' && s:mp_prevcoord[1]!=g:TXBmsmsg[1] && s:mp_prevcoord[2]!=g:TXBmsmsg[2]
+					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+						let [s:mp_roff,s:mp_coff,s:mp_redr]=[max([0,s:mp_roff-(g:TXBmsmsg[2]-s:mp_prevcoord[2])/t:mp_clH]),max([0,s:mp_coff-(g:TXBmsmsg[1]-s:mp_prevcoord[1])/t:mp_clW]),0]
+						let [s:mp_r,s:mp_c]=[s:mp_r<s:mp_roff? s:mp_roff : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r,s:mp_c<s:mp_coff? s:mp_coff : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_coff+s:mp_cols-1 : s:mp_c]
+						call s:getMapDisp()
+						call s:mp_displayfunc()
+					en
+					let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
+				else
+					let s:mp_r=(g:TXBmsmsg[2]-&lines+&ch-1)/t:mp_clH+s:mp_roff
+					let s:mp_c=(g:TXBmsmsg[1]-1)/t:mp_clW+s:mp_coff
+					if [s:mp_r,s:mp_c]==s:mp_prevclick
+						let [&ch,&more,&ls,&stal]=s:mp_settings
+						call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
+						return
+					en
+					let s:mp_prevclick=[s:mp_r,s:mp_c]
+					let s:mp_prevcoord=[0,0,0]
+					let [roffn,coffn]=[s:mp_r<s:mp_roff? s:mp_r : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_r-s:mp_rows+1 : s:mp_roff,s:mp_c<s:mp_coff? s:mp_c : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_c-s:mp_cols+1 : s:mp_coff]
+					if [s:mp_roff,s:mp_coff]!=[roffn,coffn] || s:mp_redr
+						let [s:mp_roff,s:mp_coff,s:mp_redr]=[roffn,coffn,0]
+						call s:getMapDisp()
+					en
+					call s:mp_displayfunc()
+				en
+			en
+		elseif g:TXBmsmsg[0]==4
+			let s:mp_roff=s:mp_roff>1? s:mp_roff-1 : 0
+			let s:mp_r=s:mp_r>=s:mp_roff+s:mp_rows? s:mp_roff+s:mp_rows-1 : s:mp_r
+			call s:getMapDisp()
+			call s:mp_displayfunc()
+			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
+		elseif g:TXBmsmsg[0]==5
+			let s:mp_roff=s:mp_roff+1
+			let s:mp_r=s:mp_r<s:mp_roff? s:mp_roff : s:mp_r
+			call s:getMapDisp()
+			call s:mp_displayfunc()
+			let s:mp_prevcoord=[g:TXBmsmsg[0],g:TXBmsmsg[1]-(g:TXBmsmsg[1]-s:mp_prevcoord[1])%t:mp_clW,g:TXBmsmsg[2]-(g:TXBmsmsg[2]-s:mp_prevcoord[2])%t:mp_clH]
+		en
+		call feedkeys("\<plug>TxbY")
+	else
+		exe get(s:mapdict,a:c,'let s:mp_msg=" Press f1 for help or q to quit"')
+		if s:mp_continue==1
+			let [roffn,coffn]=[s:mp_r<s:mp_roff? s:mp_r : s:mp_r>=s:mp_roff+s:mp_rows? s:mp_r-s:mp_rows+1 : s:mp_roff,s:mp_c<s:mp_coff? s:mp_c : s:mp_c>=s:mp_coff+s:mp_cols? s:mp_c-s:mp_cols+1 : s:mp_coff]
+			if [s:mp_roff,s:mp_coff]!=[roffn,coffn] || s:mp_redr
+				let [s:mp_roff,s:mp_coff,s:mp_redr]=[roffn,coffn,0]
+				call s:getMapDisp()
+			en
+			call s:mp_displayfunc()
+			call feedkeys("\<plug>TxbY")
+		elseif s:mp_continue==2
+			let [&ch,&more,&ls,&stal]=s:mp_settings
+			call s:doSyntax(s:blockPan(s:mp_c,0,t:mp_L*s:mp_r,2)? '' : get(split(get(get(s:mp_array,s:mp_c,[]),s:mp_r,''),'#',1),2,''))
+		else
+			let [&ch,&more,&ls,&stal]=s:mp_settings
+		en
+	en
+endfun
+
+let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
+fun! s:navMap(array,c_ini,r_ini)
+	let s:mp_num='01'
+    let s:mp_posmes=(line('.')%t:mp_L? line('.')%t:mp_L.'j' : '').(virtcol('.')-1? virtcol('.')-1.'l' : '').'CM'
+	let s:mp_initbk=[a:r_ini,a:c_ini]
+	let s:mp_settings=[&ch,&more,&ls,&stal]
+		let [&more,&ls,&stal]=[0,0,0]
+		let &ch=&lines
+	let s:mp_prevclick=[0,0]
+	let s:mp_prevcoord=[0,0,0]
+	let s:mp_array=a:array
+	let s:mp_msg=''
+	let s:mp_r=a:r_ini
+	let s:mp_c=a:c_ini
+	let s:mp_continue=1
+	let s:mp_redr=1
+	let s:mp_rows=(&ch-1)/t:mp_clH
+	let s:mp_cols=(&columns-1)/t:mp_clW
+	let s:mp_roff=max([s:mp_r-s:mp_rows/2,0])
+	let s:mp_coff=max([s:mp_c-s:mp_cols/2,0])
+	let s:mp_displayfunc=function('s:printMapDisp')
+	call s:getMapDisp()
+	call s:mp_displayfunc()
+	let g:TxbKeyHandler=function("s:navMapKeyHandler")
+	call feedkeys("\<plug>TxbY")
+endfun
+let s:last_yanked_is_column=0
+let s:map_bookmark=0
+let s:mapdict={"\e":"let s:mp_continue=0|redr",
+\"\<f1>":'call s:printHelp()',
+\"q":"let s:mp_continue=0",
+\"l":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
+\"h":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
+\"j":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
+\"k":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
+\"\<right>":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
+\"\<left>":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
+\"\<down>":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
+\"\<up>":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
+\"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
+\"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),s:mp_c+s:mp_num]|let s:mp_num='01'",
+\"b":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
+\"n":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,s:mp_c+s:mp_num]|let s:mp_num='01'",
+\"1":"let s:mp_num=s:mp_num is '01'? '1' : s:mp_num>98? s:mp_num : s:mp_num.'1'",
+\"2":"let s:mp_num=s:mp_num is '01'? '2' : s:mp_num>98? s:mp_num : s:mp_num.'2'",
+\"3":"let s:mp_num=s:mp_num is '01'? '3' : s:mp_num>98? s:mp_num : s:mp_num.'3'",
+\"4":"let s:mp_num=s:mp_num is '01'? '4' : s:mp_num>98? s:mp_num : s:mp_num.'4'",
+\"5":"let s:mp_num=s:mp_num is '01'? '5' : s:mp_num>98? s:mp_num : s:mp_num.'5'",
+\"6":"let s:mp_num=s:mp_num is '01'? '6' : s:mp_num>98? s:mp_num : s:mp_num.'6'",
+\"7":"let s:mp_num=s:mp_num is '01'? '7' : s:mp_num>98? s:mp_num : s:mp_num.'7'",
+\"8":"let s:mp_num=s:mp_num is '01'? '8' : s:mp_num>98? s:mp_num : s:mp_num.'8'",
+\"9":"let s:mp_num=s:mp_num is '01'? '9' : s:mp_num>98? s:mp_num : s:mp_num.'9'",
+\"0":"let [s:mp_c,s:mp_num]=s:mp_num is '01'? [s:mp_coff,s:mp_num] : [s:mp_c,s:mp_num>998? s:mp_num : s:mp_num.'0']",
+\"$":"let s:mp_c=s:mp_coff+s:mp_cols-1",
+\"H":"let s:mp_r=s:mp_roff",
+\"M":"let s:mp_r=s:mp_roff+s:mp_rows/2",
+\"L":"let s:mp_r=s:mp_roff+s:mp_rows-1",
+\"T":"let s:mp_displayfunc=s:mp_displayfunc==function('s:printMapDisp')? function('s:printMapDispNoHL') : function('s:printMapDisp')",
+\"x":"if exists('s:mp_array[s:mp_c][s:mp_r]')|let @\"=s:mp_array[s:mp_c][s:mp_r]|let s:mp_array[s:mp_c][s:mp_r]=''|let s:mp_redr=1|en",
+\"o":"if exists('s:mp_array[s:mp_c][s:mp_r]')|let @\"=s:mp_array[s:mp_c][s:mp_r]|let s:mp_msg=' Cell obtained'|let s:last_yanked_is_column=0|en",
+\"p":"if s:last_yanked_is_column\n
+		\if s:mp_c+1>=len(s:mp_array)\n
+			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+2-len(s:mp_array)),',').']'))\n
+		\en\n
+		\call insert(s:mp_array,s:copied_column,s:mp_c+1)\n
+		\let s:mp_redr=1\n
+	\else\n
+		\if s:mp_c>=len(s:mp_array)\n
+			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
+		\en\n
+		\if s:mp_r>=len(s:mp_array[s:mp_c])\n
+			\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
+		\en\n
+		\let s:mp_array[s:mp_c][s:mp_r]=@\"\n
+		\let s:mp_redr=1\n
+	\en",
+\"P":"if s:last_yanked_is_column\n
+		\if s:mp_c>=len(s:mp_array)\n
+			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
+		\en\n
+		\call insert(s:mp_array,s:copied_column,s:mp_c)\n
+		\let s:mp_redr=1\n
+	\else\n
+		\if s:mp_c>=len(s:mp_array)\n
+			\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
+		\en\n
+		\if s:mp_r>=len(s:mp_array[s:mp_c])\n
+			\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
+		\en\n
+		\let s:mp_array[s:mp_c][s:mp_r]=@\"\n
+		\let s:mp_redr=1\n
+	\en",
+\"c":"let [lblTxt,hiColor,pos]=extend(split(exists('s:mp_array[s:mp_c][s:mp_r]')? s:mp_array[s:mp_c][s:mp_r] : '','#',1),['',''])[:2]\n
+	\let inLbl=input(s:disp_str.'Label: ',lblTxt)\n
+	\if !empty(inLbl)\n
+		\let inHL=input('\nHighlight group: ',hiColor,'highlight')\n
+		\if [s:mp_r,s:mp_c]==s:mp_initbk\n
+			\let inPos=input(empty(s:mp_posmes)? '\nPosition: ' : '\nPosition ('.s:mp_posmes.' will center current cursor position) :', empty(pos)? s:mp_posmes : pos)\n
+		\else\n
+			\let inPos=input('\nPosition: ',pos)\n
+		\en\n
+		\if stridx(inLbl.inHL.inPos,'#')!=-1\n
+			\let s:mp_msg=' ERROR: ''#'' is reserved for syntax and not allowed in the label text or settings'\n
+		\else\n
+			\if s:mp_c>=len(s:mp_array)\n
+				\call extend(s:mp_array,eval('['.join(repeat(['[]'],s:mp_c+1-len(s:mp_array)),',').']'))\n
+			\en\n
+			\if s:mp_r>=len(s:mp_array[s:mp_c])\n
+				\call extend(s:mp_array[s:mp_c],repeat([''],s:mp_r+1-len(s:mp_array[s:mp_c])))\n
+			\en\n
+			\let s:mp_array[s:mp_c][s:mp_r]=strtrans(inLbl).'#'.strtrans(inHL).'#'.strtrans(inPos)\n
+			\let s:mp_redr=1\n
+		\en\n
+	\else\n
+		\let s:mp_msg=' Change aborted (press ''x'' to clear)'\n
+	\en\n",
+\"g":'let s:mp_continue=2',
+\"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
+	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
+	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
+	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr,s:mp_rows,s:mp_cols]=[t:mp_clH,t:mp_clW,1,(&ch-1)/t:mp_clH,(&columns-1)/t:mp_clW]",
+\"I":'if s:mp_c<len(s:mp_array)|call insert(s:mp_array,[],s:mp_c)|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." inserted"|en',
+\"D":'if s:mp_c<len(s:mp_array) && input(s:disp_str."\nReally delete column? (y/n)")==?"y"|let s:copied_column=remove(s:mp_array,s:mp_c)|let s:last_yanked_is_column=1|let s:mp_redr=1|let s:mp_msg="Col ".(s:mp_c)." deleted"|en',
+\"O":'let s:copied_column=s:mp_c<len(s:mp_array)? deepcopy(s:mp_array[s:mp_c]) : []|let s:mp_msg=" Col ".(s:mp_c)." Obtained"|let s:last_yanked_is_column=1'}
+let s:mapdict["\<c-m>"]=s:mapdict.g
 
 delf s:SID
