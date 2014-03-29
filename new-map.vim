@@ -8,7 +8,7 @@ let map=[
 \{1:['one','red'],100:['one hundred','NONE']},
 \{},
 \{},
-\{1:['tessssst','Visual'],101:['aaaaaaaaaaarrrrr','ErrorMsg']},
+\{1:['tessssst','r1_01'],101:['aaaaaaaaaaarrrrr','ErrorMsg']},
 \{1:['finalllllllllllllllllllllllllll','Visual'],701:['corneaaaaaaaaaaaaaaarrrrr','ErrorMsg']}]
 
 fun! ConvertToGrid(map,gran,maxlen)
@@ -96,7 +96,7 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 	endfor
 endfun
 
-fun! DisplayMapCur(gridmap,lines, colors, coords,r,c,w)
+fun! DisplayMapCur(gridmap,lines,colors,coords,r,c,w)
 	let h=len(a:gridmap[a:c][a:r])
     if h
 		let curlb=a:r
@@ -124,7 +124,7 @@ fun! DisplayMapCur(gridmap,lines, colors, coords,r,c,w)
 			while j<cl
 				let nextticker=ticker+a:coords[i][j]
 			  	if nextticker>=b
-					exe 'echohl' (empty(a:colors[i][j])? 'NONE' : a:colors[i][j])
+					exe 'echohl' a:colors[i][j]
 					echon b? a:lines[i][ticker : b-1] : ''
 					echohl TxbMapSel
 					echon content
@@ -133,19 +133,19 @@ fun! DisplayMapCur(gridmap,lines, colors, coords,r,c,w)
 						let j+=1
 					endwhile
 					if j!=cl
-						exe 'echohl' (empty(a:colors[i][j-1])? 'NONE' : a:colors[i][j-1])
+						exe 'echohl' a:colors[i][j-1]
 						echon a:lines[i][e+1 : ticker-1]
 					en
 					break
 				else
-					exe 'echohl' (empty(a:colors[i][j])? 'NONE' : a:colors[i][j])
+					exe 'echohl' a:colors[i][j]
 					echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
 					let ticker+=a:coords[i][j]
 					let j+=1
 				en
 			endwhile
 			while j<cl
-				exe 'echohl' (empty(a:colors[i][j])? 'NONE' : a:colors[i][j])
+				exe 'echohl' a:colors[i][j]
 				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
 				let ticker+=a:coords[i][j]
 				let j+=1
@@ -155,7 +155,7 @@ fun! DisplayMapCur(gridmap,lines, colors, coords,r,c,w)
 		else
 			let ticker=0
 			for j in range(len(a:coords[i]))
-				exe 'echohl' (empty(a:colors[i][j])? 'NONE' : a:colors[i][j])
+				exe 'echohl' a:colors[i][j]
 				echon a:lines[i][ticker : ticker+a:coords[i][j]-1]
 				let ticker+=a:coords[i][j]
 			endfor 
@@ -168,7 +168,6 @@ endfun
 call ConvertToGrid(map,100,17)
 call Grid2Str(gridmap,colormap,10,17)
 echo ''
-"call DisplayMap(lines, colorarr, coordarr)
 call DisplayMapCur(gridmap,lines,colorarr,coordarr,7,0,10)
 finish
 
