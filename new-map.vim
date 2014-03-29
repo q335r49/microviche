@@ -8,7 +8,7 @@ let map=[
 \{1:['one','red'],100:['one hundred','NONE']},
 \{},
 \{},
-\{1:['tessssst','r1_01'],101:['aaaaaaaaaaarrrrr','ErrorMsg']},
+\{1:['tessssst','Visual'],101:['aaaaaaaaaaarrrrr','ErrorMsg']},
 \{1:['finalllllllllllllllllllllllllll','Visual'],701:['corneaaaaaaaaaaaaaaarrrrr','ErrorMsg']}]
 
 fun! ConvertToGrid(map,gran,maxlen)
@@ -40,12 +40,8 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 			let linestr=''
 		else
 			let linestr=a:gridmap[leng][i][0]
-			if a:gridcolors[leng][i]==colors[0]
-            	let coords[0]+=len(a:gridmap[leng][i][0])
-			else
-				call insert(coords,len(a:gridmap[leng][i][0]))
-				call insert(colors,a:gridcolors[leng][i])
-			en
+			call insert(coords,len(a:gridmap[leng][i][0]))
+			call insert(colors,a:gridcolors[leng][i])
 		en
 		for j in range(leng-1,0,-1)
 			if empty(a:gridmap[j][i])
@@ -62,14 +58,14 @@ fun! Grid2Str(gridmap,gridcolors,w,maxlen)
 					en
 				else
 					let linestr=a:gridmap[j][i][0].pad[:padl-1-l].linestr
-					if a:gridcolors[j][i]==colors[0]
-                    	let coords[0]+=padl-l
+					if 'NONE'==colors[0]
+						let coords[0]+=padl-l
 					else
 						call insert(coords,padl-l)
 						call insert(colors,'NONE')
 					en
 					if a:gridcolors[j][i]==colors[0]
-                    	let coords[0]+=l
+						let coords[0]+=l
 					else
 						call insert(coords,l)
 						call insert(colors,a:gridcolors[j][i])
