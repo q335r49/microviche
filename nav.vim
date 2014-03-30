@@ -1838,7 +1838,7 @@ fun! s:navMapKeyHandler(c)
 		elseif g:TXBmsmsg[0]==2
 			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 				let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
-				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
+				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
 				call s:mp_displayfunc()
 			en
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1850,7 +1850,7 @@ fun! s:navMapKeyHandler(c)
 				if &ttymouse=='xterm' && (s:mp_prevcoord[1]!=g:TXBmsmsg[1] || s:mp_prevcoord[2]!=g:TXBmsmsg[2])
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
-						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_roff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
+						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
 						call s:mp_displayfunc()
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1924,6 +1924,10 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"h":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
 \"j":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
 \"k":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
+\"H":"let s:mp_coff=s:mp_coff>s:mp_num? s:mp_coff-s:mp_num : 0 |let s:mp_num='01'",
+\"L":"let s:mp_coff+=1|let s:mp_num='01'",
+\"K":"let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0 |let s:mp_num='01'",
+\"J":"let s:mp_roff+=1|let s:mp_num='01'",
 \"\<right>":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
 \"\<left>":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
 \"\<down>":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
