@@ -1787,18 +1787,25 @@ fun! s:mp_displayfunc()
 				en
 				let j+=1
 			endw
-			while j<len(curcoords)
-				if e<ticker-1
-					call insert(curcoords,ticker-e-1,j)
-					call insert(curcolors,lastcolor,j)
-					break
-				elseif e==ticker-1
-					break
-				else
-					let ticker+=remove(curcoords,j)
-					let lastcolor=remove(curcolors,j)
+			if j==len(curcoords)
+				if e<ticker 
+					call add(curcoords,ticker-1-e)
+					call add(curcolors,lastcolor)
 				en
-			endw
+			else
+				while j<len(curcoords)
+					if e<ticker-1
+						call insert(curcoords,ticker-1-e,j)
+						call insert(curcolors,lastcolor,j)
+						break
+					elseif e==ticker-1
+						break
+					else
+						let ticker+=remove(curcoords,j)
+						let lastcolor=remove(curcolors,j)
+					en
+				endw
+			en
 			let ticker=0
 			let j=0
 			while ticker<s:mp_coff
