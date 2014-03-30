@@ -1859,7 +1859,7 @@ fun! s:navMapKeyHandler(c)
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
 				else
-					let s:mp_r=(g:TXBmsmsg[2]-&lines+&ch-1+s:mp_roff)/t:mp_L
+					let s:mp_r=g:TXBmsmsg[2]-&lines+&ch-1+s:mp_roff
 					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
