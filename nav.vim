@@ -1892,7 +1892,7 @@ fun! s:navMapKeyHandler(c)
 							let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
 						en
 						let lowestr=(&lines-s:mp_settings[0])/2
-						let r=g:posmap[s:mp_c][s:mp_r][0]
+						let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
 						let r0=r<lowestr? 1 : r-lowestr
 						call  s:blockPan(sp,off,r0,2)
 						call  s:setCursor(r,1,s:mp_c)
