@@ -1897,13 +1897,13 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_msg=''
 	let s:mp_r=a:r_ini
 	let s:mp_c=a:c_ini
+	call ConvertToGrid()
+	call s:getMapDisp()
 	let s:mp_r=s:mp_r<0? 0 : s:mp_r>=t:maxlen? t:maxlen-1 : s:mp_r
 	let s:mp_c=s:mp_c<0? 0 : s:mp_c>=t:txb_len? t:txb_len-1 : s:mp_c
 	let s:mp_continue=1
 	let s:mp_roff=max([s:mp_r-&ch/2,0])
 	let s:mp_coff=max([s:mp_c*t:mp_clW-&columns/2,0])
-	call ConvertToGrid()
-	call s:getMapDisp()
 	call s:mp_displayfunc()
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
