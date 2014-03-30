@@ -1736,22 +1736,27 @@ fun! s:mp_displayfunc()
 				let ticker+=g:coordarr[i][j]
 				let j+=1
 			endwhile
-			if ticker!=s:mp_coff
-				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][s:mp_coff : ticker-1]
-			en
-			for j in range(j,len(g:coordarr[i])-1)
-				let nextticker=ticker+g:coordarr[i][j]
-				if nextticker>=xe
-					exe 'echohl' g:colorarr[i][j]
-					echon g:lines[i][ticker : xe-1]
-					break
-				else
-					exe 'echohl' g:colorarr[i][j]
-					echon g:lines[i][ticker : ticker+g:coordarr[i][j]-1]
-					let ticker=nextticker
+			if ticker<xe
+				if ticker!=s:mp_coff
+					exe 'echohl' g:colorarr[i][j-1]
+					echon g:lines[i][s:mp_coff : ticker-1]
 				en
-			endfor 
+				for j in range(j,len(g:coordarr[i])-1)
+					let nextticker=ticker+g:coordarr[i][j]
+					if nextticker>=xe
+						exe 'echohl' g:colorarr[i][j]
+						echon g:lines[i][ticker : xe-1]
+						break
+					else
+						exe 'echohl' g:colorarr[i][j]
+						echon g:lines[i][ticker : nextticker-1]
+						let ticker=nextticker
+					en
+				endfor 
+			else
+				exe 'echohl' g:colorarr[i][j-1]
+				echon g:lines[i][s:mp_coff : xe-1]
+			en
 			echon "\n"
 		else
 			let b=s:mp_c*t:mp_clW
@@ -1803,22 +1808,27 @@ fun! s:mp_displayfunc()
 				let ticker+=curcoords[j]
 				let j+=1
 			endwhile
-			if ticker!=s:mp_coff
-				exe 'echohl' curcolors[j-1]
-				echon curline[s:mp_coff : ticker-1]
-			en
-			for j in range(j,len(curcoords)-1)
-				let nextticker=ticker+curcoords[j]
-				if nextticker>=xe
-					exe 'echohl' curcolors[j]
-					echon curline[ticker : xe-1]
-					break
-				else
-					exe 'echohl' curcolors[j]
-					echon curline[ticker : ticker+curcoords[j]-1]
-					let ticker=nextticker
+			if ticker<xe
+				if ticker!=s:mp_coff
+					exe 'echohl' curcolors[j-1]
+					echon curline[s:mp_coff : ticker-1]
 				en
-			endfor 
+				for j in range(j,len(curcoords)-1)
+					let nextticker=ticker+curcoords[j]
+					if nextticker>=xe
+						exe 'echohl' curcolors[j]
+						echon curline[ticker : xe-1]
+						break
+					else
+						exe 'echohl' curcolors[j]
+						echon curline[ticker : ticker+curcoords[j]-1]
+						let ticker=nextticker
+					en
+				endfor 
+			else
+				exe 'echohl' g:colorarr[i][j-1]
+				echon g:lines[i][s:mp_coff : xe-1]
+			en
 			echon "\n"
 		en
 	endfor
