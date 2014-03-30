@@ -80,47 +80,30 @@ fun! s:printHelp()
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) Lines of the form 'txb[:line num][: label#highlght#position]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
+	\\n(2) Lines of the form 'txb[:line num][: label#highlght]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
 	\\n[R]emap (in addition to [r]edrawing):
 	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
-	\\n+ sets the map cell to [label#highlight#position] (see MAP MODE (2) below)
+	\\n+ sets the map cell to [label] and color to [highlight]
 	\\nExamples:
 	\\n    txb:345 Blah blah    Move to 345
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
-	\\n    txb: Blah#Title#CM   Label 'Blah', highlight 'Title', position 'CM'
-	\\n    txb: Blah##CM        Label 'Blah', position 'CM'
-	\\n    txb: Blah###Ignored  Label 'Blah'
+	\\n    txb: Blah#Title      Label 'Blah', highlight 'Title'
+	\\n    txb: Blah##Ignored   Label 'Blah'
 	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAP MODE:\n
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
-	\\n    0 $                  Beginning / end of line
-	\\n    H M L                High / Middle / Low of screen
-	\\n    x                    Clear and obtain cell
-	\\n    o O                  Obtain cell / Obtain column
-	\\n    p P                  Put obtained after / before
-	\\n[2] c                    Change label, color, position
+	\\n[1] H J K L Y U B N      Pan cardianlly & diagnally
 	\\n    g <cr>               Go to block and exit map
-	\\n    I D                  Insert / Delete and obtain column
-	\\n    Z                    Adjust map block size
-	\\n    T                    Toggle color
+	\\n    Z                    Adjust zoom level
 	\\n    q                    Quit"
-	\.(ttymouseWorks? "\n[3] doubleclick          Go to block
+	\.(ttymouseWorks? "\n[2] doubleclick          Go to block
 	\\n    drag                 Pan
 	\\n    click NW corner      Quit
 	\\n    drag to NW corner    (in the plane) Show map
 	\\n----------
-	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'.\n(2)"
-	\:"\n    [Mouse in map mode is unsupported in gVim or Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'.\n(2)")
-	\." You can press <tab> to autocomplete from currently defined highlights.
-	\\nPositioning commands move the jump from its default position (split at left edge, cursor at NW corner). Eg, 'CM' [C]enters the split and scrolls so the cursor is at the [M]iddle. The full list of commmands is:
-	\\n    j k l                Cursor up / down / right
-	\\n    s                    Shift view left 1 split
-	\\n    r R                  Shift view down / up 1 row
-	\\n    C                    Centered split horizontally (ignore s)
-	\\n    M                    Center cursor vertically (ignore r R)
-	\\n    W                    Virtual width (see below)
-	\\nBy default, 's' won't shift the split offscreen but only push it to the right edge; a virtual width changes this limit. Eg, '99s15W' would shift up to the point where only 15 columns are visible regardless of actual width. 'C' is similarly altered."
-	\.(ttymouseWorks? "\n(3) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : ""),width,(&columns-width)/2),s:help_bookmark)
+	\\n(1) Movements take counts, capped at 99. Eg, '3j' = 'jjj'"
+	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'")
+	\.(ttymouseWorks? "\n(2) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : ""),width,(&columns-width)/2),s:help_bookmark)
 endfun
 let TxbKyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
@@ -1967,5 +1950,5 @@ let s:mapdict["\<down>"] =s:mapdict.j
 let s:mapdict["\<up>"]   =s:mapdict.k
 
 delf s:SID
-let DrawMap=function('s:mp_displayfunc')
-let GMD=function('s:getMapDisp')
+"let DrawMap=function('s:mp_displayfunc')
+"let GMD=function('s:getMapDisp')
