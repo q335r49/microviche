@@ -1629,12 +1629,18 @@ fun! ConvertToGrid()
 	let g:gridmap=range(len(t:txb.map))
 	let g:colormap=range(len(t:txb.map))
 	for i in copy(g:gridmap)
-		let g:gridmap[i]=eval('['.repeat('[],',t:maxlen-1).'[]]')
-		let g:colormap[i]=repeat([''],t:maxlen)
+		let g:gridmap[i]={}
+		let g:colormap[i]={}
 		for j in keys(t:txb.map[i])
-			call add(g:gridmap[i][j/t:mp_L],t:txb.map[i][j][0])
-			if empty(g:colormap[i][j/t:mp_L])
-				let g:colormap[i][j/t:mp_L]=t:txb.map[i][j][1]
+			let r=j/t:mp_L
+			if has_key(g:gridmap[i],r)
+				call add(g:gridmap[i][r],t:txb.map[i][j][0])
+			else
+				let g:gridmap[i][r]=[t:txb.map[i][j][0]]
+				let g:colormap[i][r]=t:txb.map[i][j][1]
+				if r>t:maxlen
+					let t:maxlen=r
+				en
 			en
 		endfor
 	endfor
@@ -1644,12 +1650,12 @@ fun! s:getMapDisp()
 	let g:lines=[]
 	let g:colorarr=[]
 	let g:coordarr=[]
+	let leng=t:txb_len-1
 	for i in range(t:maxlen)
 		let padl=t:mp_clW
-		let colors=['EOL']
+		let colors=["\n"]
 		let coords=[0]
-		let leng=len(g:gridmap)-1
-		if empty(g:gridmap[leng][i])
+		if empty(get(g:gridmap[leng],i,''))
 			let linestr=''
 		else
 			let linestr=g:gridmap[leng][i][0]
@@ -1657,7 +1663,7 @@ fun! s:getMapDisp()
 			call insert(colors,g:colormap[leng][i])
 		en
 		for j in range(leng-1,0,-1)
-			if empty(g:gridmap[j][i])
+			if empty(get(g:gridmap[j],i,''))
 				let padl+=t:mp_clW
 			else
 				let l=len(g:gridmap[j][i][0])
@@ -1687,7 +1693,7 @@ fun! s:getMapDisp()
 				let padl=t:mp_clW
 			en
 		endfor
-		if empty(g:gridmap[0][i])
+		if empty(get(g:gridmap[0],i,''))
 			let padl-=t:mp_clW
 			let linestr=repeat(' ',padl-1).linestr
 			if empty(colors[0])
@@ -1707,7 +1713,7 @@ endfun
 
 fun! s:mp_displayfunc()
 	let xe=s:mp_coff+&columns-1
-	if !empty(g:gridmap[s:mp_c][s:mp_r])
+	if !empty(get(g:gridmap[s:mp_c],s:mp_r))
 		let curlb=s:mp_r
 		let curle=s:mp_r+len(g:gridmap[s:mp_c][s:mp_r])-1
 	else
@@ -1750,7 +1756,7 @@ fun! s:mp_displayfunc()
 			echon "\n"
 		else
 			let b=s:mp_c*t:mp_clW
-			let content=empty(g:gridmap[s:mp_c][s:mp_r])? repeat(' ',t:mp_clW) : g:gridmap[s:mp_c][s:mp_r][i-curlb]
+			let content=empty(get(g:gridmap[s:mp_c],s:mp_r,''))? repeat(' ',t:mp_clW) : g:gridmap[s:mp_c][s:mp_r][i-curlb]
 			let l=len(content)
 			let e=b+l-1
 			let curline=b? g:lines[i][:b-1].content.g:lines[i][e+1 :] : content.g:lines[i][e+1 :]
