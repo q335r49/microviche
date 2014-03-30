@@ -1840,8 +1840,10 @@ fun! s:navMapKeyHandler(c)
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
 			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
-				let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
+				let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
+				let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
+				let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>g:maxlen? g:maxlen : s:mp_roff
+				let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
 				call s:mp_displayfunc()
 			en
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1852,8 +1854,10 @@ fun! s:navMapKeyHandler(c)
 			elseif s:mp_prevcoord[0]==1
 				if &ttymouse=='xterm' && (s:mp_prevcoord[1]!=g:TXBmsmsg[1] || s:mp_prevcoord[2]!=g:TXBmsmsg[2])
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let s:mp_roff=s:mp_roff>g:TXBmsmsg[2]-s:mp_prevcoord[2]? s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2] : 0
-						let s:mp_coff=s:mp_coff>g:TXBmsmsg[1]-s:mp_prevcoord[1]? s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1] : 0
+						let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
+						let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
+						let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>g:maxlen? g:maxlen : s:mp_roff
+						let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
 						call s:mp_displayfunc()
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1927,7 +1931,7 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"k":"let s:mp_r=s:mp_r>s:mp_num? s:mp_r-s:mp_num : 0|let s:mp_num='01'",
 \"K":"let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0|let s:mp_num='01'",
 \"l":"let s:mp_c=s:mp_c+s:mp_num<t:txb_len? s:mp_c+s:mp_num : t:txb_len|let s:mp_num='01'",
-\"L":"let s:mp_coff=s:mp_coff+s:mp_num<t:txb_len? s:mp_coff+s:mp_num : t:txb_len|let s:mp_num='01'",
+\"L":"let s:mp_coff=s:mp_coff+s:mp_num<t:mp_clW*t:txb_len? s:mp_coff+s:mp_num : t:mp_clW*t:txb_len|let s:mp_num='01'",
 \"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
 \"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
 \"b":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,g:maxlen]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
