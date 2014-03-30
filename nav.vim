@@ -1033,7 +1033,7 @@ fun! s:setCursor(l,vc,ix)
 		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc<offset? offset : width<=a:vc? width : a:vc).'|'
 	else
 		exe (a:ix-wt+1).'winc w'
-		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc>winwidth(win)? '0g$' : '0'.a:vc.'|')
+		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc>winwidth(0)? '0g$' : '0'.a:vc.'|')
 	en
 endfun
 
@@ -1871,8 +1871,16 @@ fun! s:navMapKeyHandler(c)
 					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
-						let r=get(g:posmap[mp_c],s:mp_r,s:mp_r*t:mp_L)
-						call  s:blockPan(s:mp_c,0,r,2)
+						if t:txb.size[s:mp_c]>&columns
+							let [sp,off]=[s:mp_c,0]
+						else
+							let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+						en
+						let lowestr=(&lines-s:mp_settings[0])/2
+						let r=g:posmap[s:mp_c][s:mp_r][0]
+						let r0=r<lowestr? 1 : r-lowestr
+						call  s:blockPan(sp,off,r0,2)
+						call  s:setCursor(r,1,s:mp_c)
 						return
 					en
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
@@ -1897,7 +1905,17 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mp_continue==2
 			let [&ch,&more,&ls,&stal]=s:mp_settings
-			call  s:blockPan(s:mp_c,0,s:mp_r*t:mp_L,2)
+			if t:txb.size[s:mp_c]>&columns
+				let [sp,off]=[s:mp_c,0]
+			else
+				let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+				exe PRINT('-(&columns-t:txb.size[s:mp_c])/2|sp|off')
+			en
+			let lowestr=(&lines-s:mp_settings[0])/2
+			let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
+			let r0=r<lowestr? 1 : r-lowestr
+			call  s:blockPan(sp,off,r0,2)
+			call  s:setCursor(r,1,s:mp_c)
 		else
 			let [&ch,&more,&ls,&stal]=s:mp_settings
 		en
