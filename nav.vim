@@ -173,7 +173,7 @@ fun! TxbInit(...)
 	if !exists('plane.map')
 		let plane.map=eval('['.join(repeat(['{}'],len(plane.name)),',').']')
 	elseif len(plane.map)<len(plane.name)
-		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.name)),',').']'))
+		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']'))
 	en
 	for i in range(len(plane.map))
 		if type(plane.map[i])!=4
@@ -1632,7 +1632,7 @@ endfun
 
 
 
-let g:maxlen=120
+let g:maxlen=200
 
 fun! ConvertToGrid()
 	let g:gridmap=range(len(t:txb.map))
@@ -1657,7 +1657,7 @@ fun! s:getMapDisp()
 	for i in range(g:maxlen)
 		let padl=t:mp_clW
 		let colors=['EOL']
-		let coords=['0']
+		let coords=[0]
 		let leng=len(g:gridmap)-1
 		if empty(g:gridmap[leng][i])
 			let linestr=''
@@ -1777,7 +1777,7 @@ fun! s:mp_displayfunc()
 					call insert(curcoords,l,j+1)
 					call insert(curcolors,'TxbMapSel',j+1)
 					let lastcolor=curcolors[j]
-					let j+=1
+					let j+=2
 					let ticker=nextticker
 					break
 				else
