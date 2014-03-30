@@ -1189,7 +1189,7 @@ fun! s:redraw(...)
 		let colsLeft=0
 		let colb=w:txbi
 		let offset=&wrap? 0 : virtcol('.')-wincol()
-		let remain=&columns-(t:txb.size[w:txbi]-offset)
+		let remain=&columns-max([2,t:txb.size[w:txbi]-offset])
 		let colsRight=1
 		while remain>=2
 			let colb=(colb+1)%t:txb_len
@@ -1924,7 +1924,6 @@ fun! s:navMapKeyHandler(c)
 				let [sp,off]=[s:mp_c,0]
 			else
 				let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
-				exe PRINT('-(&columns-t:txb.size[s:mp_c])/2|sp|off')
 			en
 			let lowestr=(&lines-s:mp_settings[0])/2
 			let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
