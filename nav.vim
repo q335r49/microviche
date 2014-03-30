@@ -1038,19 +1038,19 @@ endfun
 fun! s:setCursor(l,vc,ix)
 	let wt=getwinvar(1,'txbi')
 	let wb=wt+winnr('$')-1
-	if ix<wt
+	if a:ix<wt
 		winc t
 		exe "norm! ".(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').'g0'
-	elseif ix>wb
+	elseif a:ix>wb
 		winc b
 		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(wb==wt? 'g$' : '0g$')
-	elseif ix==wt
+	elseif a:ix==wt
 		winc t
 		let offset=virtcol('.')-wincol()+1
 		let width=offset+winwidth(0)-3
 		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc<offset? offset : width<=a:vc? width : a:vc).'|'
 	else
-		exe (ix-wt+1).'winc w'
+		exe (a:ix-wt+1).'winc w'
 		exe 'norm! '.(a:l<line('w0')? 'H' : line('w$')<a:l? 'L' : a:l.'G').(a:vc>winwidth(win)? '0g$' : '0'.a:vc.'|')
 	en
 endfun
@@ -1067,7 +1067,7 @@ fun! s:blockPan(sp,off,y,mode)
 		en
 		only
 		exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
-		call setCursor(cpos[0],cpos[1],cpos[2])
+		call s:setCursor(cpos[0],cpos[1],cpos[2])
 		call s:redraw()
 		return
 	en
@@ -1725,7 +1725,7 @@ fun! s:mp_displayfunc()
 		let curle=s:mp_r
 	en
 	let blank=repeat(' ',t:mp_clW)
-	for i in range(s:mp_roff,s:mp_roff+&ch-2)
+	for i in range(s:mp_roff,s:mp_roff+&ch-3)
 		if i>=len(g:coordarr) || i<0
 			echo ''
 			continue
@@ -1799,6 +1799,8 @@ fun! s:mp_displayfunc()
 			endw
 			let ticker=0
 			let j=0
+			echon curcoords
+			echon curcolors
 			while ticker<s:mp_coff
 				let ticker+=curcoords[j]
 				let j+=1
@@ -1897,12 +1899,16 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_msg=''
 	let s:mp_r=a:r_ini
 	let s:mp_c=a:c_ini
+	let s:mp_r=s:mp_r<0? 0 : s:mp_r>=g:maxlen? g:maxlen-1 : s:mp_r
+	let s:mp_c=s:mp_c<0? 0 : s:mp_c>=t:txb_len? t:txb_len-1 : s:mp_c
 	let s:mp_continue=1
 	let s:mp_roff=max([s:mp_r-&ch/2,0])
 	let s:mp_coff=max([s:mp_c*t:mp_clW-&columns/2,0])
 	call ConvertToGrid()
 	call s:getMapDisp()
+	sleep 1
 	call s:mp_displayfunc()
+	sleep 1
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
@@ -1939,3 +1945,5 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 let s:mapdict["\<c-m>"]=s:mapdict.g
 
 delf s:SID
+let DrawMap=function('s:mp_displayfunc')
+let GMD=function('s:getMapDisp')
