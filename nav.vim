@@ -1853,7 +1853,7 @@ fun! s:navMapKeyHandler(c)
 					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
-						call  s:blockPan(s:mp_r,0,s:mp_c,2)
+						call  s:blockPan(s:mp_c,0,s:mp_r*t:mp_L,2)
 						return
 					en
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
@@ -1878,7 +1878,7 @@ fun! s:navMapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mp_continue==2
 			let [&ch,&more,&ls,&stal]=s:mp_settings
-			call  s:blockPan(s:mp_r,0,s:mp_c,2)
+			call  s:blockPan(s:mp_c,0,s:mp_r*t:mp_L,2)
 		else
 			let [&ch,&more,&ls,&stal]=s:mp_settings
 		en
