@@ -1920,22 +1920,22 @@ endfun
 let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"\<f1>":'call s:printHelp()',
 \"q":"let s:mp_continue=0",
-\"l":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
-\"h":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
-\"j":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
-\"k":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
-\"H":"let s:mp_coff=s:mp_coff>s:mp_num? s:mp_coff-s:mp_num : 0 |let s:mp_num='01'",
-\"L":"let s:mp_coff+=1|let s:mp_num='01'",
-\"K":"let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0 |let s:mp_num='01'",
-\"J":"let s:mp_roff+=1|let s:mp_num='01'",
-\"\<right>":"let s:mp_c+=s:mp_num|let s:mp_num='01'",
-\"\<left>":"let s:mp_c=max([s:mp_c-s:mp_num,0])|let s:mp_num='01'",
-\"\<down>":"let s:mp_r+=s:mp_num|let s:mp_num='01'",
-\"\<up>":"let s:mp_r=max([s:mp_r-s:mp_num,0])|let s:mp_num='01'",
+\"h":"let s:mp_c=s:mp_c>s:mp_num? s:mp_c-s:mp_num : 0|let s:mp_num='01'",
+\"H":"let s:mp_coff=s:mp_coff>s:mp_num? s:mp_coff-s:mp_num : 0|let s:mp_num='01'",
+\"j":"let s:mp_r=s:mp_r+s:mp_num<g:maxlen? s:mp_r+s:mp_num : g:maxlen|let s:mp_num='01'",
+\"J":"let s:mp_roff=s:mp_roff+s:mp_num<g:maxlen? s:mp_roff+s:mp_num : g:maxlen|let s:mp_num='01'",
+\"k":"let s:mp_r=s:mp_r>s:mp_num? s:mp_r-s:mp_num : 0|let s:mp_num='01'",
+\"K":"let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0|let s:mp_num='01'",
+\"l":"let s:mp_c=s:mp_c+s:mp_num<t:txb_len? s:mp_c+s:mp_num : t:txb_len|let s:mp_num='01'",
+\"L":"let s:mp_coff=s:mp_coff+s:mp_num<t:txb_len? s:mp_coff+s:mp_num : t:txb_len|let s:mp_num='01'",
 \"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
-\"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),s:mp_c+s:mp_num]|let s:mp_num='01'",
-\"b":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
-\"n":"let [s:mp_r,s:mp_c]=[s:mp_r+s:mp_num,s:mp_c+s:mp_num]|let s:mp_num='01'",
+\"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
+\"b":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,g:maxlen]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
+\"n":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,g:maxlen]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
+\"Y":"let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),max([s:mp_coff-s:mp_num,0])]|let s:mp_num='01'",
+\"U":"let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),min([s:mp_coff+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
+\"B":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,g:maxlen]),max([s:mp_coff-s:mp_num,0])]|let s:mp_num='01'",
+\"N":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,g:maxlen]),min([s:mp_coff+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
 \"1":"let s:mp_num=s:mp_num is '01'? '1' : s:mp_num>98? s:mp_num : s:mp_num.'1'",
 \"2":"let s:mp_num=s:mp_num is '01'? '2' : s:mp_num>98? s:mp_num : s:mp_num.'2'",
 \"3":"let s:mp_num=s:mp_num is '01'? '3' : s:mp_num>98? s:mp_num : s:mp_num.'3'",
@@ -1951,7 +1951,11 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
 	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
 	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr]=[t:mp_clH,t:mp_clW,1]"}
-let s:mapdict["\<c-m>"]=s:mapdict.g
+let s:mapdict["\<c-m>"]  =s:mapdict.g
+let s:mapdict["\<right>"]=s:mapdict.l
+let s:mapdict["\<left>"] =s:mapdict.h
+let s:mapdict["\<down>"] =s:mapdict.j
+let s:mapdict["\<up>"]   =s:mapdict.k
 
 delf s:SID
 let DrawMap=function('s:mp_displayfunc')
