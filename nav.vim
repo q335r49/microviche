@@ -70,27 +70,27 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan cardinally & diagonally
-	\\n[2] r R L                redraw / Remap / Label autotext
+	\\n    r R L                redraw / Remap / Label autotext
 	\\n    o                    Open map
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Show this message
-	\\n[3] S                    Settings
+	\\n[2] S                    Settings
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n(1) Movement keys take counts, capped at 99. Eg, '3j' = 'jjj'.
-	\\n(2) Lines of the form 'txb[:line num][: label#highlght]' are used to generate autolabels. You can insert the 'txb:[line num]' with [L]abel instead of typing it out.
-	\\n[R]emap (in addition to [r]edrawing):
-	\\n+ moves labels to [line num] by inserting or removing blank lines directly above
-	\\n+ sets the map cell to [label] and color to [highlight]
+	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
+	\\n\n\\CMAPPING:\n
+	\\nLines of the following form are considered map labels:
+	\\n    txb[:line num][: label#highlght#ignored text]
+	\\n\n[hotkey][R]emap will [r]edraw, map, and relocate the label line to [line num] by inserting or removing blank lines above for all visible splits.\n
 	\\nExamples:
-	\\n    txb:345 Blah blah    Move to 345
+	\\n    txb:345 Blah blah    Move to 345 (if possible)
 	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
 	\\n    txb: Blah#Title      Label 'Blah', highlight 'Title'
 	\\n    txb: Blah##Ignored   Label 'Blah'
-	\\n(3) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
-	\\n\n\\CMAP MODE:\n
+	\\n\nPress [hotkey][o] to view the map:
 	\\n[1] h j k l y u b n      Move cardinally & diagonally
 	\\n[1] H J K L Y U B N      Pan cardianlly & diagnally
 	\\n    g <cr>               Go to block and exit map
@@ -486,7 +486,6 @@ fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
 	echon w:txbi '-' line('.')
 endfun
-
 
 fun! s:deleteHiddenBuffers()
 	let tpbl=[]
