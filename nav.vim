@@ -1610,16 +1610,20 @@ fun! ConvertToGrid()
 	en
 	let g:gridmap=range(len(t:txb.map))
 	let g:colormap=range(len(t:txb.map))
+	let g:posmap=range(len(t:txb.map))
 	for i in copy(g:gridmap)
 		let g:gridmap[i]={}
 		let g:colormap[i]={}
+		let g:posmap[i]={}
 		for j in keys(t:txb.map[i])
 			let r=j/t:mp_L
 			if has_key(g:gridmap[i],r)
 				call add(g:gridmap[i][r],t:txb.map[i][j][0])
+				call add(g:posmap[i][r],j)
 			else
 				let g:gridmap[i][r]=[t:txb.map[i][j][0]]
 				let g:colormap[i][r]=t:txb.map[i][j][1]
+				let g:posmap[i][r]=[j]
 				if r>t:maxlen
 					let t:maxlen=r
 				en
@@ -1853,7 +1857,8 @@ fun! s:navMapKeyHandler(c)
 					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
 					if [s:mp_r,s:mp_c]==s:mp_prevclick
 						let [&ch,&more,&ls,&stal]=s:mp_settings
-						call  s:blockPan(s:mp_c,0,s:mp_r*t:mp_L,2)
+						let r=get(g:posmap[mp_c],s:mp_r,s:mp_r*t:mp_L)
+						call  s:blockPan(s:mp_c,0,r,2)
 						return
 					en
 					let s:mp_prevclick=[s:mp_r,s:mp_c]
