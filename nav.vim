@@ -1650,7 +1650,7 @@ fun! ConvertToGrid()
 endfun
 
 fun! s:getMapDisp()
-	let pad=repeat(' ',&columns+20)
+	let pad=repeat(' ',999)
 	let g:lines=[]
 	let g:colorarr=[]
 	let g:coordarr=[]
@@ -1687,7 +1687,7 @@ fun! s:getMapDisp()
 						call insert(coords,padl-l)
 						call insert(colors,'')
 					en
-					if g:colormap[j][i]==colors[0]
+					if empty(g:colormap[j][i])
 						let coords[0]+=l
 					else
 						call insert(coords,l)
@@ -1799,8 +1799,8 @@ fun! s:mp_displayfunc()
 			endw
 			let ticker=0
 			let j=0
-			echon curcoords
-			echon curcolors
+			"echon curcoords
+			"echon curcolors
 			while ticker<s:mp_coff
 				let ticker+=curcoords[j]
 				let j+=1
@@ -1821,6 +1821,10 @@ fun! s:mp_displayfunc()
 					let ticker=nextticker
 				en
 			endfor 
+			call add(g:debug,curline)
+			call add(g:debug,g:lines[i])
+			call add(g:debug,curcoords)
+			call add(g:debug,curcolors)
 			echon "\n"
 		en
 	endfor
@@ -1910,6 +1914,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	call s:mp_displayfunc()
 	sleep 1
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
+	let g:debug=[s:mp_coff,s:mp_c,t:mp_clW]
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:mp_continue=0|redr",
