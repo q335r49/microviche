@@ -1037,6 +1037,20 @@ fun! s:setCursor(l,vc,ix)
 	en
 endfun
 
+fun! TxbCalcPos(sp,off,N)
+	let offset=a:off+a:N
+	let sp=a:sp
+	while offset<0
+		let sp=sp>0? sp-1 : t:txb_len-1
+		let offset+=t:txb.size[sp-1]+1
+	endwhile
+	while offset>t:txb.size[sp]
+		let offset-=t:txb.size[sp]+1
+		let sp=sp>=t:txb_len-1? 0 : sp+1
+	endwhile
+	return [sp,offset]
+endfun
+
 fun! s:blockPan(sp,off,y,mode)
 	if a:mode==2
 		let cpos=[line('.'),virtcol('.'),w:txbi]
