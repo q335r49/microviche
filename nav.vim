@@ -1622,24 +1622,15 @@ fun! s:nav(N,L)
 	return extrashift
 endfun
 
-
-
-
-
-
-
-
-
-
-
-let g:maxlen=200
-
 fun! ConvertToGrid()
+	if !exists('t:maxlen') || t:maxlen<10
+		let t:maxlen=10
+	en
 	let g:gridmap=range(len(t:txb.map))
 	let g:colormap=range(len(t:txb.map))
 	for i in copy(g:gridmap)
-		let g:gridmap[i]=eval('['.repeat('[],',g:maxlen-1).'[]]')
-		let g:colormap[i]=repeat([''],g:maxlen)
+		let g:gridmap[i]=eval('['.repeat('[],',t:maxlen-1).'[]]')
+		let g:colormap[i]=repeat([''],t:maxlen)
 		for j in keys(t:txb.map[i])
 			call add(g:gridmap[i][j/t:mp_L],t:txb.map[i][j][0])
 			if empty(g:colormap[i][j/t:mp_L])
@@ -1653,7 +1644,7 @@ fun! s:getMapDisp()
 	let g:lines=[]
 	let g:colorarr=[]
 	let g:coordarr=[]
-	for i in range(g:maxlen)
+	for i in range(t:maxlen)
 		let padl=t:mp_clW
 		let colors=['EOL']
 		let coords=[0]
@@ -1842,7 +1833,7 @@ fun! s:navMapKeyHandler(c)
 			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 				let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
 				let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
-				let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>g:maxlen? g:maxlen : s:mp_roff
+				let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen? t:maxlen : s:mp_roff
 				let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
 				call s:mp_displayfunc()
 			en
@@ -1856,7 +1847,7 @@ fun! s:navMapKeyHandler(c)
 					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
 						let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
-						let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>g:maxlen? g:maxlen : s:mp_roff
+						let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen? t:maxlen : s:mp_roff
 						let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
 						call s:mp_displayfunc()
 					en
@@ -1910,7 +1901,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_msg=''
 	let s:mp_r=a:r_ini
 	let s:mp_c=a:c_ini
-	let s:mp_r=s:mp_r<0? 0 : s:mp_r>=g:maxlen? g:maxlen-1 : s:mp_r
+	let s:mp_r=s:mp_r<0? 0 : s:mp_r>=t:maxlen? t:maxlen-1 : s:mp_r
 	let s:mp_c=s:mp_c<0? 0 : s:mp_c>=t:txb_len? t:txb_len-1 : s:mp_c
 	let s:mp_continue=1
 	let s:mp_roff=max([s:mp_r-&ch/2,0])
@@ -1926,20 +1917,20 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"q":"let s:mp_continue=0",
 \"h":"let s:mp_c=s:mp_c>s:mp_num? s:mp_c-s:mp_num : 0|let s:mp_num='01'",
 \"H":"let s:mp_coff=s:mp_coff>s:mp_num? s:mp_coff-s:mp_num : 0|let s:mp_num='01'",
-\"j":"let s:mp_r=s:mp_r+s:mp_num<g:maxlen? s:mp_r+s:mp_num : g:maxlen|let s:mp_num='01'",
-\"J":"let s:mp_roff=s:mp_roff+s:mp_num<g:maxlen? s:mp_roff+s:mp_num : g:maxlen|let s:mp_num='01'",
+\"j":"let s:mp_r=s:mp_r+s:mp_num<t:maxlen? s:mp_r+s:mp_num : t:maxlen|let s:mp_num='01'",
+\"J":"let s:mp_roff=s:mp_roff+s:mp_num<t:maxlen? s:mp_roff+s:mp_num : t:maxlen|let s:mp_num='01'",
 \"k":"let s:mp_r=s:mp_r>s:mp_num? s:mp_r-s:mp_num : 0|let s:mp_num='01'",
 \"K":"let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0|let s:mp_num='01'",
 \"l":"let s:mp_c=s:mp_c+s:mp_num<t:txb_len? s:mp_c+s:mp_num : t:txb_len|let s:mp_num='01'",
 \"L":"let s:mp_coff=s:mp_coff+s:mp_num<t:mp_clW*t:txb_len? s:mp_coff+s:mp_num : t:mp_clW*t:txb_len|let s:mp_num='01'",
 \"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
 \"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
-\"b":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,g:maxlen]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
-\"n":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,g:maxlen]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
+\"b":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,t:maxlen]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'",
+\"n":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,t:maxlen]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
 \"Y":"let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),max([s:mp_coff-s:mp_num,0])]|let s:mp_num='01'",
 \"U":"let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),min([s:mp_coff+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
-\"B":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,g:maxlen]),max([s:mp_coff-s:mp_num,0])]|let s:mp_num='01'",
-\"N":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,g:maxlen]),min([s:mp_coff+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
+\"B":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,t:maxlen]),max([s:mp_coff-s:mp_num,0])]|let s:mp_num='01'",
+\"N":"let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,t:maxlen]),min([s:mp_coff+s:mp_num,t:txb_len-1])]|let s:mp_num='01'",
 \"1":"let s:mp_num=s:mp_num is '01'? '1' : s:mp_num>98? s:mp_num : s:mp_num.'1'",
 \"2":"let s:mp_num=s:mp_num is '01'? '2' : s:mp_num>98? s:mp_num : s:mp_num.'2'",
 \"3":"let s:mp_num=s:mp_num is '01'? '3' : s:mp_num>98? s:mp_num : s:mp_num.'3'",
