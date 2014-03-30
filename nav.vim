@@ -1656,6 +1656,7 @@ fun! s:getMapDisp()
 		let colors=["\n"]
 		let coords=[0]
 		if empty(get(g:gridmap[leng],i,''))
+			let padl+=t:mp_clW
 			let linestr=''
 		else
 			let linestr=g:gridmap[leng][i][0]
