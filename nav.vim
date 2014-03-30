@@ -1799,8 +1799,6 @@ fun! s:mp_displayfunc()
 			endw
 			let ticker=0
 			let j=0
-			"echon curcoords
-			"echon curcolors
 			while ticker<s:mp_coff
 				let ticker+=curcoords[j]
 				let j+=1
@@ -1821,10 +1819,6 @@ fun! s:mp_displayfunc()
 					let ticker=nextticker
 				en
 			endfor 
-			call add(g:debug,curline)
-			call add(g:debug,g:lines[i])
-			call add(g:debug,curcoords)
-			call add(g:debug,curcolors)
 			echon "\n"
 		en
 	endfor
@@ -1910,11 +1904,8 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_coff=max([s:mp_c*t:mp_clW-&columns/2,0])
 	call ConvertToGrid()
 	call s:getMapDisp()
-	sleep 1
 	call s:mp_displayfunc()
-	sleep 1
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
-	let g:debug=[s:mp_coff,s:mp_c,t:mp_clW]
 	call feedkeys("\<plug>TxbY")
 endfun
 let s:mapdict={"\e":"let s:mp_continue=0|redr",
