@@ -1650,7 +1650,6 @@ fun! ConvertToGrid()
 endfun
 
 fun! s:getMapDisp()
-	let pad=repeat(' ',999)
 	let g:lines=[]
 	let g:colorarr=[]
 	let g:coordarr=[]
@@ -1680,7 +1679,7 @@ fun! s:getMapDisp()
 						call insert(colors,g:colormap[j][i])
 					en
 				else
-					let linestr=g:gridmap[j][i][0].pad[:padl-1-l].linestr
+					let linestr=g:gridmap[j][i][0].repeat(' ',padl-1-l).linestr
 					if empty(colors[0])
 						let coords[0]+=padl-l
 					else
@@ -1699,7 +1698,7 @@ fun! s:getMapDisp()
 		endfor
 		if empty(g:gridmap[0][i])
 			let padl-=t:mp_clW
-			let linestr=pad[:padl-1].linestr
+			let linestr=repeat(' ',padl-1).linestr
 			if empty(colors[0])
 				let coords[0]+=padl
 			else
