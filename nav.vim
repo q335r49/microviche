@@ -1158,31 +1158,46 @@ fun! s:redraw(...)
 	en
 	let win0=winnr()
 	let pos=[bufnr('%'),line('w0'),line('.'), virtcol('.')]
-	if win0==1 && !&wrap
-		let offset=virtcol('.')-wincol()
-		if offset<t:txb.size[w:txbi]
-			exe (t:txb.size[w:txbi]-offset).'winc|'
+	if winnr('$')>1
+		if win0==1 && !&wrap
+			let offset=virtcol('.')-wincol()
+			if offset<t:txb.size[w:txbi]
+				exe (t:txb.size[w:txbi]-offset).'winc|'
+			en
 		en
+		se scrollopt=jump
+		let split0=win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2
+		let colt=w:txbi
+		let colsLeft=0
+		let remain=split0
+		while remain>=1
+			let colt=colt? colt-1 : t:txb_len-1
+			let remain-=t:txb.size[colt]+1
+			let colsLeft+=1
+		endwhile
+		let colb=w:txbi
+		let remain=&columns-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]) )
+		let colsRight=1
+		while remain>=2
+			let colb=(colb+1)%t:txb_len
+			let colsRight+=1
+			let remain-=t:txb.size[colb]+1
+		endwhile
+		let colbw=t:txb.size[colb]+remain
+	else
+		let colt=w:txbi
+		let colsLeft=0
+		let colb=w:txbi
+		let offset=&wrap? 0 : virtcol('.')-wincol()
+		let remain=&columns-(t:txb.size[w:txbi]-offset)
+		let colsRight=1
+		while remain>=2
+			let colb=(colb+1)%t:txb_len
+			let colsRight+=1
+			let remain-=t:txb.size[colb]+1
+		endwhile
+		let colbw=t:txb.size[colb]+remain
 	en
-	se scrollopt=jump
-	let split0=win0==1? 0 : eval(join(map(range(1,win0-1),'winwidth(v:val)')[:win0-2],'+'))+win0-2
-	let colt=w:txbi
-	let colsLeft=0
-	let remain=split0
-	while remain>=1
-		let colt=colt? colt-1 : t:txb_len-1
-		let remain-=t:txb.size[colt]+1
-		let colsLeft+=1
-	endwhile
-	let colb=w:txbi
-	let remain=&columns-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]))
-	let colsRight=1
-	while remain>=2
-		let colb=(colb+1)%t:txb_len
-		let colsRight+=1
-		let remain-=t:txb.size[colb]+1
-	endwhile
-	let colbw=t:txb.size[colb]+remain
 	let dif=colsLeft-win0+1
 	if dif>0
 		let colt=(w:txbi-win0+t:txb_len)%t:txb_len
@@ -1988,3 +2003,4 @@ let s:mapdict["\<up>"]   =s:mapdict.k
 delf s:SID
 "let DrawMap=function('s:mp_displayfunc')
 "let GMD=function('s:getMapDisp')
+let Redraw=function('s:redraw')
