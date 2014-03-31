@@ -1845,8 +1845,8 @@ fun! s:mp_displayfunc()
 					en
 				endfor 
 			else
-				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][s:mp_coff : xe-1]
+				exe 'echohl' curcolors[j-1]
+				echon curline[s:mp_coff : xe-1]
 			en
 			echon "\n"
 		en
