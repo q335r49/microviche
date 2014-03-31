@@ -23,8 +23,8 @@ Key | Action | | Key | Action
 `q` `esc` | *abort*| | |
 <sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
-<sup>3</sup> See [Automapping](#automapping) below.  
-<sup>4</sup> If the hotkey (default `F10`) becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
+<sup>3</sup> See below  
+<sup>4</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>5</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
 ####Label Syntax
@@ -32,18 +32,18 @@ Key | Action | | Key | Action
 Lines of the following form are considered labels:  
 <samp>txb[:line num][: label#highlght#position]</samp>
 
-`R`emap will 'r`edraw, put the label in the map, and move the label line to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
+`R`emap will `r`edraw, put the label in the map, and move the label line to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
 
 Examples:  
-<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
-<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
-<samp>&nbsp;txb: Blah#Title&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title'*  
+<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
+<samp>&nbsp;txb: Blah#Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title'*  
 <samp>&nbsp;txb: Blah##Ignored&nbsp;&nbsp;</samp>*label 'Blah'*
 
 Possible <samp>:ec TxbReformatLog</samp> entries:  
-<samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
-<samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
-<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
+<samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
+<samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
+<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
 
 ####Map Commands
 Press `F10``o` to view the map:
@@ -52,7 +52,7 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` |← ↓ ↑ →
 `drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
-`click` NW corner <sup>2</sup>|*exit map*||'H''J''K''L'' |Pan ← ↓ ↑ →
+`click` NW corner <sup>2</sup>|*exit map*||`H``J``K``L`` |Pan ← ↓ ↑ →
 `drag` to NW corner <sup>2</sup> | *(in plane) show map* ||`Y``U``B``N` |Pan ↖ ↗ ↙ ↘
 `g` `enter`| *goto label*||`q` `esc`|*quit*
 <sup>1</sup> gVim does not support the mouse in map mode.  
