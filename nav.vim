@@ -126,7 +126,7 @@ fun! TxbInit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
-	let default={'working dir':getcwd(),'map cell width':5, 'map cell height':2,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let default={'working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
 	else
@@ -253,12 +253,11 @@ fun! TxbInit(...)
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
 		let t:msSp=t:txb.settings['mouse pan speed']
 		let t:mp_L=t:txb.settings['lines per map grid']
-		let t:mp_clH=t:txb.settings['map cell height']
 		let t:mp_clW=t:txb.settings['map cell width']
 		let t:txb_wd=t:txb.settings['working dir']
 		let t:txb_name=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell height","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
@@ -537,13 +536,12 @@ let TxbKyCmd.S=
 	\let [settings_names[8],settings_values[8]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
 	\let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45]\n
 	\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
-	\let [settings_names[11],settings_values[11]]=['map cell height',has_key(t:txb.settings,'map cell height') && type(t:txb.settings['map cell height'])<=1? t:txb.settings['map cell height'] : 2]\n
-	\let [settings_names[12],settings_values[12]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
+	\let [settings_names[11],settings_values[11]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
 	\if exists('w:txbi')\n
-		\let [settings_names[13],settings_values[13]]=['    -- Split '.w:txbi.' --','##label##']\n
-		\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
-		\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-		\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
+		\let [settings_names[12],settings_values[12]]=['    -- Split '.w:txbi.' --','##label##']\n
+		\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,w:txbi,60)]\n
+		\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+		\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\en\n
 	\let prevVal=deepcopy(settings_values)\n
 	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
@@ -557,9 +555,9 @@ let TxbKyCmd.S=
 		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\if exists('w:txbi')\n
-			\let t:txb.size[w:txbi]=settings_values[14]\n
-			\let t:txb.exe[w:txbi]=settings_values[15]\n
-			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
+			\let t:txb.size[w:txbi]=settings_values[13]\n
+			\let t:txb.exe[w:txbi]=settings_values[14]\n
+			\if !empty(settings_values[15]) && settings_values[15]!=prevVal[15]\n
 				\let t:txb_name[w:txbi]=s:sp_newfname[0]\n
 				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 			\en\n
@@ -594,9 +592,7 @@ let TxbKyCmd.S=
 			\let t:mp_L=settings_values[9]\n
 		\let t:txb.settings['map cell width']=settings_values[10]\n
 			\let t:mp_clW=settings_values[10]\n
-		\let t:txb.settings['map cell height']=settings_values[11]\n
-			\let t:mp_clH=settings_values[11]\n
-		\if !empty(settings_values[12]) && settings_values[12]!=t:txb.settings['working dir']\n
+		\if !empty(settings_values[11]) && settings_values[11]!=t:txb.settings['working dir']\n
 			\let wd_msg=' (Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
@@ -611,8 +607,8 @@ let TxbKyCmd.S=
 							\exe 'cd' fnameescape(t:txb_wd)\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
-						\let t:txb.settings['working dir']=settings_values[12]\n
-						\let t:txb_wd=settings_values[12]\n
+						\let t:txb.settings['working dir']=settings_values[11]\n
+						\let t:txb_wd=settings_values[11]\n
 						\exe 'cd' fnameescape(t:txb_wd)\n
 						\let t:txb_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
@@ -692,7 +688,7 @@ let s:sp_exe.68=
 		\for k in [1,3,4,5,6,7,8,9,10,11]\n
 			\let vals[k]=get(a:errorcheck,a:keys[k],[vals[k]])[0]\n
 		\endfor\n
-		\for k in [12,14,15,16]\n
+		\for k in [11,13,14,15]\n
 			\let vals[k]=prevVal[k]\n
 		\endfor\n
 	\en"
