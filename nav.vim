@@ -1,4 +1,4 @@
-"Hosted at https://github.com/q335r49/textabyss
+"Hosted at https://github.com/q335r49/microviche
 
 if &cp|se nocompatible|en                     "[Vital] Enable vim features
 se noequalalways                              "[Vital] Needed for correct panning
@@ -65,7 +65,7 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n> Warning: Incompatible ttymouse setting - Panning disabled because ttymouse is 'xterm'. ':set ttymouse=xterm2' or 'sgr' is recommended." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr', if possible, allows mouse panning in map mode and overall smoother panning." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.7! (github.com/q335r49/textabyss)\n"
+	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8! (github.com/q335r49/microviche)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
@@ -858,29 +858,6 @@ let s:pagercom.100=s:pagercom.32
 let s:pagercom.117=s:pagercom.98
 let s:pagercom.27=s:pagercom.113
 
-let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
-let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
-let TxbKyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
-let TxbKyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
-let TxbKyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
-let TxbKyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
-let TxbKyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
-let TxbKyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
-let TxbKyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TxbKyCmd["\<up>"]=TxbKyCmd.k
-let TxbKyCmd["\<down>"]=TxbKyCmd.j
-let TxbKyCmd["\<left>"]=TxbKyCmd.h
-let TxbKyCmd["\<right>"]=TxbKyCmd.l
-
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
 nno <silent> <plug>TxbZ :call <SID>getchar()<cr>
@@ -944,6 +921,29 @@ let TxbKyCmd.q="let s:kc_continue=0"
 let TxbKyCmd[-1]='let s:kc_continue=0'
 let TxbKyCmd[-99]=""
 let TxbKyCmd["\e"]=TxbKyCmd.q
+
+let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
+let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
+let TxbKyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
+let TxbKyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
+let TxbKyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
+let TxbKyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
+let TxbKyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
+let TxbKyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
+let TxbKyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let TxbKyCmd["\<up>"]=TxbKyCmd.k
+let TxbKyCmd["\<down>"]=TxbKyCmd.j
+let TxbKyCmd["\<left>"]=TxbKyCmd.h
+let TxbKyCmd["\<right>"]=TxbKyCmd.l
 
 let TxbKyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
