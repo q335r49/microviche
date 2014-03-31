@@ -29,10 +29,10 @@ Key | Action | | Key | Action
 
 ####Label Syntax
 
-Lines of the following form are consdered labels:  
+Lines of the following form are considered labels:  
 <samp>txb[:line num][: label#highlght#position]</samp>
 
-`R`emap will 'r`edraw, label the map, and attempt to move the label line to <samp>line num</samp> by inserting or removing immediately preceding blank lines.
+`R`emap will 'r`edraw, put the label in the map, and move the label line to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
 
 Examples:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
@@ -46,22 +46,17 @@ Possible <samp>:ec TxbReformatLog</samp> entries:
 <samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
 
 ####Map Commands
-Press `F10``o` to access the map:
+Press `F10``o` to view the map:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` | ← ↓ ↑ → 
-`drag` | *pan* || `y``u``b``n` | ↖ ↗ ↙ ↘  
-`click` NW corner <sup>2</sup>|*exit map*||`g` `enter` | *goto block* 
-`drag` to NW corner <sup>2</sup> | *(in plane) show map* || `c` <sup>3</sup> | *change label*
-`H` `M` `L` | *high / middle / low row* || `0` `$` | *start / end of row*
-`I` `D` | *insert / delete & obtain col* || `Z` | *adjust map zoom*
-`x` | *delete & obtain cell* || `T` | *toggle color*
-`o` `O` | *obtain cell / col*|| `q` `esc`|*quit*
-`p` `P` | *put obtained after / before*|| `F1` | *help*
+`click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` |← ↓ ↑ →
+`drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
+`click` NW corner <sup>2</sup>|*exit map*||'H''J''K''L'' |Pan ← ↓ ↑ →
+`drag` to NW corner <sup>2</sup> | *(in plane) show map* ||`Y``U``B``N` |Pan ↖ ↗ ↙ ↘
+`g` `enter`| *goto label*||`q` `esc`|*quit*
 <sup>1</sup> gVim does not support the mouse in map mode.  
 <sup>2</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
-<sup>3</sup> See [Label Syntax](#label-syntax) below.
 
 ####Tips
 - To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> for the <samp>Plane</samp> (and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
