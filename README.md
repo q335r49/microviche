@@ -1,3 +1,5 @@
+**Note on updating from 1.7: MAP DATA WILL BE LOST (manual mapping has been removed)**
+
 <p align="center">
 <img hspace='20' src="https://raw.github.com/q335r49/textabyss/gh-pages/images/microviche-small.png" width="400" height="150" alt="animation"/>
 </p>
