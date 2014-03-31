@@ -957,6 +957,7 @@ let TxbKyCmd.D=
 			\call remove(t:txb_name,t_index)\n
 			\call remove(t:txb.size,t_index)\n
 			\call remove(t:txb.exe,t_index)\n
+			\call remove(t:txb.map,t_index)\n
 			\let t:txb_len=len(t:txb.name)\n
 		\en\n
 		\winc W\n
@@ -984,6 +985,7 @@ let TxbKyCmd.A=
 			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
+			\call insert(t:txb.map,{},w:txbi+1)\n
 			\let t:txb_len=len(t:txb.name)\n
 			\call s:redraw()\n
 		\en\n
@@ -1985,6 +1987,3 @@ let s:mapdict["\<down>"] =s:mapdict.j
 let s:mapdict["\<up>"]   =s:mapdict.k
 
 delf s:SID
-"let DrawMap=function('s:mp_displayfunc')
-"let GMD=function('s:getMapDisp')
-let Redraw=function('s:redraw')
