@@ -1863,7 +1863,7 @@ fun! s:navMapKeyHandler(c)
 				let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
 				let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
 				let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen? t:maxlen : s:mp_roff
-				let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
+				let s:mp_coff=s:mp_coff<0? 0 : s:mp_coff>=t:txb_len? t:txb_len-1 : s:mp_coff
 				call s:mp_displayfunc()
 			en
 			let s:mp_prevcoord=copy(g:TXBmsmsg)
@@ -1877,7 +1877,7 @@ fun! s:navMapKeyHandler(c)
 						let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
 						let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
 						let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen? t:maxlen : s:mp_roff
-						let s:mp_coff=s:mp_coff<0? 0 : s:mp_roff>=t:txb_len? t:txb_len-1 : s:mp_coff
+						let s:mp_coff=s:mp_coff<0? 0 : s:mp_coff>=t:txb_len? t:txb_len-1 : s:mp_coff
 						call s:mp_displayfunc()
 					en
 					let s:mp_prevcoord=copy(g:TXBmsmsg)
