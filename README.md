@@ -7,7 +7,7 @@ It works sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.
 
 ####Installation and Startup
 - **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [download dir]/nav.vim</samp>
-- (Only necessary when creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
+- (Only necessary when first creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Basic commands
@@ -30,9 +30,9 @@ Key | Action | | Key | Action
 ####Label Syntax
 
 Lines of the following form are considered labels:  
-<samp>txb[:line num][: label#highlght#position]</samp>
+<samp>&nbsp;txb[:line num][: label#highlght#position]</samp>
 
-`R`emap will `r`edraw, put the label in the map, and move the label line to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
+`R`emap operates on all visible splits: it will `r`edraw, map all labels, and move any displaced label lines to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
 
 Examples:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
