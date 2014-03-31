@@ -35,7 +35,7 @@ if !has("gui_running")
 	augroup TXB
 		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	augroup END
-	nn <silent> <leftmouse> :exe get(TxbMsCmd,&ttymouse,TxbMsCmd.default)()<cr>
+	nn <silent> <leftmouse> :exe get(TxbMsCmd,&ttymouse,g:TxbMsCmd.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
@@ -1269,8 +1269,12 @@ fun! s:redraw(...)
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
+		elseif i==1
+			let dif=colbw-winwidth(0)
+			exe 'vert res'.(dif>=0? '+'.dif : dif)
+			norm! 0
 		else
-			let dif=(ccol==colb? colbw : t:txb.size[ccol])-winwidth(0)
+			let dif=t:txb.size[ccol]-winwidth(0)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 			norm! 0
 		en
