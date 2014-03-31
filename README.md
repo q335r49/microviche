@@ -26,33 +26,30 @@ Key | Action | | Key | Action
 <sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
-####Label Syntax
+####Mapping
 
-Lines of the following form are considered labels:  
+Lines beginning with <samp>txb:</samp> are considered **mapping labels**. The full syntax is:  
 <samp>&nbsp;txb[:line num][: label#highlght#ignored text]</samp>
 
-`R`emap operates on all visible splits: it will `r`edraw, map all labels, and move any displaced label lines to <samp>line num</samp>, if possible, by inserting or removing immediately preceding blank lines.
-
-Examples:  
-<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+**`F10``R`emap** will (1) `r`edraw the view (2) map all labels for the splits in the view and (3) try to relocate any displaced label lines to the corresponding <samp>line num</samp>, if provided, by inserting or removing immediately preceding blank lines. Some example labels:  
+<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, if possible*  
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
 <samp>&nbsp;txb: Blah#Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title'*  
 <samp>&nbsp;txb: Blah##Ignored&nbsp;&nbsp;</samp>*label 'Blah'*
 
-Possible <samp>:ec TxbReformatLog</samp> entries:  
+<samp>:ec TxbReformatLog</samp> entries:  
 <samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
 <samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
 <samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
 
-####Map View
-Press `F10``o` to view the map:
+To **view the map**, press `F10``o`:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` |← ↓ ↑ →
 `drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
-`click` NW corner <sup>2</sup>|*exit map*||`H``J``K``L`` |Pan ← ↓ ↑ →
-`drag` to NW corner <sup>2</sup> | *(in plane) show map* ||`Y``U``B``N` |Pan ↖ ↗ ↙ ↘
+`click` NW corner <sup>2</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
+`drag` to NW corner <sup>2</sup> | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
 `g` `enter`| *goto label*||`q` `esc`|*quit*
 <sup>1</sup> gVim does not support the mouse in map mode.  
 <sup>2</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
