@@ -523,8 +523,8 @@ endfun
 
 let TxbKyCmd.S=
 	\"let s:kc_continue=0\n
-	\let settings_names=range(17)\n
-	\let settings_values=range(17)\n
+	\let settings_names=range(16)\n
+	\let settings_values=range(16)\n
 	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 	\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
@@ -792,13 +792,6 @@ let s:ErrorCheck['lines per map grid']=[45,
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'Each map grid is 1 split and this many lines']
-let s:ErrorCheck['map cell height']=[2,
-	\"let input=str2nr(input)\n
-	\if input<=0 || input>10\n
-		\let smsg.='Error: map cell height must be between 1 and 10'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'integer between 1 and 10']
 let s:ErrorCheck['map cell width']=[5,
 	\"let input=str2nr(input)\n
 	\if input<=0 || input>10\n
@@ -1984,11 +1977,7 @@ let s:mapdict={"\e":"let s:mp_continue=0|redr",
 \"8":"let s:mp_num=s:mp_num is '01'? '8' : s:mp_num>98? s:mp_num : s:mp_num.'8'",
 \"9":"let s:mp_num=s:mp_num is '01'? '9' : s:mp_num>98? s:mp_num : s:mp_num.'9'",
 \"0":"let [s:mp_c,s:mp_num]=s:mp_num is '01'? [s:mp_coff,s:mp_num] : [s:mp_c,s:mp_num>998? s:mp_num : s:mp_num.'0']",
-\"g":'let s:mp_continue=2',
-\"Z":"let t_in=[input(s:disp_str.'Block width (1-10): ',t:mp_clW),input('\nBlock height (1-10): ',t:mp_clH)]\n
-	\let t:mp_clW=t_in[0]>0 && t_in[0]<=10? t_in[0] : t:mp_clW\n
-	\let t:mp_clH=t_in[1]>0 && t_in[1]<=10? t_in[1] : t:mp_clH\n
-	\let [t:txb.settings['map cell height'],t:txb.settings['map cell width'],s:mp_redr]=[t:mp_clH,t:mp_clW,1]"}
+\"g":'let s:mp_continue=2'}
 let s:mapdict["\<c-m>"]  =s:mapdict.g
 let s:mapdict["\<right>"]=s:mapdict.l
 let s:mapdict["\<left>"] =s:mapdict.h
