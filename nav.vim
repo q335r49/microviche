@@ -1646,54 +1646,55 @@ fun! s:convertToGrid()
 endfun
 
 fun! s:getMapDisp()
-	let g:lines=[]
-	let g:colorarr=[]
-	let g:coordarr=[]
+	let pad=repeat(' ',t:mp_clW*t:txb_len)
+	let g:lines=repeat([''],t:maxlen)
+	let g:colorarr=copy(g:lines)
+	let g:coordarr=copy(g:lines)
 	for i in range(t:maxlen)
 		let j=t:txb_len-1
 		let padl=t:mp_clW
-		while j>=0 && empty(get(g:gridmap[j],i,''))
-			let padl+=t:mp_clW
-			let j-=1
-		endw
-		if j<0
-			call add(g:lines,repeat(' ',(t:txb_len)*t:mp_clW))
-			call add(g:colorarr,[''])
-			call add(g:coordarr,[t:txb_len*t:mp_clW])
-			continue
-		else
-			let padl=max([padl,len(g:gridmap[j][i][0])])
-			let linestr=''
-			let coords=[0]
-			let colors=["\n"]
-		en
 		while j>=0
-			if empty(get(g:gridmap[j],i,''))
+			let l=len(get(get(g:gridmap[j],i,[]),0,''))
+			if !l
 				let padl+=t:mp_clW
-			else
-				let l=len(g:gridmap[j][i][0])
-				if l>=padl
-					let linestr=g:gridmap[j][i][0][:padl-2].'>'.linestr
-					if g:colormap[j][i]==colors[0]
-						let coords[0]+=padl
-					else
-						call insert(coords,padl)
-						call insert(colors,g:colormap[j][i])
-					en
+			elseif l>=padl
+				if empty(g:lines[i])
+					let g:lines[i]=g:gridmap[j][i][0]
+					let g:coordarr[i]=[padl]
+					let g:colorarr[i]=[g:colormap[j][i]]
 				else
-					let linestr=g:gridmap[j][i][0].repeat(' ',padl-l).linestr
-					if empty(colors[0])
-						let coords[0]+=padl-l
+					let g:lines[i]=g:gridmap[j][i][0][:padl-2].'>'.g:lines[i]
+					if g:colormap[j][i]==g:colorarr[i][0]
+						let g:coordarr[i][0]+=padl
 					else
-						call insert(coords,padl-l)
-						call insert(colors,'')
+						call insert(g:coordarr[i],padl)
+						call insert(g:colorarr[i],g:colormap[j][i])
 					en
-					if empty(g:colormap[j][i])
-						let coords[0]+=l
-					else
-						call insert(coords,l)
-						call insert(colors,g:colormap[j][i])
-					en
+				en
+				let padl=t:mp_clW
+			elseif empty(g:lines[i])
+				let g:lines[i]=g:gridmap[j][i][0].pad[:padl-l-1]
+				if empty(g:colormap[j][i])
+					let g:coordarr[i]=[padl]
+					let g:colorarr[i]=['']
+				else
+					let g:coordarr[i]=[l,padl-l]
+					let g:colorarr[i]=[g:colormap[j][i],'']
+				en
+				let padl=t:mp_clW
+			else
+				let g:lines[i]=g:gridmap[j][i][0].pad[:padl-l-1].g:lines[i]
+				if empty(g:colorarr[i][0])
+					let g:coordarr[i][0]+=padl-l
+				else
+					call insert(g:coordarr[i],padl-l)
+					call insert(g:colorarr[i],'')
+				en
+				if empty(g:colormap[j][i])
+					let g:coordarr[i][0]+=l
+				else
+					call insert(g:coordarr[i],l)
+					call insert(g:colorarr[i],g:colormap[j][i])
 				en
 				let padl=t:mp_clW
 			en
@@ -1701,19 +1702,20 @@ fun! s:getMapDisp()
 		endw
 		if empty(get(g:gridmap[0],i,''))
 			let padl-=t:mp_clW
-			let linestr=repeat(' ',padl).linestr
-			if empty(colors[0])
-				let coords[0]+=padl
+			if empty(g:lines[i])
+				let g:lines[i]=pad[:padl-1]
+				let g:coordarr[i]=[padl]
+				let g:colorarr[i]=['']
 			else
-				call insert(coords,padl)
-				call insert(colors,'')
+				let g:lines[i]=pad[:padl-1].g:lines[i]
+				if empty(g:colorarr[i][0])
+					let g:coordarr[i][0]+=padl
+				else
+					call insert(g:coordarr[i],padl)
+					call insert(g:colorarr[i],'')
+				en
 			en
 		en
-		call remove(coords,-1)
-		call remove(colors,-1)
-		call add(g:lines,linestr)
-		call add(g:colorarr,colors)
-		call add(g:coordarr,coords)
 	endfor
 endfun
 
