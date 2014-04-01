@@ -1055,8 +1055,8 @@ fun! s:blockPan(sp,off,y,mode)
 		en
 		only
 		exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
-		call s:setCursor(cpos[0],cpos[1],cpos[2])
 		call s:redraw()
+		call s:setCursor(cpos[0],cpos[1],cpos[2])
 		return
 	en
 	let cSp=getwinvar(1,'txbi')
