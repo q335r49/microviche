@@ -1234,7 +1234,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let t:txb.map[ccol]={}
+			let t:txb.map[ccol]={-9999:line('$')}
 			norm! 1G0
 			let line=search('^txb:','Wc')
 			while line
@@ -1728,7 +1728,6 @@ fun! s:mp_displayfunc()
 		let curlb=s:mp_r
 		let curle=s:mp_r
 	en
-	let blank=repeat(' ',t:mp_clW)
 	for i in range(s:mp_roff,s:mp_roff+&ch-3)
 		if i>=len(g:coordarr) || i<0
 			echo ''
@@ -1743,28 +1742,27 @@ fun! s:mp_displayfunc()
 			if j==len(g:coordarr[i])
 				echohl
 				echon g:lines[i][s:mp_coff : ]."\n"
-			else
-				if ticker<xe
-					if ticker!=s:mp_coff
-						exe 'echohl' g:colorarr[i][j-1]
-						echon g:lines[i][s:mp_coff : ticker-1]
-					en
-					for j in range(j,len(g:coordarr[i])-1)
-						let nextticker=ticker+g:coordarr[i][j]
-						if nextticker>=xe
-							exe 'echohl' g:colorarr[i][j]
-							echon g:lines[i][ticker : xe-1]
-							break
-						else
-							exe 'echohl' g:colorarr[i][j]
-							echon g:lines[i][ticker : nextticker-1]
-							let ticker=nextticker
-						en
-					endfor 
-				else
+			elseif ticker<xe
+				if ticker!=s:mp_coff
 					exe 'echohl' g:colorarr[i][j-1]
-					echon g:lines[i][s:mp_coff : xe-1]
+					echon g:lines[i][s:mp_coff : ticker-1]
 				en
+				for j in range(j,len(g:coordarr[i])-1)
+					let nextticker=ticker+g:coordarr[i][j]
+					if nextticker>=xe
+						exe 'echohl' g:colorarr[i][j]
+						echon g:lines[i][ticker : xe-1]
+						break
+					else
+						exe 'echohl' g:colorarr[i][j]
+						echon g:lines[i][ticker : nextticker-1]
+						let ticker=nextticker
+					en
+				endfor 
+				echon "\n"
+			else
+				exe 'echohl' g:colorarr[i][j-1]
+				echon g:lines[i][s:mp_coff : xe-1]
 				echon "\n"
 			en
 		else
@@ -1828,28 +1826,27 @@ fun! s:mp_displayfunc()
 			if j==len(curcoords)
 				echohl
 				echon curline[s:mp_coff : ]."\n"
-			else
-				if ticker<xe
-					if ticker!=s:mp_coff
-						exe 'echohl' curcolors[j-1]
-						echon curline[s:mp_coff : ticker-1]
-					en
-					for j in range(j,len(curcoords)-1)
-						let nextticker=ticker+curcoords[j]
-						if nextticker>=xe
-							exe 'echohl' curcolors[j]
-							echon curline[ticker : xe-1]
-							break
-						else
-							exe 'echohl' curcolors[j]
-							echon curline[ticker : ticker+curcoords[j]-1]
-							let ticker=nextticker
-						en
-					endfor 
-				else
+			elseif ticker<xe
+				if ticker!=s:mp_coff
 					exe 'echohl' curcolors[j-1]
-					echon curline[s:mp_coff : xe-1]
+					echon curline[s:mp_coff : ticker-1]
 				en
+				for j in range(j,len(curcoords)-1)
+					let nextticker=ticker+curcoords[j]
+					if nextticker>=xe
+						exe 'echohl' curcolors[j]
+						echon curline[ticker : xe-1]
+						break
+					else
+						exe 'echohl' curcolors[j]
+						echon curline[ticker : ticker+curcoords[j]-1]
+						let ticker=nextticker
+					en
+				endfor 
+				echon "\n"
+			else
+				exe 'echohl' curcolors[j-1]
+				echon curline[s:mp_coff : xe-1]
 				echon "\n"
 			en
 		en
