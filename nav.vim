@@ -1225,8 +1225,6 @@ fun! s:redraw(...)
 	winc =
 	winc b
 	let ccol=colb
-	let log=[]
-	let elog=[]
 	let errorEncountered=0
 	for i in range(1,numcols)
 		se wfw
@@ -1246,14 +1244,11 @@ fun! s:redraw(...)
 					if lref<line
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
-							call add(elog,'EMOV'."\t".ccol."\t".line."\t".lref)
 							let errorEncountered=1
 						else
-							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 						en
 					else
-						call add(log,'move'."\t".ccol."\t".line."\t".lref)
 						exe 'norm! '.(lref-line)."O\ej"
 					en
 				en
@@ -1264,7 +1259,6 @@ fun! s:redraw(...)
 					if !empty(autolbl) && !empty(autolbl[0])
 						let t:txb.map[ccol][line]=[autolbl[0],errorEncountered? 'ErrorMsg' : len(autolbl)>1? autolbl[1] : '']
 						let errorEncountered=0
-						call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 					en
 				en
 				let line=search('^txb:','W')
@@ -1293,16 +1287,7 @@ fun! s:redraw(...)
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
-	if !a:0
-		let s:kc_msg='(redraw complete)'
-	elseif empty(elog)
-		let s:kc_msg='(Remap complete, :ec TxbRemapLog to see changes)'
-		let g:TxbRemapLog=join(log,"\n")
-	else
-		let g:TxbRemapLog=join(elog,"\n")
-		let s:kc_msg=":ec TxbRemapLog to review errors:\n".g:TxbRemapLog
-		let g:TxbRemapLog.=join(log,"\n")
-	en
+	let s:kc_msg=a:0? '(Remap complete)' : '(redraw complete)'
 endfun
 let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0"
 let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"

@@ -33,16 +33,11 @@ Key | Action | | Key | Action
 Lines beginning with <samp>txb:</samp> are considered **mapping labels**. The full syntax is:  
 <samp>&nbsp;txb[:line num][: label#highlght#ignored text]</samp>
 
-**`F10``R`emap** will (1) `r`edraw the view (2) map all labels for the splits in the view and (3) try to relocate any displaced label lines to the corresponding <samp>line num</samp>, if provided, by inserting or removing immediately preceding blank lines. Some example labels:  
+**`F10``R`emap** will (1) `r`edraw the view (2) map all labels for the splits in the view and (3) relocate any displaced label lines to <samp>line num</samp> (if provided) by inserting or removing immediately preceding blank lines. If relocation is impossible (ie, if there aren't enough preceding blank lines to remove) the label will be highlighted <samp>ErrorMsg</samp> (bright red) in the map. Some example labels:  
 <samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, if possible*  
 <samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
 <samp>&nbsp;txb: Blah#Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title'*  
 <samp>&nbsp;txb: Blah##Ignored&nbsp;&nbsp;</samp>*label 'Blah'*
-
-<samp>:ec TxbReformatLog</samp> entries:  
-<samp>&nbsp;move 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*In split 15, line 78 was moved to line 70*  
-<samp>&nbsp;labl 15 78 Blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Line 78 of split 15 was labeled 'Blah'*  
-<samp>&nbsp;EMOV 15 78 70&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*Error: not enough blank lines to remove*  
 
 To **view the map**, press `F10``o`:
 
