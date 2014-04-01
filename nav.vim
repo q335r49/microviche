@@ -57,7 +57,7 @@ fun! s:printHelp()
 	redir END
 	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
 	let WarningsAndSuggestions=
-	\ (v:version<=703? "\n> Warning: Vim <= 7.3 - Vim 7.4 is recommended.": '')
+	\ (v:version<=703? "\n> Warning: Vim <= 7.3 - Vim 7.4 or a  is recommended.": '')
 	\.(v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Scrollbind won't sync on mouse panning until you release the mouse button": '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - The plane can't be saved in the viminfo, but you can still write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands may slow down mouse - Possible mouse lag due to BufEnter, BufLeave, WinEnter, and WinLeave triggering during panning. Perhaps slim down those autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
@@ -1029,7 +1029,7 @@ fun! s:setCursor(l,vc,ix)
 	en
 endfun
 
-fun! TxbCalcPos(sp,off,N)
+fun! s:calcPos(sp,off,N)
 	let offset=a:off+a:N
 	let sp=a:sp
 	while offset<0
@@ -1629,7 +1629,7 @@ fun! s:nav(N,L)
 	return extrashift
 endfun
 
-fun! ConvertToGrid()
+fun! s:convertToGrid()
 	if !exists('t:maxlen') || t:maxlen<10
 		let t:maxlen=10
 	en
@@ -1885,7 +1885,7 @@ fun! s:navMapKeyHandler(c)
 						if t:txb.size[s:mp_c]>&columns
 							let [sp,off]=[s:mp_c,0]
 						else
-							let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+							let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
 						en
 						let lowestr=(&lines-s:mp_settings[0])/2
 						let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
@@ -1926,7 +1926,7 @@ fun! s:navMapKeyHandler(c)
 			if t:txb.size[s:mp_c]>&columns
 				let [sp,off]=[s:mp_c,0]
 			else
-				let [sp,off]=TxbCalcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+				let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
 			en
 			let lowestr=(&lines-s:mp_settings[0])/2
 			let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
@@ -1958,7 +1958,7 @@ fun! s:navMap(array,c_ini,r_ini)
 	let s:mp_msg=''
 	let s:mp_r=a:r_ini
 	let s:mp_c=a:c_ini
-	call ConvertToGrid()
+	call s:convertToGrid()
 	call s:getMapDisp()
 	let s:mp_r=s:mp_r<0? 0 : s:mp_r>t:maxlen-1? t:maxlen-1 : s:mp_r
 	let s:mp_c=s:mp_c<0? 0 : s:mp_c>=t:txb_len? t:txb_len-1 : s:mp_c
