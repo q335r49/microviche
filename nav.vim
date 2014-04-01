@@ -1283,7 +1283,7 @@ fun! s:redraw(...)
 	if s:badSync
 		windo 1
 	en
-	exe "norm! :syncbind\<cr>"
+	silent exe "norm! :syncbind\<cr>"
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
@@ -1609,7 +1609,7 @@ fun! s:nav(N,L)
 		if s:badSync
 			windo 1
 		en
-		exe "norm! :syncbind\<cr>"
+		silent exe "norm! :syncbind\<cr>"
 	en
 	exe cL
 	let dif=line('w0')-a:L
