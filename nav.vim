@@ -1891,6 +1891,13 @@ fun! s:navMapKeyHandler(c)
 						let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
 						let r0=r<lowestr? 1 : r-lowestr
 						call  s:blockPan(sp,off,r0,2)
+						exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
+						let dif=line('w0')-r0
+						if dif>0
+							exe 'norm! '.dif."\<c-y>"
+						elseif dif<0
+							exe 'norm! '.(-dif)."\<c-e>"
+						en
 						call  s:setCursor(r,1,s:mp_c)
 						return
 					en
@@ -1925,6 +1932,13 @@ fun! s:navMapKeyHandler(c)
 			let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
 			let r0=r<lowestr? 1 : r-lowestr
 			call  s:blockPan(sp,off,r0,2)
+			exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
+			let dif=line('w0')-r0
+			if dif>0
+				exe 'norm! '.dif."\<c-y>"
+			elseif dif<0
+				exe 'norm! '.(-dif)."\<c-e>"
+			en
 			call  s:setCursor(r,1,s:mp_c)
 		else
 			let [&ch,&more,&ls,&stal]=s:mp_settings
