@@ -1651,18 +1651,24 @@ fun! s:getMapDisp()
 	let g:coordarr=[]
 	let leng=t:txb_len-1
 	for i in range(t:maxlen)
+		let j=leng
 		let padl=t:mp_clW
-		let colors=["\n"]
-		let coords=[0]
-		if empty(get(g:gridmap[leng],i,''))
+		while j>=0 && empty(get(g:gridmap[j],i,''))
 			let padl+=t:mp_clW
-			let linestr=''
+			let j-=1
+		endw
+		if j<0
+			call add(g:lines,repeat(' ',(leng+1)*t:mp_clW))
+			call add(g:colorarr,[''])
+			call add(g:coordarr,[(leng+1)*t:mp_clW])
+			continue
 		else
-			let linestr=g:gridmap[leng][i][0]
-			call insert(coords,len(g:gridmap[leng][i][0]))
-			call insert(colors,g:colormap[leng][i])
+			let padl=max([padl,len(g:gridmap[j][i][0])])
+			let linestr=''
+			let coords=[0]
+			let colors=["\n"]
 		en
-		for j in range(leng-1,0,-1)
+		while j>=0
 			if empty(get(g:gridmap[j],i,''))
 				let padl+=t:mp_clW
 			else
@@ -1692,7 +1698,8 @@ fun! s:getMapDisp()
 				en
 				let padl=t:mp_clW
 			en
-		endfor
+			let j-=1
+		endw
 		if empty(get(g:gridmap[0],i,''))
 			let padl-=t:mp_clW
 			let linestr=repeat(' ',padl).linestr
@@ -1703,8 +1710,8 @@ fun! s:getMapDisp()
 				call insert(colors,'')
 			en
 		en
-		call remove(colors,-1)
 		call remove(coords,-1)
+		call remove(colors,-1)
 		call add(g:lines,linestr)
 		call add(g:colorarr,colors)
 		call add(g:coordarr,coords)
@@ -1728,32 +1735,37 @@ fun! s:mp_displayfunc()
 		elseif i<curlb || i>curle
 			let ticker=0
 			let j=0
-			while ticker<s:mp_coff
+			while ticker<s:mp_coff && j<len(g:coordarr[i])
 				let ticker+=g:coordarr[i][j]
 				let j+=1
 			endwhile
-			if ticker<xe
-				if ticker!=s:mp_coff
-					exe 'echohl' g:colorarr[i][j-1]
-					echon g:lines[i][s:mp_coff : ticker-1]
-				en
-				for j in range(j,len(g:coordarr[i])-1)
-					let nextticker=ticker+g:coordarr[i][j]
-					if nextticker>=xe
-						exe 'echohl' g:colorarr[i][j]
-						echon g:lines[i][ticker : xe-1]
-						break
-					else
-						exe 'echohl' g:colorarr[i][j]
-						echon g:lines[i][ticker : nextticker-1]
-						let ticker=nextticker
-					en
-				endfor 
+			if j==len(g:coordarr[i])
+				echohl
+				echon g:lines[i][s:mp_coff : ]."\n"
 			else
-				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][s:mp_coff : xe-1]
+				if ticker<xe
+					if ticker!=s:mp_coff
+						exe 'echohl' g:colorarr[i][j-1]
+						echon g:lines[i][s:mp_coff : ticker-1]
+					en
+					for j in range(j,len(g:coordarr[i])-1)
+						let nextticker=ticker+g:coordarr[i][j]
+						if nextticker>=xe
+							exe 'echohl' g:colorarr[i][j]
+							echon g:lines[i][ticker : xe-1]
+							break
+						else
+							exe 'echohl' g:colorarr[i][j]
+							echon g:lines[i][ticker : nextticker-1]
+							let ticker=nextticker
+						en
+					endfor 
+				else
+					exe 'echohl' g:colorarr[i][j-1]
+					echon g:lines[i][s:mp_coff : xe-1]
+				en
+				echon "\n"
 			en
-			echon "\n"
 		else
 			let b=s:mp_c*t:mp_clW
 			let content=empty(get(g:gridmap[s:mp_c],s:mp_r,''))? repeat(' ',t:mp_clW) : g:gridmap[s:mp_c][s:mp_r][i-curlb]
@@ -1805,34 +1817,40 @@ fun! s:mp_displayfunc()
 					en
 				endw
 			en
+
 			let ticker=0
 			let j=0
-			while ticker<s:mp_coff
+			while ticker<s:mp_coff && j<len(curcoords)
 				let ticker+=curcoords[j]
 				let j+=1
 			endwhile
-			if ticker<xe
-				if ticker!=s:mp_coff
-					exe 'echohl' curcolors[j-1]
-					echon curline[s:mp_coff : ticker-1]
-				en
-				for j in range(j,len(curcoords)-1)
-					let nextticker=ticker+curcoords[j]
-					if nextticker>=xe
-						exe 'echohl' curcolors[j]
-						echon curline[ticker : xe-1]
-						break
-					else
-						exe 'echohl' curcolors[j]
-						echon curline[ticker : ticker+curcoords[j]-1]
-						let ticker=nextticker
-					en
-				endfor 
+			if j==len(curcoords)
+				echohl
+				echon curline[s:mp_coff : ]."\n"
 			else
-				exe 'echohl' curcolors[j-1]
-				echon curline[s:mp_coff : xe-1]
+				if ticker<xe
+					if ticker!=s:mp_coff
+						exe 'echohl' curcolors[j-1]
+						echon curline[s:mp_coff : ticker-1]
+					en
+					for j in range(j,len(curcoords)-1)
+						let nextticker=ticker+curcoords[j]
+						if nextticker>=xe
+							exe 'echohl' curcolors[j]
+							echon curline[ticker : xe-1]
+							break
+						else
+							exe 'echohl' curcolors[j]
+							echon curline[ticker : ticker+curcoords[j]-1]
+							let ticker=nextticker
+						en
+					endfor 
+				else
+					exe 'echohl' curcolors[j-1]
+					echon curline[s:mp_coff : xe-1]
+				en
+				echon "\n"
 			en
-			echon "\n"
 		en
 	endfor
 	echohl
