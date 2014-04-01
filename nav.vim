@@ -1649,18 +1649,17 @@ fun! s:getMapDisp()
 	let g:lines=[]
 	let g:colorarr=[]
 	let g:coordarr=[]
-	let leng=t:txb_len-1
 	for i in range(t:maxlen)
-		let j=leng
+		let j=t:txb_len-1
 		let padl=t:mp_clW
 		while j>=0 && empty(get(g:gridmap[j],i,''))
 			let padl+=t:mp_clW
 			let j-=1
 		endw
 		if j<0
-			call add(g:lines,repeat(' ',(leng+1)*t:mp_clW))
+			call add(g:lines,repeat(' ',(t:txb_len)*t:mp_clW))
 			call add(g:colorarr,[''])
-			call add(g:coordarr,[(leng+1)*t:mp_clW])
+			call add(g:coordarr,[t:txb_len*t:mp_clW])
 			continue
 		else
 			let padl=max([padl,len(g:gridmap[j][i][0])])
