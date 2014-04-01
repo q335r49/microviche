@@ -1234,7 +1234,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let t:txb.map[ccol]={-9999:line('$')}
+			let t:txb.map[ccol]={-9999:[line('$'),'']}
 			norm! 1G0
 			let line=search('^txb:','Wc')
 			while line
@@ -1646,7 +1646,10 @@ fun! s:convertToGrid()
 endfun
 
 fun! s:getMapDisp()
-	let pad=repeat(' ',t:mp_clW*t:txb_len)
+	let len_index=-9999/t:mp_L
+	let earth=repeat('.',t:mp_clW)
+	let water=repeat(' ',t:mp_clW)
+	let pad=map(range(t:mp_L,t:mp_L*t:maxlen,t:mp_L),'join(map(range(t:txb_len),v:val.''>get(g:gridmap[v:val],len_index,[999999])[0]? earth : water''),'''')')
 	let g:lines=repeat([''],t:maxlen)
 	let g:colorarr=copy(g:lines)
 	let g:coordarr=copy(g:lines)
@@ -1673,7 +1676,7 @@ fun! s:getMapDisp()
 				en
 				let padl=t:mp_clW
 			elseif empty(g:lines[i])
-				let g:lines[i]=g:gridmap[j][i][0].pad[:padl-l-1]
+				let g:lines[i]=g:gridmap[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l)
 				if empty(g:colormap[j][i])
 					let g:coordarr[i]=[padl]
 					let g:colorarr[i]=['']
@@ -1683,7 +1686,7 @@ fun! s:getMapDisp()
 				en
 				let padl=t:mp_clW
 			else
-				let g:lines[i]=g:gridmap[j][i][0].pad[:padl-l-1].g:lines[i]
+				let g:lines[i]=g:gridmap[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l).g:lines[i]
 				if empty(g:colorarr[i][0])
 					let g:coordarr[i][0]+=padl-l
 				else
@@ -1703,11 +1706,11 @@ fun! s:getMapDisp()
 		if empty(get(g:gridmap[0],i,''))
 			let padl-=t:mp_clW
 			if empty(g:lines[i])
-				let g:lines[i]=pad[:padl-1]
+				let g:lines[i]=strpart(pad[i],0,padl)
 				let g:coordarr[i]=[padl]
 				let g:colorarr[i]=['']
 			else
-				let g:lines[i]=pad[:padl-1].g:lines[i]
+				let g:lines[i]=strpart(pad[i],0,padl).g:lines[i]
 				if empty(g:colorarr[i][0])
 					let g:coordarr[i][0]+=padl
 				else
@@ -1816,7 +1819,6 @@ fun! s:mp_displayfunc()
 					en
 				endw
 			en
-
 			let ticker=0
 			let j=0
 			while ticker<s:mp_coff && j<len(curcoords)
