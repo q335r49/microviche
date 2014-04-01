@@ -1680,7 +1680,7 @@ fun! s:getMapDisp()
 			else
 				let l=len(g:gridmap[j][i][0])
 				if l>=padl
-					let linestr=g:gridmap[j][i][0][:padl-1].linestr
+					let linestr=g:gridmap[j][i][0][:padl-2].'>'.linestr
 					if g:colormap[j][i]==colors[0]
 						let coords[0]+=padl
 					else
