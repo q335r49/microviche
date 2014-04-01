@@ -1227,6 +1227,7 @@ fun! s:redraw(...)
 	let ccol=colb
 	let log=[]
 	let elog=[]
+	let errorEncountered=0
 	for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
@@ -1246,6 +1247,7 @@ fun! s:redraw(...)
 						let deletions=line-lref
 						if prevnonblank(line-1)>=lref
 							call add(elog,'EMOV'."\t".ccol."\t".line."\t".lref)
+							let errorEncountered=1
 						else
 							call add(log,'move'."\t".ccol."\t".line."\t".lref)
 							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
@@ -1260,7 +1262,8 @@ fun! s:redraw(...)
 				if head
 					let autolbl=split(L[head :],'#',1)
 					if !empty(autolbl) && !empty(autolbl[0])
-						let t:txb.map[ccol][line]=[autolbl[0],len(autolbl)>1? autolbl[1] : '']
+						let t:txb.map[ccol][line]=[autolbl[0],errorEncountered? 'ErrorMsg' : len(autolbl)>1? autolbl[1] : '']
+						let errorEncountered=0
 						call add(log,'labl'."\t".ccol."\t".line."\t".autolbl[0])
 					en
 				en
