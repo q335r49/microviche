@@ -9,29 +9,28 @@ It's like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader 
 - (Only necessary when first creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Moving Around
-Pan with the mouse or press `F10` followed by:
+####Usage
+Once loaded, pan with the **mouse** or by pressing `F10` followed by:
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` | ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` | *redraw / Remap* | | `L` | *label autotext*
-`o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
+`r` | *redraw* | | `L` | *insert* <samp>txb:lnum</samp>
+`m` | *map visible splits* | | `o` | *open map*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
-`q` `esc` | *quit*| | |
+`q` `esc` | *quit*| | `Ctrl-X`| *delete hidden buffers*
 
-####Mapping
+**Map labels** are lines that look like:
 
-**Map labels** are lines that look like:  
-<samp>&nbsp;txb[:line num][: label#highlght#ignored text]</samp>
+<samp>&nbsp;txb[:lnum][: label#highlght#ignored text]</samp>
 
-`F10``R`emap will (1) `r`edraw and map all visible splits and (2) relocate displaced label lines to <samp>line num</samp>, if provided, by inserting or removing immediately preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:  
-<samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
-<samp>&nbsp;txb:345: Blah#Title&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
-<samp>&nbsp;txb: Blah##ignored&nbsp;&nbsp;</samp>*label 'Blah'*  
+Press `f10``m` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+- <samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+- <samp>&nbsp;txb:345: Blah#Title&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
+- <samp>&nbsp;txb: Blah##ignored&nbsp;&nbsp;</samp>*label 'Blah'*  
 
-Press `F10``o` to **view the map**:
+Once `m`apped, press `F10``o` to **open the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
