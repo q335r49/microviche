@@ -2,7 +2,7 @@
 
 ---
 #microViche
-microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim -- it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Startup
 - **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [download dir]/nav.vim</samp>
@@ -45,7 +45,7 @@ Key | Action | | Key | Action
 - To **turn off scrollbinding** so columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> (for the <samp>Plane</samp> and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply all' prompt.  
 - **Horizontal splits** will screw up panning.  
 - **Terminal emulators** work better than gVim (allows mousing in map mode and automatic redrawing, among other features). On Windows, **[Cygwin](http://www.cygwin.com/)** running the bundled [mintty](https://code.google.com/p/mintty/) terminal works better than gVim which works better than cmd.exe.
-- **Emphasize** a label by prepending it an ASCII char < <samp>A</samp>, eg, <samp>*</samp>, <samp>!</samp> (but not <samp>#</samp>!) -- they are shown when there are multiple labels in the map line.
+- **Emphasize** a label by prepending it an ASCII char < <samp>A</samp>, eg, <samp>*</samp>, <samp>!</samp>, <samp>_</samp> - they are shown when there are multiple labels in the map line.
 
 ----
 <sup>1</sup> Motions take a count, eg, `3``j`=`j``j``j`.  
