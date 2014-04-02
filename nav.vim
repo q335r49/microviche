@@ -1738,11 +1738,12 @@ fun! s:mp_displayfunc()
 		elseif i<curlb || i>curle
 			let ticker=0
 			let j=0
-			while ticker<s:mp_coff && j<len(g:coordarr[i])
+			let lcoord=len(g:coordarr[i])
+			while ticker<s:mp_coff && j<lcoord
 				let ticker+=g:coordarr[i][j]
 				let j+=1
 			endwhile
-			if j==len(g:coordarr[i])
+			if j==lcoord
 				echohl
 				echon g:lines[i][s:mp_coff : xe]."\n"
 			elseif ticker<xe
@@ -1750,7 +1751,7 @@ fun! s:mp_displayfunc()
 					exe 'echohl' g:colorarr[i][j-1]
 					echon g:lines[i][s:mp_coff : ticker-1]
 				en
-				for j in range(j,len(g:coordarr[i])-1)
+				for j in range(j,lcoord-1)
 					let nextticker=ticker+g:coordarr[i][j]
 					if nextticker>=xe
 						exe 'echohl' g:colorarr[i][j]
@@ -1821,11 +1822,12 @@ fun! s:mp_displayfunc()
 			en
 			let ticker=0
 			let j=0
-			while ticker<s:mp_coff && j<len(curcoords)
+			let lcoords=len(curcoords)
+			while ticker<s:mp_coff && j<lcoords
 				let ticker+=curcoords[j]
 				let j+=1
 			endwhile
-			if j==len(curcoords)
+			if j==lcoords
 				echohl
 				echon curline[s:mp_coff : xe]."\n"
 			elseif ticker<xe
@@ -1833,7 +1835,7 @@ fun! s:mp_displayfunc()
 					exe 'echohl' curcolors[j-1]
 					echon curline[s:mp_coff : ticker-1]
 				en
-				for j in range(j,len(curcoords)-1)
+				for j in range(j,lcoords-1)
 					let nextticker=ticker+curcoords[j]
 					if nextticker>=xe
 						exe 'echohl' curcolors[j]
