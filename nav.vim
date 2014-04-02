@@ -35,7 +35,7 @@ if !has("gui_running")
 	augroup TXB
 		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	augroup END
-	nn <silent> <leftmouse> :exe get(TxbMsCmd,&ttymouse,g:TxbMsCmd.default)()<cr>
+	nn <silent> <leftmouse> :exe get(txbMsInit,&ttymouse,g:txbMsInit.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
@@ -44,8 +44,8 @@ fun! s:SID()
 	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfun
 
-let TxbMsCmd={}
-let TxbKyCmd={}
+let txbMsInit={}
+let txbCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -106,7 +106,7 @@ fun! s:printHelp()
 	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'")
 	\.(ttymouseWorks? "\n(2) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : ""),width,(&columns-width)/2),s:help_bookmark)
 endfun
-let TxbKyCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
+let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -381,7 +381,7 @@ fun! <SID>initDragDefault()
 	en
 	return ''
 endfun
-let TxbMsCmd.default=function("\<SNR>".s:SID()."_initDragDefault")
+let txbMsInit.default=function("\<SNR>".s:SID()."_initDragDefault")
 
 fun! <SID>initDragSGR()
 	if getchar()=="\<leftrelease>"
@@ -427,12 +427,12 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TxbMsCmd.sgr=function("\<SNR>".s:SID()."_initDragSGR")
+let txbMsInit.sgr=function("\<SNR>".s:SID()."_initDragSGR")
 
 fun! <SID>initDragXterm()
 	return "norm! \<leftmouse>"
 endfun
-let TxbMsCmd.xterm=function("\<SNR>".s:SID()."_initDragXterm")
+let txbMsInit.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 
 fun! <SID>initDragXterm2()
 	if getchar()=="\<leftrelease>"
@@ -476,7 +476,7 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let TxbMsCmd.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
+let txbMsInit.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
 let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)
@@ -494,7 +494,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-let TxbKyCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
+let txbCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -522,7 +522,7 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let TxbKyCmd.S=
+let txbCmd.S=
 	\"let s:kc_continue=0\n
 	\let settings_names=range(16)\n
 	\let settings_values=range(16)\n
@@ -602,7 +602,7 @@ let TxbKyCmd.S=
 					\if confirm2==?'y' || confirm2==?'n'\n
 						\let curwd=getcwd()\n
 						\if confirm2=='y'\n
-							\exe g:TxbKyCmd.W\n
+							\exe g:txbCmd.W\n
 						\en\n
 						\if confirm=='y'\n
 							\exe 'cd' fnameescape(t:wdir)\n
@@ -906,7 +906,7 @@ fun! TxbExe(inicmd)
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:TxbKyCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
+	exe get(g:txbCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue
 		echon w:txbi '.' line('.') ' ' s:kc_msg
 		let s:kc_msg=''
@@ -917,37 +917,37 @@ fun! s:doCmdKeyhandler(c)
 		redr|echo '(done)' w:txbi '-' line('.')
 	en
 endfun
-let TxbKyCmd.q="let s:kc_continue=0"
-let TxbKyCmd[-1]='let s:kc_continue=0'
-let TxbKyCmd[-99]=""
-let TxbKyCmd["\e"]=TxbKyCmd.q
+let txbCmd.q="let s:kc_continue=0"
+let txbCmd[-1]='let s:kc_continue=0'
+let txbCmd[-99]=""
+let txbCmd["\e"]=txbCmd.q
 
-let TxbKyCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
-let TxbKyCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TxbKyCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
-let TxbKyCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
-let TxbKyCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
-let TxbKyCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
-let TxbKyCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
-let TxbKyCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
-let TxbKyCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
-let TxbKyCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
-let TxbKyCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
-let TxbKyCmd["\<up>"]=TxbKyCmd.k
-let TxbKyCmd["\<down>"]=TxbKyCmd.j
-let TxbKyCmd["\<left>"]=TxbKyCmd.h
-let TxbKyCmd["\<right>"]=TxbKyCmd.l
+let txbCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.j='cal s:blockPan(0,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.k='cal s:blockPan(0,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.l='cal s:blockPan(s:kc_num,0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.y='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.u='cal s:blockPan(s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.b='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.n='cal s:blockPan(s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,1)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let txbCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num>98? s:kc_num : s:kc_num.'2'"
+let txbCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num>98? s:kc_num : s:kc_num.'3'"
+let txbCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num>98? s:kc_num : s:kc_num.'4'"
+let txbCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num>98? s:kc_num : s:kc_num.'5'"
+let txbCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num>98? s:kc_num : s:kc_num.'6'"
+let txbCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num>98? s:kc_num : s:kc_num.'7'"
+let txbCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num>98? s:kc_num : s:kc_num.'8'"
+let txbCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num>98? s:kc_num : s:kc_num.'9'"
+let txbCmd.0="let s:kc_num=s:kc_num is '01'? '01' : s:kc_num>98? s:kc_num : s:kc_num.'1'"
+let txbCmd["\<up>"]=txbCmd.k
+let txbCmd["\<down>"]=txbCmd.j
+let txbCmd["\<left>"]=txbCmd.h
+let txbCmd["\<right>"]=txbCmd.l
 
-let TxbKyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
+let txbCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
 
-let TxbKyCmd.D=
+let txbCmd.D=
 	\"redr\n
 	\if t:txbL==1\n
 		\let s:kc_msg='Cannot delete last split!'\n
@@ -969,7 +969,7 @@ let TxbKyCmd.D=
 	\let s:kc_continue=0\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let TxbKyCmd.A=
+let txbCmd.A=
 	\"let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\if t_index!=-1\n
@@ -996,7 +996,7 @@ let TxbKyCmd.A=
 	\en\n
 	\let s:kc_continue=0|call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let TxbKyCmd.W=
+let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let s:kc_continue=0\n
@@ -1029,7 +1029,7 @@ fun! s:setCursor(l,vc,ix)
 	en
 endfun
 
-fun! s:calcPos(sp,off,N)
+fun! s:getDest(sp,off,N)
 	let offset=a:off+a:N
 	let sp=a:sp
 	while offset<0
@@ -1289,8 +1289,8 @@ fun! s:redraw(...)
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 	let s:kc_msg=a:0? '(Remap complete)' : '(redraw complete)'
 endfun
-let TxbKyCmd.r="call s:redraw()|redr|let s:kc_continue=0"
-let TxbKyCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
+let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
+let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1617,7 +1617,7 @@ fun! s:nav(N,L)
 	return extrashift
 endfun
 
-fun! s:convertToGrid()
+fun! s:getMapDis()
 	if !exists('t:maxlen') || t:maxlen<10
 		let t:maxlen=10
 	en
@@ -1643,9 +1643,6 @@ fun! s:convertToGrid()
 			en
 		endfor
 	endfor
-endfun
-
-fun! s:getMapDisp()
 	let len_index=-9999/t:gran
 	let earth=repeat('.',t:mapw)
 	let water=repeat(' ',t:mapw)
@@ -1858,7 +1855,7 @@ fun! s:disMap()
 	echohl
 endfun
 
-fun! s:navMapKeyHandler(c)
+fun! s:mapKeyHandler(c)
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
 			let s:mPrevCoor=copy(g:TXBmsmsg)
@@ -1893,7 +1890,7 @@ fun! s:navMapKeyHandler(c)
 						if t:txb.size[s:mC]>&columns
 							let [sp,off]=[s:mC,0]
 						else
-							let [sp,off]=s:calcPos(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
+							let [sp,off]=s:getDest(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 						en
 						let lowestr=(&lines-s:mSavSettings[0])/2
 						let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
@@ -1925,7 +1922,7 @@ fun! s:navMapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mapdict,a:c,'')
+		exe get(s:mExe,a:c,'')
 		if s:mExit==1
 			call s:disMap()
 			call feedkeys("\<plug>TxbY")
@@ -1934,7 +1931,7 @@ fun! s:navMapKeyHandler(c)
 			if t:txb.size[s:mC]>&columns
 				let [sp,off]=[s:mC,0]
 			else
-				let [sp,off]=s:calcPos(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
+				let [sp,off]=s:getDest(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 			en
 			let lowestr=(&lines-s:mSavSettings[0])/2
 			let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
@@ -1954,7 +1951,7 @@ fun! s:navMapKeyHandler(c)
 	en
 endfun
 
-let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap()'
+let txbCmd.o='let s:kc_continue=0|cal s:navMap()'
 fun! s:navMap()
 	let s:mNum='01'
 	let s:mSavSettings=[&ch,&more,&ls,&stal]
@@ -1964,18 +1961,17 @@ fun! s:navMap()
 	let s:mPrevCoor=[0,0,0]
 	let s:mR=line('.')/t:gran
 	let s:mC=w:txbi
-	call s:convertToGrid()
-	call s:getMapDisp()
+	call s:getMapDis()
 	let s:mR=s:mR<0? 0 : s:mR>t:maxlen-1? t:maxlen-1 : s:mR
 	let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
 	let s:mExit=1
 	let s:mRoff=max([s:mR-&ch/2,0])
 	let s:mCoff=max([s:mC*t:mapw-&columns/2,0])
 	call s:disMap()
-	let g:TxbKeyHandler=function("s:navMapKeyHandler")
+	let g:TxbKeyHandler=function("s:mapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
-let s:mapdict={"\e":"let s:mExit=0|redr",
+let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
 \"q":"let s:mExit=0",
 \"h":"let s:mC=s:mC>s:mNum? s:mC-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
@@ -2005,12 +2001,12 @@ let s:mapdict={"\e":"let s:mExit=0|redr",
 \"9":"let s:mNum=s:mNum is '01'? '9' : s:mNum>98? s:mNum : s:mNum.'9'",
 \"0":"let [s:mC,s:mNum]=s:mNum is '01'? [s:mCoff,s:mNum] : [s:mC,s:mNum>998? s:mNum : s:mNum.'0']",
 \"g":'let s:mExit=2'}
-let s:mapdict["\<c-m>"]  =s:mapdict.g
-let s:mapdict["\<right>"]=s:mapdict.l
-let s:mapdict["\<left>"] =s:mapdict.h
-let s:mapdict["\<down>"] =s:mapdict.j
-let s:mapdict["\<up>"]   =s:mapdict.k
-let s:mapdict[" "]       =s:mapdict.J
-let s:mapdict["\<bs>"]   =s:mapdict.K
+let s:mExe["\<c-m>"]  =s:mExe.g
+let s:mExe["\<right>"]=s:mExe.l
+let s:mExe["\<left>"] =s:mExe.h
+let s:mExe["\<down>"] =s:mExe.j
+let s:mExe["\<up>"]   =s:mExe.k
+let s:mExe[" "]       =s:mExe.J
+let s:mExe["\<bs>"]   =s:mExe.K
 
 delf s:SID
