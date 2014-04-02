@@ -1723,7 +1723,7 @@ fun! s:getMapDisp()
 endfun
 
 fun! s:mp_displayfunc()
-	let xe=s:mp_coff+&columns-1
+	let xe=s:mp_coff+&columns-2
 	if !empty(get(g:gridmap[s:mp_c],s:mp_r))
 		let curlb=s:mp_r
 		let curle=s:mp_r+len(g:gridmap[s:mp_c][s:mp_r])-1
@@ -1744,7 +1744,7 @@ fun! s:mp_displayfunc()
 			endwhile
 			if j==len(g:coordarr[i])
 				echohl
-				echon g:lines[i][s:mp_coff : ]."\n"
+				echon g:lines[i][s:mp_coff : xe]."\n"
 			elseif ticker<xe
 				if ticker!=s:mp_coff
 					exe 'echohl' g:colorarr[i][j-1]
@@ -1754,7 +1754,7 @@ fun! s:mp_displayfunc()
 					let nextticker=ticker+g:coordarr[i][j]
 					if nextticker>=xe
 						exe 'echohl' g:colorarr[i][j]
-						echon g:lines[i][ticker : xe-1]
+						echon g:lines[i][ticker : xe]
 						break
 					else
 						exe 'echohl' g:colorarr[i][j]
@@ -1765,7 +1765,7 @@ fun! s:mp_displayfunc()
 				echon "\n"
 			else
 				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][s:mp_coff : xe-1]
+				echon g:lines[i][s:mp_coff : xe]
 				echon "\n"
 			en
 		else
@@ -1827,7 +1827,7 @@ fun! s:mp_displayfunc()
 			endwhile
 			if j==len(curcoords)
 				echohl
-				echon curline[s:mp_coff : ]."\n"
+				echon curline[s:mp_coff : xe]."\n"
 			elseif ticker<xe
 				if ticker!=s:mp_coff
 					exe 'echohl' curcolors[j-1]
@@ -1837,7 +1837,7 @@ fun! s:mp_displayfunc()
 					let nextticker=ticker+curcoords[j]
 					if nextticker>=xe
 						exe 'echohl' curcolors[j]
-						echon curline[ticker : xe-1]
+						echon curline[ticker : xe]
 						break
 					else
 						exe 'echohl' curcolors[j]
@@ -1848,7 +1848,7 @@ fun! s:mp_displayfunc()
 				echon "\n"
 			else
 				exe 'echohl' curcolors[j-1]
-				echon curline[s:mp_coff : xe-1]
+				echon curline[s:mp_coff : xe]
 				echon "\n"
 			en
 		en
