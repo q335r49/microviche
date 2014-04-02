@@ -1669,9 +1669,11 @@ fun! s:getMapDis()
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 			call insert(s:gridPos[pos[0]][pos[1]],pos[3])
+			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 		else
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
 	let t:rdepth=t:depth/t:gran+1
