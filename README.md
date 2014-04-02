@@ -7,12 +7,12 @@
 ###microViche lets you pan and zoom through text archives
 It works sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim. It has great mouse support, automatic mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
-####Installation and Startup
+####Startup
 - **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [download dir]/nav.vim</samp>
 - (Only necessary when first creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Basic commands
+####Moving Around
 Pan with the mouse or press `F10` followed by:
 
 Key | Action | | Key | Action
@@ -30,9 +30,9 @@ Lines beginning with <samp>txb:</samp> are considered **mapping labels**. The fu
 <samp>&nbsp;txb[:line num][: label#highlght#ignored text]</samp>
 
 **`F10``R`emap** will (1) `r`edraw and map all visible splits and (2) relocate displaced label lines to <samp>line num</samp>, if provided, by inserting or removing immediately preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:  
-<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
-<samp>&nbsp;txb:345: Blah#Title&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah', highlight 'Title'**  
-<samp>&nbsp;txb: Blah##..ignored&nbsp;</samp>*label 'Blah'*  
+<samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+<samp>&nbsp;txb:345: Blah#Title&nbsp;&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
+<samp>&nbsp;txb: Blah##ignored&nbsp;</samp>*label 'Blah'*  
 
 Press `F10``o` to **view the map**:
 
