@@ -38,8 +38,8 @@ Key | Action | | Key | Action
 `drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
 `click` NW corner <sup>6</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
 `drag` to NW corner | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
-`g` `enter`| *goto label*|| `z` |*change zoom*
-`q` `esc`|*quit* || `F1` |*help*
+`g` `enter`| *goto label*|| `c` |*cursor to view center*
+`q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
 - To **turn off scrollbinding** so columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> (for the <samp>Plane</samp> and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply all' prompt.  
