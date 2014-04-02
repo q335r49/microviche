@@ -38,7 +38,7 @@ Key | Action | | Key | Action
 `drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
 `click` NW corner <sup>6</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
 `drag` to NW corner | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
-`g` `enter`| *goto label*|| `c` |*cursor to view center*
+`g` `enter`| *goto label*|| `c` |*move cursor to center*
 `q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
