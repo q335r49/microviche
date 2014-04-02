@@ -16,10 +16,10 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` | ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` | *redraw* | | `L` | *insert* <samp>txb:lnum</samp>
-`R` | *map visible splits* | | `o` | *open map*
+`r` `R` | *redraw / Remap* | |`o` `O` | *view map / Remap & view'
+`L` | *insert* <samp>txb:lnum</samp> ||`Ctrl-X`| *delete hidden buffers*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
-`q` `esc` | *quit*| | `Ctrl-X`| *delete hidden buffers*
+`q` `esc` | *quit*| | 
 
 **Map labels** are lines that look like:
 

@@ -67,8 +67,9 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n[1] h j k l y u b n      Pan
-	\\n    r R L                redraw / Remap / Label autotext
-	\\n    o                    Open map
+	\\n    r R                  redraw / Remap
+	\\n    o O                  Open map / Remap and open map
+	\\n    L                    insert 'txb:lnum'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n[2] S                    Settings
@@ -1996,6 +1997,7 @@ let txbCmd.o="let s:kc_continue=0\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
+let txbCmd.O="call s:redraw(1)|redr|".txbCmd.o
 
 let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
