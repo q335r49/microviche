@@ -1646,7 +1646,7 @@ fun! s:getMapDis()
 			en
 		endfor
 	endfor
-	let t:rdepth=t:depth/t:gran
+	let t:rdepth=t:depth/t:gran+1
 	let pad=map(range(0,t:depth,t:gran),'join(map(range(t:txbL),v:val.''>get(s:gridLbl[v:val],'.-9999/t:gran.',[999999])[0]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let s:disTxt=repeat([''],t:rdepth)
 	let s:disClr=copy(s:disTxt)
