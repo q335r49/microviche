@@ -2030,9 +2030,10 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 	\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
 \'z':"call s:disMap()\n
 	\let input=str2nr(input('File lines per map line (>10): ',t:gran))\n
-	\if input<10\n
+	\let width=str2nr(input('Width of map column (>0): ',t:mapw))\n
+	\if input<10 || width<=0\n
 		\echohl ErrorMsg\n
-		\echo '\rError: File lines per map line must be > 10\r'\n
+		\echo 'Error: Invalid values'\n
 		\sleep 500m\n
 		\redr!\n
 	\elseif input!=t:gran\n
@@ -2040,6 +2041,8 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 		\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
 		\let t:txb.settings['lines per map grid']=input\n
 		\let t:gran=input\n
+		\let t:mapw=width\n
+ 		\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 		\call s:getMapDis()\n
 		\let s:mPrevClk=[0,0]\n
 		\redr!\n
