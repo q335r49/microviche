@@ -23,10 +23,6 @@ Key | Action | | Key | Action
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
 `q` `esc` | *abort*| | |
-<sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
-<sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
-<sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
-<sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
 
 ####Mapping
 
@@ -43,16 +39,20 @@ To **view the map**, press `F10``o`:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`click`  `2click` <sup>1</sup>|*select / goto block*||`h``j``k``l` |← ↓ ↑ →
-`drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
-`click` NW corner <sup>2</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
-`drag` to NW corner <sup>2</sup> | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
+`click`  `2click` <sup>5</sup>|*select / goto block*||`h``j``k``l` <sup>1</sup>|← ↓ ↑ →
+`drag` | *pan* || `y``u``b``n` <sup>1</sup>|↖ ↗ ↙ ↘
+`click` NW corner <sup>6</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
+`drag` to NW corner <sup>6</sup> | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
 `g` `enter`| *goto label*||`q` `esc`|*quit*
-<sup>1</sup> gVim does not support the mouse in map mode.  
-<sup>2</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
 
-####Tips
-- To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> for the <samp>Plane</samp> (and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
-- To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
-- **Horizontal splits** aren't supported and will interfere with panning.
-- A **terminal emulator** is recommended over gVim because of better mouse control and automatic redrawing. For Windows, **[Cygwin](http://www.cygwin.com/)** running the (bundled) [mintty](https://code.google.com/p/mintty/) terminal emulator is recommended over gVim (in turn recommended over the Windows command prompt).
+####Footnotes & Tips
+<sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
+<sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
+<sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
+<sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
+<sup>5</sup> gVim does not support mousing in map mode.  
+<sup>6</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
+<sup>Tip</sup> To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> for the <samp>Plane</samp> (and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
+<sup>Tip</sup> To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
+<sup>Tip</sup> **Horizontal splits** aren't supported and will interfere with panning.
+<sup>Tip</sup> A **terminal emulator** is recommended over gVim because of better mouse control and automatic redrawing. For Windows, **[Cygwin](http://www.cygwin.com/)** running the (bundled) [mintty](https://code.google.com/p/mintty/) terminal emulator is recommended over gVim (in turn recommended over the Windows command prompt).
