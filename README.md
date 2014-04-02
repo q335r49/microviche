@@ -17,7 +17,7 @@ Key | Action | | Key | Action
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` | ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
 `r` | *redraw* | | `L` | *insert* <samp>txb:lnum</samp>
-`m` | *map visible splits* | | `o` | *open map*
+`R` | *map visible splits* | | `o` | *open map*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
 `q` `esc` | *quit*| | `Ctrl-X`| *delete hidden buffers*
 
@@ -25,12 +25,12 @@ Key | Action | | Key | Action
 
 <samp>&nbsp;txb[:lnum][: label#highlght#ignored text]</samp>
 
-Press `f10``m` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+Press `f10``R` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
 - <samp>&nbsp;txb:345: Blah#Title&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
 - <samp>&nbsp;txb: Blah##ignored&nbsp;&nbsp;</samp>*label 'Blah'*  
 
-Once `m`apped, press `F10``o` to **open the map**:
+Once mapped, press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
