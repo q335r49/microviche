@@ -1731,7 +1731,7 @@ fun! s:mp_displayfunc()
 		let curlb=s:mp_r
 		let curle=s:mp_r
 	en
-	for i in range(s:mp_roff,s:mp_roff+&ch-3)
+	for i in range(s:mp_roff,s:mp_roff+&ch-2)
 		if i>=len(g:coordarr) || i<0
 			echo ''
 			continue
@@ -2010,5 +2010,7 @@ let s:mapdict["\<right>"]=s:mapdict.l
 let s:mapdict["\<left>"] =s:mapdict.h
 let s:mapdict["\<down>"] =s:mapdict.j
 let s:mapdict["\<up>"]   =s:mapdict.k
+let s:mapdict[" "]       =s:mapdict.J
+let s:mapdict["\<bs>"]   =s:mapdict.K
 
 delf s:SID
