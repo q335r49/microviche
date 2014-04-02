@@ -248,15 +248,15 @@ fun! TxbInit(...)
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
 		let t:txb=plane
-		let t:txb_len=len(t:txb.name)
+		let t:txbL=len(t:txb.name)
 	    let t:kpLn=t:txb.settings['lines panned by j,k']
 		let t:kpSpH=t:txb.settings['kbd x pan speed']
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
 		let t:msSp=t:txb.settings['mouse pan speed']
-		let t:mp_L=t:txb.settings['lines per map grid']
-		let t:mp_clW=t:txb.settings['map cell width']
-		let t:txb_wd=t:txb.settings['working dir']
-		let t:txb_name=abs_paths
+		let t:gran=t:txb.settings['lines per map grid']
+		let t:mapw=t:txb.settings['map cell width']
+		let t:wdir=t:txb.settings['working dir']
+		let t:paths=abs_paths
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
@@ -559,7 +559,7 @@ let TxbKyCmd.S=
 			\let t:txb.size[w:txbi]=settings_values[13]\n
 			\let t:txb.exe[w:txbi]=settings_values[14]\n
 			\if !empty(settings_values[15]) && settings_values[15]!=prevVal[15]\n
-				\let t:txb_name[w:txbi]=s:sp_newfname[0]\n
+				\let t:paths[w:txbi]=s:sp_newfname[0]\n
 				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 			\en\n
 		\en\n
@@ -590,9 +590,9 @@ let TxbKyCmd.S=
 		\let t:txb.settings['mouse pan speed']=settings_values[8]\n
 			\let t:msSp=settings_values[8]\n
 		\let t:txb.settings['lines per map grid']=settings_values[9]\n
-			\let t:mp_L=settings_values[9]\n
+			\let t:gran=settings_values[9]\n
 		\let t:txb.settings['map cell width']=settings_values[10]\n
-			\let t:mp_clW=settings_values[10]\n
+			\let t:mapw=settings_values[10]\n
 		\if !empty(settings_values[11]) && settings_values[11]!=t:txb.settings['working dir']\n
 			\let wd_msg=' (Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
@@ -605,13 +605,13 @@ let TxbKyCmd.S=
 							\exe g:TxbKyCmd.W\n
 						\en\n
 						\if confirm=='y'\n
-							\exe 'cd' fnameescape(t:txb_wd)\n
+							\exe 'cd' fnameescape(t:wdir)\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
 						\let t:txb.settings['working dir']=settings_values[11]\n
-						\let t:txb_wd=settings_values[11]\n
-						\exe 'cd' fnameescape(t:txb_wd)\n
-						\let t:txb_name=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
+						\let t:wdir=settings_values[11]\n
+						\exe 'cd' fnameescape(t:wdir)\n
+						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
 						\let wd_msg=' (Working dir changed)'\n
 					\en\n
@@ -701,8 +701,8 @@ let s:sp_exe.71='let cursor=len-1'
 let s:sp_exe.99=
 	\"if a:keys[cursor]==?'current file'\n
 		\let prevwd=getcwd()\n
-		\exe 'cd' fnameescape(t:txb_wd)\n
-		\let input=input('(Use full path if not in working dir '.t:txb_wd.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+		\exe 'cd' fnameescape(t:wdir)\n
+		\let input=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
 		\let s:sp_newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\elseif a:keys[cursor]==?'working dir'\n
@@ -949,17 +949,17 @@ let TxbKyCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('
 
 let TxbKyCmd.D=
 	\"redr\n
-	\if t:txb_len==1\n
+	\if t:txbL==1\n
 		\let s:kc_msg='Cannot delete last split!'\n
 	\elseif input('Really delete current column (y/n)? ')==?'y'\n
-		\let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
+		\let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 		\if t_index!=-1\n
 			\call remove(t:txb.name,t_index)\n
-			\call remove(t:txb_name,t_index)\n
+			\call remove(t:paths,t_index)\n
 			\call remove(t:txb.size,t_index)\n
 			\call remove(t:txb.exe,t_index)\n
 			\call remove(t:txb.map,t_index)\n
-			\let t:txb_len=len(t:txb.name)\n
+			\let t:txbL=len(t:txb.name)\n
 		\en\n
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
@@ -970,24 +970,24 @@ let TxbKyCmd.D=
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let TxbKyCmd.A=
-	\"let t_index=index(t:txb_name,fnameescape(fnamemodify(expand('%'),':p')))\n
+	\"let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
-		\exe 'cd' fnameescape(t:txb_wd)\n
-		\let file=input('(Use full path if not in working directory '.t:txb_wd.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:txb_name[(w:txbi+1)%t:txb_len]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\n**WARNING**\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
+		\exe 'cd' fnameescape(t:wdir)\n
+		\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
+		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\n**WARNING**\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
 			\let s:kc_msg='File not appended'\n
 		\elseif empty(file)\n
 			\let s:kc_msg='File name is empty'\n
 		\else\n
 			\let s:kc_msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
-			\call insert(t:txb_name,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
+			\call insert(t:paths,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\call insert(t:txb.map,{},w:txbi+1)\n
-			\let t:txb_len=len(t:txb.name)\n
+			\let t:txbL=len(t:txb.name)\n
 			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
@@ -998,9 +998,9 @@ let TxbKyCmd.A=
 
 let TxbKyCmd.W=
 	\"let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:txb_wd)\n
+	\exe 'cd' fnameescape(t:wdir)\n
 	\let s:kc_continue=0\n
-	\let input=input('Write plane to file (relative to '.t:txb_wd.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
+	\let input=input('Write plane to file (relative to '.t:wdir.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
 	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
@@ -1033,12 +1033,12 @@ fun! s:calcPos(sp,off,N)
 	let offset=a:off+a:N
 	let sp=a:sp
 	while offset<0
-		let sp=sp>0? sp-1 : t:txb_len-1
+		let sp=sp>0? sp-1 : t:txbL-1
 		let offset+=t:txb.size[sp-1]+1
 	endwhile
 	while offset>t:txb.size[sp]
 		let offset-=t:txb.size[sp]+1
-		let sp=sp>=t:txb_len-1? 0 : sp+1
+		let sp=sp>=t:txbL-1? 0 : sp+1
 	endwhile
 	return [sp,offset]
 endfun
@@ -1046,8 +1046,8 @@ endfun
 fun! s:blockPan(sp,off,y,mode)
 	if a:mode==2
 		let cpos=[line('.'),virtcol('.'),w:txbi]
-		let txbi=(a:sp+t:txb_len)%t:txb_len
-		let name=t:txb_name[txbi]
+		let txbi=(a:sp+t:txbL)%t:txbL
+		let name=t:paths[txbi]
 		if name!=#fnameescape(fnamemodify(expand('%'),':p'))
 			winc t
 			exe 'e '.name
@@ -1061,7 +1061,7 @@ fun! s:blockPan(sp,off,y,mode)
 	en
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
-	let dSp=(a:mode? cSp+a:sp+t:txb_len : a:sp+t:txb_len)%t:txb_len
+	let dSp=(a:mode? cSp+a:sp+t:txbL : a:sp+t:txbL)%t:txbL
 	let dir=a:mode? a:sp+(!a:sp)*(cOff-a:off) : dSp-cSp+(dSp==cSp)*(cOff-a:off)
 	if dir>0
 		while 1
@@ -1069,7 +1069,7 @@ fun! s:blockPan(sp,off,y,mode)
 			let dif=a:y-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
-			if !((cSp-dSp+1)%t:txb_len)
+			if !((cSp-dSp+1)%t:txbL)
 				if winwidth(1)+a:off>t:kpSpH
 					call s:nav(t:kpSpH,yn)
 				else
@@ -1095,7 +1095,7 @@ fun! s:blockPan(sp,off,y,mode)
 			let dif=a:y-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
-			if !((cSp-dSp-1)%t:txb_len)
+			if !((cSp-dSp-1)%t:txbL)
 				if winwidth(1)+t:txb.size[dSp]-a:off>t:kpSpH
 					call s:nav(-t:kpSpH,yn)
 				else
@@ -1130,19 +1130,19 @@ endfun
 fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi')
-		let ix=index(t:txb_name,name0)
+		let ix=index(t:paths,name0)
 		if ix==-1
 			only
-			exe 'e' t:txb_name[0]
+			exe 'e' t:paths[0]
 			let w:txbi=0
 		else
 			let w:txbi=ix
 		en
-	elseif get(t:txb_name,w:txbi,'')!=#name0
-		let ix=index(t:txb_name,name0)
+	elseif get(t:paths,w:txbi,'')!=#name0
+		let ix=index(t:paths,name0)
 		if ix==-1
 			let prev_txbi=w:txbi
-			exe 'e' t:txb_name[prev_txbi]
+			exe 'e' t:paths[prev_txbi]
 			let w:txbi=prev_txbi
 		else
 			let w:txbi=ix
@@ -1163,7 +1163,7 @@ fun! s:redraw(...)
 		let colsLeft=0
 		let remain=split0
 		while remain>=1
-			let colt=colt? colt-1 : t:txb_len-1
+			let colt=colt? colt-1 : t:txbL-1
 			let remain-=t:txb.size[colt]+1
 			let colsLeft+=1
 		endwhile
@@ -1171,7 +1171,7 @@ fun! s:redraw(...)
 		let remain=&columns-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]) )
 		let colsRight=1
 		while remain>=2
-			let colb=(colb+1)%t:txb_len
+			let colb=(colb+1)%t:txbL
 			let colsRight+=1
 			let remain-=t:txb.size[colb]+1
 		endwhile
@@ -1184,7 +1184,7 @@ fun! s:redraw(...)
 		let remain=&columns-max([2,t:txb.size[w:txbi]-offset])
 		let colsRight=1
 		while remain>=2
-			let colb=(colb+1)%t:txb_len
+			let colb=(colb+1)%t:txbL
 			let colsRight+=1
 			let remain-=t:txb.size[colb]+1
 		endwhile
@@ -1192,10 +1192,10 @@ fun! s:redraw(...)
 	en
 	let dif=colsLeft-win0+1
 	if dif>0
-		let colt=(w:txbi-win0+t:txb_len)%t:txb_len
+		let colt=(w:txbi-win0+t:txbL)%t:txbL
 		for i in range(dif)
-			let colt=colt? colt-1 : t:txb_len-1
-			exe 'top vsp' t:txb_name[colt]
+			let colt=colt? colt-1 : t:txbL-1
+			exe 'top vsp' t:paths[colt]
 			let w:txbi=colt
 			exe t:txb.exe[colt]
 		endfor
@@ -1208,10 +1208,10 @@ fun! s:redraw(...)
 	let numcols=colsRight+colsLeft
 	let dif=numcols-winnr('$')
 	if dif>0
-		let nextcol=((colb-dif)%t:txb_len+t:txb_len)%t:txb_len
+		let nextcol=((colb-dif)%t:txbL+t:txbL)%t:txbL
 		for i in range(dif)
-			let nextcol=(nextcol+1)%t:txb_len
-			exe 'bot vsp' t:txb_name[nextcol]
+			let nextcol=(nextcol+1)%t:txbL
+			exe 'bot vsp' t:paths[nextcol]
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
@@ -1228,8 +1228,8 @@ fun! s:redraw(...)
 	let errorEncountered=0
 	for i in range(1,numcols)
 		se wfw
-		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:txb_name[ccol]
-			exe 'e' t:txb_name[ccol]
+		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:paths[ccol]
+			exe 'e' t:paths[ccol]
 		en
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
@@ -1277,7 +1277,7 @@ fun! s:redraw(...)
 			norm! 0
 		en
 		winc h
-		let ccol=ccol? ccol-1 : t:txb_len-1
+		let ccol=ccol? ccol-1 : t:txbL-1
 	endfor
 	se scrollopt=ver,jump
 	if s:badSync
@@ -1337,8 +1337,8 @@ fun! s:nav(N,L)
 			en
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
-				let nextcol=w:txbi? w:txbi-1 : t:txb_len-1
-				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:txb_name[nextcol]
+				let nextcol=w:txbi? w:txbi-1 : t:txbL-1
+				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:paths[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1372,11 +1372,11 @@ fun! s:nav(N,L)
 			else
 				let [loff,extrashift]=loff==-1? [loff-1,extrashift+1] : [loff,extrashift]
 				while loff<=-2
-					let tcol=tcol? tcol-1 : t:txb_len-1
+					let tcol=tcol? tcol-1 : t:txbL-1
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
-				exe 'e' t:txb_name[tcol]
+				exe 'e' t:paths[tcol]
 				let w:txbi=tcol
 				exe t:txb.exe[tcol]
 				if &scb
@@ -1390,10 +1390,10 @@ fun! s:nav(N,L)
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
 				if t:txb.size[tcol]-loff<&columns-1
 					let spaceremaining=&columns-t:txb.size[tcol]+loff
-					let nextcol=(tcol+1)%t:txb_len
+					let nextcol=(tcol+1)%t:txbL
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
+						exe 'bot '.(spaceremaining-1).'vsp '.t:paths[nextcol]
 						let w:txbi=nextcol
 						exe t:txb.exe[nextcol]
 						if &scb
@@ -1405,7 +1405,7 @@ fun! s:nav(N,L)
 						en
 						norm! 0
 						let spaceremaining-=t:txb.size[nextcol]+1
-						let nextcol=(nextcol+1)%t:txb_len
+						let nextcol=(nextcol+1)%t:txbL
 					endwhile
 					se scrollopt=ver,jump
 					windo se wfw
@@ -1429,20 +1429,20 @@ fun! s:nav(N,L)
 			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
 				let loff=0
-				let tcol=(tcol+1)%t:txb_len
+				let tcol=(tcol+1)%t:txbL
 			en
 			let toshift=N-&columns
 			if toshift>=t:txb.size[tcol]-loff+1
 				let toshift-=t:txb.size[tcol]-loff+1
-				let tcol=(tcol+1)%t:txb_len
+				let tcol=(tcol+1)%t:txbL
 				while toshift>=t:txb.size[tcol]+1
 					let toshift-=t:txb.size[tcol]+1
-					let tcol=(tcol+1)%t:txb_len
+					let tcol=(tcol+1)%t:txbL
 				endwhile
 				if toshift==t:txb.size[tcol]
 					let N+=1
 					let extrashift=-1
-					let tcol=(tcol+1)%t:txb_len
+					let tcol=(tcol+1)%t:txbL
 					let loff=0
 				else
 					let loff=toshift
@@ -1450,13 +1450,13 @@ fun! s:nav(N,L)
 			elseif toshift==t:txb.size[tcol]-loff
 				let N+=1
 				let extrashift=-1
-				let tcol=(tcol+1)%t:txb_len
+				let tcol=(tcol+1)%t:txbL
 				let loff=0
 			else
 				let loff+=toshift
 			en
 			se scrollopt=jump
-			exe 'e' t:txb_name[tcol]
+			exe 'e' t:paths[tcol]
 			let w:txbi=tcol
 			exe t:txb.exe[tcol]
 			if &scb
@@ -1499,7 +1499,7 @@ fun! s:nav(N,L)
 				if winwidth(1)==w2
 					let botalreadysized+=w1+1
 				en
-				let tcol=(tcol+1)%t:txb_len
+				let tcol=(tcol+1)%t:txbL
 				let loff=0
 				let w1=winwidth(1)
 			endw
@@ -1523,8 +1523,8 @@ fun! s:nav(N,L)
 			while winwidth(winnr('$'))>=t:txb.size[getwinvar(winnr('$'),'txbi')]+2
 				winc b
 				se nowfw scrollopt=jump
-				let nextcol=(w:txbi+1)%t:txb_len
-				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:txb_name[nextcol]
+				let nextcol=(w:txbi+1)%t:txbL
+				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:paths[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1556,8 +1556,8 @@ fun! s:nav(N,L)
 			let spaceremaining=&columns-t:txb.size[tcol]+loff
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
-				let nextcol=(w:txbi+1)%t:txb_len
-				exe 'bot '.(spaceremaining-1).'vsp '.t:txb_name[nextcol]
+				let nextcol=(w:txbi+1)%t:txbL
+				exe 'bot '.(spaceremaining-1).'vsp '.t:paths[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1629,7 +1629,7 @@ fun! s:convertToGrid()
 		let s:gridClr[i]={}
 		let s:gridPos[i]={}
 		for j in keys(t:txb.map[i])
-			let r=j/t:mp_L
+			let r=j/t:gran
 			if has_key(s:gridLbl[i],r)
 				call add(s:gridLbl[i][r],t:txb.map[i][j][0])
 				call add(s:gridPos[i][r],j)
@@ -1646,20 +1646,20 @@ fun! s:convertToGrid()
 endfun
 
 fun! s:getMapDisp()
-	let len_index=-9999/t:mp_L
-	let earth=repeat('.',t:mp_clW)
-	let water=repeat(' ',t:mp_clW)
-	let pad=map(range(t:mp_L,t:mp_L*t:maxlen,t:mp_L),'join(map(range(t:txb_len),v:val.''>get(s:gridLbl[v:val],len_index,[999999])[0]? earth : water''),'''')')
+	let len_index=-9999/t:gran
+	let earth=repeat('.',t:mapw)
+	let water=repeat(' ',t:mapw)
+	let pad=map(range(t:gran,t:gran*t:maxlen,t:gran),'join(map(range(t:txbL),v:val.''>get(s:gridLbl[v:val],len_index,[999999])[0]? earth : water''),'''')')
 	let s:disTxt=repeat([''],t:maxlen)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
 	for i in range(t:maxlen)
-		let j=t:txb_len-1
-		let padl=t:mp_clW
+		let j=t:txbL-1
+		let padl=t:mapw
 		while j>=0
 			let l=len(get(get(s:gridLbl[j],i,[]),0,''))
 			if !l
-				let padl+=t:mp_clW
+				let padl+=t:mapw
 			elseif l>=padl
 				if empty(s:disTxt[i])
 					let s:disTxt[i]=s:gridLbl[j][i][0]
@@ -1674,9 +1674,9 @@ fun! s:getMapDisp()
 						call insert(s:disClr[i],s:gridClr[j][i])
 					en
 				en
-				let padl=t:mp_clW
+				let padl=t:mapw
 			elseif empty(s:disTxt[i])
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l)
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l)
 				if empty(s:gridClr[j][i])
 					let s:disIx[i]=[padl]
 					let s:disClr[i]=['']
@@ -1684,9 +1684,9 @@ fun! s:getMapDisp()
 					let s:disIx[i]=[l,padl-l]
 					let s:disClr[i]=[s:gridClr[j][i],'']
 				en
-				let padl=t:mp_clW
+				let padl=t:mapw
 			else
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l).s:disTxt[i]
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l).s:disTxt[i]
 				if empty(s:disClr[i][0])
 					let s:disIx[i][0]+=padl-l
 				else
@@ -1699,12 +1699,12 @@ fun! s:getMapDisp()
 					call insert(s:disIx[i],l)
 					call insert(s:disClr[i],s:gridClr[j][i])
 				en
-				let padl=t:mp_clW
+				let padl=t:mapw
 			en
 			let j-=1
 		endw
 		if empty(get(s:gridLbl[0],i,''))
-			let padl-=t:mp_clW
+			let padl-=t:mapw
 			if empty(s:disTxt[i])
 				let s:disTxt[i]=strpart(pad[i],0,padl)
 				let s:disIx[i]=[padl]
@@ -1722,16 +1722,16 @@ fun! s:getMapDisp()
 	endfor
 endfun
 
-fun! s:mp_displayfunc()
-	let xe=s:mp_coff+&columns-2
-	if !empty(get(s:gridLbl[s:mp_c],s:mp_r))
-		let curlb=s:mp_r
-		let curle=s:mp_r+len(s:gridLbl[s:mp_c][s:mp_r])-1
+fun! s:disMap()
+	let xe=s:mCoff+&columns-2
+	if !empty(get(s:gridLbl[s:mC],s:mR))
+		let curlb=s:mR
+		let curle=s:mR+len(s:gridLbl[s:mC][s:mR])-1
 	else
-		let curlb=s:mp_r
-		let curle=s:mp_r
+		let curlb=s:mR
+		let curle=s:mR
 	en
-	for i in range(s:mp_roff,s:mp_roff+&ch-2)
+	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=len(s:disIx) || i<0
 			echo ''
 			continue
@@ -1739,17 +1739,17 @@ fun! s:mp_displayfunc()
 			let ticker=0
 			let j=0
 			let lcoord=len(s:disIx[i])
-			while ticker<s:mp_coff && j<lcoord
+			while ticker<s:mCoff && j<lcoord
 				let ticker+=s:disIx[i][j]
 				let j+=1
 			endwhile
 			if j==lcoord
 				echohl
-				echon s:disTxt[i][s:mp_coff : xe]."\n"
+				echon s:disTxt[i][s:mCoff : xe]."\n"
 			elseif ticker<xe
-				if ticker!=s:mp_coff
+				if ticker!=s:mCoff
 					exe 'echohl' s:disClr[i][j-1]
-					echon s:disTxt[i][s:mp_coff : ticker-1]
+					echon s:disTxt[i][s:mCoff : ticker-1]
 				en
 				for j in range(j,lcoord-1)
 					let nextticker=ticker+s:disIx[i][j]
@@ -1766,12 +1766,12 @@ fun! s:mp_displayfunc()
 				echon "\n"
 			else
 				exe 'echohl' s:disClr[i][j-1]
-				echon s:disTxt[i][s:mp_coff : xe]
+				echon s:disTxt[i][s:mCoff : xe]
 				echon "\n"
 			en
 		else
-			let b=s:mp_c*t:mp_clW
-			let content=empty(get(s:gridLbl[s:mp_c],s:mp_r,''))? repeat(' ',t:mp_clW) : s:gridLbl[s:mp_c][s:mp_r][i-curlb]
+			let b=s:mC*t:mapw
+			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-curlb]
 			let l=len(content)
 			let e=b+l-1
 			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
@@ -1823,17 +1823,17 @@ fun! s:mp_displayfunc()
 			let ticker=0
 			let j=0
 			let lcoords=len(curcoords)
-			while ticker<s:mp_coff && j<lcoords
+			while ticker<s:mCoff && j<lcoords
 				let ticker+=curcoords[j]
 				let j+=1
 			endwhile
 			if j==lcoords
 				echohl
-				echon curline[s:mp_coff : xe]."\n"
+				echon curline[s:mCoff : xe]."\n"
 			elseif ticker<xe
-				if ticker!=s:mp_coff
+				if ticker!=s:mCoff
 					exe 'echohl' curcolors[j-1]
-					echon curline[s:mp_coff : ticker-1]
+					echon curline[s:mCoff : ticker-1]
 				en
 				for j in range(j,lcoords-1)
 					let nextticker=ticker+curcoords[j]
@@ -1850,7 +1850,7 @@ fun! s:mp_displayfunc()
 				echon "\n"
 			else
 				exe 'echohl' curcolors[j-1]
-				echon curline[s:mp_coff : xe]
+				echon curline[s:mCoff : xe]
 				echon "\n"
 			en
 		en
@@ -1861,152 +1861,150 @@ endfun
 fun! s:navMapKeyHandler(c)
 	if a:c is -1
 		if g:TXBmsmsg[0]==1
-			let s:mp_prevcoord=copy(g:TXBmsmsg)
+			let s:mPrevCoor=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==2
-			if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
-				let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
-				let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen-1? t:maxlen-1 : s:mp_roff
-				let s:mp_coff=s:mp_coff<0? 0 : s:mp_coff>=t:txb_len*t:mp_clW? t:txb_len*t:mp_clW-1 : s:mp_coff
-				call s:mp_displayfunc()
+			if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+				let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
+				let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
+				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:maxlen-1? t:maxlen-1 : s:mRoff
+				let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+				call s:disMap()
 			en
-			let s:mp_prevcoord=copy(g:TXBmsmsg)
+			let s:mPrevCoor=copy(g:TXBmsmsg)
 		elseif g:TXBmsmsg[0]==3
 			if g:TXBmsmsg==[3,1,1]
-				let [&ch,&more,&ls,&stal]=s:mp_settings
+				let [&ch,&more,&ls,&stal]=s:mSavSettings
 				return
-			elseif s:mp_prevcoord[0]==1
-				if &ttymouse=='xterm' && (s:mp_prevcoord[1]!=g:TXBmsmsg[1] || s:mp_prevcoord[2]!=g:TXBmsmsg[2])
-					if s:mp_prevcoord[1] && s:mp_prevcoord[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let s:mp_roff=s:mp_roff-g:TXBmsmsg[2]+s:mp_prevcoord[2]
-						let s:mp_coff=s:mp_coff-g:TXBmsmsg[1]+s:mp_prevcoord[1]
-						let s:mp_roff=s:mp_roff<0? 0 : s:mp_roff>t:maxlen-1? t:maxlen-1 : s:mp_roff
-						let s:mp_coff=s:mp_coff<0? 0 : s:mp_coff>=t:txb_len*t:mp_clW? t:txb_len*t:mp_clW-1 : s:mp_coff
-						call s:mp_displayfunc()
+			elseif s:mPrevCoor[0]==1
+				if &ttymouse=='xterm' && (s:mPrevCoor[1]!=g:TXBmsmsg[1] || s:mPrevCoor[2]!=g:TXBmsmsg[2])
+					if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
+						let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
+						let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
+						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:maxlen-1? t:maxlen-1 : s:mRoff
+						let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+						call s:disMap()
 					en
-					let s:mp_prevcoord=copy(g:TXBmsmsg)
+					let s:mPrevCoor=copy(g:TXBmsmsg)
 				else
-					let s:mp_r=g:TXBmsmsg[2]-&lines+&ch-1+s:mp_roff
-					let s:mp_c=(g:TXBmsmsg[1]-1+s:mp_coff)/t:mp_clW
-					if [s:mp_r,s:mp_c]==s:mp_prevclick
-						let [&ch,&more,&ls,&stal]=s:mp_settings
-						if t:txb.size[s:mp_c]>&columns
-							let [sp,off]=[s:mp_c,0]
+					let s:mR=g:TXBmsmsg[2]-&lines+&ch-1+s:mRoff
+					let s:mC=(g:TXBmsmsg[1]-1+s:mCoff)/t:mapw
+					if [s:mR,s:mC]==s:mPrevClk
+						let [&ch,&more,&ls,&stal]=s:mSavSettings
+						if t:txb.size[s:mC]>&columns
+							let [sp,off]=[s:mC,0]
 						else
-							let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+							let [sp,off]=s:calcPos(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 						en
-						let lowestr=(&lines-s:mp_settings[0])/2
-						let r=get(s:gridPos[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
+						let lowestr=(&lines-s:mSavSettings[0])/2
+						let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
 						let r0=r<lowestr? 1 : r-lowestr
 						call  s:blockPan(sp,off,r0,2)
-						exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
+						exe (s:mC-getwinvar(1,'txbi')+1).'wincmd w'
 						let dif=line('w0')-r0
 						if dif>0
 							exe 'norm! '.dif."\<c-y>"
 						elseif dif<0
 							exe 'norm! '.(-dif)."\<c-e>"
 						en
-						call  s:setCursor(r,1,s:mp_c)
+						call  s:setCursor(r,1,s:mC)
 						return
 					en
-					let s:mp_prevclick=[s:mp_r,s:mp_c]
-					let s:mp_prevcoord=[0,0,0]
-					call s:mp_displayfunc()
+					let s:mPrevClk=[s:mR,s:mC]
+					let s:mPrevCoor=[0,0,0]
+					call s:disMap()
 				en
 			en
 		elseif g:TXBmsmsg[0]==4
-			let s:mp_roff=s:mp_roff>1? s:mp_roff-1 : 0
-			call s:mp_displayfunc()
-			let s:mp_prevcoord=[0,0,0]
+			let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
+			call s:disMap()
+			let s:mPrevCoor=[0,0,0]
 		elseif g:TXBmsmsg[0]==5
-			let s:mp_roff=s:mp_roff+1
-			call s:mp_displayfunc()
-			let s:mp_prevcoord=[0,0,0]
+			let s:mRoff=s:mRoff+1
+			call s:disMap()
+			let s:mPrevCoor=[0,0,0]
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mapdict,a:c,'let s:mp_msg=" Press f1 for help or q to quit"')
-		if s:mp_continue==1
-			call s:mp_displayfunc()
+		exe get(s:mapdict,a:c,'')
+		if s:mExit==1
+			call s:disMap()
 			call feedkeys("\<plug>TxbY")
-		elseif s:mp_continue==2
-			let [&ch,&more,&ls,&stal]=s:mp_settings
-			if t:txb.size[s:mp_c]>&columns
-				let [sp,off]=[s:mp_c,0]
+		elseif s:mExit==2
+			let [&ch,&more,&ls,&stal]=s:mSavSettings
+			if t:txb.size[s:mC]>&columns
+				let [sp,off]=[s:mC,0]
 			else
-				let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
+				let [sp,off]=s:calcPos(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 			en
-			let lowestr=(&lines-s:mp_settings[0])/2
-			let r=get(s:gridPos[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
+			let lowestr=(&lines-s:mSavSettings[0])/2
+			let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
 			let r0=r<lowestr? 1 : r-lowestr
 			call  s:blockPan(sp,off,r0,2)
-			exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
+			exe (s:mC-getwinvar(1,'txbi')+1).'wincmd w'
 			let dif=line('w0')-r0
 			if dif>0
 				exe 'norm! '.dif."\<c-y>"
 			elseif dif<0
 				exe 'norm! '.(-dif)."\<c-e>"
 			en
-			call  s:setCursor(r,1,s:mp_c)
+			call  s:setCursor(r,1,s:mC)
 		else
-			let [&ch,&more,&ls,&stal]=s:mp_settings
+			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
 	en
 endfun
 
-let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap(t:txb.map,w:txbi,line(".")/t:mp_L)'
-fun! s:navMap(array,c_ini,r_ini)
-	let s:mp_num='01'
-	let s:mp_settings=[&ch,&more,&ls,&stal]
+let TxbKyCmd.o='let s:kc_continue=0|cal s:navMap()'
+fun! s:navMap()
+	let s:mNum='01'
+	let s:mSavSettings=[&ch,&more,&ls,&stal]
 		let [&more,&ls,&stal]=[0,0,0]
 		let &ch=&lines
-	let s:mp_prevclick=[0,0]
-	let s:mp_prevcoord=[0,0,0]
-	let s:mp_array=a:array
-	let s:mp_msg=''
-	let s:mp_r=a:r_ini
-	let s:mp_c=a:c_ini
+	let s:mPrevClk=[0,0]
+	let s:mPrevCoor=[0,0,0]
+	let s:mR=line('.')/t:gran
+	let s:mC=w:txbi
 	call s:convertToGrid()
 	call s:getMapDisp()
-	let s:mp_r=s:mp_r<0? 0 : s:mp_r>t:maxlen-1? t:maxlen-1 : s:mp_r
-	let s:mp_c=s:mp_c<0? 0 : s:mp_c>=t:txb_len? t:txb_len-1 : s:mp_c
-	let s:mp_continue=1
-	let s:mp_roff=max([s:mp_r-&ch/2,0])
-	let s:mp_coff=max([s:mp_c*t:mp_clW-&columns/2,0])
-	call s:mp_displayfunc()
+	let s:mR=s:mR<0? 0 : s:mR>t:maxlen-1? t:maxlen-1 : s:mR
+	let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
+	let s:mExit=1
+	let s:mRoff=max([s:mR-&ch/2,0])
+	let s:mCoff=max([s:mC*t:mapw-&columns/2,0])
+	call s:disMap()
 	let g:TxbKeyHandler=function("s:navMapKeyHandler")
 	call feedkeys("\<plug>TxbY")
 endfun
-let s:mapdict={"\e":"let s:mp_continue=0|redr",
+let s:mapdict={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
-\"q":"let s:mp_continue=0",
-\"h":"let s:mp_c=s:mp_c>s:mp_num? s:mp_c-s:mp_num : 0|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0",
-\"j":"let s:mp_r=s:mp_r+s:mp_num<t:maxlen-1? s:mp_r+s:mp_num : t:maxlen-1|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"k":"let s:mp_r=s:mp_r>s:mp_num? s:mp_r-s:mp_num : 0|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"l":"let s:mp_c=s:mp_c+s:mp_num<t:txb_len? s:mp_c+s:mp_num : t:txb_len-1|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"y":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"u":"let [s:mp_r,s:mp_c]=[max([s:mp_r-s:mp_num,0]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"b":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,t:maxlen-1]),max([s:mp_c-s:mp_num,0])]|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"n":"let [s:mp_r,s:mp_c]=[min([s:mp_r+s:mp_num,t:maxlen-1]),min([s:mp_c+s:mp_num,t:txb_len-1])]|let s:mp_num='01'|let s:mp_coff=s:mp_c*t:mp_clW>&columns/2? s:mp_c*t:mp_clW-&columns/2 : 0|let s:mp_roff=s:mp_r>(&ch-2)/2? s:mp_r-(&ch-2)/2 : 0", 
-\"H":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let s:mp_coff=s:mp_coff>s:mp_num*t:mp_clW? s:mp_coff-s:mp_num*t:mp_clW : 0|let s:mp_num='01'",
-\"J":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let s:mp_roff=s:mp_roff+s:mp_num<t:maxlen-1? s:mp_roff+s:mp_num : t:maxlen-1|let s:mp_num='01'",
-\"K":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let s:mp_roff=s:mp_roff>s:mp_num? s:mp_roff-s:mp_num : 0|let s:mp_num='01'",
-\"L":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let s:mp_coff=s:mp_coff+s:mp_num*t:mp_clW<t:mp_clW*t:txb_len? s:mp_coff+s:mp_num*t:mp_clW : t:mp_clW*t:txb_len|let s:mp_num='01'",
-\"Y":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),max([s:mp_coff-s:mp_num*t:mp_clW,0])]|let s:mp_num='01'",
-\"U":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let [s:mp_roff,s:mp_coff]=[max([s:mp_roff-s:mp_num,0]),min([s:mp_coff+s:mp_num*t:mp_clW,t:txb_len*t:mp_clW-1])]|let s:mp_num='01'",
-\"B":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,t:maxlen-1]),max([s:mp_coff-s:mp_num*t:mp_clW,0])]|let s:mp_num='01'",
-\"N":"let s:mp_num=s:mp_num is '01'? 3 : s:mp_num|let [s:mp_roff,s:mp_coff]=[min([s:mp_roff+s:mp_num,t:maxlen-1]),min([s:mp_coff+s:mp_num*t:mp_clW,t:txb_len*t:mp_clW-1])]|let s:mp_num='01'",
-\"1":"let s:mp_num=s:mp_num is '01'? '1' : s:mp_num>98? s:mp_num : s:mp_num.'1'",
-\"2":"let s:mp_num=s:mp_num is '01'? '2' : s:mp_num>98? s:mp_num : s:mp_num.'2'",
-\"3":"let s:mp_num=s:mp_num is '01'? '3' : s:mp_num>98? s:mp_num : s:mp_num.'3'",
-\"4":"let s:mp_num=s:mp_num is '01'? '4' : s:mp_num>98? s:mp_num : s:mp_num.'4'",
-\"5":"let s:mp_num=s:mp_num is '01'? '5' : s:mp_num>98? s:mp_num : s:mp_num.'5'",
-\"6":"let s:mp_num=s:mp_num is '01'? '6' : s:mp_num>98? s:mp_num : s:mp_num.'6'",
-\"7":"let s:mp_num=s:mp_num is '01'? '7' : s:mp_num>98? s:mp_num : s:mp_num.'7'",
-\"8":"let s:mp_num=s:mp_num is '01'? '8' : s:mp_num>98? s:mp_num : s:mp_num.'8'",
-\"9":"let s:mp_num=s:mp_num is '01'? '9' : s:mp_num>98? s:mp_num : s:mp_num.'9'",
-\"0":"let [s:mp_c,s:mp_num]=s:mp_num is '01'? [s:mp_coff,s:mp_num] : [s:mp_c,s:mp_num>998? s:mp_num : s:mp_num.'0']",
-\"g":'let s:mp_continue=2'}
+\"q":"let s:mExit=0",
+\"h":"let s:mC=s:mC>s:mNum? s:mC-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
+\"j":"let s:mR=s:mR+s:mNum<t:maxlen-1? s:mR+s:mNum : t:maxlen-1|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"k":"let s:mR=s:mR>s:mNum? s:mR-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"l":"let s:mC=s:mC+s:mNum<t:txbL? s:mC+s:mNum : t:txbL-1|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"y":"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"u":"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"b":"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:maxlen-1]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"n":"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:maxlen-1]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\"H":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff>s:mNum*t:mapw? s:mCoff-s:mNum*t:mapw : 0|let s:mNum='01'",
+\"J":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff+s:mNum<t:maxlen-1? s:mRoff+s:mNum : t:maxlen-1|let s:mNum='01'",
+\"K":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff>s:mNum? s:mRoff-s:mNum : 0|let s:mNum='01'",
+\"L":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff+s:mNum*t:mapw<t:mapw*t:txbL? s:mCoff+s:mNum*t:mapw : t:mapw*t:txbL|let s:mNum='01'",
+\"Y":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
+\"U":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
+\"B":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:maxlen-1]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
+\"N":"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:maxlen-1]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
+\"1":"let s:mNum=s:mNum is '01'? '1' : s:mNum>98? s:mNum : s:mNum.'1'",
+\"2":"let s:mNum=s:mNum is '01'? '2' : s:mNum>98? s:mNum : s:mNum.'2'",
+\"3":"let s:mNum=s:mNum is '01'? '3' : s:mNum>98? s:mNum : s:mNum.'3'",
+\"4":"let s:mNum=s:mNum is '01'? '4' : s:mNum>98? s:mNum : s:mNum.'4'",
+\"5":"let s:mNum=s:mNum is '01'? '5' : s:mNum>98? s:mNum : s:mNum.'5'",
+\"6":"let s:mNum=s:mNum is '01'? '6' : s:mNum>98? s:mNum : s:mNum.'6'",
+\"7":"let s:mNum=s:mNum is '01'? '7' : s:mNum>98? s:mNum : s:mNum.'7'",
+\"8":"let s:mNum=s:mNum is '01'? '8' : s:mNum>98? s:mNum : s:mNum.'8'",
+\"9":"let s:mNum=s:mNum is '01'? '9' : s:mNum>98? s:mNum : s:mNum.'9'",
+\"0":"let [s:mC,s:mNum]=s:mNum is '01'? [s:mCoff,s:mNum] : [s:mC,s:mNum>998? s:mNum : s:mNum.'0']",
+\"g":'let s:mExit=2'}
 let s:mapdict["\<c-m>"]  =s:mapdict.g
 let s:mapdict["\<right>"]=s:mapdict.l
 let s:mapdict["\<left>"] =s:mapdict.h
