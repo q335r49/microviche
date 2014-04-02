@@ -1621,22 +1621,22 @@ fun! s:convertToGrid()
 	if !exists('t:maxlen') || t:maxlen<10
 		let t:maxlen=10
 	en
-	let g:gridmap=range(len(t:txb.map))
-	let g:colormap=range(len(t:txb.map))
-	let g:posmap=range(len(t:txb.map))
-	for i in copy(g:gridmap)
-		let g:gridmap[i]={}
-		let g:colormap[i]={}
-		let g:posmap[i]={}
+	let s:gridLbl=range(len(t:txb.map))
+	let s:gridClr=range(len(t:txb.map))
+	let s:gridPos=range(len(t:txb.map))
+	for i in copy(s:gridLbl)
+		let s:gridLbl[i]={}
+		let s:gridClr[i]={}
+		let s:gridPos[i]={}
 		for j in keys(t:txb.map[i])
 			let r=j/t:mp_L
-			if has_key(g:gridmap[i],r)
-				call add(g:gridmap[i][r],t:txb.map[i][j][0])
-				call add(g:posmap[i][r],j)
+			if has_key(s:gridLbl[i],r)
+				call add(s:gridLbl[i][r],t:txb.map[i][j][0])
+				call add(s:gridPos[i][r],j)
 			else
-				let g:gridmap[i][r]=[t:txb.map[i][j][0]]
-				let g:colormap[i][r]=t:txb.map[i][j][1]
-				let g:posmap[i][r]=[j]
+				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
+				let s:gridClr[i][r]=t:txb.map[i][j][1]
+				let s:gridPos[i][r]=[j]
 				if r>t:maxlen
 					let t:maxlen=r
 				en
@@ -1649,73 +1649,73 @@ fun! s:getMapDisp()
 	let len_index=-9999/t:mp_L
 	let earth=repeat('.',t:mp_clW)
 	let water=repeat(' ',t:mp_clW)
-	let pad=map(range(t:mp_L,t:mp_L*t:maxlen,t:mp_L),'join(map(range(t:txb_len),v:val.''>get(g:gridmap[v:val],len_index,[999999])[0]? earth : water''),'''')')
-	let g:lines=repeat([''],t:maxlen)
-	let g:colorarr=copy(g:lines)
-	let g:coordarr=copy(g:lines)
+	let pad=map(range(t:mp_L,t:mp_L*t:maxlen,t:mp_L),'join(map(range(t:txb_len),v:val.''>get(s:gridLbl[v:val],len_index,[999999])[0]? earth : water''),'''')')
+	let s:disTxt=repeat([''],t:maxlen)
+	let s:disClr=copy(s:disTxt)
+	let s:disIx=copy(s:disTxt)
 	for i in range(t:maxlen)
 		let j=t:txb_len-1
 		let padl=t:mp_clW
 		while j>=0
-			let l=len(get(get(g:gridmap[j],i,[]),0,''))
+			let l=len(get(get(s:gridLbl[j],i,[]),0,''))
 			if !l
 				let padl+=t:mp_clW
 			elseif l>=padl
-				if empty(g:lines[i])
-					let g:lines[i]=g:gridmap[j][i][0]
-					let g:coordarr[i]=[padl]
-					let g:colorarr[i]=[g:colormap[j][i]]
+				if empty(s:disTxt[i])
+					let s:disTxt[i]=s:gridLbl[j][i][0]
+					let s:disIx[i]=[padl]
+					let s:disClr[i]=[s:gridClr[j][i]]
 				else
-					let g:lines[i]=g:gridmap[j][i][0][:padl-2].'>'.g:lines[i]
-					if g:colormap[j][i]==g:colorarr[i][0]
-						let g:coordarr[i][0]+=padl
+					let s:disTxt[i]=s:gridLbl[j][i][0][:padl-2].'>'.s:disTxt[i]
+					if s:gridClr[j][i]==s:disClr[i][0]
+						let s:disIx[i][0]+=padl
 					else
-						call insert(g:coordarr[i],padl)
-						call insert(g:colorarr[i],g:colormap[j][i])
+						call insert(s:disIx[i],padl)
+						call insert(s:disClr[i],s:gridClr[j][i])
 					en
 				en
 				let padl=t:mp_clW
-			elseif empty(g:lines[i])
-				let g:lines[i]=g:gridmap[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l)
-				if empty(g:colormap[j][i])
-					let g:coordarr[i]=[padl]
-					let g:colorarr[i]=['']
+			elseif empty(s:disTxt[i])
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l)
+				if empty(s:gridClr[j][i])
+					let s:disIx[i]=[padl]
+					let s:disClr[i]=['']
 				else
-					let g:coordarr[i]=[l,padl-l]
-					let g:colorarr[i]=[g:colormap[j][i],'']
+					let s:disIx[i]=[l,padl-l]
+					let s:disClr[i]=[s:gridClr[j][i],'']
 				en
 				let padl=t:mp_clW
 			else
-				let g:lines[i]=g:gridmap[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l).g:lines[i]
-				if empty(g:colorarr[i][0])
-					let g:coordarr[i][0]+=padl-l
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mp_clW+l,padl-l).s:disTxt[i]
+				if empty(s:disClr[i][0])
+					let s:disIx[i][0]+=padl-l
 				else
-					call insert(g:coordarr[i],padl-l)
-					call insert(g:colorarr[i],'')
+					call insert(s:disIx[i],padl-l)
+					call insert(s:disClr[i],'')
 				en
-				if empty(g:colormap[j][i])
-					let g:coordarr[i][0]+=l
+				if empty(s:gridClr[j][i])
+					let s:disIx[i][0]+=l
 				else
-					call insert(g:coordarr[i],l)
-					call insert(g:colorarr[i],g:colormap[j][i])
+					call insert(s:disIx[i],l)
+					call insert(s:disClr[i],s:gridClr[j][i])
 				en
 				let padl=t:mp_clW
 			en
 			let j-=1
 		endw
-		if empty(get(g:gridmap[0],i,''))
+		if empty(get(s:gridLbl[0],i,''))
 			let padl-=t:mp_clW
-			if empty(g:lines[i])
-				let g:lines[i]=strpart(pad[i],0,padl)
-				let g:coordarr[i]=[padl]
-				let g:colorarr[i]=['']
+			if empty(s:disTxt[i])
+				let s:disTxt[i]=strpart(pad[i],0,padl)
+				let s:disIx[i]=[padl]
+				let s:disClr[i]=['']
 			else
-				let g:lines[i]=strpart(pad[i],0,padl).g:lines[i]
-				if empty(g:colorarr[i][0])
-					let g:coordarr[i][0]+=padl
+				let s:disTxt[i]=strpart(pad[i],0,padl).s:disTxt[i]
+				if empty(s:disClr[i][0])
+					let s:disIx[i][0]+=padl
 				else
-					call insert(g:coordarr[i],padl)
-					call insert(g:colorarr[i],'')
+					call insert(s:disIx[i],padl)
+					call insert(s:disClr[i],'')
 				en
 			en
 		en
@@ -1724,60 +1724,60 @@ endfun
 
 fun! s:mp_displayfunc()
 	let xe=s:mp_coff+&columns-2
-	if !empty(get(g:gridmap[s:mp_c],s:mp_r))
+	if !empty(get(s:gridLbl[s:mp_c],s:mp_r))
 		let curlb=s:mp_r
-		let curle=s:mp_r+len(g:gridmap[s:mp_c][s:mp_r])-1
+		let curle=s:mp_r+len(s:gridLbl[s:mp_c][s:mp_r])-1
 	else
 		let curlb=s:mp_r
 		let curle=s:mp_r
 	en
 	for i in range(s:mp_roff,s:mp_roff+&ch-2)
-		if i>=len(g:coordarr) || i<0
+		if i>=len(s:disIx) || i<0
 			echo ''
 			continue
 		elseif i<curlb || i>curle
 			let ticker=0
 			let j=0
-			let lcoord=len(g:coordarr[i])
+			let lcoord=len(s:disIx[i])
 			while ticker<s:mp_coff && j<lcoord
-				let ticker+=g:coordarr[i][j]
+				let ticker+=s:disIx[i][j]
 				let j+=1
 			endwhile
 			if j==lcoord
 				echohl
-				echon g:lines[i][s:mp_coff : xe]."\n"
+				echon s:disTxt[i][s:mp_coff : xe]."\n"
 			elseif ticker<xe
 				if ticker!=s:mp_coff
-					exe 'echohl' g:colorarr[i][j-1]
-					echon g:lines[i][s:mp_coff : ticker-1]
+					exe 'echohl' s:disClr[i][j-1]
+					echon s:disTxt[i][s:mp_coff : ticker-1]
 				en
 				for j in range(j,lcoord-1)
-					let nextticker=ticker+g:coordarr[i][j]
+					let nextticker=ticker+s:disIx[i][j]
 					if nextticker>=xe
-						exe 'echohl' g:colorarr[i][j]
-						echon g:lines[i][ticker : xe]
+						exe 'echohl' s:disClr[i][j]
+						echon s:disTxt[i][ticker : xe]
 						break
 					else
-						exe 'echohl' g:colorarr[i][j]
-						echon g:lines[i][ticker : nextticker-1]
+						exe 'echohl' s:disClr[i][j]
+						echon s:disTxt[i][ticker : nextticker-1]
 						let ticker=nextticker
 					en
 				endfor 
 				echon "\n"
 			else
-				exe 'echohl' g:colorarr[i][j-1]
-				echon g:lines[i][s:mp_coff : xe]
+				exe 'echohl' s:disClr[i][j-1]
+				echon s:disTxt[i][s:mp_coff : xe]
 				echon "\n"
 			en
 		else
 			let b=s:mp_c*t:mp_clW
-			let content=empty(get(g:gridmap[s:mp_c],s:mp_r,''))? repeat(' ',t:mp_clW) : g:gridmap[s:mp_c][s:mp_r][i-curlb]
+			let content=empty(get(s:gridLbl[s:mp_c],s:mp_r,''))? repeat(' ',t:mp_clW) : s:gridLbl[s:mp_c][s:mp_r][i-curlb]
 			let l=len(content)
 			let e=b+l-1
-			let curline=b? g:lines[i][:b-1].content.g:lines[i][e+1 :] : content.g:lines[i][e+1 :]
+			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
 			let ticker=0
-			let curcoords=copy(g:coordarr[i])
-			let curcolors=copy(g:colorarr[i])
+			let curcoords=copy(s:disIx[i])
+			let curcolors=copy(s:disClr[i])
 			let j=0
 			while j<len(curcoords)
 				let nextticker=ticker+curcoords[j]
@@ -1896,7 +1896,7 @@ fun! s:navMapKeyHandler(c)
 							let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
 						en
 						let lowestr=(&lines-s:mp_settings[0])/2
-						let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
+						let r=get(s:gridPos[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
 						let r0=r<lowestr? 1 : r-lowestr
 						call  s:blockPan(sp,off,r0,2)
 						exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
@@ -1937,7 +1937,7 @@ fun! s:navMapKeyHandler(c)
 				let [sp,off]=s:calcPos(s:mp_c,0,-(&columns-t:txb.size[s:mp_c])/2)
 			en
 			let lowestr=(&lines-s:mp_settings[0])/2
-			let r=get(g:posmap[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
+			let r=get(s:gridPos[s:mp_c],s:mp_r,[s:mp_r*t:mp_L])[0]
 			let r0=r<lowestr? 1 : r-lowestr
 			call  s:blockPan(sp,off,r0,2)
 			exe (s:mp_c-getwinvar(1,'txbi')+1).'wincmd w'
