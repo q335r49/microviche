@@ -1847,6 +1847,7 @@ fun! s:disMap()
 		en
 	endfor
 	echohl
+	echon s:mC '-' s:mR*t:gran
 endfun
 
 fun! s:mapKeyHandler(c)
