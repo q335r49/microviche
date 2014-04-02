@@ -1627,6 +1627,7 @@ fun! s:getMapDis()
 	let s:gridLbl=range(len(t:txb.map))
 	let s:gridClr=copy(s:gridLbl)
 	let s:gridPos=copy(s:gridLbl)
+	let conflicts={}
 	for i in copy(s:gridLbl)
 		let s:gridLbl[i]={}
 		let s:gridClr[i]={}
@@ -1634,8 +1635,8 @@ fun! s:getMapDis()
 		for j in keys(t:txb.map[i])
 			let r=j/t:gran
 			if has_key(s:gridLbl[i],r)
-				call add(s:gridLbl[i][r],t:txb.map[i][j][0])
 				call add(s:gridPos[i][r],j)
+				let conflicts[i.' '.r]=[i,r]
 			else
 				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
 				let s:gridClr[i][r]=t:txb.map[i][j][1]
@@ -1645,6 +1646,10 @@ fun! s:getMapDis()
 				en
 			en
 		endfor
+	endfor
+	for pos in values(conflicts)
+		call sort(s:gridPos[pos[0]][pos[1]])
+		let s:gridLbl[pos[0]][pos[1]]=map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 	endfor
 	let t:rdepth=t:depth/t:gran+1
 	let pad=map(range(0,t:depth,t:gran),'join(map(range(t:txbL),v:val.''>get(s:gridLbl[v:val],'.-9999/t:gran.',[999999])[0]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
