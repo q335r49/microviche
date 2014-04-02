@@ -2008,6 +2008,7 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 		\let t:txb.settings['lines per map grid']=input\n
 		\let t:gran=input\n
 		\call s:getMapDis()\n
+		\let s:mPrevClk=[0,0]\n
 		\redr!\n
 	\en\n",
 \"g":'let s:mExit=2'}
