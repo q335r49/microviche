@@ -18,41 +18,41 @@ Pan with the mouse or press `F10` followed by:
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
-`y``u``b``n` <sup>1</sup>| ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
+`y``u``b``n` | ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
 `r` `R` | *redraw / Remap* | | `L` | *label autotext*
 `o` | *open map* | | `Ctrl-X`| *delete hidden buffers*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
-`q` `esc` | *abort*| | |
+`q` `esc` | *quit*| | |
 
 ####Mapping
 
 Lines beginning with <samp>txb:</samp> are considered **mapping labels**. The full syntax is:  
 <samp>&nbsp;txb[:line num][: label#highlght#ignored text]</samp>
 
-**`F10``R`emap** will (1) `r`edraw the view (2) map all labels for the splits in the view and (3) relocate any displaced label lines to <samp>line num</samp> (if provided) by inserting or removing immediately preceding blank lines. If relocation is impossible (ie, if there aren't enough preceding blank lines to remove) the label will be highlighted <samp>ErrorMsg</samp> (bright red) in the map. Some example labels:  
-<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;</samp>*move to 345, if possible*  
-<samp>&nbsp;txb:345: Blah blah&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah'*  
-<samp>&nbsp;txb: Blah#Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*label 'Blah', highlight 'Title'*  
-<samp>&nbsp;txb: Blah##Ignored&nbsp;&nbsp;</samp>*label 'Blah'*
+**`F10``R`emap** will (1) `r`edraw and map all visible splits and (2) relocate displaced label lines to <samp>line num</samp>, if provided, by inserting or removing immediately preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:  
+<samp>&nbsp;txb:345 Blah blah&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
+<samp>&nbsp;txb:345: Blah#Title&nbsp;&nbsp;</samp>*move to 345, label map 'Blah blah', highlight 'Title'**  
+<samp>&nbsp;txb: Blah##..ignored&nbsp;</samp>*label 'Blah'*  
 
-To **view the map**, press `F10``o`:
+Press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `click`  `2click` <sup>5</sup>|*select / goto block*||`h``j``k``l` <sup>1</sup>|← ↓ ↑ →
-`drag` | *pan* || `y``u``b``n` <sup>1</sup>|↖ ↗ ↙ ↘
+`drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
 `click` NW corner <sup>6</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
-`drag` to NW corner <sup>6</sup> | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
+`drag` to NW corner | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
 `g` `enter`| *goto label*||`q` `esc`|*quit*
 
-####Footnotes & Tips
-<sup>1</sup> Movements take a count. Eg, `3j`=`jjj`.  
+#### Tips
+- To **turn off scrollbinding** so columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> (for the <samp>Plane</samp> and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply all' prompt.  
+- **Horizontal splits** will screw up panning.  
+- **Terminal emulators** work better than gVim (allows mousing in map mode and automatic redrawing, among other features). On Windows, **[Cygwin](http://www.cygwin.com/)** running the bundled [mintty](https://code.google.com/p/mintty/) terminal works better than gVim which works better than cmd.exe.
+
+----
+<sup>1</sup> Motions take a count, eg, `3j`=`jjj`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
-<sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.
+<sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.  
 <sup>5</sup> gVim does not support mousing in map mode.  
-<sup>6</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.  
-<sup>Tip</sup> To **turn off scrollbinding** so the columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> for the <samp>Plane</samp> (and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply to all' prompt.
-<sup>Tip</sup> To automate **keyboard commands**, <samp>:call TxbExe(key)</samp>
-<sup>Tip</sup> **Horizontal splits** aren't supported and will interfere with panning.
-<sup>Tip</sup> A **terminal emulator** is recommended over gVim because of better mouse control and automatic redrawing. For Windows, **[Cygwin](http://www.cygwin.com/)** running the (bundled) [mintty](https://code.google.com/p/mintty/) terminal emulator is recommended over gVim (in turn recommended over the Windows command prompt).
+<sup>6</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
