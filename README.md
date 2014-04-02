@@ -45,6 +45,7 @@ Key | Action | | Key | Action
 - To **turn off scrollbinding** so columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> (for the <samp>Plane</samp> and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply all' prompt.  
 - **Horizontal splits** will screw up panning.  
 - **Terminal emulators** work better than gVim (allows mousing in map mode and automatic redrawing, among other features). On Windows, **[Cygwin](http://www.cygwin.com/)** running the bundled [mintty](https://code.google.com/p/mintty/) terminal works better than gVim which works better than cmd.exe.
+- **Emphasize a label** by prepending it with a character with ASCII < 'A', eg, '*', '!', ' ' -- this will ensure that the most important label is shown when there is more than one label per map line. Note that you can view hidden labels by selecting the cell.
 
 ----
 <sup>1</sup> Motions take a count, eg, `3``j`=`j``j``j`.  
