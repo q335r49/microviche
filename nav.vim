@@ -1750,6 +1750,7 @@ fun! s:getMapDis()
 		en
 	endfor
 	let t:curGran=t:gran
+	let t:curWidth=t:mapw
 endfun
 
 fun! s:disMap()
@@ -1986,7 +1987,7 @@ let txbCmd.o="let s:kc_continue=0\n
 	\let s:mPrevCoor=[0,0,0]\n
 	\let s:mR=line('.')/t:gran\n
 	\let s:mC=w:txbi\n
-	\if t:curGran!=t:gran\n
+	\if t:curGran!=t:gran || t:curWidth!=t:mapw\n
 		\call s:getMapDis()\n
 	\en\n
 	\let s:mR=s:mR<0? 0 : s:mR>t:rdepth-1? t:rdepth-1 : s:mR\n
