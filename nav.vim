@@ -2003,6 +2003,8 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 		\sleep 500m\n
 		\redr!\n
 	\elseif input!=t:gran\n
+		\let s:mR=s:mR*t:gran/input\n
+		\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
 		\let t:txb.settings['lines per map grid']=input\n
 		\let t:gran=input\n
 		\call s:getMapDis()\n
