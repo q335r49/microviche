@@ -76,7 +76,7 @@ fun! s:printHelp()
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n(1) Motions take counts, capped at 99. Eg, '3j' = 'jjj'.
+	\\n(1) Motions take counts, eg, '3j' = 'jjj'.
 	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAPPING:\n
 	\\nLines of the following form are considered map labels:
@@ -249,6 +249,7 @@ fun! TxbInit(...)
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
 		let t:msSp=t:txb.settings['mouse pan speed']
 		let t:gran=t:txb.settings['lines per map grid']
+			let t:curGran=-1
 		let t:mapw=t:txb.settings['map cell width']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
@@ -1123,6 +1124,9 @@ fun! s:blockPan(sp,off,y,mode)
 endfun
 
 fun! s:redraw(...)
+	if a:0
+		let t:curGran=-1
+	en
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi')
 		let ix=index(t:paths,name0)
@@ -1709,6 +1713,7 @@ fun! s:getMapDis()
 			en
 		en
 	endfor
+	let t:curGran=t:gran
 endfun
 
 fun! s:disMap()
@@ -1944,7 +1949,9 @@ let txbCmd.o="let s:kc_continue=0\n
 	\let s:mPrevCoor=[0,0,0]\n
 	\let s:mR=line('.')/t:gran\n
 	\let s:mC=w:txbi\n
-	\call s:getMapDis()\n
+	\if t:curGran!=t:gran\n
+		\call s:getMapDis()\n
+	\en\n
 	\let s:mR=s:mR<0? 0 : s:mR>t:depth-1? t:depth-1 : s:mR\n
 	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 	\let s:mExit=1\n
