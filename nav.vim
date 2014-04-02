@@ -1990,6 +1990,19 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 \"8":"let s:mNum=s:mNum is '01'? 8 : s:mNum.'8'",
 \"9":"let s:mNum=s:mNum is '01'? 9 : s:mNum.'9'",
 \"0":"let s:mNum=s:mNum is '01'? '01' : s:mNum.'0'",
+\"z":"call s:disMap()\n
+	\let input=input('File lines per map line (>10): ',t:gran)\n
+	\if input<10\n
+		\echohl ErrorMsg\n
+		\echo '\rError: File lines per map line must be > 10\r'\n
+		\sleep 500m\n
+		\redr!\n
+	\elseif input!=t:gran\n
+		\let t:txb.settings['lines per map grid']=input\n
+		\let t:gran=input\n
+		\call s:getMapDis()\n
+		\redr!\n
+	\en\n",
 \"g":'let s:mExit=2'}
 let s:mExe["\<c-m>"]  =s:mExe.g
 let s:mExe["\<right>"]=s:mExe.l
