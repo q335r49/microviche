@@ -46,7 +46,7 @@ Key | Action | | Key | Action
 - **Terminal emulators** work better than gVim (allows mousing in map mode and automatic redrawing, among other features). On Windows, **[Cygwin](http://www.cygwin.com/)** running the bundled [mintty](https://code.google.com/p/mintty/) terminal works better than gVim which works better than cmd.exe.
 
 ----
-<sup>1</sup> Motions take a count, eg, `3j`=`jjj`.  
+<sup>1</sup> Motions take a count, eg, `3j`=`j``j``j`.  
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.  
