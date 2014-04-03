@@ -1746,6 +1746,7 @@ fun! s:getMapDis()
 				en
 			en
 		en
+		let s:disIx[i][-1]+=999
 	endfor
 	let t:curGran=t:gran
 	let t:curWidth=t:mapw
@@ -1823,24 +1824,21 @@ fun! s:disMap()
 				en
 				let j+=1
 			endw
+			let ticker-=1
 			if j==len(curcoords)
-				if e<ticker 
-					call add(curcoords,ticker-1-e)
+				if e<ticker
+					call add(curcoords,ticker-e)
 					call add(curcolors,lastcolor)
 				en
 			else
-				while j<len(curcoords)
-					if e<ticker-1
-						call insert(curcoords,ticker-1-e,j)
-						call insert(curcolors,lastcolor,j)
-						break
-					elseif e==ticker-1
-						break
-					else
-						let ticker+=remove(curcoords,j)
-						let lastcolor=remove(curcolors,j)
-					en
+				while j<len(curcoords) && e>ticker
+					let ticker+=remove(curcoords,j)
+					let lastcolor=remove(curcolors,j)
 				endw
+				if e<ticker
+					call insert(curcoords,ticker-e,j)
+					call insert(curcolors,lastcolor,j)
+				en
 			en
 			let ticker=0
 			let j=0
@@ -1861,7 +1859,7 @@ fun! s:disMap()
 					let nextticker=ticker+curcoords[j]
 					if nextticker>=xe
 						exe 'echohl' curcolors[j]
-						echon curline[ticker : xe]
+						echon curline[ticker : xe-1]
 						break
 					else
 						exe 'echohl' curcolors[j]
