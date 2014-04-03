@@ -256,6 +256,7 @@ fun! TxbInit(...)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
+		let t:depth=100
 		call filter(t:txb,'index(["exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
@@ -1623,9 +1624,6 @@ fun! s:nav(N,L)
 endfun
 
 fun! s:getMapDis()
-	if !exists('t:depth') || t:depth<100
-		let t:depth=100
-	en
 	let s:gridLbl=range(len(t:txb.map))
 	let s:gridClr=copy(s:gridLbl)
 	let s:gridPos=copy(s:gridLbl)
