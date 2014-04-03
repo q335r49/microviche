@@ -5,7 +5,7 @@
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Startup
-- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [download dir]/nav.vim</samp>
+- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [downloads]/nav.vim</samp>
 - (Only necessary when first creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
@@ -16,7 +16,7 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` <sup>1</sup>| ← ↓ ↑ → | | `F1` <sup>2</sup> | *help*
 `y``u``b``n` | ↖ ↗ ↙ ↘  ||`A` `D` |*append / delete split*
-`r` `R` | *redraw / Remap* | |`o` `O` | *view map / Remap & view'
+`r` `R` | *redraw / Remap* | |`o` `O` | *view map / Remap & view*
 `L` | *insert* <samp>txb:lnum</samp> ||`Ctrl-X`| *delete hidden buffers*
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
 `q` `esc` | *quit*| | 
@@ -42,10 +42,11 @@ Key | Action | | Key | Action
 `q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
-- To **turn off scrollbinding** so columns scroll independently: `F10``S`ettings → `c`hange <samp>autoexe</samp> (for the <samp>Plane</samp> and not the <samp>Split</samp>) from <samp>se nowrap scb cole=2</samp> to <samp>se nowrap noscb cole=2</samp> → `S`ave → <samp>y</samp> at 'apply all' prompt.  
+- To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
 - **Horizontal splits** will screw up panning.  
-- **Terminal emulators** work better than gVim (allows mousing in map mode and automatic redrawing, among other features). On Windows, **[Cygwin](http://www.cygwin.com/)** running the bundled [mintty](https://code.google.com/p/mintty/) terminal works better than gVim which works better than cmd.exe.
-- **Emphasize** a label by prepending it an ASCII char < <samp>A</samp>, eg, <samp>*</samp>, <samp>!</samp>, <samp>_</samp> - they are shown when there are multiple labels in the map line.
+- **Emphasize** a label by prepending it an ASCII char < <samp>A</samp> (eg, <samp>*</samp>, <samp>!</samp>, <samp>_</samp>): they are shown when there are multiple labels in one map line.
+- **Terminal emulators** work better than gVim (enables mousing in map, automatic redrawing, and other features).
+- On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
 
 ----
 <sup>1</sup> Motions take a count, eg, `3``j`=`j``j``j`.  
