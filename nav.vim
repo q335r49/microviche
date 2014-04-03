@@ -913,7 +913,7 @@ fun! s:doCmdKeyhandler(c)
 		call feedkeys("\<plug>TxbZ")
 	elseif !empty(s:kc_msg)
 		redr|ec s:kc_msg
-	else
+	elseif s:kc_msg isnot 0
 		redr|echo '(done)' w:txbi '-' line('.')
 	en
 endfun
@@ -1995,6 +1995,7 @@ let txbCmd.o="let s:kc_continue=0\n
  	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
+	\let s:kc_msg=0\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 let txbCmd.O="call s:redraw(1)|redr|".txbCmd.o
 
