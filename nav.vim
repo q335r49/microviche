@@ -1640,11 +1640,11 @@ fun! s:getMapDis()
 			if has_key(s:gridLbl[i],r)
 				let key=i.' '.r
 				if !has_key(conflicts,key)
-					if s:gridLbl[i][r][0][0]<#'A'
+					if s:gridLbl[i][r][0][0]<#'0'
 				   		let conflicts[key]=[i,r,s:gridLbl[i][r][0],s:gridPos[i][r][0]]
 						let s:gridPos[i][r]=[]
 					else
-				   		let conflicts[key]=[i,r,'A',-1]
+				   		let conflicts[key]=[i,r,'0',-1]
 					en
 				en
 				if t:txb.map[i][j][0][0]<#conflicts[key][2][0]
