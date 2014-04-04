@@ -1767,13 +1767,9 @@ fun! s:disMap()
 	if b<xe
 		let selection=get(s:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
 		let sele=s:mR+len(selection)-1
-		if b>=s:mCoff
-			let truncb=0
-			let vxe=b-1
-		else
-			let truncb=s:mCoff-b
-		en
+		let truncb=b>=s:mCoff? 0 : s:mCoff-b
 		let trunce=truncb+xe-b
+		let vxe=b-1
 	else
 		let sele=-999999
 	en
