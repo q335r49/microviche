@@ -1774,8 +1774,8 @@ fun! s:disMap()
 	let firstR=s:mRoff>0? s:mRoff : 0
 	let lastR=firstR+&ch-2
 	for i in range(firstR,lastR>=t:rdepth? t:rdepth-1 : lastR)
+		let j=0
 		if i<s:mR || i>sele
-			let j=0
 			while s:disIx[i][j]<s:mCoff
 				let j+=1
 			endw
@@ -1796,7 +1796,6 @@ fun! s:disMap()
 		else
 			let seltext=selection[i-s:mR][truncb : truncb+xe-b]
 			let e=b+len(seltext)-1
-			let j=0
 			if b<=s:mCoff
 				echohl Visual
 				if e<xe
