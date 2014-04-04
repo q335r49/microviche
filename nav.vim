@@ -1764,10 +1764,15 @@ let g:disIx=s:disIx
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
-	let truncb=b>=s:mCoff? 0 : s:mCoff-b
 	if b<xe
 		let selection=get(s:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
 		let sele=s:mR+len(selection)-1
+		if b>=s:mCoff
+			let truncb=0
+			let vxe=b-1
+		else
+			let truncb=s:mCoff-b
+		en
 		let trunce=truncb+xe-b
 	else
 		let sele=-999999
@@ -1796,10 +1801,7 @@ fun! s:disMap()
 			en
 		else
 			let seltext=selection[i-s:mR][truncb : trunce]
-			if b<=s:mCoff
-				let vOff=s:mCoff+len(seltext)
-			elseif b<xe
-				let vxe=b-1
+			if !truncb
 				while s:disIx[i][j]<s:mCoff
 					let j+=1
 				endw
@@ -1818,6 +1820,8 @@ fun! s:disMap()
 					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
 				en
 				let vOff=b+len(seltext)
+			else
+				let vOff=s:mCoff+len(seltext)
 			en
 			echohl Visual
 			if vOff<xe
