@@ -1627,12 +1627,12 @@ endfun
 
 fun! s:getMapDis()
 	let s:gridLbl=range(len(t:txb.map))
-	let s:gridClr=copy(s:gridLbl)
+	let gridClr=copy(s:gridLbl)
 	let s:gridPos=copy(s:gridLbl)
 	let conflicts={}
 	for i in copy(s:gridLbl)
 		let s:gridLbl[i]={}
-		let s:gridClr[i]={}
+		let gridClr[i]={}
 		let s:gridPos[i]={}
 		for j in keys(t:txb.map[i])
 			let r=j/t:gran
@@ -1657,7 +1657,7 @@ fun! s:getMapDis()
 				en
 			else
 				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
-				let s:gridClr[i][r]=t:txb.map[i][j][1]
+				let gridClr[i][r]=t:txb.map[i][j][1]
 				let s:gridPos[i][r]=[j]
 				if j>t:txb.depth
 					let t:txb.depth=j
@@ -1670,11 +1670,11 @@ fun! s:getMapDis()
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 			call insert(s:gridPos[pos[0]][pos[1]],pos[3])
-			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 		else
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
+			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
 	let t:rdepth=t:txb.depth/t:gran+1
@@ -1693,25 +1693,25 @@ fun! s:getMapDis()
 				if empty(s:disTxt[i])
 					let s:disTxt[i]=s:gridLbl[j][i][0]
 					let s:disIx[i]=[padl]
-					let s:disClr[i]=[s:gridClr[j][i]]
+					let s:disClr[i]=[gridClr[j][i]]
 				else
 					let s:disTxt[i]=s:gridLbl[j][i][0][:padl-2].'>'.s:disTxt[i]
-					if s:gridClr[j][i]==s:disClr[i][0]
+					if gridClr[j][i]==s:disClr[i][0]
 						let s:disIx[i][0]+=padl
 					else
 						call insert(s:disIx[i],padl)
-						call insert(s:disClr[i],s:gridClr[j][i])
+						call insert(s:disClr[i],gridClr[j][i])
 					en
 				en
 				let padl=t:mapw
 			elseif empty(s:disTxt[i])
 				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l)
-				if empty(s:gridClr[j][i])
+				if empty(gridClr[j][i])
 					let s:disIx[i]=[padl]
 					let s:disClr[i]=['']
 				else
 					let s:disIx[i]=[l,padl-l]
-					let s:disClr[i]=[s:gridClr[j][i],'']
+					let s:disClr[i]=[gridClr[j][i],'']
 				en
 				let padl=t:mapw
 			else
@@ -1722,11 +1722,11 @@ fun! s:getMapDis()
 					call insert(s:disIx[i],padl-l)
 					call insert(s:disClr[i],'')
 				en
-				if empty(s:gridClr[j][i])
+				if empty(gridClr[j][i])
 					let s:disIx[i][0]+=l
 				else
 					call insert(s:disIx[i],l)
-					call insert(s:disClr[i],s:gridClr[j][i])
+					call insert(s:disClr[i],gridClr[j][i])
 				en
 				let padl=t:mapw
 			en
