@@ -1769,22 +1769,23 @@ fun! s:disMap()
 				let j+=1
 				let ticker+=s:disIx[i][j]
 			endw
+			exe 'echohl' s:disClr[i][j]
 			if ticker>xe
-				exe 'echohl' s:disClr[i][j]
 				echon s:disTxt[i][s:mCoff : xe] "\n"
 			else
-				if ticker>s:mCoff
-					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][s:mCoff : ticker-1]
-				en
+				echon s:disTxt[i][s:mCoff : ticker-1]
 				while ticker<xe
 					let j+=1
 					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][ticker : ticker+s:disIx[i][j]-1]
-					let ticker+=s:disIx[i][j]
+					let nt=ticker+s:disIx[i][j]
+					if nt<xe
+						echon s:disTxt[i][ticker : nt-1]
+					else
+						echon s:disTxt[i][ticker : xe] "\n"
+						break
+					en
+					let ticker=nt
 				endw
-				exe 'echohl' s:disClr[i][j]
-				echon s:disTxt[i][ticker : xe] "\n"
 			en
 		else
 			let b=s:mC*t:mapw
@@ -1840,22 +1841,23 @@ fun! s:disMap()
 				let j+=1
 				let ticker+=curcoords[j]
 			endw
+			exe 'echohl' curcolors[j]
 			if ticker>xe
-				exe 'echohl' curcolors[j]
 				echon curline[s:mCoff : xe] "\n"
 			else
-				if ticker>s:mCoff
-					exe 'echohl' curcolors[j]
-					echon curline[s:mCoff : ticker-1]
-				en
+				echon curline[s:mCoff : ticker-1]
 				while ticker<xe
 					let j+=1
 					exe 'echohl' curcolors[j]
-					echon curline[ticker : ticker+curcoords[j]-1]
-					let ticker+=curcoords[j]
+					let nt=ticker+curcoords[j]
+					if nt<xe
+						echon curline[ticker : nt-1]
+					else
+						echon curline[ticker : xe] "\n"
+						break
+					en
+					let ticker=nt
 				endw
-				exe 'echohl' curcolors[j]
-				echon curline[ticker : xe] "\n"
 			en
 		en
 	endfor
