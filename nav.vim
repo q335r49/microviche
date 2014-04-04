@@ -1763,7 +1763,7 @@ endfun
 let g:disIx=s:disIx
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
-	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
+	let sele=s:mR+len(get(s:gridLbl[s:mC],s:mR,[0]))-1
 	let i=s:mRoff
 	let b=s:mC*t:mapw
 	let blanks=repeat(' ',t:mapw)
