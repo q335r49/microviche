@@ -1692,14 +1692,14 @@ fun! s:getMapDis()
 			elseif l>=padl
 				if empty(s:disTxt[i])
 					let s:disTxt[i]=s:gridLbl[j][i][0]
-					let s:disIx[i]=[padl]
+					let intervals=[padl]
 					let s:disClr[i]=[gridClr[j][i]]
 				else
 					let s:disTxt[i]=s:gridLbl[j][i][0][:padl-2].'>'.s:disTxt[i]
 					if gridClr[j][i]==s:disClr[i][0]
-						let s:disIx[i][0]+=padl
+						let intervals[0]+=padl
 					else
-						call insert(s:disIx[i],padl)
+						call insert(intervals,padl)
 						call insert(s:disClr[i],gridClr[j][i])
 					en
 				en
@@ -1707,25 +1707,25 @@ fun! s:getMapDis()
 			elseif empty(s:disTxt[i])
 				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l)
 				if empty(gridClr[j][i])
-					let s:disIx[i]=[padl]
+					let intervals=[padl]
 					let s:disClr[i]=['']
 				else
-					let s:disIx[i]=[l,padl-l]
+					let intervals=[l,padl-l]
 					let s:disClr[i]=[gridClr[j][i],'']
 				en
 				let padl=t:mapw
 			else
 				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l).s:disTxt[i]
 				if empty(s:disClr[i][0])
-					let s:disIx[i][0]+=padl-l
+					let intervals[0]+=padl-l
 				else
-					call insert(s:disIx[i],padl-l)
+					call insert(intervals,padl-l)
 					call insert(s:disClr[i],'')
 				en
 				if empty(gridClr[j][i])
-					let s:disIx[i][0]+=l
+					let intervals[0]+=l
 				else
-					call insert(s:disIx[i],l)
+					call insert(intervals,l)
 					call insert(s:disClr[i],gridClr[j][i])
 				en
 				let padl=t:mapw
@@ -1736,24 +1736,31 @@ fun! s:getMapDis()
 			let padl-=t:mapw
 			if empty(s:disTxt[i])
 				let s:disTxt[i]=strpart(pad[i],0,padl)
-				let s:disIx[i]=[padl]
+				let intervals=[padl]
 				let s:disClr[i]=['']
 			else
 				let s:disTxt[i]=strpart(pad[i],0,padl).s:disTxt[i]
 				if empty(s:disClr[i][0])
-					let s:disIx[i][0]+=padl
+					let intervals[0]+=padl
 				else
-					call insert(s:disIx[i],padl)
+					call insert(intervals,padl)
 					call insert(s:disClr[i],'')
 				en
 			en
 		en
-		let s:disIx[i][-1]+=9999
+		let sum=0
+		for j in range(len(intervals))
+			let intervals[j]=sum+intervals[j]
+			let sum=intervals[j]
+		endfor
+		let s:disIx[i]=intervals
+		let s:disIx[i][-1]=99999
 	endfor
 	let t:curGran=t:gran
 	let t:curWidth=t:mapw
 endfun
 
+let g:disIx=s:disIx
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
@@ -1764,100 +1771,100 @@ fun! s:disMap()
 			continue
 		elseif i<s:mR || i>sele
 			let j=0
-			let ticker=s:disIx[i][0]
-			while ticker<s:mCoff
+			while s:disIx[i][j]<s:mCoff
 				let j+=1
-				let ticker+=s:disIx[i][j]
 			endw
 			exe 'echohl' s:disClr[i][j]
-			if ticker>xe
+			if s:disIx[i][j]>xe
 				echon s:disTxt[i][s:mCoff : xe] "\n"
 			else
-				echon s:disTxt[i][s:mCoff : ticker-1]
-				while ticker<xe
-					let j+=1
+				echon s:disTxt[i][s:mCoff : s:disIx[i][j]-1]
+				let j+=1
+				while s:disIx[i][j]<xe
 					exe 'echohl' s:disClr[i][j]
-					let nt=ticker+s:disIx[i][j]
-					if nt<xe
-						echon s:disTxt[i][ticker : nt-1]
-					else
-						echon s:disTxt[i][ticker : xe] "\n"
-						break
-					en
-					let ticker=nt
+					echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+					let j+=1
 				endw
+				exe 'echohl' s:disClr[i][j]
+				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 			en
 		else
 			let b=s:mC*t:mapw
 			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-s:mR]
 			let l=len(content)
+			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
 			let e=b+l-1
 			let ticker=0
-			let curcoords=copy(s:disIx[i])
-			let curcolors=copy(s:disClr[i])
+
 			let j=0
-			while j<len(curcoords)
-				let nextticker=ticker+curcoords[j]
-				if b==ticker
-					let curcoords[j]=l
-					let lastcolor=curcolors[j]
-					let curcolors[j]='Visual'
-					let j+=1
-					let ticker=nextticker
-					break
-				elseif b<nextticker
-					let curcoords[j]=b-ticker
-					call insert(curcoords,l,j+1)
-					call insert(curcolors,'Visual',j+1)
-					let lastcolor=curcolors[j]
-					let j+=2
-					let ticker=nextticker
-					break
+			if b<s:mCoff
+				if e<s:mCoff
+				elseif e<xe
+					echohl Visual
+					echon curline[s:mCoff :]
+					let vOff=e+1
 				else
-					let ticker=nextticker
+					echohl Visual
+					echo curline[s:mCoff : xe]
+					let vOff=999999
 				en
-				let j+=1
-			endw
-			let ticker-=1
-			if j==len(curcoords)
-				if e<ticker
-					call add(curcoords,ticker-e)
-					call add(curcolors,lastcolor)
+			elseif b==s:mCoff
+				if e<xe
+					echon curline[b : e]
+					let vOff=e+1
+				else
+                	echo content[ : &columns-2]
+					let vOff=999999
 				en
+			elseif b>=xe
 			else
-				while j<len(curcoords) && e>ticker
-					let ticker+=remove(curcoords,j)
-					let lastcolor=remove(curcolors,j)
+				let vxe=b
+
+				let j=0
+				while s:disIx[i][j]<s:mCoff
+					let j+=1
 				endw
-				if e<ticker
-					call insert(curcoords,ticker-e,j)
-					call insert(curcolors,lastcolor,j)
+				exe 'echohl' s:disClr[i][j]
+				if s:disIx[i][j]>vxe
+					echon s:disTxt[i][s:mCoff : vxe]
+				else
+					echon s:disTxt[i][s:mCoff : s:disIx[i][j]-1]
+					let j+=1
+					while s:disIx[i][j]<vxe
+						exe 'echohl' s:disClr[i][j]
+						echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+						let j+=1
+					endw
+					exe 'echohl' s:disClr[i][j]
+					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
+				en
+
+				if e<xe
+					echon curline[b : e]
+					let vOff=e+1
+				else
+					echon curline[b : xe]
+					let vOff=999999
 				en
 			en
+
 			let j=0
-			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
-			let ticker=curcoords[0]
-			while ticker<s:mCoff
+			while s:disIx[i][j]<vOff
 				let j+=1
-				let ticker+=curcoords[j]
 			endw
-			exe 'echohl' curcolors[j]
-			if ticker>xe
-				echon curline[s:mCoff : xe] "\n"
+			exe 'echohl' s:disClr[i][j]
+			if s:disIx[i][j]>xe
+				echon s:disTxt[i][vOff : xe]
 			else
-				echon curline[s:mCoff : ticker-1]
-				while ticker<xe
+				echon s:disTxt[i][vOff : s:disIx[i][j]-1]
+				let j+=1
+				while s:disIx[i][j]<xe
+					exe 'echohl' s:disClr[i][j]
+					echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
 					let j+=1
-					exe 'echohl' curcolors[j]
-					let nt=ticker+curcoords[j]
-					if nt<xe
-						echon curline[ticker : nt-1]
-					else
-						echon curline[ticker : xe] "\n"
-						break
-					en
-					let ticker=nt
 				endw
+				exe 'echohl' s:disClr[i][j]
+				echon s:disTxt[i][s:disIx[i][j-1] : xe]
 			en
 		en
 	endfor
