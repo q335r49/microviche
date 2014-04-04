@@ -167,8 +167,10 @@ fun! TxbInit(...)
 	elseif len(plane.exe)<len(plane.name)
 		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 	en
-	if !exists('plane.depth') || plane.depth<100
-		let plane.depth=100
+	if !exists('plane.linef')
+		let plane.linef=repeat([0],len(plane.name))
+	elseif len(plane.linef)<len(plane.name)
+		call extend(plane.linef,repeat([0],len(plane.name)-len(plane.linef)))
 	en
     let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
@@ -259,8 +261,9 @@ fun! TxbInit(...)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
-		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
+		call filter(t:txb,'index(["linef","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
+		let t:depth=max(t:txb.linef)
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
@@ -1239,10 +1242,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let t:txb.map[ccol]={-9999:[line('$'),'']}
-			if line('$')>t:txb.depth
-				let t:txb.depth=line('$')
-			en
+			let t:txb.linef[ccol]=line('$')
 			norm! 1G0
 			let line=search('^txb:','Wc')
 			while line
@@ -1271,6 +1271,7 @@ fun! s:redraw(...)
 				en
 				let line=search('^txb:','W')
 			endwhile
+			let t:depth=max(t:txb.linef)
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1659,9 +1660,6 @@ fun! s:getMapDis()
 				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
 				let gridClr[i][r]=t:txb.map[i][j][1]
 				let s:gridPos[i][r]=[j]
-				if j>t:txb.depth
-					let t:txb.depth=j
-				en
 			en
 		endfor
 	endfor
@@ -1677,8 +1675,9 @@ fun! s:getMapDis()
 			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let t:rdepth=t:txb.depth/t:gran+1
-	let pad=map(range(0,t:txb.depth,t:gran),'join(map(range(t:txbL),v:val.''>get(s:gridLbl[v:val],'.-9999/t:gran.',[999999])[0]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:rdepth=t:depth/t:gran+1
+	let pad=map(range(1,t:depth,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.linef[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let g:pad=pad
 	let s:disTxt=repeat([''],t:rdepth)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
