@@ -1765,7 +1765,7 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
 	let i=s:mRoff
-	for i in range(s:mRoff,s:mRoff+&ch-8)
+	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=t:rdepth || i<0
 			echo ''
 			continue
@@ -1833,6 +1833,8 @@ fun! s:disMap()
 					echon curline[b : xe] "\n"
 					continue
 				en
+			else
+				let vOff=s:mCoff
 			en
 			while s:disIx[i][j]<vOff
 				let j+=1
