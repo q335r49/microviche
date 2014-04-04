@@ -1766,6 +1766,7 @@ fun! s:disMap()
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
 	let i=s:mRoff
 	let b=s:mC*t:mapw
+	let blanks=repeat(' ',t:mapw)
 	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=t:rdepth || i<0
 			echo ''
@@ -1790,18 +1791,16 @@ fun! s:disMap()
 				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 			en
 		else
-			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-s:mR]
-			let l=len(content)
-			let e=b+l-1
-			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
+			let curline=get(get(s:gridLbl[s:mC],s:mR,[]),i-s:mR,blanks)
+			let e=b+len(curline)-1
+			let curline=b? s:disTxt[i][:b-1].curline.s:disTxt[i][e+1 :] : curline.s:disTxt[i][e+1 :]
 			let j=0
 			if b<=s:mCoff
+				echohl Visual
 				if e<xe
-					echohl Visual
 					echon curline[s:mCoff : e]
 					let vOff=e+1
 				else
-					echohl Visual
 					echo curline[s:mCoff : xe]
 					continue
 				en
@@ -1824,12 +1823,11 @@ fun! s:disMap()
 					exe 'echohl' s:disClr[i][j]
 					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
 				en
+				echohl Visual
 				if e<xe
-					echohl Visual
 					echon curline[b : e]
 					let vOff=e+1
 				else
-					echohl Visual
 					echon curline[b : xe] "\n"
 					continue
 				en
