@@ -1765,10 +1765,10 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
 	let truncb=b>=s:mCoff? 0 : s:mCoff-b
-	let trunce=truncb+xe-b
 	if b<xe
 		let selection=get(s:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
 		let sele=s:mR+len(selection)-1
+		let trunce=truncb+xe-b
 	else
 		let sele=-999999
 	en
@@ -1797,14 +1797,7 @@ fun! s:disMap()
 		else
 			let seltext=selection[i-s:mR][truncb : trunce]
 			if b<=s:mCoff
-				echohl Visual
 				let vOff=s:mCoff+len(seltext)
-				if vOff<xe
-					echon seltext
-				else
-					echo seltext
-					continue
-				en
 			elseif b<xe
 				let vxe=b-1
 				while s:disIx[i][j]<s:mCoff
@@ -1824,31 +1817,31 @@ fun! s:disMap()
 					exe 'echohl' s:disClr[i][j]
 					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
 				en
-				echohl Visual
 				let vOff=b+len(seltext)
-				if vOff<xe
-					echon seltext
-				else
-					echon seltext "\n"
-					continue
-				en
 			en
-			while s:disIx[i][j]<vOff
-				let j+=1
-			endw
-			exe 'echohl' s:disClr[i][j]
-			if s:disIx[i][j]>xe
-				echon s:disTxt[i][vOff : xe] "\n"
-			else
-				echon s:disTxt[i][vOff : s:disIx[i][j]-1]
-				let j+=1
-				while s:disIx[i][j]<xe
-					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+			echohl Visual
+			if vOff<xe
+				echon seltext
+				while s:disIx[i][j]<vOff
 					let j+=1
 				endw
 				exe 'echohl' s:disClr[i][j]
-				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
+				if s:disIx[i][j]>xe
+					echon s:disTxt[i][vOff : xe] "\n"
+				else
+					echon s:disTxt[i][vOff : s:disIx[i][j]-1]
+					let j+=1
+					while s:disIx[i][j]<xe
+						exe 'echohl' s:disClr[i][j]
+						echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+						let j+=1
+					endw
+					exe 'echohl' s:disClr[i][j]
+					echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
+				en
+			else
+				echo seltext
+				continue
 			en
 		en
 	endfor
