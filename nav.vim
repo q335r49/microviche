@@ -1765,6 +1765,7 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
 	let i=s:mRoff
+	let b=s:mC*t:mapw
 	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=t:rdepth || i<0
 			echo ''
@@ -1789,7 +1790,6 @@ fun! s:disMap()
 				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 			en
 		else
-			let b=s:mC*t:mapw
 			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-s:mR]
 			let l=len(content)
 			let e=b+l-1
