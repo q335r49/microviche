@@ -1759,7 +1759,6 @@ fun! s:getMapDis()
 	let t:curWidth=t:mapw
 endfun
 
-let g:disIx=s:disIx
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
