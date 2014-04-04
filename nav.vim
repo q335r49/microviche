@@ -257,13 +257,13 @@ fun! TxbInit(...)
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
 		let t:msSp=t:txb.settings['mouse pan speed']
 		let t:gran=t:txb.settings['lines per map grid']
-			let t:curGran=-1
+		let t:deepest=max(t:txb.depth)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
-		let t:deepest=max(t:txb.depth)
+		call s:getMapDis()
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
