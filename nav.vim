@@ -1763,10 +1763,15 @@ endfun
 let g:disIx=s:disIx
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
-	let sele=s:mR+len(get(s:gridLbl[s:mC],s:mR,[0]))-1
-	let i=s:mRoff
 	let b=s:mC*t:mapw
-	let blanks=repeat(' ',t:mapw)
+	let truncb=b>=s:mCoff? 0 : s:mCoff-b
+	if xe>=b
+		let selection=get(s:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
+		let sele=s:mR+len(selection)-1
+	else
+		let sele=-999999
+	en
+	let i=s:mRoff
 	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=t:rdepth || i<0
 			echo ''
@@ -1791,17 +1796,16 @@ fun! s:disMap()
 				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 			en
 		else
-			let curline=get(get(s:gridLbl[s:mC],s:mR,[]),i-s:mR,blanks)
-			let e=b+len(curline)-1
-			let curline=b? s:disTxt[i][:b-1].curline.s:disTxt[i][e+1 :] : curline.s:disTxt[i][e+1 :]
+			let seltext=selection[i-s:mR][truncb : truncb+xe-b]
+			let e=b+len(seltext)-1
 			let j=0
 			if b<=s:mCoff
 				echohl Visual
 				if e<xe
-					echon curline[s:mCoff : e]
+					echon seltext
 					let vOff=e+1
 				else
-					echo curline[s:mCoff : xe]
+					echo seltext
 					continue
 				en
 			elseif b<xe
@@ -1825,14 +1829,12 @@ fun! s:disMap()
 				en
 				echohl Visual
 				if e<xe
-					echon curline[b : e]
+					echon seltext
 					let vOff=e+1
 				else
-					echon curline[b : xe] "\n"
+					echon seltext "\n"
 					continue
 				en
-			else
-				let vOff=s:mCoff
 			en
 			while s:disIx[i][j]<vOff
 				let j+=1
