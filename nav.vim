@@ -1771,12 +1771,10 @@ fun! s:disMap()
 	else
 		let sele=-999999
 	en
-	let i=s:mRoff
-	for i in range(s:mRoff,s:mRoff+&ch-2)
-		if i>=t:rdepth || i<0
-			echo ''
-			continue
-		elseif i<s:mR || i>sele
+	let firstR=s:mRoff>0? s:mRoff : 0
+	let lastR=firstR+&ch-2
+	for i in range(firstR,lastR>=t:rdepth? t:rdepth-1 : lastR)
+		if i<s:mR || i>sele
 			let j=0
 			while s:disIx[i][j]<s:mCoff
 				let j+=1
