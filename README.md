@@ -44,7 +44,7 @@ Key | Action | | Key | Action
 #### Tips
 - To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
 - **Horizontal splits** will screw up panning.  
-- To resolve **labeling conflicts** (multiple labels for one map line), prepend the one you want shown with an ASCII char smaller than <samp>A</samp> (eg, <samp>*</samp>, <samp>!</samp>, <samp>_</samp>).
+- To resolve **labeling conflicts** (multiple labels for one map line), prepend the one you want shown with, in order of priority: `!``"``$``%``&``'``(``)``*``+``,``-``.``/`
 - **Terminal emulators** work better than gVim: they allow for mousing in map and automatic redrawing.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
 
