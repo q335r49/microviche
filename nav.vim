@@ -167,10 +167,10 @@ fun! TxbInit(...)
 	elseif len(plane.exe)<len(plane.name)
 		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
 	en
-	if !exists('plane.linef')
-		let plane.linef=repeat([0],len(plane.name))
-	elseif len(plane.linef)<len(plane.name)
-		call extend(plane.linef,repeat([0],len(plane.name)-len(plane.linef)))
+	if !exists('plane.depth')
+		let plane.depth=repeat([0],len(plane.name))
+	elseif len(plane.depth)<len(plane.name)
+		call extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth)))
 	en
     let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
@@ -261,9 +261,9 @@ fun! TxbInit(...)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
-		call filter(t:txb,'index(["linef","exe","map","name","settings","size"],v:key)!=-1')
+		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
-		let t:depth=max(t:txb.linef)
+		let t:deepest=max(t:txb.depth)
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
@@ -1242,7 +1242,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let t:txb.linef[ccol]=line('$')
+			let t:txb.depth[ccol]=line('$')
 			norm! 1G0
 			let line=search('^txb:','Wc')
 			while line
@@ -1271,7 +1271,7 @@ fun! s:redraw(...)
 				en
 				let line=search('^txb:','W')
 			endwhile
-			let t:depth=max(t:txb.linef)
+			let t:deepest=max(t:txb.depth)
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1675,13 +1675,13 @@ fun! s:getMapDis()
 			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let t:rdepth=t:depth/t:gran+1
-	let pad=map(range(1,t:depth,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.linef[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let pad=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:deepR=len(pad)-1
 	let g:pad=pad
-	let s:disTxt=repeat([''],t:rdepth)
+	let s:disTxt=repeat([''],t:deepR+1)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
-	for i in range(t:rdepth)
+	for i in range(t:deepR+1)
 		let j=t:txbL-1
 		let padl=t:mapw
 		while j>=0
@@ -1772,9 +1772,9 @@ fun! s:disMap()
 	else
 		let sele=-999999
 	en
-	let firstR=s:mRoff>0? s:mRoff : 0
-	let lastR=firstR+&ch-2
-	for i in range(firstR,lastR>=t:rdepth? t:rdepth-1 : lastR)
+	let i=s:mRoff>0? s:mRoff : 0
+	let lastR=i+&ch-2>t:deepR? t:deepR : i+&ch-2
+	while i<=lastR
 		let j=0
 		if i<s:mR || i>sele
 			while s:disIx[i][j]<s:mCoff
@@ -1843,7 +1843,8 @@ fun! s:disMap()
 				continue
 			en
 		en
-	endfor
+		let i+=1
+	endwhile
 	echohl
 	echon s:mC '-' s:mR*t:gran
 endfun
@@ -1856,7 +1857,7 @@ fun! s:mapKeyHandler(c)
 			if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 				let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
 				let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
-				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:rdepth-1? t:rdepth-1 : s:mRoff
+				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 				let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
 				call s:disMap()
 			en
@@ -1870,7 +1871,7 @@ fun! s:mapKeyHandler(c)
 					if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
 						let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
 						let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
-						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:rdepth-1? t:rdepth-1 : s:mRoff
+						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 						let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
 						call s:disMap()
 					en
@@ -1956,7 +1957,7 @@ let txbCmd.o="let s:kc_continue=0\n
 	\if t:curGran!=t:gran || t:curWidth!=t:mapw\n
 		\call s:getMapDis()\n
 	\en\n
-	\let s:mR=s:mR<0? 0 : s:mR>t:rdepth-1? t:rdepth-1 : s:mR\n
+	\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 	\let s:mExit=1\n
 	\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
@@ -1971,21 +1972,21 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
 \'q':"let s:mExit=0",
 \'h':"let s:mC=s:mC>s:mNum? s:mC-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
-\'j':"let s:mR=s:mR+s:mNum<t:rdepth-1? s:mR+s:mNum : t:rdepth-1|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'j':"let s:mR=s:mR+s:mNum<t:deepR? s:mR+s:mNum : t:deepR|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
 \'k':"let s:mR=s:mR>s:mNum? s:mR-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
 \'l':"let s:mC=s:mC+s:mNum<t:txbL? s:mC+s:mNum : t:txbL-1|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
 \'y':"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
 \'u':"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'b':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:rdepth-1]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'n':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:rdepth-1]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'b':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:deepR]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'n':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:deepR]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
 \'H':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff>s:mNum*t:mapw? s:mCoff-s:mNum*t:mapw : 0|let s:mNum='01'",
-\'J':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff+s:mNum<t:rdepth-1? s:mRoff+s:mNum : t:rdepth-1|let s:mNum='01'",
+\'J':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff+s:mNum<t:deepR? s:mRoff+s:mNum : t:deepR|let s:mNum='01'",
 \'K':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff>s:mNum? s:mRoff-s:mNum : 0|let s:mNum='01'",
 \'L':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff+s:mNum*t:mapw<t:mapw*t:txbL? s:mCoff+s:mNum*t:mapw : t:mapw*t:txbL|let s:mNum='01'",
 \'Y':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
 \'U':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
-\'B':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:rdepth-1]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
-\'N':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:rdepth-1]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
+\'B':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:deepR]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
+\'N':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:deepR]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
 \'1':"let s:mNum=s:mNum is '01'? 1 : s:mNum.'1'",
 \'2':"let s:mNum=s:mNum is '01'? 2 : s:mNum.'2'",
 \'3':"let s:mNum=s:mNum is '01'? 3 : s:mNum.'3'",
@@ -1998,7 +1999,7 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 \'0':"let s:mNum=s:mNum is '01'? '01' : s:mNum.'0'",
 \'c':"let s:mR=s:mRoff+(&ch-2)/2\n
 	\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
-	\let s:mR=s:mR>=t:rdepth? t:rdepth-1 : s:mR\n
+	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 	\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
 \'z':"call s:disMap()\n
 	\let input=str2nr(input('File lines per map line (>10): ',t:gran))\n
