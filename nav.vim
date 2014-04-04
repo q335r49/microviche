@@ -1765,7 +1765,7 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
 	let i=s:mRoff
-	for i in range(s:mRoff,s:mRoff+&ch-2)
+	for i in range(s:mRoff,s:mRoff+&ch-8)
 		if i>=t:rdepth || i<0
 			echo ''
 			continue
@@ -1792,35 +1792,21 @@ fun! s:disMap()
 			let b=s:mC*t:mapw
 			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-s:mR]
 			let l=len(content)
-			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
 			let e=b+l-1
-			let ticker=0
-
+			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
 			let j=0
-			if b<s:mCoff
-				if e<s:mCoff
-				elseif e<xe
+			if b<=s:mCoff
+				if e<xe
 					echohl Visual
-					echon curline[s:mCoff :]
+					echon curline[s:mCoff : e]
 					let vOff=e+1
 				else
 					echohl Visual
 					echo curline[s:mCoff : xe]
-					let vOff=999999
+					continue
 				en
-			elseif b==s:mCoff
-				if e<xe
-					echon curline[b : e]
-					let vOff=e+1
-				else
-                	echo content[ : &columns-2]
-					let vOff=999999
-				en
-			elseif b>=xe
-			else
-				let vxe=b
-
-				let j=0
+			elseif b<xe
+				let vxe=b-1
 				while s:disIx[i][j]<s:mCoff
 					let j+=1
 				endw
@@ -1838,23 +1824,22 @@ fun! s:disMap()
 					exe 'echohl' s:disClr[i][j]
 					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
 				en
-
 				if e<xe
+					echohl Visual
 					echon curline[b : e]
 					let vOff=e+1
 				else
-					echon curline[b : xe]
-					let vOff=999999
+					echohl Visual
+					echon curline[b : xe] "\n"
+					continue
 				en
 			en
-
-			let j=0
 			while s:disIx[i][j]<vOff
 				let j+=1
 			endw
 			exe 'echohl' s:disClr[i][j]
 			if s:disIx[i][j]>xe
-				echon s:disTxt[i][vOff : xe]
+				echon s:disTxt[i][vOff : xe] "\n"
 			else
 				echon s:disTxt[i][vOff : s:disIx[i][j]-1]
 				let j+=1
@@ -1864,7 +1849,7 @@ fun! s:disMap()
 					let j+=1
 				endw
 				exe 'echohl' s:disClr[i][j]
-				echon s:disTxt[i][s:disIx[i][j-1] : xe]
+				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 			en
 		en
 	endfor
