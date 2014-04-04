@@ -1748,7 +1748,7 @@ fun! s:getMapDis()
 				en
 			en
 		en
-		let s:disIx[i][-1]+=999
+		let s:disIx[i][-1]+=9999
 	endfor
 	let t:curGran=t:gran
 	let t:curWidth=t:mapw
@@ -1757,49 +1757,40 @@ endfun
 fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let sele=empty(get(s:gridLbl[s:mC],s:mR))? s:mR : s:mR+len(s:gridLbl[s:mC][s:mR])-1
+	let i=s:mRoff
 	for i in range(s:mRoff,s:mRoff+&ch-2)
 		if i>=t:rdepth || i<0
 			echo ''
 			continue
 		elseif i<s:mR || i>sele
-			let ticker=0
 			let j=0
-			let lcoord=len(s:disIx[i])
-			while ticker<s:mCoff && j<lcoord
-				let ticker+=s:disIx[i][j]
+			let ticker=s:disIx[i][0]
+			while ticker<s:mCoff
 				let j+=1
-			endwhile
-			if j==lcoord
-				echohl
+				let ticker+=s:disIx[i][j]
+			endw
+			if ticker>xe
+				exe 'echohl' s:disClr[i][j]
 				echon s:disTxt[i][s:mCoff : xe] "\n"
-			elseif ticker<xe
-				if ticker!=s:mCoff
-					exe 'echohl' s:disClr[i][j-1]
+			else
+				if ticker>s:mCoff
+					exe 'echohl' s:disClr[i][j]
 					echon s:disTxt[i][s:mCoff : ticker-1]
 				en
-				for j in range(j,lcoord-1)
-					let nextticker=ticker+s:disIx[i][j]
-					if nextticker>=xe
-						exe 'echohl' s:disClr[i][j]
-						echon s:disTxt[i][ticker : xe]
-						break
-					else
-						exe 'echohl' s:disClr[i][j]
-						echon s:disTxt[i][ticker : nextticker-1]
-						let ticker=nextticker
-					en
-				endfor 
-				echon "\n"
-			else
-				exe 'echohl' s:disClr[i][j-1]
-				echon s:disTxt[i][s:mCoff : xe] "\n"
+				while ticker<xe
+					let j+=1
+					exe 'echohl' s:disClr[i][j]
+					echon s:disTxt[i][ticker : ticker+s:disIx[i][j]-1]
+					let ticker+=s:disIx[i][j]
+				endw
+				exe 'echohl' s:disClr[i][j]
+				echon s:disTxt[i][ticker : xe] "\n"
 			en
 		else
 			let b=s:mC*t:mapw
 			let content=empty(get(s:gridLbl[s:mC],s:mR,''))? repeat(' ',t:mapw) : s:gridLbl[s:mC][s:mR][i-s:mR]
 			let l=len(content)
 			let e=b+l-1
-			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
 			let ticker=0
 			let curcoords=copy(s:disIx[i])
 			let curcolors=copy(s:disClr[i])
@@ -1842,37 +1833,29 @@ fun! s:disMap()
 					call insert(curcolors,lastcolor,j)
 				en
 			en
-			let ticker=0
 			let j=0
-			let lcoords=len(curcoords)
-			while ticker<s:mCoff && j<lcoords
-				let ticker+=curcoords[j]
+			let curline=b? s:disTxt[i][:b-1].content.s:disTxt[i][e+1 :] : content.s:disTxt[i][e+1 :]
+			let ticker=curcoords[0]
+			while ticker<s:mCoff
 				let j+=1
-			endwhile
-			if j==lcoords
-				echohl
+				let ticker+=curcoords[j]
+			endw
+			if ticker>xe
+				exe 'echohl' curcolors[j]
 				echon curline[s:mCoff : xe] "\n"
-			elseif ticker<xe
-				if ticker!=s:mCoff
-					exe 'echohl' curcolors[j-1]
+			else
+				if ticker>s:mCoff
+					exe 'echohl' curcolors[j]
 					echon curline[s:mCoff : ticker-1]
 				en
-				for j in range(j,lcoords-1)
-					let nextticker=ticker+curcoords[j]
-					if nextticker>=xe
-						exe 'echohl' curcolors[j]
-						echon curline[ticker : xe-1]
-						break
-					else
-						exe 'echohl' curcolors[j]
-						echon curline[ticker : ticker+curcoords[j]-1]
-						let ticker=nextticker
-					en
-				endfor 
-				echon "\n"
-			else
-				exe 'echohl' curcolors[j-1]
-				echon curline[s:mCoff : xe] "\n"
+				while ticker<xe
+					let j+=1
+					exe 'echohl' curcolors[j]
+					echon curline[ticker : ticker+curcoords[j]-1]
+					let ticker+=curcoords[j]
+				endw
+				exe 'echohl' curcolors[j]
+				echon curline[ticker : xe] "\n"
 			en
 		en
 	endfor
