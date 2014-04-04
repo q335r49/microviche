@@ -1796,7 +1796,7 @@ fun! s:disMap()
 			en
 		else
 			let seltext=selection[i-s:mR][truncb : trunce]
-			if !truncb
+			if !truncb && b
 				while s:disIx[i][j]<s:mCoff
 					let j+=1
 				endw
