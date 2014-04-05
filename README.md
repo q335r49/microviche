@@ -21,22 +21,22 @@ Key | Action | | Key | Action
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
 `q` `esc` | *quit*| | 
 
-**Map labels** start with [label marker], default 'txb:', and provide a line number, a label, a color, or all three. The general syntax is:
+**Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
 
 <samp>&nbsp;[label marker][lnum][:][ label#highlght#ignored text]</samp>
 
 Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
-- <samp>&nbsp;txb:345 blah blah</samp> - *just move to 345*  
-- <samp>&nbsp;txb:345: Intro#Search</samp> - *move to 345, label 'Intro', highlight 'Search' (Note the ':' separating lnum and label)*  
-- <samp>&nbsp;txb: Intro##blah blah</samp> - *just label 'Intro'*
+- <samp>&nbsp;txb:345 blah blah</samp> - just move to 345
+- <samp>&nbsp;txb:345: Intro#Search</samp> - move to 345, label 'Intro', highlight 'Search'<sup>5</sup> 
+- <samp>&nbsp;txb: Intro##blah blah</samp> - just label 'Intro'
 
 Once mapped, press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`click`  `2click` <sup>5</sup>|*select / goto block*||`h``j``k``l` <sup>1</sup>|← ↓ ↑ →
+`click`  `2click` <sup>6</sup>|*select / goto block*||`h``j``k``l` <sup>1</sup>|← ↓ ↑ →
 `drag` | *pan* || `y``u``b``n` |↖ ↗ ↙ ↘
-`click` NW corner <sup>6</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
+`click` NW corner <sup>7</sup>|*exit map*||`H``J``K``L`` |*pan* ← ↓ ↑ →
 `drag` to NW corner | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖ ↗ ↙ ↘
 `g` `enter`| *goto label*|| `c` |*move cursor to center*
 `q` `esc`|*quit* || `z` |*change zoom*
@@ -53,5 +53,6 @@ Key | Action | | Key | Action
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.  
-<sup>5</sup> gVim does not support mousing in map mode.  
-<sup>6</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
+<sup>5</sup> Note the ':' separator, needed only when both lnum and label are provided.
+<sup>6</sup> gVim does not support mousing in map mode.  
+<sup>7</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
