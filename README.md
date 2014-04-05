@@ -21,14 +21,14 @@ Key | Action | | Key | Action
 `S` <sup>3</sup> | *settings* | |`W` <sup>4</sup>| *write to file*
 `q` `esc` | *quit*| | 
 
-**Map labels** are lines that look like:
+**Map labels** start with [label marker], default 'txb:', and provide a line number, a label, a color, or all three. The general syntax is:
 
-<samp>&nbsp;[label marker][lnum: label#highlght#ignored text]</samp>
+<samp>&nbsp;[label marker][lnum][:][ label#highlght#ignored text]</samp>
 
-The default label marker is <samp>txb:</samp> (change in `S`ettings), and all parts are optional. Press `f10``R` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
-- <samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
-- <samp>&nbsp;txb:345: Blah#Title&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
-- <samp>&nbsp;txb: Blah##ignored&nbsp;&nbsp;</samp>*label 'Blah'*  
+Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+- <samp>&nbsp;txb:345 blah blah</samp> - *just move to 345*  
+- <samp>&nbsp;txb:345: Intro#Search</samp> - *move to 345, label 'Intro', highlight 'Search' (Note the ':' separating lnum and label)*  
+- <samp>&nbsp;txb: Intro##blah blah</samp> - *just label 'Intro'*
 
 Once mapped, press `F10``o` to **view the map**:
 

@@ -69,7 +69,7 @@ fun! s:printHelp()
 	\\n[1] h j k l y u b n      Pan
 	\\n    r R                  redraw / Remap
 	\\n    o O                  Open map / Remap and open map
-	\\n    L                    insert 'txb:lnum'
+	\\n    L                    insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n[2] S                    Settings
@@ -80,14 +80,14 @@ fun! s:printHelp()
 	\\n(1) Motions take counts, eg, '3j' = 'jjj'.
 	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAPPING:\n
-	\\nLines of the following form are considered map labels:
-	\\n    txb[:line num][: label#highlght#ignored text]
+	\\nLines starting with [label marker], default 'txb:', are considered labels. Labels can provide a line number, a label, a color, or all three. The general syntax is:
+	\\n\n    [label marker][lnum][:][ label#highlght#ignored text]
 	\\n\n[hotkey][R]emap will [r]edraw, map, and relocate the label line to [line num] by inserting or removing blank lines above for all visible splits.\n
-	\\nExamples:
-	\\n    txb:345 Blah blah    Move to 345 (if possible)
-	\\n    txb:345: Blah blah   Move to 345, label map 'Blah blah'
-	\\n    txb: Blah#Title      Label 'Blah', highlight 'Title'
-	\\n    txb: Blah##Ignored   Label 'Blah'
+	\\nExamples: (Note the ':' when both lnum and label are provided)
+	\\ntxb:345 bla bla      Just move to 345
+	\\ntxb:345: Intro       Move to 345 & label 'Intro' (Note the ': ' separator)
+	\\ntxb: Intro#Search    Label 'Intro' & color 'Search' (Separator is just ' ')
+	\\ntxb: Intro##bla bla  Just label 'Blah'
 	\\n\nPress [hotkey][o] to view the map:
 	\\n[1] h j k l y u b n      Move
 	\\n[1] H J K L Y U B N      Pan
@@ -730,7 +730,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]'
+let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]']
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
