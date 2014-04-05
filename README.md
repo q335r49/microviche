@@ -10,15 +10,15 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Usage
-Once loaded, pan with the **mouse** or by pressing `F10` followed by a key command (Note that some commands take a count, eg, `3``j`=`j``j``j`):
+Once loaded, pan with the **mouse** or by pressing `F10` followed by a key command
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`| ←↓↑→ *(takes count)* | | `F1` <sup>1</sup> | *help*
+`h``j``k``l`| ←↓↑→ *(takes count)* | | `F1` | *help and warnings*
 `y``u``b``n` | ↖↗↙↘ *(takes count)* ||`A` `D` |*append / delete split*
 `r` `R` | *redraw / Remap* | |`o` `O` | *view map / Remap & view*
 `L` | *insert* <samp>txb:lnum</samp> ||`Ctrl-X`| *delete hidden buffers*
-`S` <sup>2</sup> | *settings* | |`W` <sup>3</sup>| *write to file*
+`S` | *settings* | |`W` | *write to file*
 `q` `esc` | *quit*| | 
 
 **Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
@@ -36,23 +36,21 @@ Once mapped, press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`click`  `2click` <sup>4</sup>|*select / goto block*||`h``j``k``l`|←↓↑→ *(takes count)*
-`drag` | *pan* || `y``u``b``n` |↖↗↙↘ (takes count)
-`click` NW corner <sup>5</sup>|*exit map*||`H``J``K``L`` |*pan* ←↓↑→ *(takes count)*
+`click`  `2click` |*select / goto block*||`h``j``k``l`|←↓↑→ *(takes count)*
+`drag` | *pan* || `y``u``b``n` |↖↗↙↘ *(takes count)*
+`click` NW corner |*exit map*||`H``J``K``L`` |*pan* ←↓↑→ *(takes count)*
 `drag` to NW corner | *(in plane) show map* ||`Y``U``B``N` |*pan* ↖↗↙↘ *(takes count)*
 `g` `enter`| *goto label*|| `c` |*move cursor to center*
 `q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
+- Movement commands take a **count**, eg, `3``j`=`j``j``j`.
+- The *last used plane* is saved in the viminfo and suggested on `F10` the next session.  
 - To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
 - **Horizontal splits** will screw up panning.  
 - To resolve **labeling conflicts** (multiple labels for one map line), prepend the important one with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority)
-- **Terminal emulators** work better than gVim: they allow for mousing in map and automatic redrawing.
+- gVim does not support mousing in map mode or automatic redrawing on window or font resize.
+- The map 'hot corners' only work in the terminal emulator, and when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
+- For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
-
-----
-<sup>1</sup> Help will also display warnings and suggestions specific to your Vim setup.  
-<sup>2</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
-<sup>3</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.  
-<sup>4</sup> gVim does not support mousing in map mode.  
-<sup>5</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
+- If, via `Settings`, you make the the hotkey inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
