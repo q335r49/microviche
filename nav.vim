@@ -260,6 +260,7 @@ fun! TxbInit(...)
 		let t:deepest=max(t:txb.depth)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:lblmrk=t:txb.settings['label marker']
+		let t:lblmrklen=len(t:lblmrk)
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
@@ -628,6 +629,7 @@ let txbCmd.S=
 		\en\n
 		\let t:txb.settings['label marker']=settings_values[12]\n
 			\let t:lblmrk=settings_values[12]\n
+			\let t:lblmrklen=len(t:lblmrk)\n
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
@@ -728,7 +730,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','lines starting with "[label marker]:" are considered labels']
+let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]'
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
@@ -955,7 +957,22 @@ let txbCmd["\<down>"]=txbCmd.j
 let txbCmd["\<left>"]=txbCmd.h
 let txbCmd["\<right>"]=txbCmd.l
 
-let txbCmd.L="exe getline('.')[:3]!=#'txb:'? 'startinsert|norm! 0itxb:'.line('.').' ' : 'norm! 0wlcw'.line('.')|let s:kc_continue=0|let s:kc_msg='(labeled)'"
+let txbCmd.L="let L=getline('.')\n
+	\let s:kc_continue=0\n
+	\let s:kc_msg='(labeled)'\n
+	\if L[:lblmrklen-1]!=#t:lblmrk\n
+		\let inserttext=t:lblmrk.line('.').' '\n
+		\call setline(line('.'),inserttext.L)\n
+		\call cursor(line('.'),len(inserttext)+1)\n
+		\startinsert\n
+	\else\n 
+		\let ix=stridx(L,' ',lblmrklen+1)\n
+		\if ix==lblmrklen+1\n
+			\call setline(line('.'),L[:lblmrklen].line('.').L[lblmrklen+1:])\n
+		\else\n
+			\call setline(line('.'),L[:lblmrklen].line('.').L[(ix==-1? 999999 : ix):])\n
+		\en\n
+	\en"
 
 let txbCmd.D=
 	\"redr\n
@@ -1249,7 +1266,7 @@ fun! s:redraw(...)
 		if a:0
 			let t:txb.depth[ccol]=line('$')
 			norm! 1G0
-			let line=search('^txb:','Wc')
+			let line=search('^'.t:lblmrk,'Wc')
 			while line
 				let L=getline('.')[4:]
 				let lref=matchstr(L,'^\d*')
@@ -1274,7 +1291,7 @@ fun! s:redraw(...)
 						let errorEncountered=0
 					en
 				en
-				let line=search('^txb:','W')
+				let line=search('^'.t:lblmrk,'W')
 			endwhile
 			let t:deepest=max(t:txb.depth)
 		en

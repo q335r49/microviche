@@ -23,9 +23,9 @@ Key | Action | | Key | Action
 
 **Map labels** are lines that look like:
 
-<samp>&nbsp;txb[:lnum][: label#highlght#ignored text]</samp>
+<samp>&nbsp;[label marker][lnum: label#highlght#ignored text]</samp>
 
-Press `f10``R` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+The default label marker is <samp>txb:</samp> (change in `S`ettings), and all parts are optional. Press `f10``R` to **map visible splits**. In addition, displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>&nbsp;txb:345 ignored&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp>*move to 345*  
 - <samp>&nbsp;txb:345: Blah#Title&nbsp;</samp>*move to 345, label 'Blah', highlight 'Title'**  
 - <samp>&nbsp;txb: Blah##ignored&nbsp;&nbsp;</samp>*label 'Blah'*  
