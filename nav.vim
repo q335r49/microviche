@@ -122,7 +122,7 @@ fun! TxbInit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
-	let default={'label marker':'txb','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let default={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
 	else
@@ -727,7 +727,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]']
+let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]']
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
@@ -1252,7 +1252,6 @@ fun! s:redraw(...)
 	winc =
 	winc b
 	let ccol=colb
-	let errorEncountered=0
 	for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:paths[ccol]
@@ -1261,35 +1260,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let t:txb.depth[ccol]=line('$')
-			norm! 1G0
-			let line=search('^'.t:lblmrk,'Wc')
-			while line
-				let L=getline('.')[4:]
-				let lref=matchstr(L,'^\d*')
-				if !empty(lref) && lref!=line
-					if lref<line
-						let deletions=line-lref
-						if prevnonblank(line-1)>=lref
-							let errorEncountered=1
-						else
-							exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
-						en
-					else
-						exe 'norm! '.(lref-line)."O\ej"
-					en
-				en
-				let line=line('.')
-				let head=empty(lref)? 1 : L[len(lref)]==':'? len(lref)+2 : 0
-				if head
-					let autolbl=split(L[head :],'#',1)
-					if !empty(autolbl) && !empty(autolbl[0])
-						let t:txb.map[ccol][line]=errorEncountered? ["  ".autolbl[0],'ErrorMsg'] : [autolbl[0],len(autolbl)>1? autolbl[1] : '']
-						let errorEncountered=0
-					en
-				en
-				let line=search('^'.t:lblmrk,'W')
-			endwhile
+			call s:mapSplit()
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1319,6 +1290,37 @@ fun! s:redraw(...)
 endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
 let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
+
+fun! s:mapSplit()
+	let t:txb.depth[w:txbi]=line('$')
+	norm! 1G0
+	let line=search('^'.t:lblmrk,'Wc')
+	while line
+		let L=getline('.')[t:lblmrklen :]
+		let lref=matchstr(L,'^\d*')
+		if !empty(lref)
+			let lbl=split(L[len(lref)+1: ],'#',1)
+			if lref<line
+				let deletions=line-lref
+				if prevnonblank(line-1)>=lref
+                    let lbl=[" Error! ".lbl[0],'ErrorMsg']
+				else
+					exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
+				en
+				let line=line('.')
+			elseif lref>line
+				exe 'norm! '.(lref-line)."O\ej"
+				let line=line('.')
+			en
+		else
+			let lbl=split(L[1: ],'#',1)
+		en
+		if !empty(lbl) && !empty(lbl[0])
+			let t:txb.map[w:txbi][line]=[lbl[0],get(lbl,1,'')]
+		en
+		let line=search('^'.t:lblmrk,'W')
+	endwhile
+endfun
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
