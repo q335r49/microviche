@@ -27,8 +27,8 @@ Key | Action | | Key | Action
 
 Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>&nbsp;txb:345 blah blah</samp> - just move to 345
-- <samp>&nbsp;txb:345: Intro#Search</samp> - move to 345, label 'Intro', highlight 'Search'<sup>5</sup> 
-- <samp>&nbsp;txb: Intro##blah blah</samp> - just label 'Intro'
+- <samp>&nbsp;txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*<sup>5</sup> 
+- <samp>&nbsp;txb: Intro##blah blah</samp> - just label *Intro*
 
 Once mapped, press `F10``o` to **view the map**:
 
@@ -53,6 +53,6 @@ Key | Action | | Key | Action
 <sup>2</sup> Help will also display warnings and suggestions specific to your Vim setup.  
 <sup>3</sup> If the hotkey, default `F10`, becomes inaccessible, <samp>:call TxbInit()</samp> and press `S` to change.  
 <sup>4</sup> The last used plane is also saved in the viminfo and suggested on `F10` the next session.  
-<sup>5</sup> Note the ':' separator, needed only when both lnum and label are provided.
+<sup>5</sup> Note the ':' separator, needed only when both lnum and label are provided.  
 <sup>6</sup> gVim does not support mousing in map mode.  
 <sup>7</sup> 'Hot corners' only work when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
