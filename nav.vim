@@ -125,7 +125,7 @@ fun! TxbInit(...)
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
 	en
-	let default={'working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let default={'label marker':'txb','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
 	else
@@ -259,12 +259,13 @@ fun! TxbInit(...)
 		let t:gran=t:txb.settings['lines per map grid']
 		let t:deepest=max(t:txb.depth)
 		let t:mapw=t:txb.settings['map cell width']
+		let t:lblmrk=t:txb.settings['label marker']
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
-		call s:getMapDis()
+		call filter(t:txb.settings,'index(["label marker","working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","kbd x pan speed","kbd y pan speed","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
+		call s:getMapDis()
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
@@ -529,8 +530,8 @@ endfun
 
 let txbCmd.S=
 	\"let s:kc_continue=0\n
-	\let settings_names=range(16)\n
-	\let settings_values=range(16)\n
+	\let settings_names=range(17)\n
+	\let settings_values=range(17)\n
 	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 	\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
@@ -543,11 +544,12 @@ let txbCmd.S=
 	\let [settings_names[9],settings_values[9]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45]\n
 	\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
 	\let [settings_names[11],settings_values[11]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
+	\let [settings_names[12],settings_values[12]]=['label marker',has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : '']\n
 	\if exists('w:txbi')\n
-		\let [settings_names[12],settings_values[12]]=['    -- Split '.w:txbi.' --','##label##']\n
-		\let [settings_names[13],settings_values[13]]=['current width',get(t:txb.size,w:txbi,60)]\n
-		\let [settings_names[14],settings_values[14]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-		\let [settings_names[15],settings_values[15]]=['current file',get(t:txb.name,w:txbi,'')]\n
+		\let [settings_names[13],settings_values[13]]=['    -- Split '.w:txbi.' --','##label##']\n
+		\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
+		\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+		\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\en\n
 	\let prevVal=deepcopy(settings_values)\n
 	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
@@ -561,9 +563,9 @@ let txbCmd.S=
 		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\if exists('w:txbi')\n
-			\let t:txb.size[w:txbi]=settings_values[13]\n
-			\let t:txb.exe[w:txbi]=settings_values[14]\n
-			\if !empty(settings_values[15]) && settings_values[15]!=prevVal[15]\n
+			\let t:txb.size[w:txbi]=settings_values[14]\n
+			\let t:txb.exe[w:txbi]=settings_values[15]\n
+			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
 				\let t:paths[w:txbi]=s:sp_newfname[0]\n
 				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 			\en\n
@@ -624,6 +626,8 @@ let txbCmd.S=
 			\en\n
 			\let s:kc_msg.=wd_msg\n
 		\en\n
+		\let t:txb.settings['label marker']=settings_values[12]\n
+			\let t:lblmrk=settings_values[12]\n
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
@@ -691,10 +695,10 @@ let s:sp_exe={}
 let s:sp_exe.68=
 	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 	\if confirm==?'y'\n
-		\for k in [1,3,4,5,6,7,8,9,10,11]\n
+		\for k in [1,3,4,5,6,7,8,9,10,12]\n
 			\let vals[k]=get(a:errorcheck,a:keys[k],[vals[k]])[0]\n
 		\endfor\n
-		\for k in [11,13,14,15]\n
+		\for k in [11,14,15,16]\n
 			\let vals[k]=prevVal[k]\n
 		\endfor\n
 	\en"
@@ -724,6 +728,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
+let s:ErrorCheck['label marker']=['txb','let vals[cursor]=input','lines starting with "[label marker]:" are considered labels']
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
