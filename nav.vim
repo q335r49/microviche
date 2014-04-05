@@ -66,43 +66,40 @@ fun! s:printHelp()
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
-	\\n[1] h j k l y u b n      Pan
+	\\n    h j k l y u b n      Pan (takes count, eg, 3j=jjj)
 	\\n    r R                  redraw / Remap
 	\\n    o O                  Open map / Remap and open map
 	\\n    L                    insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
-	\\n[2] S                    Settings
+	\\n *  S                    Settings
 	\\n    W                    Write to file
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n(1) Motions take counts, eg, '3j' = 'jjj'.
-	\\n(2) If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
+	\\n *  If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
 	\\n\n\\CMAPPING:\n
 	\\nLines starting with [label marker], default 'txb:', are considered labels. Labels can provide a line number, a label, a color, or all three. The general syntax is:
-	\\n\n    [label marker][lnum][:][ label#highlght#ignored text]
+	\\n\n    [label marker][lnum][:][ label[#highlght[#ignored]]]
 	\\n\n[hotkey][R]emap will [r]edraw, map, and relocate the label line to [line num] by inserting or removing blank lines above for all visible splits.\n
 	\\nExamples: (Note the ':' when both lnum and label are provided)
-	\\ntxb:345 bla bla      Just move to 345
-	\\ntxb:345: Intro       Move to 345 & label 'Intro' (Note the ': ' separator)
-	\\ntxb: Intro#Search    Label 'Intro' & color 'Search' (Separator is just ' ')
-	\\ntxb: Intro##bla bla  Just label 'Blah'
+	\\n    txb:345 bla bla        Just move to 345
+	\\n    txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
+	\\n    txb: Intro##bla bla    Just label 'Blah'
 	\\n\nPress [hotkey][o] to view the map:
-	\\n[1] h j k l y u b n      Move
-	\\n[1] H J K L Y U B N      Pan
+	\\n    h j k l y u b n      Move (takes count)
+	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view
 	\\n    g <cr>               Go to block and exit map
 	\\n    z                    Change zoom
 	\\n    q                    Quit"
-	\.(ttymouseWorks? "\n[2] doubleclick          Go to block
+	\.(ttymouseWorks? "\n *  doubleclick          Go to block
 	\\n    drag                 Pan
 	\\n    click NW corner      Quit
 	\\n    drag to NW corner    (in the plane) Show map
-	\\n----------
-	\\n(1) Motions take counts, eg, '3j' = 'jjj'"
-	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------\n(1) Movements take counts, capped at 99. Eg, '3j'='jjj'")
-	\.(ttymouseWorks? "\n(2) The mouse only works when ttymouse is xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm." : ""),width,(&columns-width)/2),s:help_bookmark)
+	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm."
+	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------"),
+	\width,(&columns-width)/2),s:help_bookmark)
 endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
 
