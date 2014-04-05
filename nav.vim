@@ -957,17 +957,17 @@ let txbCmd["\<right>"]=txbCmd.l
 let txbCmd.L="let L=getline('.')\n
 	\let s:kc_continue=0\n
 	\let s:kc_msg='(labeled)'\n
-	\if L[:lblmrklen-1]!=#t:lblmrk\n
+	\if L[:t:lblmrklen-1]!=#t:lblmrk\n
 		\let inserttext=t:lblmrk.line('.').' '\n
 		\call setline(line('.'),inserttext.L)\n
 		\call cursor(line('.'),len(inserttext)+1)\n
 		\startinsert\n
 	\else\n 
-		\let ix=stridx(L,' ',lblmrklen+1)\n
-		\if ix==lblmrklen+1\n
-			\call setline(line('.'),L[:lblmrklen].line('.').L[lblmrklen+1:])\n
+		\let ix=stridx(L,' ',t:lblmrklen+1)\n
+		\if ix==t:lblmrklen+1\n
+			\call setline(line('.'),L[:t:lblmrklen].line('.').L[t:lblmrklen+1:])\n
 		\else\n
-			\call setline(line('.'),L[:lblmrklen].line('.').L[(ix==-1? 999999 : ix):])\n
+			\call setline(line('.'),L[:t:lblmrklen].line('.').L[(ix==-1? 999999 : ix):])\n
 		\en\n
 	\en"
 
@@ -1290,7 +1290,6 @@ fun! s:redraw(...)
 				en
 				let line=search('^'.t:lblmrk,'W')
 			endwhile
-			let t:deepest=max(t:txb.depth)
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1307,6 +1306,7 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txbL-1
 	endfor
+	let t:deepest=max(t:txb.depth)
 	se scrollopt=ver,jump
 	if s:badSync
 		windo 1
