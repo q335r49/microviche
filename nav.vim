@@ -1332,6 +1332,7 @@ let txbCmd.M="let s:kc_continue=0\n
 		\endfor\n
 		\exe 'e' t:paths[curwin]\n 
 		\call winrestview(view)\n
+		\call s:getMapDis()\n
 		\let s:kc_msg='(Plane remapped) '\n
 	\else\n
 		\let s:kc_msg='(Plane remap cancelled) '\n
