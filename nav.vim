@@ -107,18 +107,17 @@ let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let [more,&more]=[&more,0]
-	let seed=a:0? a:1 : 0
 	let msg=''
-	if seed is 0
+	if !a:0
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
 		else
 			let plane={'name':[]}
 		en
-	elseif type(seed)==4
-   		let plane=deepcopy(seed)
-	elseif type(seed)==1
-		let plane={'name':split(glob(seed),"\n")}
+	elseif type(a:1)==4
+   		let plane=deepcopy(a:1)
+	elseif type(a:1)==1
+		let plane={'name':split(glob(a:1),"\n")}
 	else
 		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
 		return 1
@@ -195,7 +194,7 @@ fun! TxbInit(...)
 		else
 			let restoremsg=" in NEW tab"
 		en
-		if seed is 0
+		if !a:0
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
@@ -204,7 +203,7 @@ fun! TxbInit(...)
 				let msg.="\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
-		elseif type(seed)==4
+		elseif type(a:1)==4
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				if exists('g:TXB') && type(g:TXB)==4
@@ -220,7 +219,7 @@ fun! TxbInit(...)
 				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
-		elseif type(seed)==1
+		elseif type(a:1)==1
 			if exists('g:TXB') && type(g:TXB)==4
 				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
@@ -234,7 +233,7 @@ fun! TxbInit(...)
 		en
 		ec msg
 		let c=getchar()
-	elseif !empty(filtered) || type(seed)==4
+	elseif !empty(filtered) || type(a:1)==4
 		let confirm_keys=[]
 		let msg.="\n(No readable files remain -- make sure working dir is correct)"
 		let msg.="\n\n -> [S] Settings [F1] help [any other key] cancel"
@@ -279,7 +278,7 @@ fun! TxbInit(...)
 			exe 'silent! nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict[1] ':call TxbKey("init")<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
-			if seed is 0 && exists('g:TXB') && type(g:TXB)==4
+			if !a0 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				call TxbInit()
 			else
