@@ -108,13 +108,13 @@ fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let msg=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
-	let default={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let minimal={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
-		let plane.settings=default
+		let plane.settings=minimal
 	else
-		for i in keys(default)
+		for i in keys(minimal)
 			if !has_key(plane.settings,i)
-				let plane.settings[i]=default[i]
+				let plane.settings[i]=minimal[i]
 			else
 				let cursor=0
 				let vals=[1]
@@ -123,7 +123,7 @@ fun! TxbInit(...)
 				let input=plane.settings[i]
 				silent! exe get(s:ErrorCheck,i,['',''])[1]
 				if !empty(smsg)
-					let plane.settings[i]=default[i]
+					let plane.settings[i]=minimal[i]
 					let msg="\n**WARNING** Invalid Setting: ".i."\n    ".smsg."\n    Default setting used".msg
 				en
 			en
