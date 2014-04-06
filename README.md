@@ -44,13 +44,10 @@ Key | Action | | Key | Action
 `q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
-- Movement commands take a **count**, eg, `3``j`=`j``j``j`.
-- The **last used plane** is saved in the viminfo and suggested on `F10` the next session.  
 - To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
-- **Horizontal splits** will screw up panning.  
 - To resolve **labeling conflicts** (multiple labels for one map line), prepend the important one with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority)
 - **gVim** does not support mousing in map mode or automatic redrawing on window or font resize.
 - The map **hot corners** only work in the terminal emulator, and when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
 - For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
-- If, via `S`ettings, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.  
+- If, via `S`ettings, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.
