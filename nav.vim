@@ -180,39 +180,26 @@ fun! TxbInit(...)
 		else
 			let restoremsg=" in NEW tab"
 		en
-		if !empty(filtered)
-			let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!"
-			let msg.="\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-		en
+		let confirm_keys=[10,13]
+		let confirm_msg='enter'
 		if a:0 && exists('g:TXB') && type(g:TXB)==4
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.
+				\\n    Save by loading last plane and pressing [hotkey] W."
+			let confirm_keys=[79]
+			let confirm_msg='O'
 		en
-		if !a:0
-			if !empty(filtered)
-				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[82]
-			else
-				let msg.="\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[10,13]
-			en
-		else
-			if !empty(filtered)
-				let msg.="\n\n -> [R]emove unreadable, overwrite, and load ".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[82]
-			elseif exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[79]
-			else
-				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[10,13]
-			en
+		if !empty(filtered)
+			let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!
+				\\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
+			let confirm_keys=[82]
+			let confirm_msg='R'
 		en
-		ec msg
+		ec msg "\n\n -> [".confirm_msg."] load [S] settings [F1] help [esc] cancel"
 		let c=getchar()
 	elseif !empty(filtered) || type(a:1)==4
 		let confirm_keys=[]
-		let msg.="\n(No readable files remain -- make sure working dir is correct)"
-		let msg.="\n\n -> [S] Settings [F1] help [any other key] cancel"
+		let msg.="\n(No readable files remain -- make sure working dir is correct)
+			\\n\n -> [S] Settings [F1] help [any other key] cancel"
 		ec msg
 		let c=getchar()
 	else
