@@ -67,9 +67,9 @@ fun! s:printHelp()
 	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3j=jjj)
-	\\n    r R                  redraw / Remap visible splits
-	\\n    o O                  Open map / Remap and open map
-	\\n    M                    Remap entire plane
+	\\n    r                    redraw
+	\\n    o O                  Open map / map visible and open map
+	\\n    m M                  map visible / Map all
 	\\n    L                    insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
@@ -1257,7 +1257,7 @@ fun! s:redraw(...)
 	en
 endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue='(redraw complete)'"
-let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
+let txbCmd.m="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
 
 fun! s:mapSplit(col)
 	let t:txb.depth[a:col]=line('$')

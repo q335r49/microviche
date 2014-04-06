@@ -13,10 +13,10 @@ Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
 `h``j``k``l` | ←↓↑→ (takes count) || `F1` | help and warnings
 `y``u``b``n` | ↖↗↙↘ (takes count) ||`A` `D` |append / delete split
-`r` `R` | redraw / map visible || `o` `O`| view map / map visible and view
+`r` | redraw || `o` `O`| view map / map visible and view
 `S` `W` | settings / write plane to file || `drag` to NW corner | view map
 `L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
-`q` `esc` | quit || `R` `M` | map visible / map all
+`q` `esc` | quit || `m` `M` | map visible / map all
 
 **Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
 
@@ -35,7 +35,7 @@ Key | Action | | Key | Action
 `click`  `2click` | select / goto block || `h``j``k``l`|←↓↑→ (takes count)
 `drag` | pan || `y``u``b``n` | ↖↗↙↘ (takes count)
 `click` NW corner | exit map || `H``J``K``L`` | pan ←↓↑→ (takes count)
-`F1` help and warnings || `Y``U``B``N` | pan ↖↗↙↘ (takes count)
+`F1` | help and warnings || `Y``U``B``N` | pan ↖↗↙↘ (takes count)
 `g` `enter` | goto label || `c` | center cursor
 `q` `esc` | quit || `z` | zoom
 
