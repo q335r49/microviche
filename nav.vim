@@ -1323,14 +1323,17 @@ fun! s:mapSplit(col)
 endfun
 
 let txbCmd.M="let s:kc_continue=0\n
-	\let confirm=input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n)')\n
-	\if confirm==?'y'\n
+	\if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n)')\n
 		\let s:kc_continue=0\n
 		\tabe\n
 		\for i in len(t:paths)\n
 			\exe 'e' t:paths[i]\n 
 			\call s:mapSplit(i)\n
+		\endfor\n
 		\tabc\n
+		\let s:kc_msg='(Plane remapped) '\n
+	\else\n
+		\let s:kc_msg='(Plane remap cancelled) '\n
 	\en"
 
 fun! s:nav(N,L)
