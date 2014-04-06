@@ -155,7 +155,7 @@ fun! TxbInit(...)
 	elseif len(plane.depth)<len(plane.name)
 		call extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth)))
 	en
-    let prevwd=getcwd()
+	let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
 	let filtered=[]
 	let plane_name_save=copy(plane.name)
@@ -171,8 +171,8 @@ fun! TxbInit(...)
 	endfor
 	exe 'cd' fnameescape(prevwd)
 	let msg=(empty(plane.name)? '' : "\n ---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n")."\n")
-	\.(empty(filtered)? '' : "\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n")."\n")
-	\."\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir']."\n".msg
+		\.(empty(filtered)? '' : "\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n")."\n")
+		\."\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir']."\n".msg
 	if !empty(plane.name)
 		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if curbufix!=-1
@@ -212,7 +212,7 @@ fun! TxbInit(...)
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
-	    let t:kpLn=t:txb.settings['lines panned by j,k']
+		let t:kpLn=t:txb.settings['lines panned by j,k']
 		let t:kpSpH=t:txb.settings['kbd x pan speed']
 		let t:kpSpV=t:txb.settings['kbd y pan speed']
 		let t:msSp=t:txb.settings['mouse pan speed']
@@ -1271,7 +1271,7 @@ fun! s:mapSplit(col)
 			if lref<line
 				let deletions=line-lref
 				if prevnonblank(line-1)>=lref
-                    let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
+					let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
 				else
 					exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 				en
@@ -1963,7 +1963,7 @@ let txbCmd.o="let s:kc_continue=''\n
 	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 	\let s:mExit=1\n
 	\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
- 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
@@ -2016,7 +2016,7 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 		\let t:txb.settings['lines per map grid']=input\n
 		\let t:gran=input\n
 		\let t:mapw=width\n
- 		\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+		\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 		\call s:getMapDis()\n
 		\let s:mPrevClk=[0,0]\n
 		\redr!\n
