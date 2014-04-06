@@ -19,7 +19,7 @@ Key | Action | | Key | Action
 `r` `R` | *redraw / Remap* | |`o` `O` | *view map / Remap & view*
 `L` | *insert* <samp>txb:lnum</samp> ||`Ctrl-X`| *delete hidden buffers*
 `S` | *settings* | |`W` | *write to file*
-`q` `esc` | *quit*| | 
+`q` `esc` | *quit*| |`M`| *remap entire plane*
 
 **Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
 
