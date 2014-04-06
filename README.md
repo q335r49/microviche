@@ -14,7 +14,7 @@ Key | Action | | Key | Action
 `h``j``k``l` | ←↓↑→ (takes count) || `r` | redraw
 `y``u``b``n` | ↖↗↙↘ (takes count) ||`A` `D` |append / delete split
 `drag` to NW corner | view map || `o` `O`| view map / map visible and view
-`S` `W` | settings / write plane to file || `F1` | help and warnings
+`F1` | help and warnings || `S` `W` | settings / write plane to file
 `L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
 `q` `esc` | quit || `m` `M` | map visible / map all
 
