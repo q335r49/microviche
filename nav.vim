@@ -1287,7 +1287,9 @@ fun! s:redraw(...)
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 	let s:kc_msg=a:0? '(Remap complete)' : '(redraw complete)'
-	call s:getMapDis()
+	if a:0
+		call s:getMapDis()
+	en
 endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
 let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
