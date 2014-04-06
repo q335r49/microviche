@@ -105,8 +105,7 @@ endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
 fun! TxbInit(...)
-	let more=&more
-	se noequalalways winwidth=1 winminwidth=0 nomore
+	se noequalalways winwidth=1 winminwidth=0
 	let msg=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let default={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
@@ -284,7 +283,6 @@ fun! TxbInit(...)
 			call TxbInit(input)
 		en
 	en
-	let &more=more
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
