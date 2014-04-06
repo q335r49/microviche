@@ -11,10 +11,10 @@ Once loaded, pan with the **mouse** or by pressing `F10` followed by a key comma
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l` | ←↓↑→ (takes count) || `F1` | help and warnings
+`h``j``k``l` | ←↓↑→ (takes count) || `r` | redraw
 `y``u``b``n` | ↖↗↙↘ (takes count) ||`A` `D` |append / delete split
-`r` | redraw || `o` `O`| view map / map visible and view
-`S` `W` | settings / write plane to file || `drag` to NW corner | view map
+`drag` to NW corner | view map || `o` `O`| view map / map visible and view
+`S` `W` | settings / write plane to file || `F1` | help and warnings
 `L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
 `q` `esc` | quit || `m` `M` | map visible / map all
 
