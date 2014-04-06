@@ -180,42 +180,32 @@ fun! TxbInit(...)
 		else
 			let restoremsg=" in NEW tab"
 		en
+		if !empty(filtered)
+			let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!"
+			let msg.="\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
+		en
+		if a:0 && exists('g:TXB') && type(g:TXB)==4
+			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
+		en
 		if !a:0
 			if !empty(filtered)
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[82]
 			else
 				let msg.="\n -> [enter] load last session".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
-		elseif type(a:1)==4
+		else
 			if !empty(filtered)
-				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-				if exists('g:TXB') && type(g:TXB)==4
-					let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
-				en
 				let msg.="\n\n -> [R]emove unreadable, overwrite, and load ".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[82]
 			elseif exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
 				let msg.="\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[79]
 			else
 				let msg.="\n\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
 				let confirm_keys=[10,13]
 			en
-		elseif type(a:1)==1
-			if exists('g:TXB') && type(g:TXB)==4
-				let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.\n    Save by loading last plane and pressing [hotkey] W."
-				let msg.="\n\n -> [O]verwrite and load".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[79]
-			else
-				let msg.="\n -> [enter] load".restoremsg." [S] settings [F1] help [esc] cancel"
-				let confirm_keys=[10,13]
-			en
-		else
-			let confirm_keys=[]
 		en
 		ec msg
 		let c=getchar()
