@@ -102,7 +102,7 @@ fun! s:printHelp()
 	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------"),
 	\width,(&columns-width)/2),s:help_bookmark)
 endfun
-let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=0'
+let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -499,7 +499,7 @@ fun! s:deleteHiddenBuffers()
 		silent execute 'bwipeout' buf
 	endfor
 endfun
-let txbCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let [s:kc_msg,s:kc_continue]=["Hidden Buffers Deleted",0]'
+let txbCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let s:kc_continue="Hidden Buffers Deleted"'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -527,9 +527,7 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let txbCmd.S=
-	\"let s:kc_continue=0\n
-	\let settings_names=range(17)\n
+let txbCmd.S="let settings_names=range(17)\n
 	\let settings_values=range(17)\n
 	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
@@ -553,7 +551,7 @@ let txbCmd.S=
 	\let prevVal=deepcopy(settings_values)\n
 	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 		\echohl MoreMsg\n
-		\let s:kc_msg='Settings saved!'\n
+		\let s:kc_continue='Settings saved! '\n
 		\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
 			\exe 'silent! nunmap' g:TXB_HOTKEY\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
@@ -573,18 +571,18 @@ let txbCmd.S=
 			\if prevVal[3]!=#t:txb.settings['split width']\n
 				\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 					\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
-					\let s:kc_msg.=' (Current splits resized)'\n
+					\let s:kc_continue.='(Current splits resized)'\n
 				\else\n
-					\let s:kc_msg.=' (Only appended splits will inherit split width)'\n
+					\let s:kc_continue.='(Only appended splits will inherit split width)'\n
 				\en\n
 			\en\n
 		\let t:txb.settings['autoexe']=settings_values[4]\n
 			\if prevVal[4]!=#t:txb.settings.autoexe\n
 				\if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 					\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
-					\let s:kc_msg.=' (Autoexe settings applied to current splits)'\n
+					\let s:kc_continue.='(Autoexe settings applied to current splits)'\n
 				\else\n
-					\let s:kc_msg.=' (Only appended splits will inherit new autoexe)'\n
+					\let s:kc_continue.='(Only appended splits will inherit new autoexe)'\n
 				\en\n
 			\en\n
 		\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
@@ -626,7 +624,7 @@ let txbCmd.S=
 					\en\n
 				\en\n
 			\en\n
-			\let s:kc_msg.=wd_msg\n
+			\let s:kc_continue.=wd_msg\n
 		\en\n
 		\let t:txb.settings['label marker']=settings_values[12]\n
 			\let t:lblmrk=settings_values[12]\n
@@ -634,7 +632,7 @@ let txbCmd.S=
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
-		\let s:kc_msg='Cancelled'\n
+		\let s:kc_continue='Cancelled'\n
 	\en"
 
 let s:sp_pos=[0,0]
@@ -913,26 +911,22 @@ endfun
 
 fun! TxbExe(inicmd)
 	let s:kc_num='01'
-	let s:kc_continue=1
-	let s:kc_msg=''
+	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:txbCmd,a:c,'let s:kc_continue=0|let s:kc_msg="(Invalid command) Press '.g:TXB_HOTKEY.' F1 for help"')
-	if s:kc_continue
-		echon w:txbi '.' line('.') ' ' s:kc_msg
-		let s:kc_msg=''
+	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
+	if s:kc_continue[0]==' '
+		echon w:txbi '.' line('.') s:kc_continue
 		call feedkeys("\<plug>TxbZ")
-	elseif !empty(s:kc_msg)
-		redr|ec s:kc_msg
-	elseif s:kc_msg isnot 0
-		redr|echo '(done)' w:txbi '-' line('.')
+	elseif !empty(s:kc_continue)
+		redr|echon w:txbi '.' line('.') ' ' s:kc_continue
 	en
 endfun
-let txbCmd.q="let s:kc_continue=0"
-let txbCmd[-1]='let s:kc_continue=0'
-let txbCmd[-99]=""
+let txbCmd.q='let s:kc_continue=""'
+let txbCmd[-1]='let s:kc_continue=""'
+let txbCmd[-99]=''
 let txbCmd["\e"]=txbCmd.q
 
 let txbCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'
@@ -959,8 +953,7 @@ let txbCmd["\<left>"]=txbCmd.h
 let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
-	\let s:kc_continue=0\n
-	\let s:kc_msg='(labeled)'\n
+	\let s:kc_continue='(labeled)'\n
 	\if L[:t:lblmrklen-1]!=#t:lblmrk\n
 		\let inserttext=t:lblmrk.line('.').' '\n
 		\call setline(line('.'),inserttext.L)\n
@@ -978,7 +971,7 @@ let txbCmd.L="let L=getline('.')\n
 let txbCmd.D=
 	\"redr\n
 	\if t:txbL==1\n
-		\let s:kc_msg='Cannot delete last split!'\n
+		\let s:kc_continue='Cannot delete last split!'\n
 	\elseif input('Really delete current column (y/n)? ')==?'y'\n
 		\let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 		\if t_index!=-1\n
@@ -992,9 +985,8 @@ let txbCmd.D=
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw()\n
-		\let s:kc_msg='(Split deleted)'\n
+		\let s:kc_continue='(Split deleted)'\n
 	\en\n
-	\let s:kc_continue=0\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let txbCmd.A=
@@ -1005,11 +997,11 @@ let txbCmd.A=
 		\exe 'cd' fnameescape(t:wdir)\n
 		\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\n**WARNING**\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
-			\let s:kc_msg='File not appended'\n
+			\let s:kc_continue='File not appended'\n
 		\elseif empty(file)\n
-			\let s:kc_msg='File name is empty'\n
+			\let s:kc_continue='File name is empty'\n
 		\else\n
-			\let s:kc_msg='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
+			\let s:kc_continue='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
 			\call insert(t:paths,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
@@ -1020,16 +1012,15 @@ let txbCmd.A=
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
-		\let s:kc_msg='Current file not in plane! [hotkey] r redraw before appending.'\n
+		\let s:kc_continue='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
-	\let s:kc_continue=0|call s:setCursor(cpos[0],cpos[1],cpos[2])"
+	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
-	\let s:kc_continue=0\n
 	\let input=input('Write plane to file (relative to '.t:wdir.'): ',exists('t:txb.settings.writefile') && type(t:txb.settings.writefile)<=1? t:txb.settings.writefile : '','file')\n
-	\let [t:txb.settings.writefile,s:kc_msg]=empty(input)? [t:txb.settings.writefile,' (file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? '** ERROR **\n    File not writable' : 'Use '':source '.input.''' to restore']\n
+	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'(file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'ERROR: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:getOffset()
@@ -1287,13 +1278,12 @@ fun! s:redraw(...)
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
-	let s:kc_msg=a:0? '(Remap complete)' : '(redraw complete)'
 	if a:0
 		call s:getMapDis()
 	en
 endfun
-let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
-let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
+let txbCmd.r="call s:redraw()|redr|let s:kc_continue='(redraw complete)'"
+let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
 
 fun! s:mapSplit(col)
 	let t:txb.depth[a:col]=line('$')
@@ -1326,8 +1316,7 @@ fun! s:mapSplit(col)
 	endwhile
 endfun
 
-let txbCmd.M="let s:kc_continue=0\n
-	\if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
+let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
 		\let curwin=w:txbi\n
 		\let view=winsaveview()\n
 		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
@@ -1338,9 +1327,9 @@ let txbCmd.M="let s:kc_continue=0\n
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
-		\let s:kc_msg='(Plane remapped) '\n
+		\let s:kc_continue='(Plane remapped)'\n
 	\else\n
-		\let s:kc_msg='(Plane remap cancelled) '\n
+		\let s:kc_continue='(Plane remap cancelled)'\n
 	\en"
 
 fun! s:nav(N,L)
@@ -1983,7 +1972,7 @@ fun! s:mapKeyHandler(c)
 	en
 endfun
 
-let txbCmd.o="let s:kc_continue=0\n
+let txbCmd.o="let s:kc_continue=''\n
 	\let s:mNum='01'\n
 	\let s:mSavSettings=[&ch,&more,&ls,&stal]\n
 		\let [&more,&ls,&stal]=[0,0,0]\n
@@ -2003,7 +1992,6 @@ let txbCmd.o="let s:kc_continue=0\n
  	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
-	\let s:kc_msg=0\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 let txbCmd.O="let t:deepR=-1|".txbCmd.o
 

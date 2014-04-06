@@ -53,4 +53,4 @@ Key | Action | | Key | Action
 - The map **hot corners** only work in the terminal emulator, and when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
 - For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
-- If, via `Settings`, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.  
+- If, via `S`ettings, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.  
