@@ -14,10 +14,10 @@ se scrolloff=0                               "Ensures correct vertical panning
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
-exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY ':call TxbKey("init")<cr>'
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call TxbKey("init")<cr>'
 augroup END
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
@@ -78,7 +78,7 @@ fun! s:printHelp()
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n *  If [hotkey] becomes inaccessible, reset via: ':call TxbInit()', press S
+	\\n *  If [hotkey] becomes inaccessible, ':call TxbKey('S')'
 	\\n\n\\CMAPPING:\n
 	\\nLines starting with [label marker], default 'txb:', are considered labels. Labels can provide a line number, a label, a color, or all three. The general syntax is:
 	\\n\n    [label marker][lnum][:][ label[#highlght[#ignored]]]
@@ -277,7 +277,7 @@ fun! TxbInit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
+			exe 'nn <silent>' t_dict[1] ':call TxbKey("init")<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
 			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
@@ -535,7 +535,7 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TxbKey\" : \"TxbInit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[0] ':call TxbKey(\"init\")<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[0]\n
 	\en\n
 	\let s:kc_continue=''\n
@@ -568,7 +568,7 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbKey\" : \"TxbInit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[1] ':call TxbKey(\"init\")<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\let t:txb.size[w:txbi]=settings_values[14]\n
 		\let t:txb.exe[w:txbi]=settings_values[15]\n
@@ -919,11 +919,11 @@ fun! s:dochar()
 	call g:TxbKeyHandler(k)
 endfun
 
-fun! TxbKey(inicmd)
+fun! TxbKey(cmd)
 	let s:kc_num='01'
 	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
-	call s:doCmdKeyhandler(a:inicmd)
+	call s:doCmdKeyhandler(a:cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
@@ -934,9 +934,12 @@ fun! s:doCmdKeyhandler(c)
 		redr|echon w:txbi '.' line('.') ' ' s:kc_continue
 	en
 endfun
-let txbCmd.q='let s:kc_continue=""'
-let txbCmd[-1]='let s:kc_continue=""'
-let txbCmd[-99]=''
+let txbCmd.q="let s:kc_continue=''"
+let txbCmd[-1]="let s:kc_continue=''"
+let txbCmd.init="if !exists('w:txbi')\n
+		\call TxbInit(-99)\n
+ 		\let s:kc_continue=''\n
+	\en"
 let txbCmd["\e"]=txbCmd.q
 
 let txbCmd.h='cal s:blockPan(-s:kc_num+!!s:getOffset(),0,line(''w0''),1)|let s:kc_num=''01''|redrawstatus!'

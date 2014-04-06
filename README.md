@@ -49,4 +49,4 @@ Key | Action | | Key | Action
 - For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
 - To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
-- If you have an **inaccessible hotkey**, <samp>:call TxbExe('S')</samp> to set it. (You can access other commands this way too).
+- If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for `S`ettings.
