@@ -1260,7 +1260,7 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			call s:mapSplit()
+			call s:mapSplit(ccol)
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1291,8 +1291,8 @@ endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
 let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
 
-fun! s:mapSplit()
-	let t:txb.depth[w:txbi]=line('$')
+fun! s:mapSplit(col)
+	let t:txb.depth[a:col]=line('$')
 	norm! 1G0
 	let line=search('^'.t:lblmrk,'Wc')
 	while line
@@ -1316,11 +1316,22 @@ fun! s:mapSplit()
 			let lbl=split(L[1: ],'#',1)
 		en
 		if !empty(lbl) && !empty(lbl[0])
-			let t:txb.map[w:txbi][line]=[lbl[0],get(lbl,1,'')]
+			let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]
 		en
 		let line=search('^'.t:lblmrk,'W')
 	endwhile
 endfun
+
+let txbCmd.M="let s:kc_continue=0\n
+	\let confirm=input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n)')\n
+	\if confirm==?'y'\n
+		\let s:kc_continue=0\n
+		\tabe\n
+		\for i in len(t:paths)\n
+			\exe 'e' t:paths[i]\n 
+			\call s:mapSplit(i)\n
+		\tabc\n
+	\en"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
