@@ -44,10 +44,10 @@ Key | Action | | Key | Action
 `q` `esc`|*quit* || `z` |*change zoom*
 
 #### Tips
-- To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
-- To resolve **labeling conflicts** (multiple labels for one map line), prepend the important one with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority)
-- **gVim** does not support mousing in map mode or automatic redrawing on window or font resize.
-- The map **hot corners** only work in the terminal emulator, and when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
+- Resolve **label conflicts** (many labels for one map line) by prepending the important one with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority)
+- **gVim** does not support mousing in map mode or automatic redrawing on window / font resize.
+- The map **hot corners** only work in the terminal emulator and when <samp>ttymouse</samp> is set to <samp>xterm2</samp> or <samp>sgr</samp>.
 - For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
-- If, via `S`ettings, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.
+- To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.  
+- If you have an **inaccessible hotkey**, <samp>:call TxbExe('S')</samp> to set it. (You can access other commands this way too).

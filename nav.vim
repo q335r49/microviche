@@ -1,7 +1,7 @@
 "https://github.com/q335r49/microviche
 
-if &cp|se nocompatible|en                     "[Vital] Enable vim features
-se noequalalways winwidth=1 winminwidth=0     "[Vital] Needed for correct panning
+if &cp|se nocompatible|en                    "[Vital] Enable vim features
+se noequalalways winwidth=1 winminwidth=0    "[Vital] Needed for correct panning
 
 se sidescroll=1                              "Smoother panning
 se nostartofline                             "Keeps cursor in the same position when panning
@@ -527,7 +527,20 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-let txbCmd.S="let settings_names=range(17)\n
+let txbCmd.S="if !exists('w:txbi')\n
+	\let [settings_names,settings_values]=[['hotkey'],[g:TXB_HOTKEY]]\n
+	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
+		\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
+			\exe 'silent! nunmap' g:TXB_HOTKEY\n
+		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
+			\silent! nunmap <f10>\n
+		\en\n
+		\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
+		\let g:TXB_HOTKEY=settings_values[0]\n
+	\en\n
+	\let s:kc_continue=''\n
+\else\n
+	\let settings_names=range(17)\n
 	\let settings_values=range(17)\n
 	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
@@ -542,12 +555,10 @@ let txbCmd.S="let settings_names=range(17)\n
 	\let [settings_names[10],settings_values[10]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
 	\let [settings_names[11],settings_values[11]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
 	\let [settings_names[12],settings_values[12]]=['label marker',has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : '']\n
-	\if exists('w:txbi')\n
-		\let [settings_names[13],settings_values[13]]=['    -- Split '.w:txbi.' --','##label##']\n
-		\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
-		\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-		\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
-	\en\n
+	\let [settings_names[13],settings_values[13]]=['    -- Split '.w:txbi.' --','##label##']\n
+	\let [settings_names[14],settings_values[14]]=['current width',get(t:txb.size,w:txbi,60)]\n
+	\let [settings_names[15],settings_values[15]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+	\let [settings_names[16],settings_values[16]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\let prevVal=deepcopy(settings_values)\n
 	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 		\echohl MoreMsg\n
@@ -559,13 +570,11 @@ let txbCmd.S="let settings_names=range(17)\n
 		\en\n
 		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
-		\if exists('w:txbi')\n
-			\let t:txb.size[w:txbi]=settings_values[14]\n
-			\let t:txb.exe[w:txbi]=settings_values[15]\n
-			\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
-				\let t:paths[w:txbi]=s:sp_newfname[0]\n
-				\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
-			\en\n
+		\let t:txb.size[w:txbi]=settings_values[14]\n
+		\let t:txb.exe[w:txbi]=settings_values[15]\n
+		\if !empty(settings_values[16]) && settings_values[16]!=prevVal[16]\n
+			\let t:paths[w:txbi]=s:sp_newfname[0]\n
+			\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 		\en\n
 		\let t:txb.settings['split width']=settings_values[3]\n
 			\if prevVal[3]!=#t:txb.settings['split width']\n
@@ -633,7 +642,8 @@ let txbCmd.S="let settings_names=range(17)\n
 		\call s:redraw()\n
 	\else\n
 		\let s:kc_continue='Cancelled'\n
-	\en"
+	\en\n
+\en"
 
 let s:sp_pos=[0,0]
 fun! s:settingsPager(keys,vals,errorcheck)
