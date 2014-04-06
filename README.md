@@ -11,12 +11,12 @@ Once loaded, pan with the **mouse** or by pressing `F10` followed by a key comma
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l`| ←↓↑→ (takes count) | | `F1` | help and warnings
+`h``j``k``l` | ←↓↑→ (takes count) || `F1` | help and warnings
 `y``u``b``n` | ↖↗↙↘ (takes count) ||`A` `D` |append / delete split
-`r` `R` | redraw / Remap | |`o` `O` | view map / Remap & view
-`L` | insert <samp>txb:lnum</samp> ||`Ctrl-X`| delete hidden buffers
-`S` | settings| |`W` | write to file
-`q` `esc` | quit| |`M`| remap entire plane
+`r` `R` | redraw / map visible || `o` `O`| view map / map visible and view
+`S` `W` | settings / write plane to file || `drag` to NW corner | view map
+`L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
+`q` `esc` | quit || `R` `M` | map visible / map all
 
 **Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
 
@@ -32,12 +32,12 @@ Once mapped, press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`click`  `2click` |select / goto block||`h``j``k``l`|←↓↑→ (takes count)
-`drag` | pan || `y``u``b``n` |↖↗↙↘ (takes count)
-`click` NW corner |exit map||`H``J``K``L`` |pan ←↓↑→ (takes count)
-`drag` to NW corner | (in plane) show map ||`Y``U``B``N` |pan ↖↗↙↘ (takes count)
-`g` `enter`| goto label|| `c` |move cursor to center
-`q` `esc`|quit || `z` |change zoom
+`click`  `2click` | select / goto block || `h``j``k``l`|←↓↑→ (takes count)
+`drag` | pan || `y``u``b``n` | ↖↗↙↘ (takes count)
+`click` NW corner | exit map || `H``J``K``L`` | pan ←↓↑→ (takes count)
+`F1` help and warnings || `Y``U``B``N` | pan ↖↗↙↘ (takes count)
+`g` `enter` | goto label || `c` | center cursor
+`q` `esc` | quit || `z` | zoom
 
 #### Tips
 - When there are **many labels for one map line**, the one prepended with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority) will be shown.
