@@ -107,9 +107,9 @@ let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let [more,&more]=[&more,0]
-	let seed=a:0? a:1 : -99
+	let seed=a:0? a:1 : 0
 	let msg=''
-	if seed is -99
+	if seed is 0
 		if exists('g:TXB') && type(g:TXB)==4
 			let plane=deepcopy(g:TXB)
 		else
@@ -195,7 +195,7 @@ fun! TxbInit(...)
 		else
 			let restoremsg=" in NEW tab"
 		en
-		if seed is -99
+		if seed is 0
 			if !empty(filtered)
 				let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
 				let msg.="\n\n-> [R]emove unreadable and load last session".restoremsg." [S] settings [F1] help [esc] cancel"
@@ -279,9 +279,9 @@ fun! TxbInit(...)
 			exe 'silent! nunmap' g:TXB_HOTKEY
 			exe 'nn <silent>' t_dict[1] ':call TxbKey("init")<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
-			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
+			if seed is 0 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
-				call TxbInit(-99)
+				call TxbInit()
 			else
 				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
 				let plane.name=plane_name_save
@@ -781,7 +781,7 @@ let s:ErrorCheck['kbd y pan speed']=[2,
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'keyboard pan animation speed vertical']
-let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbInit()', and press S to reset"]
+let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbKey(\"S\")'"]
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
 	\"unlet! inList\n
@@ -937,7 +937,7 @@ endfun
 let txbCmd.q="let s:kc_continue=''"
 let txbCmd[-1]="let s:kc_continue=''"
 let txbCmd.init="if !exists('w:txbi')\n
-		\call TxbInit(-99)\n
+		\call TxbInit()\n
  		\let s:kc_continue=''\n
 	\en"
 let txbCmd["\e"]=txbCmd.q
