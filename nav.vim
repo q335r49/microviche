@@ -594,10 +594,13 @@ let txbCmd.S=
 			\let t:kpSpV=settings_values[7]\n
 		\let t:txb.settings['mouse pan speed']=settings_values[8]\n
 			\let t:msSp=settings_values[8]\n
-		\let t:txb.settings['lines per map grid']=settings_values[9]\n
+		\if t:txb.settings['lines per map grid']!=settings_values[9] || t:txb.settings['map cell width']!=settings_values[10]\n
+			\call s:getMapDis()\n
+			\let t:txb.settings['lines per map grid']=settings_values[9]\n
 			\let t:gran=settings_values[9]\n
-		\let t:txb.settings['map cell width']=settings_values[10]\n
+			\let t:txb.settings['map cell width']=settings_values[10]\n
 			\let t:mapw=settings_values[10]\n
+		\en\n
 		\if !empty(settings_values[11]) && settings_values[11]!=t:txb.settings['working dir']\n
 			\let wd_msg=' (Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
@@ -1152,9 +1155,6 @@ fun! s:blockPan(sp,off,y,mode)
 endfun
 
 fun! s:redraw(...)
-	if a:0
-		let t:curGran=-1
-	en
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi')
 		let ix=index(t:paths,name0)
@@ -1287,6 +1287,7 @@ fun! s:redraw(...)
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 	let s:kc_msg=a:0? '(Remap complete)' : '(redraw complete)'
+	call s:getMapDis()
 endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue=0"
 let txbCmd.R="call s:redraw(1)|redr|let s:kc_continue=0"
@@ -1792,8 +1793,6 @@ fun! s:getMapDis()
 		let s:disIx[i]=intervals
 		let s:disIx[i][-1]=99999
 	endfor
-	let t:curGran=t:gran
-	let t:curWidth=t:mapw
 endfun
 
 fun! s:disMap()
@@ -1991,9 +1990,6 @@ let txbCmd.o="let s:kc_continue=0\n
 	\if s:mR>t:deepR\n
 		\call s:redraw(1)\n
 		\redr!\n
-	\en\n
-	\if t:curGran!=t:gran || t:curWidth!=t:mapw\n
-		\call s:getMapDis()\n
 	\en\n
 	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 	\let s:mC=w:txbi\n
