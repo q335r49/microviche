@@ -1329,13 +1329,14 @@ let txbCmd.M="let s:kc_continue=0\n
 	\if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
 		\let curwin=w:txbi\n
 		\let view=winsaveview()\n
-		\for i in range(len(t:paths))\n
+		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
 			\exe 'e' t:paths[i]\n 
 			\call s:mapSplit(i)\n
 		\endfor\n
 		\exe 'e' t:paths[curwin]\n 
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
+		\call s:redraw()\n
 		\let s:kc_msg='(Plane remapped) '\n
 	\else\n
 		\let s:kc_msg='(Plane remap cancelled) '\n
@@ -1667,7 +1668,7 @@ fun! s:nav(N,L)
 endfun
 
 fun! s:getMapDis()
-	let s:gridLbl=range(len(t:txb.map))
+	let s:gridLbl=range(t:txbL)
 	let gridClr=copy(s:gridLbl)
 	let s:gridPos=copy(s:gridLbl)
 	let conflicts={}
