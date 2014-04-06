@@ -105,23 +105,10 @@ endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
 fun! TxbInit(...)
-	se noequalalways winwidth=1 winminwidth=0
-	let [more,&more]=[&more,0]
+	let more=&more
+	se noequalalways winwidth=1 winminwidth=0 nomore
 	let msg=''
-	if !a:0
-		if exists('g:TXB') && type(g:TXB)==4
-			let plane=deepcopy(g:TXB)
-		else
-			let plane={'name':[]}
-		en
-	elseif type(a:1)==4
-   		let plane=deepcopy(a:1)
-	elseif type(a:1)==1
-		let plane={'name':split(glob(a:1),"\n")}
-	else
-		echoerr "Argument must be dictionary {'name':[list of files], ... } or string filepattern"
-		return 1
-	en
+	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let default={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=default
