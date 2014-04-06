@@ -1299,11 +1299,11 @@ fun! s:mapSplit()
 		let L=getline('.')[t:lblmrklen :]
 		let lref=matchstr(L,'^\d*')
 		if !empty(lref)
-			let lbl=split(L[len(lref)+1: ],'#',1)
+			let lbl=L[len(lref)]==':'? split(L[len(lref)+2:],'#',1) : []
 			if lref<line
 				let deletions=line-lref
 				if prevnonblank(line-1)>=lref
-                    let lbl=[" Error! ".lbl[0],'ErrorMsg']
+                    let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
 				else
 					exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 				en
