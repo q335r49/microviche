@@ -571,9 +571,9 @@ let txbCmd.S="let settings_names=range(17)\n
 			\if prevVal[3]!=#t:txb.settings['split width']\n
 				\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 					\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
-					\let s:kc_continue.='(Current splits resized)'\n
+					\let s:kc_continue.='(Current splits resized) '\n
 				\else\n
-					\let s:kc_continue.='(Only appended splits will inherit split width)'\n
+					\let s:kc_continue.='(Only appended splits will inherit split width) '\n
 				\en\n
 			\en\n
 		\let t:txb.settings['autoexe']=settings_values[4]\n
@@ -582,7 +582,7 @@ let txbCmd.S="let settings_names=range(17)\n
 					\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 					\let s:kc_continue.='(Autoexe settings applied to current splits)'\n
 				\else\n
-					\let s:kc_continue.='(Only appended splits will inherit new autoexe)'\n
+					\let s:kc_continue.='(Only appended splits will inherit new autoexe) '\n
 				\en\n
 			\en\n
 		\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
@@ -601,7 +601,7 @@ let txbCmd.S="let settings_names=range(17)\n
 			\let t:mapw=settings_values[10]\n
 		\en\n
 		\if !empty(settings_values[11]) && settings_values[11]!=t:txb.settings['working dir']\n
-			\let wd_msg=' (Working dir not changed)'\n
+			\let wd_msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
 				\if confirm==?'y' || confirm==?'n'\n
@@ -620,7 +620,7 @@ let txbCmd.S="let settings_names=range(17)\n
 						\exe 'cd' fnameescape(t:wdir)\n
 						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
-						\let wd_msg=' (Working dir changed)'\n
+						\let wd_msg='(Working dir changed)'\n
 					\en\n
 				\en\n
 			\en\n
@@ -884,17 +884,17 @@ endfun
 "xterm    32                35      96      97
 "xterm2   32       64       35      96      97
 "sgr      0M       32M      0m      64      65
-"TXBmsmsg 1        2        3       4       5      else 0
+"msStat   1        2        3       4       5      else 0
 fun! <SID>getmouse()
 	if &ttymouse=~?'xterm'
-		let g:TXBmsmsg=[getchar(0)*0+getchar(0),getchar(0)-32,getchar(0)-32]
-		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==64? 2 : g:TXBmsmsg[0]==32? 1 : g:TXBmsmsg[0]==35? 3 : g:TXBmsmsg[0]==96? 4 : g:TXBmsmsg[0]==97? 5 : 0
+		let s:msStat=[getchar(0)*0+getchar(0),getchar(0)-32,getchar(0)-32]
+		let s:msStat[0]=s:msStat[0]==64? 2 : s:msStat[0]==32? 1 : s:msStat[0]==35? 3 : s:msStat[0]==96? 4 : s:msStat[0]==97? 5 : 0
 	elseif &ttymouse==?'sgr'
-		let g:TXBmsmsg=split(join(map([getchar(0)*0+getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)],'type(v:val)? v:val : nr2char(v:val)'),''),';')
-		let g:TXBmsmsg=len(g:TXBmsmsg)> 2? [str2nr(g:TXBmsmsg[0]).g:TXBmsmsg[2][len(g:TXBmsmsg[2])-1],str2nr(g:TXBmsmsg[1]),str2nr(g:TXBmsmsg[2])] : [0,0,0]
-		let g:TXBmsmsg[0]=g:TXBmsmsg[0]==#'32M'? 2 : g:TXBmsmsg[0]==#'0M'? 1 : (g:TXBmsmsg[0]==#'0m' || g:TXBmsmsg[0]==#'32K') ? 3 : g:TXBmsmsg[0][:1]==#'64'? 4 : g:TXBmsmsg[0][:1]==#'65'? 5 : 0
+		let s:msStat=split(join(map([getchar(0)*0+getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)],'type(v:val)? v:val : nr2char(v:val)'),''),';')
+		let s:msStat=len(s:msStat)> 2? [str2nr(s:msStat[0]).s:msStat[2][len(s:msStat[2])-1],str2nr(s:msStat[1]),str2nr(s:msStat[2])] : [0,0,0]
+		let s:msStat[0]=s:msStat[0]==#'32M'? 2 : s:msStat[0]==#'0M'? 1 : (s:msStat[0]==#'0m' || s:msStat[0]==#'32K') ? 3 : s:msStat[0][:1]==#'64'? 4 : s:msStat[0][:1]==#'65'? 5 : 0
 	else
-		let g:TXBmsmsg=[0,0,0]
+		let s:msStat=[0,0,0]
 	en
 	while getchar(0) isnot 0
 	endwhile
@@ -917,8 +917,8 @@ fun! TxbExe(inicmd)
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
-	if s:kc_continue[0]==' '
-		echon w:txbi '.' line('.') s:kc_continue
+	if s:kc_continue==' '
+		echon w:txbi '.' line('.')
 		call feedkeys("\<plug>TxbZ")
 	elseif !empty(s:kc_continue)
 		redr|echon w:txbi '.' line('.') ' ' s:kc_continue
@@ -1878,34 +1878,34 @@ endfun
 
 fun! s:mapKeyHandler(c)
 	if a:c is -1
-		if g:TXBmsmsg[0]==1
-			let s:mPrevCoor=copy(g:TXBmsmsg)
-		elseif g:TXBmsmsg[0]==2
-			if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-				let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
-				let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
+		if s:msStat[0]==1
+			let s:mPrevCoor=copy(s:msStat)
+		elseif s:msStat[0]==2
+			if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
+				let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+				let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
 				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 				let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
 				call s:disMap()
 			en
-			let s:mPrevCoor=copy(g:TXBmsmsg)
-		elseif g:TXBmsmsg[0]==3
-			if g:TXBmsmsg==[3,1,1]
+			let s:mPrevCoor=copy(s:msStat)
+		elseif s:msStat[0]==3
+			if s:msStat==[3,1,1]
 				let [&ch,&more,&ls,&stal]=s:mSavSettings
 				return
 			elseif s:mPrevCoor[0]==1
-				if &ttymouse=='xterm' && (s:mPrevCoor[1]!=g:TXBmsmsg[1] || s:mPrevCoor[2]!=g:TXBmsmsg[2])
-					if s:mPrevCoor[1] && s:mPrevCoor[2] && g:TXBmsmsg[1] && g:TXBmsmsg[2]
-						let s:mRoff=s:mRoff-g:TXBmsmsg[2]+s:mPrevCoor[2]
-						let s:mCoff=s:mCoff-g:TXBmsmsg[1]+s:mPrevCoor[1]
+				if &ttymouse=='xterm' && (s:mPrevCoor[1]!=s:msStat[1] || s:mPrevCoor[2]!=s:msStat[2])
+					if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
+						let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+						let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
 						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 						let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
 						call s:disMap()
 					en
-					let s:mPrevCoor=copy(g:TXBmsmsg)
+					let s:mPrevCoor=copy(s:msStat)
 				else
-					let s:mR=g:TXBmsmsg[2]-&lines+&ch-1+s:mRoff
-					let s:mC=(g:TXBmsmsg[1]-1+s:mCoff)/t:mapw
+					let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
+					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
 						if t:txb.size[s:mC]>&columns
@@ -1932,11 +1932,11 @@ fun! s:mapKeyHandler(c)
 					call s:disMap()
 				en
 			en
-		elseif g:TXBmsmsg[0]==4
+		elseif s:msStat[0]==4
 			let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
 			call s:disMap()
 			let s:mPrevCoor=[0,0,0]
-		elseif g:TXBmsmsg[0]==5
+		elseif s:msStat[0]==5
 			let s:mRoff=s:mRoff+1
 			call s:disMap()
 			let s:mPrevCoor=[0,0,0]
