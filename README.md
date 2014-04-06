@@ -23,14 +23,13 @@ Key | Action | | Key | Action
 
 **Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
 
-<samp>&nbsp;[label marker][lnum][:][ label[#highlght[#ignored]]]</samp>
+<samp>[label marker][lnum][:][ label[#highlght[#ignored]]]</samp>
 
 Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
-- <samp>&nbsp;txb:345 blah blah</samp> - just move to 345
-- <samp>&nbsp;txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
+- <samp>txb:345 blah blah</samp> - just move to 345
+- <samp>txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
 (Note the `:`, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.)
-- <samp>&nbsp;txb: Intro##blah blah</samp> - just label *Intro*
-- <samp>&nbsp;txb: Intro</samp> - just label *Intro*
+- <samp>txb: Intro##blah blah</samp> or <samp>txb: Intro</samp> - just label *Intro*
 
 Once mapped, press `F10``o` to **view the map**:
 

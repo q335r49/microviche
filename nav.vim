@@ -14,10 +14,10 @@ se scrolloff=0                               "Ensures correct vertical panning
 if !exists('g:TXB_HOTKEY')
 	let g:TXB_HOTKEY='<f10>'
 en
-exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
+	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
 augroup END
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
@@ -57,7 +57,7 @@ fun! s:printHelp()
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with [hotkey] W."
 	\: empty(&vi) || stridx(&vi,'!')==-1? "\n> Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with [hotkey] W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use [hotkey] r or ':call TxbExe('r')'" : '')
+	\.(has('gui_running')? "\n> Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use [hotkey] r or ':call TxbKey('r')'" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -277,7 +277,7 @@ fun! TxbInit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TxbExe" : "TxbInit"}(-99)<cr>'
+			exe 'nn <silent>' t_dict[1] ':call {exists("w:txbi")? "TxbKey" : "TxbInit"}(-99)<cr>'
 			let g:TXB_HOTKEY=t_dict[1]
 			if seed is -99 && exists('g:TXB') && type(g:TXB)==4
 				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
@@ -419,7 +419,7 @@ fun! <SID>doDragSGR()
 		nunmap <esc>[<
 		if exists('t:txb')
 			if k[1:]==[1,1]
-				call TxbExe('o')
+				call TxbKey('o')
 			elseif exists('w:txbi')
 				echon w:txbi '-' line('.')
 			en
@@ -467,7 +467,7 @@ fun! <SID>doDragXterm2()
 		nunmap <esc>[M
 		if exists('t:txb')
 			if k[1:]==[33,33]
-				call TxbExe('o')
+				call TxbKey('o')
 			elseif exists('w:txbi')
 				echon w:txbi '-' line('.')
 			en
@@ -535,7 +535,7 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[0] ':call {exists(\"t:txb\")? \"TxbKey\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[0]\n
 	\en\n
 	\let s:kc_continue=''\n
@@ -568,7 +568,7 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbExe\" : \"TxbInit\"}(-99)<cr>'\n
+		\exe 'nn <silent>' settings_values[1] ':call {exists(\"t:txb\")? \"TxbKey\" : \"TxbInit\"}(-99)<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
 		\let t:txb.size[w:txbi]=settings_values[14]\n
 		\let t:txb.exe[w:txbi]=settings_values[15]\n
@@ -919,7 +919,7 @@ fun! s:dochar()
 	call g:TxbKeyHandler(k)
 endfun
 
-fun! TxbExe(inicmd)
+fun! TxbKey(inicmd)
 	let s:kc_num='01'
 	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
