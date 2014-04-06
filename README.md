@@ -28,7 +28,7 @@ Key | Action | | Key | Action
 Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>&nbsp;txb:345 blah blah</samp> - just move to 345
 - <samp>&nbsp;txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
-Note the `:` separator, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.  
+(Note the `:`, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.)
 - <samp>&nbsp;txb: Intro##blah blah</samp> - just label *Intro*
 - <samp>&nbsp;txb: Intro</samp> - just label *Intro*
 
@@ -53,4 +53,4 @@ Key | Action | | Key | Action
 - The map **hot corners** only work in the terminal emulator, and when <samp>ttymouse</samp> is <samp>xterm2</samp> or <samp>sgr</samp>.
 - For the above reasons, a **terminal emulators** is recommended over gVim.
 - On **Windows**, [Cygwin](http://www.cygwin.com/) running the bundled [mintty](https://code.google.com/p/mintty/) is recommended.
-- If, via `Settings`, you make the the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.  
+- If, via `Settings`, you make the **hotkey inaccessible**, <samp>:call TxbInit()</samp> and press `S` to change.  
