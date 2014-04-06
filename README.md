@@ -1,6 +1,3 @@
-**\*\* Maps from versions < 1.8 are incompatible (manual mapping has been removed) \*\***
-
----
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
