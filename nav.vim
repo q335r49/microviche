@@ -1323,14 +1323,15 @@ fun! s:mapSplit(col)
 endfun
 
 let txbCmd.M="let s:kc_continue=0\n
-	\if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n)')\n
-		\let s:kc_continue=0\n
-		\tabe\n
-		\for i in len(t:paths)\n
+	\if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
+		\let curwin=w:txbi\n
+		\let view=winsaveview()\n
+		\for i in range(len(t:paths))\n
 			\exe 'e' t:paths[i]\n 
 			\call s:mapSplit(i)\n
 		\endfor\n
-		\tabc\n
+		\exe 'e' t:paths[curwin]\n 
+		\call winrestview(view)\n
 		\let s:kc_msg='(Plane remapped) '\n
 	\else\n
 		\let s:kc_msg='(Plane remap cancelled) '\n
@@ -1873,8 +1874,7 @@ fun! s:disMap()
 					echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
 				en
 			else
-				echo seltext
-				continue
+				echon seltext "\n"
 			en
 		en
 		let i+=1
