@@ -1261,6 +1261,7 @@ let txbCmd.m="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
 
 fun! s:mapSplit(col)
 	let t:txb.depth[a:col]=line('$')
+	let t:txb.map[a:col]={}
 	norm! 1G0
 	let line=search('^'.t:lblmrk,'Wc')
 	while line

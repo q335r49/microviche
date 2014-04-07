@@ -11,10 +11,10 @@ Once loaded, pan with the **mouse** or by pressing `F10` followed by a key comma
 
 Key | Action | | Key | Action
 ----- | ----- | --- | --- | ---
-`h``j``k``l` | ←↓↑→ (takes count) || `r` | redraw
-`y``u``b``n` | ↖↗↙↘ (takes count) ||`A` `D` |append / delete split
-`drag` to NW corner | view map || `o` `O`| view map / map visible and view
-`F1` | help and warnings || `S` `W` | settings / write plane to file
+`h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `r` | redraw
+`F1` | help and warnings ||`A` `D` | append / delete split
+`drag` topleft | view map || `o` `O`| view map / remap and view
+`W` | Write plane to file || `S` | settings
 `L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
 `q` `esc` | quit || `m` `M` | map visible / map all
 
@@ -22,7 +22,7 @@ Key | Action | | Key | Action
 
 <samp>[label marker][lnum][:][ label[#highlght[#ignored]]]</samp>
 
-Press `f10``R` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+Press `f10``m` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>txb:345 blah blah</samp> - just move to 345
 - <samp>txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
 (Note the `:`, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.)
@@ -34,7 +34,7 @@ Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `click`  `2click` | select / goto block || `h``j``k``l`|←↓↑→ (takes count)
 `drag` | pan || `y``u``b``n` | ↖↗↙↘ (takes count)
-`click` NW corner | exit map || `H``J``K``L`` | pan ←↓↑→ (takes count)
+`click` topleft | exit map || `H``J``K``L`` | pan ←↓↑→ (takes count)
 `F1` | help and warnings || `Y``U``B``N` | pan ↖↗↙↘ (takes count)
 `g` `enter` | goto label || `c` | center cursor
 `q` `esc` | quit || `z` | zoom
