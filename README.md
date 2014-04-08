@@ -12,8 +12,8 @@ Once loaded, pan with the **mouse** or by pressing `F10` followed by a key comma
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `F1` | help and warnings
-`o` `drag` topleft, `O` | view map / remap and view || `A` `D` | append / delete split
-`S` `W` | Settings / Write settings to file || `r` | redraw
+`o` `drag`topleft `O` | open map / remap and open || `A` `D` | append / delete split
+`S` `W` | settings / write settings to file || `r` | redraw
 `L` | insert <samp>txb:lnum</samp> || `Ctrl-X` | delete hidden buffers
 `q` `esc` | quit || `m` `M` | map visible / map all
 
@@ -31,9 +31,9 @@ Once mapped, press `F10``o` to **view the map**:
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
-`h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `click`  `2click` | select / goto block
-`H``J``K``L``Y``U``B``N` | pan ←↓↑→↖↗↙↘ (takes count) || `drag` | pan
-`g` `enter` | goto label || `c` | center cursor
+`h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `c` | center cursor
+`H``J``K``L``Y``U``B``N` | pan || `click` `drag` | select / pan
+`g` `enter` `2click` | goto label || `F1` | help
 `q` `esc` `click`topleft | quit || `z` | zoom
 
 #### Tips
