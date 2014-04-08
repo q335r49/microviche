@@ -12,7 +12,7 @@ Once loaded, pan with the **mouse** or by pressing `F10` followed by a key comma
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `F1` | help and warnings
-`o` `drag`topleft `O` | open map / remap and open || `A` `D` | append / delete split
+`o` `O` | open map / remap and open || `A` `D` | append / delete split
 `S` `W` | settings / write settings to file || `r` | redraw
 `L` | insert <samp>txb:lnum</samp> || `Ctrl-X` | delete hidden buffers
 `q` `esc` | quit || `m` `M` | map visible / map all
@@ -32,12 +32,13 @@ Once mapped, press `F10``o` to **view the map**:
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
 `h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `c` | center cursor
-`H``J``K``L``Y``U``B``N` | pan || `click` `drag` | select / pan
+`H``J``K``L``Y``U``B``N` | pan (takes count) || `click` `drag` | select / pan
 `g` `enter` `2click` | goto label || `F1` | help
-`q` `esc` `click`topleft | quit || `z` | zoom
+`q` `esc` | quit || `z` | zoom
 
 #### Tips
 - When there are **many labels for one map line**, the one prepended with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority) will be shown.
 - **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize (resizing occurs too frequently). [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great setup for Windows.
 - To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.
+- **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr/<samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for `S`ettings.
