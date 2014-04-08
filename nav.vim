@@ -701,7 +701,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','label line syntax: [label marker][lnum: label#highlight#ignored text]']
+let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','(Default :txb) Regexs are allowed, labels are found via search(''^''.labelmark)']
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
@@ -1903,7 +1903,7 @@ fun! s:mapKeyHandler(c)
 							exe r
 						elseif dif>0
 							exe 'norm! '.dif."\<c-y>".r.'G'
-						elseif
+						else
 							exe 'norm! '.(-dif)."\<c-e>".r.'G'
 						en
 						return
@@ -1945,7 +1945,7 @@ fun! s:mapKeyHandler(c)
 				exe r
 			elseif dif>0
 				exe 'norm! '.dif."\<c-y>".r.'G'
-			elseif
+			else
 				exe 'norm! '.(-dif)."\<c-e>".r.'G'
 			en
 		else
