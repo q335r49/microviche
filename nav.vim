@@ -106,7 +106,7 @@ let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
-	let msg=''
+	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let minimal={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'kbd x pan speed':9,'kbd y pan speed':2,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
@@ -124,7 +124,7 @@ fun! TxbInit(...)
 				silent! exe get(s:ErrorCheck,i,['',''])[1]
 				if !empty(smsg)
 					let plane.settings[i]=minimal[i]
-					let msg="\n**WARNING** Invalid Setting: ".i."\n    ".smsg."\n    Default setting used".msg
+					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".smsg
 				en
 			en
 		endfor
@@ -157,12 +157,16 @@ fun! TxbInit(...)
 	en
 	let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
-	let filtered=[]
+	let unreadable=[]
 	let plane_name_save=copy(plane.name)
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
-			call add(filtered,remove(plane.name,i))
+			if !isdirectory(plane.name[i])
+				call add(unreadable,remove(plane.name,i))
+			else
+				call remove(plane.name,i)
+			en
 			call remove(plane.size,i)
 			call remove(plane.exe,i)
 			call remove(plane.map,i)
@@ -170,44 +174,32 @@ fun! TxbInit(...)
 		en
 	endfor
 	exe 'cd' fnameescape(prevwd)
-	let msg=(empty(plane.name)? '' : "\n ---- readable ----\n".join(s:formatPar(join(plane.name,', '),&columns-2,0),"\n")."\n")
-		\.(empty(filtered)? '' : "\n ---- unreadable or directory ----\n".join(s:formatPar(join(filtered,', '),&columns-2,0),"\n")."\n")
-		\."\n".len(plane.name)." readable, ".len(filtered)." unreadable or directory in working dir: ".plane.settings['working dir']."\n".msg
 	if !empty(plane.name)
 		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
-		if curbufix!=-1
-			let restoremsg=" in CURRENT tab"
+		if !empty(unreadable) && a:0 && type(a:1)==4
+			let warnings.="\n> Warning: unreadable file(s) will be REMOVED from the plane (This is often because of an incorrect working directory; change in [S]ettings)"
+			let confirmMsg="> [R] Remove and ".(curbufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let confirmKeys=[82]
 		else
-			let restoremsg=" in NEW tab"
+			let confirmMsg="> [enter] ".(curbufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let confirmKeys=[10,13]
 		en
-		let confirm_keys=[10,13]
-		let confirm_msg='enter'
-		if a:0 && exists('g:TXB') && type(g:TXB)==4
-			let msg.="\n**WARNING**\n    The last plane and map you used will be OVERWRITTEN in viminfo.
-				\\n    Save by loading last plane and pressing [hotkey] W."
-			let confirm_keys=[79]
-			let confirm_msg='O'
-		en
-		if !empty(filtered)
-			let msg.="\n**WARNING**\n    Unreadable file(s) will be REMOVED from the plane! You typically don't want this!
-				\\n    This is often because the WORKING DIRECTORY is wrong (change by pressing 'S')"
-			let confirm_keys=[82]
-			let confirm_msg='R'
-		en
-		ec msg "\n\n -> [".confirm_msg."] load [S] settings [F1] help [esc] cancel"
-		let c=getchar()
-	elseif !empty(filtered) || a:0 && type(a:1)==4
-		let confirm_keys=[]
-		let msg.="\n(No readable files remain -- make sure working dir is correct)
-			\\n\n -> [S] Settings [F1] help [any other key] cancel"
-		ec msg
-		let c=getchar()
+	elseif !empty(unreadable) || a:0 && type(a:1)==4
+		let warnings.="\n> No readable files remain (make sure working dir is correct)"
+		let confirmMsg="> [S] settings [F1] help [esc] cancel"
+		let confirmKeys=[-1]
 	else
-		let confirm_keys=[]
-		ec msg
-		let c=0
+		let confirmMsg=''
+		let confirmKeys=[]
 	en
-	if index(confirm_keys,c)!=-1
+	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
+	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
+	echon "\n> working dir: ".plane.settings['working dir']
+	echohl WarningMsg | ec warnings
+	echohl moremsg | ec confirmMsg
+	echohl
+	let c=empty(confirmKeys)? 0 : getchar()
+	if index(confirmKeys,c)!=-1
 		if curbufix==-1 | tabe | en
 		let g:TXB=plane
 		let t:txb=plane
@@ -253,7 +245,7 @@ fun! TxbInit(...)
 			redr|echo "Cancelled"
 		en
 	else
-		let input=input("\n> Enter file pattern or type HELP: ",'','file')
+		let input=input("> Enter file pattern or type HELP: ",'','file')
 		if input==?'help'
 			call s:printHelp()
 		elseif !empty(input)
@@ -972,7 +964,7 @@ let txbCmd.A=
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:wdir)\n
 		\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\n**WARNING**\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
+		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
 			\let s:kc_continue='File not appended'\n
 		\elseif empty(file)\n
 			\let s:kc_continue='File name is empty'\n
