@@ -928,18 +928,14 @@ let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
 	\let s:kc_continue='(labeled)'\n
-	\if L[:t:lblmrklen-1]!=#t:lblmrk\n
+	\if L[: t:lblmrklen-1]!=#t:lblmrk\n
 		\let inserttext=t:lblmrk.line('.').' '\n
 		\call setline(line('.'),inserttext.L)\n
 		\call cursor(line('.'),len(inserttext)+1)\n
 		\startinsert\n
 	\else\n 
-		\let ix=stridx(L,' ',t:lblmrklen+1)\n
-		\if ix==t:lblmrklen+1\n
-			\call setline(line('.'),L[:t:lblmrklen].line('.').L[t:lblmrklen+1:])\n
-		\else\n
-			\call setline(line('.'),L[:t:lblmrklen].line('.').L[(ix==-1? 999999 : ix):])\n
-		\en\n
+		\let ix=stridx(L,' ',t:lblmrklen)\n
+		\call setline(line('.'),t:lblmrk.line('.').(ix==-1? '' : L[ix :]))\n
 	\en"
 
 let txbCmd.D=
