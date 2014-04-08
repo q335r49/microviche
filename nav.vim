@@ -175,13 +175,13 @@ fun! TxbInit(...)
 	endfor
 	exe 'cd' fnameescape(prevwd)
 	if !empty(plane.name)
-		let curbufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if !empty(unreadable) && a:0 && type(a:1)==4
 			let warnings.="\n> Warning: unreadable file(s) will be REMOVED from the plane (This is often because of an incorrect working directory; change in [S]ettings)"
-			let confirmMsg="> [R] Remove and ".(curbufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let confirmMsg="> [R] Remove and ".(bufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
 			let confirmKeys=[82]
 		else
-			let confirmMsg="> [enter] ".(curbufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let confirmMsg="> [enter] ".(bufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
 			let confirmKeys=[10,13]
 		en
 	elseif !empty(unreadable) || a:0 && type(a:1)==4
@@ -200,7 +200,7 @@ fun! TxbInit(...)
 	echohl
 	let c=empty(confirmKeys)? 0 : getchar()
 	if index(confirmKeys,c)!=-1
-		if curbufix==-1 | tabe | en
+		if bufix==-1 | tabe | en
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
@@ -212,7 +212,6 @@ fun! TxbInit(...)
 		let t:deepest=max(t:txb.depth)
 		let t:mapw=t:txb.settings['map cell width']
 		let t:lblmrk=t:txb.settings['label marker']
-		let t:lblmrklen=len(t:lblmrk)
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
@@ -590,7 +589,6 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\en\n
 		\let t:txb.settings['label marker']=settings_values[12]\n
 			\let t:lblmrk=settings_values[12]\n
-			\let t:lblmrklen=len(t:lblmrk)\n
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
@@ -1258,31 +1256,31 @@ fun! s:mapSplit(col)
 	let t:txb.depth[a:col]=line('$')
 	let t:txb.map[a:col]={}
 	norm! 1G0
-	let line=search('^'.t:lblmrk,'Wc')
+	let line=search('^'.t:lblmrk.'\zs','Wc')
 	while line
-		let L=getline('.')[t:lblmrklen :]
-		let lref=matchstr(L,'^\d*')
-		if !empty(lref)
-			let lbl=L[len(lref)]==':'? split(L[len(lref)+2:],'#',1) : []
-			if lref<line
-				let deletions=line-lref
-				if prevnonblank(line-1)>=lref
+		let L=getline('.')
+		let lnum=strpart(L,col('.')-1,6)
+		if lnum!=0
+			let lbl=split(L[col('.')+len(lnum+0):],'#',1)
+			if lnum<line
+				let deletions=line-lnum
+				if prevnonblank(line-1)>=lnum
 					let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
 				else
 					exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
 				en
 				let line=line('.')
-			elseif lref>line
-				exe 'norm! '.(lref-line)."O\ej"
+			elseif lnum>line
+				exe 'norm! '.(lnum-line)."O\ej"
 				let line=line('.')
 			en
 		else
-			let lbl=split(L[1: ],'#',1)
+			let lbl=split(L[col('.'):],'#',1)
 		en
 		if !empty(lbl) && !empty(lbl[0])
 			let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]
 		en
-		let line=search('^'.t:lblmrk,'W')
+		let line=search('^'.t:lblmrk.'\zs','W')
 	endwhile
 endfun
 
