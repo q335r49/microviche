@@ -691,7 +691,7 @@ let s:sp_exe.83=
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','(Default :txb) Regexs are allowed, labels are found via search(''^''.labelmark)']
+let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','(Default ''txb:'') Regex is allowed. Details: labels are found via search(''^''.labelmark)']
 let s:ErrorCheck['working dir']=['~',
 	\"if isdirectory(input)\n
 		\let vals[cursor]=fnamemodify(input,':p')\n
@@ -919,19 +919,13 @@ let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
 	\let s:kc_continue='(labeled)'\n
-	\if L[: t:lblmrklen-1]!=#t:lblmrk\n
-		\let inserttext=t:lblmrk.line('.').' '\n
-		\call setline(line('.'),inserttext.L)\n
-		\call cursor(line('.'),len(inserttext)+1)\n
+	\if -1!=match(L,'^'.t:lblmrk)\n
+		\call setline(line('.'),substitute(L,'^'.t:lblmrk.'\\zs\\d*\\ze',line('.'),''))\n
+	\else\n
+		\let prefix=t:lblmrk.line('.').' '\n
+		\call setline(line('.'),prefix.L)\n
+		\call cursor(line('.'),len(prefix))\n
 		\startinsert\n
-	\else\n 
-		\let ix=stridx(L,': ',t:lblmrklen)\n
-		\if ix==-1\n
-			\let ix2=stridx(L,' ',t:lblmrklen)\n
-			\call setline(line('.'),t:lblmrk.line('.').(ix2==-1? '' : L[ix2 :]))\n
-		\else\n
-			\call setline(line('.'),t:lblmrk.line('.').L[ix :])\n
-		\en\n
 	\en"
 
 let txbCmd.D=
