@@ -1303,6 +1303,7 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? T
 		\endfor\n
 		\exe 'e' t:paths[curwin]\n 
 		\call winrestview(view)\n
+		\let t:deepest=max(t:txb.depth)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
 		\let s:kc_continue='(Plane remapped)'\n
