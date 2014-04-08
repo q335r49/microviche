@@ -564,11 +564,11 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\let t:txb.settings['mouse pan speed']=settings_values[8]\n
 			\let t:msSp=settings_values[8]\n
 		\if t:txb.settings['lines per map grid']!=settings_values[9] || t:txb.settings['map cell width']!=settings_values[10]\n
-			\call s:getMapDis()\n
 			\let t:txb.settings['lines per map grid']=settings_values[9]\n
 			\let t:gran=settings_values[9]\n
 			\let t:txb.settings['map cell width']=settings_values[10]\n
 			\let t:mapw=settings_values[10]\n
+			\call s:getMapDis()\n
 		\en\n
 		\if !empty(settings_values[11]) && settings_values[11]!=t:txb.settings['working dir']\n
 			\let wd_msg='(Working dir not changed)'\n
@@ -2000,14 +2000,14 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 	\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
 \'z':"call s:disMap()\n
-	\let input=str2nr(input('File lines per map line (>10): ',t:gran))\n
-	\let width=str2nr(input('Width of map column (>0): ',t:mapw))\n
-	\if input<10 || width<=0\n
+	\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
+	\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
+	\if input<10 || width<1\n
 		\echohl ErrorMsg\n
 		\echo 'Error: Invalid values'\n
 		\sleep 500m\n
 		\redr!\n
-	\elseif input!=t:gran\n
+	\elseif input!=t:gran || width!=t:mapw\n
 		\let s:mR=s:mR*t:gran/input\n
 		\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
 		\let t:txb.settings['lines per map grid']=input\n
