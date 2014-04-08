@@ -196,7 +196,7 @@ fun! TxbInit(...)
 		en
 		ec msg "\n\n -> [".confirm_msg."] load [S] settings [F1] help [esc] cancel"
 		let c=getchar()
-	elseif !empty(filtered) || type(a:1)==4
+	elseif !empty(filtered) || a:0 && type(a:1)==4
 		let confirm_keys=[]
 		let msg.="\n(No readable files remain -- make sure working dir is correct)
 			\\n\n -> [S] Settings [F1] help [any other key] cancel"
@@ -643,6 +643,7 @@ fun! s:settingsPager(keys,vals,errorcheck)
 		if !empty(smsg)
 			echohl WarningMsg
 			echo smsg
+			echohl
 		else
 			echohl MoreMsg
 			echo get(a:errorcheck,a:keys[cursor],'')[2]
@@ -934,8 +935,13 @@ let txbCmd.L="let L=getline('.')\n
 		\call cursor(line('.'),len(inserttext)+1)\n
 		\startinsert\n
 	\else\n 
-		\let ix=stridx(L,' ',t:lblmrklen)\n
-		\call setline(line('.'),t:lblmrk.line('.').(ix==-1? '' : L[ix :]))\n
+		\let ix=stridx(L,': ',t:lblmrklen)\n
+		\if ix==-1\n
+			\let ix2=stridx(L,' ',t:lblmrklen)\n
+			\call setline(line('.'),t:lblmrk.line('.').(ix2==-1? '' : L[ix2 :]))\n
+		\else\n
+			\call setline(line('.'),t:lblmrk.line('.').L[ix :])\n
+		\en\n
 	\en"
 
 let txbCmd.D=
@@ -977,6 +983,7 @@ let txbCmd.A=
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\call insert(t:txb.map,{},w:txbi+1)\n
+			\call insert(t:txb.depth,100,w:txbi+1)\n
 			\let t:txbL=len(t:txb.name)\n
 			\call s:redraw()\n
 		\en\n
@@ -1878,24 +1885,26 @@ fun! s:mapKeyHandler(c)
 					let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
 					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
 					if [s:mR,s:mC]==s:mPrevClk
+
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
 						if t:txb.size[s:mC]>&columns
 							let [sp,off]=[s:mC,0]
 						else
 							let [sp,off]=s:getDest(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 						en
-						let lowestr=(&lines-s:mSavSettings[0])/2
 						let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
-						let r0=r<lowestr? 1 : r-lowestr
-						call  s:blockPan(sp,off,r0,2)
-						exe (s:mC-getwinvar(1,'txbi')+1).'wincmd w'
+						let r0=r-winheight(0)/2
+						let r0=r0<1? 1 : r0
+						call s:blockPan(sp,off,r0,2)
+						exe ((t:txbL+s:mC-getwinvar(1,'txbi'))%t:txbL+1).'wincmd w'
 						let dif=line('w0')-r0
-						if dif>0
-							exe 'norm! '.dif."\<c-y>"
-						elseif dif<0
-							exe 'norm! '.(-dif)."\<c-e>"
+						if !dif
+							exe r
+						elseif dif>0
+							exe 'norm! '.dif."\<c-y>".r.'G'
+						elseif
+							exe 'norm! '.(-dif)."\<c-e>".r.'G'
 						en
-						call  s:setCursor(r,1,s:mC)
 						return
 					en
 					let s:mPrevClk=[s:mR,s:mC]
@@ -1925,18 +1934,19 @@ fun! s:mapKeyHandler(c)
 			else
 				let [sp,off]=s:getDest(s:mC,0,-(&columns-t:txb.size[s:mC])/2)
 			en
-			let lowestr=(&lines-s:mSavSettings[0])/2
 			let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
-			let r0=r<lowestr? 1 : r-lowestr
+			let r0=r-winheight(0)/2
+			let r0=r0<1? 1 : r0
 			call  s:blockPan(sp,off,r0,2)
-			exe (s:mC-getwinvar(1,'txbi')+1).'wincmd w'
+			exe ((t:txbL+s:mC-getwinvar(1,'txbi'))%t:txbL+1).'wincmd w'
 			let dif=line('w0')-r0
-			if dif>0
-				exe 'norm! '.dif."\<c-y>"
-			elseif dif<0
-				exe 'norm! '.(-dif)."\<c-e>"
+			if !dif
+				exe r
+			elseif dif>0
+				exe 'norm! '.dif."\<c-y>".r.'G'
+			elseif
+				exe 'norm! '.(-dif)."\<c-e>".r.'G'
 			en
-			call  s:setCursor(r,1,s:mC)
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
