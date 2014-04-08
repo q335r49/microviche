@@ -777,11 +777,11 @@ let s:ErrorCheck['lines per map grid']=[45,
 	\en",'Each map grid is 1 split and this many lines']
 let s:ErrorCheck['map cell width']=[5,
 	\"let input=str2nr(input)\n
-	\if input<=0 || input>10\n
-		\let smsg.='Error: map cell width must be between 1 and 10'\n
+	\if input<1\n
+		\let smsg.='Error: map cell width must be >= 1'\n
 	\else\n
 		\let vals[cursor]=input\n
-	\en",'integer between 1 and 10']
+	\en",'number >= 1']
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
