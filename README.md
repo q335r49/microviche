@@ -16,18 +16,14 @@ Once loaded, pan with the mouse or by pressing <kbd>f10</kbd> followed by a key 
 <kbd>L</kbd> | insert "marker(lnum)" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
 <kbd>q</kbd> <kbd>esc</kbd> | quit || <kbd>m</kbd> <kbd>M</kbd> | map visible / map all
 
-**Labels** start with a label marker (default <q>txb:</q>) and provide a line number, label, or both:
+**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. <kbd>f10</kbd> <kbd>m</kbd> will use labels to map all visible splits. Furthermore, displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
 
-&nbsp;&nbsp;&nbsp;<samp>marker(lnum)(:)( label#highlght# ignored)</samp>
-
-Press <kbd>f10</kbd> <kbd>m</kbd> to **redraw the map** for all visible splits. Displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines. Relocation failures will be highlighted in the map.
-
-Some examples (assuming a <q>txb:</q> marker):  
+The label syntax is: <samp>marker(lnum)(:)( label#highlght# ignored text)</samp>. Some examples:  
 &nbsp;&nbsp;&nbsp;txb:345 blah blah → just move to 345  
 &nbsp;&nbsp;&nbsp;txb:345<b>:</b> Intro#Search → move to 345: label <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;txb: Intro## blah blah or txb: Intro → just label <q>Intro</q>
+&nbsp;&nbsp;&nbsp;txb: Intro## blah blah (or just txb: Intro) → just label <q>Intro</q>
 
-Once mapped, press <kbd>f10</kbd> <kbd>o</kbd> to **view the map**: 
+To **view the map**, press <kbd>f10</kbd> <kbd>o</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> | | <kbd>f1</kbd> | help
 :---: | :---: | :---: | :---: | :---:
