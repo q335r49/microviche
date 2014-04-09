@@ -64,8 +64,8 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8! (github.com/q335r49/microviche)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\n\\CSTARTING UP:\n\nNavigate to the WORKING DIRECTORY (you only have to do this when you first create a plane). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
-	\\nYou can now use the MOUSE to pan, or press [hotkey] followed by:
+	\\n\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
+	\\nOnce loaded, use the MOUSE to pan, or press [hotkey] followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3j=jjj)
 	\\n    r                    redraw
 	\\n    o O                  Open map / map visible and open map
@@ -78,16 +78,15 @@ fun! s:printHelp()
 	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n *  If [hotkey] becomes inaccessible, ':call TxbKey('S')'
-	\\n\n\\CMAPPING:\n
-	\\nLines starting with [label marker], default 'txb:', are considered labels. Labels can provide a line number, a label, a color, or all three. The general syntax is:
-	\\n\n    [label marker][lnum][:][ label[#highlght[#ignored]]]
-	\\n\n[hotkey][R]emap will [r]edraw, map, and relocate the label line to [line num] by inserting or removing blank lines above for all visible splits.\n
-	\\nExamples: (Note the ':' when both lnum and label are provided)
+	\\n *  If [hotkey] becomes inaccessible, :call TxbKey('S')
+	\\n\nLABELS are lines that start with a label marker (default txb:) and specify a line number, a map label, or both. [hotkey][m] will use labels to map all visible splits. Furthermore, displaced labels will be relocated to lnum (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
+	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored).\n
+	\\nExamples: (Note the ':' when both lnum and label are provided):
 	\\n    txb:345 bla bla        Just move to 345
 	\\n    txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
-	\\n    txb: Intro##bla bla    Just label 'Blah'
-	\\n\nPress [hotkey][o] to view the map:
+	\\n    txb: Intro             Just label 'Intro'
+	\\n    txb: Intro##bla bla    Just label 'Intro'
+	\\n\nPress [hotkey][o] to view the MAP:
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view
