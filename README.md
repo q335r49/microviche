@@ -7,7 +7,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Usage
-Once loaded, pan with the mouse or by pressing <kbd>f10</kbd> followed by a key command:
+Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
