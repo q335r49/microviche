@@ -21,13 +21,13 @@ Key | Action | | Key | Action
 
 <samp>[label marker][lnum][:][ label[#highlght[#ignored]]]</samp>
 
-Press <kbd>f10</kbd><kbd>m</kbd> to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
+Press <kbd>f10</kbd> <kbd>m</kbd> to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
 - <samp>txb:345 blah blah</samp> - just move to 345
 - <samp>txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
 (Note the <kbd>:</kbd>, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.)
 - <samp>txb: Intro##blah blah</samp> or <samp>txb: Intro</samp> - just label *Intro*
 
-Once mapped, press <kbd>f10</kbd><kbd>o</kbd> to **view the map**: 
+Once mapped, press <kbd>f10</kbd> <kbd>o</kbd> to **view the map**: 
 
 Key | Action | | Key | Action
 --- | --- | --- | --- | ---
@@ -39,6 +39,6 @@ Key | Action | | Key | Action
 #### Tips
 - When there are **many labels for one map line**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd> (in order of priority) will be shown.
 - **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize (resizing occurs too frequently). [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great setup for Windows.
-- To **turn off scrollbinding**: <kbd>f10</kbd><kbd>S</kbd>ettings → <kbd>c</kbd>hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → <kbd>S</kbd>ave → <kbd>y</kbd> at 'apply to all' prompt.
+- To **turn off scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings → <kbd>c</kbd>hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → <kbd>S</kbd>ave → <kbd>y</kbd> at 'apply to all' prompt.
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr/<samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
