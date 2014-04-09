@@ -23,9 +23,9 @@ Once loaded, pan with the **mouse** or by pressing <kbd>f10</kbd> followed by a 
 Press <kbd>f10</kbd> <kbd>m</kbd> to **map labels** in all visible splits. Displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines. Relocation failures will be highlighted in the map.
 
 Some examples (assuming a <q>txb:</q> marker):  
-&nbsp;&nbsp;&nbsp;<q>txb:345 blah blah</q> - just move to 345  
-&nbsp;&nbsp;&nbsp;<q>txb:345<b>:</b> Intro#Search</q> - move to 345: label <q>Intro</q>, color <q>Search</q> (<b>:</b> is needed when both *lnum* and *label* are provided).  
-&nbsp;&nbsp;&nbsp;<q>txb: Intro## blah blah</q> or <q>txb: Intro</q> - just label <q>Intro</q>
+&nbsp;&nbsp;&nbsp;<q>txb:345 blah blah</q> → just move to 345  
+&nbsp;&nbsp;&nbsp;<q>txb:345<b>:</b> Intro#Search</q> → move to 345: label <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
+&nbsp;&nbsp;&nbsp;<q>txb: Intro## blah blah</q> or <q>txb: Intro</q> → just label <q>Intro</q>
 
 Once mapped, press <kbd>f10</kbd> <kbd>o</kbd> to **view the map**: 
 
