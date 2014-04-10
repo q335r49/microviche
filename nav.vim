@@ -1269,7 +1269,7 @@ fun! s:mapSplit(col)
 		let L=getline('.')
 		let lnum=strpart(L,col('.')-1,6)
 		if lnum!=0
-			let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0):],'#',1) : []
+			let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []
 			if lnum<line
 				let deletions=line-lnum
 				if prevnonblank(line-1)>=lnum
