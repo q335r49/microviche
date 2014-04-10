@@ -1,5 +1,5 @@
 #microViche
-microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
 ####Startup
 - [Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), and <samp>:source [downloads]/nav.vim</samp>
@@ -7,7 +7,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Usage
-Once loaded, pan with the mouse or by pressing <kbd>f10</kbd> followed by a key command:
+Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
@@ -16,18 +16,14 @@ Once loaded, pan with the mouse or by pressing <kbd>f10</kbd> followed by a key 
 <kbd>L</kbd> | insert "marker(lnum)" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
 <kbd>q</kbd> <kbd>esc</kbd> | quit || <kbd>m</kbd> <kbd>M</kbd> | map visible / map all
 
-**Labels** start with a label marker (default <q>txb:</q>) and provide a line number, label, or both:
+**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. <kbd>f10</kbd> <kbd>m</kbd> will use labels to map all visible splits. Furthermore, displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
 
-&nbsp;&nbsp;&nbsp;<samp>marker(lnum)(:)( label#highlght# ignored)</samp>
-
-Press <kbd>f10</kbd> <kbd>m</kbd> to **redraw the map** for all visible splits. Displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines. Relocation failures will be highlighted in the map.
-
-Some examples (assuming a <q>txb:</q> marker):  
+The label syntax is: <samp>marker(lnum)(:)( label#highlght# ignored text)</samp>. Some examples:  
 &nbsp;&nbsp;&nbsp;txb:345 blah blah → just move to 345  
 &nbsp;&nbsp;&nbsp;txb:345<b>:</b> Intro#Search → move to 345: label <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;txb: Intro## blah blah or txb: Intro → just label <q>Intro</q>
+&nbsp;&nbsp;&nbsp;txb: Intro## blah blah (or just txb: Intro) → just label <q>Intro</q>
 
-Once mapped, press <kbd>f10</kbd> <kbd>o</kbd> to **view the map**: 
+To **view the map**, press <kbd>f10</kbd> <kbd>o</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> | | <kbd>f1</kbd> | help
 :---: | :---: | :---: | :---: | :---:
