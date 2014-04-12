@@ -893,14 +893,14 @@ let txbCmd.init="if !exists('w:txbi')\n
 	\en"
 let txbCmd["\e"]=txbCmd.q
 
-let txbCmd.h='cal s:blockPan(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.j='cal s:blockPan(getwinvar(1,''txbi''),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.k='cal s:blockPan(getwinvar(1,''txbi''),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.l='cal s:blockPan(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.y='cal s:blockPan(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.u='cal s:blockPan(getwinvar(1,''txbi'')+s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.b='cal s:blockPan(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.n='cal s:blockPan(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.h='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.j='cal s:goto(getwinvar(1,''txbi''),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.k='cal s:goto(getwinvar(1,''txbi''),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.l='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.y='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.u='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.b='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.n='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
 let txbCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num.'1'"
 let txbCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num.'2'"
 let txbCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num.'3'"
@@ -1022,7 +1022,7 @@ fun! s:getDest(sp,off,N)
 	return [sp,offset]
 endfun
 
-fun! s:blockPan(sp,off,y,jump,center)
+fun! s:goto(sp,off,ln,jump,center)
 	if a:jump
 		if a:center
 			let [sp,off]=t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
@@ -1035,8 +1035,9 @@ fun! s:blockPan(sp,off,y,jump,center)
 			exe 'norm! 0'.off.'zl'
 			call s:redraw()
 			exe (a:sp-getwinvar(1,'txbi')+1).'wincmd w'
-			let dif=line('w0')-a:y
-			exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
+			let l0=a:ln-winheight(0)/2
+			let dif=line('w0')-(l0>1? l0 : 1)
+			exe dif>0? 'norm! '.dif."\<c-y>".a:ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".a:ln.'G' : a:ln.'G'
 		else
 			let sp=(a:sp%t:txbL+t:txbL)%t:txbL
 			if t:paths[sp]!=#fnameescape(fnamemodify(expand('%'),':p'))
@@ -1045,7 +1046,7 @@ fun! s:blockPan(sp,off,y,jump,center)
 				let w:txbi=sp
 			en
 			only
-			exe 'norm! '.(a:y? a:y : 1).'zt0'.a:off.'zl'
+			exe 'norm! '.(a:ln? a:ln : 1).'zt0'.a:off.'zl'
 			call s:redraw()
 		en
 		return
@@ -1057,7 +1058,7 @@ fun! s:blockPan(sp,off,y,jump,center)
 	if dir>0
 		while 1
 			let l0=line('w0')
-			let dif=a:y-l0
+			let dif=a:ln-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
 			if !((cSp-dSp+1)%t:txbL)
@@ -1083,7 +1084,7 @@ fun! s:blockPan(sp,off,y,jump,center)
 	elseif dir<0
 		while 1
 			let l0=line('w0')
-			let dif=a:y-l0
+			let dif=a:ln-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
 			if !((cSp-dSp-1)%t:txbL)
@@ -1110,11 +1111,11 @@ fun! s:blockPan(sp,off,y,jump,center)
 	exe (a:sp-getwinvar(1,'txbi')+1).'wincmd w'
 	let l0=line('w0')
 	let ll=line('$')
-	let dif=l0-a:y
-	while dif && !(a:y>l0 && l0==ll)
+	let dif=l0-a:ln
+	while dif && !(a:ln>l0 && l0==ll)
 		exe dif>t:kpSpV? 'norm! '.t:kpSpV."\<c-y>" : dif<-t:kpSpV? 'norm! '.t:kpSpV."\<c-e>" : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
 		let l0=line('w0')
-		let dif=l0-a:y
+		let dif=l0-a:ln
 		redr
 	endwhile
 endfun
@@ -1883,10 +1884,7 @@ fun! s:mapKeyHandler(c)
 					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
-						let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
-						let r0=r-winheight(0)/2
-						call s:blockPan(s:mC,0,r0<1? 1 : r0,1,1)
-                        exe r
+						call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0],1,1)
 						return
 					en
 					let s:mPrevClk=[s:mR,s:mC]
@@ -1911,10 +1909,7 @@ fun! s:mapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
-			let r=get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0]
-			let r0=r-winheight(0)/2
-			call s:blockPan(s:mC,0,r0<1? 1 : r0,1,1)
-			exe r
+			call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0],1,1)
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
