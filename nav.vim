@@ -985,7 +985,7 @@ let txbCmd.W=
 
 fun! s:getOffset()
 	let cSp=getwinvar(1,'txbi')
-	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : -1
+	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : &wrap? 0 : virtcol('.')-wincol()
 endfun
 
 fun! s:setCursor(l,vc,ix)
@@ -1023,8 +1023,11 @@ fun! s:getDest(sp,off,N)
 endfun
 
 fun! s:goto(sp,ln,...)
-	let [center,jump]=a:0? [stridx(a:flags,'e')==-1,stridx(a:flags,'a')==-1] : [1,1]
-	let aoff=a:flags[stridx(a:flags,'o'):]+0
+	let [center,jump,aoff]=a:0? [stridx(a:flags,'e')==-1,stridx(a:flags,'a')==-1,stridx(a:flags,'o')] : [1,1,-1]
+	let dSp=(a:sp%t:txbL+t:txbL)%t:txbL
+	let [dSp,dOff]=!center? [dSp,aoff>0? aoff : 0] : t:txb.size[dSp]>&columns? [dSp,0] : s:getDest(dSp,0,-(&columns-t:txb.size[dSp])/2)
+	let aoff=aoff>0? a:flags[aoff]+0 : -1
+	let aoff=aoff>=t:txb.size[dSp]? t:txb.size[dSp]-1 : aoff
 	if jump
 		if center
 			let [sp,off]=t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
@@ -1048,15 +1051,14 @@ fun! s:goto(sp,ln,...)
 				let w:txbi=sp
 			en
 			only
-			exe 'norm! '.(a:ln? a:ln : 1).'zt0'.aoff.'zl'
+			exe 'norm! '.(a:ln? a:ln : 1).(aoff>0? 'zt0'.aoff.'zl' : 'zt0')
 			call s:redraw()
 		en
 		return
 	en
 	let cSp=getwinvar(1,'txbi')
-	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : aoff>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : aoff
-	let [dSp,dOff]=!center? [(a:sp%t:txbL+t:txbL)%t:txbL,aoff] : t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
 	let dir=dSp-cSp+(dSp==cSp)*(cOff-dOff)
+	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : dir>0? t:txb.size[cSp]-&columns : 0
 	if dir>0
 		while 1
 			let l0=line('w0')
