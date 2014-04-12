@@ -1030,11 +1030,10 @@ fun! s:goto(sp,ln,...)
 	let aoff=aoff>=t:txb.size[dSp]? t:txb.size[dSp]-1 : aoff
 	if jump
 		if center
-			let [sp,off]=t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
-			if t:paths[sp]!=#fnameescape(fnamemodify(expand('%'),':p'))
+			if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 				winc t
-				exe 'e '.t:paths[sp]
-				let w:txbi=sp
+				exe 'e '.t:paths[dSp]
+				let w:txbi=dSp
 			en
 			only
 			exe 'norm! 0'.off.'zl'
@@ -1044,11 +1043,10 @@ fun! s:goto(sp,ln,...)
 			let dif=line('w0')-(l0>1? l0 : 1)
 			exe dif>0? 'norm! '.dif."\<c-y>".a:ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".a:ln.'G' : a:ln.'G'
 		else
-			let sp=(a:sp%t:txbL+t:txbL)%t:txbL
-			if t:paths[sp]!=#fnameescape(fnamemodify(expand('%'),':p'))
+			if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 				winc t
-				exe 'e '.t:paths[sp]
-				let w:txbi=sp
+				exe 'e '.t:paths[dSp]
+				let w:txbi=dSp
 			en
 			only
 			exe 'norm! '.(a:ln? a:ln : 1).(aoff>0? 'zt0'.aoff.'zl' : 'zt0')
