@@ -1110,14 +1110,16 @@ fun! s:goto(sp,off,ln,jump,center)
 	en
 	exe (a:sp-getwinvar(1,'txbi')+1).'wincmd w'
 	let l0=line('w0')
+	let dl0=a:center? a:ln-winheight(0)/2 : a:ln
+	let dif=l0-(dl0>1? dl0 : 1)
 	let ll=line('$')
-	let dif=l0-a:ln
-	while dif && !(a:ln>l0 && l0==ll)
+	while dif && !(dl0>l0 && l0==ll)
 		exe dif>t:kpSpV? 'norm! '.t:kpSpV."\<c-y>" : dif<-t:kpSpV? 'norm! '.t:kpSpV."\<c-e>" : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
 		let l0=line('w0')
-		let dif=l0-a:ln
+		let dif=l0-dl0
 		redr
 	endwhile
+	exe a:center? 'norm! '.a:ln.'G' : ''
 endfun
 
 fun! s:redraw(...)
