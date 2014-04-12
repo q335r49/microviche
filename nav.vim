@@ -1029,34 +1029,28 @@ fun! s:goto(sp,ln,...)
 	let aoff=aoff>0? a:flags[aoff]+0 : -1
 	let aoff=aoff>=t:txb.size[dSp]? t:txb.size[dSp]-1 : aoff
 	if jump
+		if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
+			winc t
+			exe 'e '.t:paths[dSp]
+			let w:txbi=dSp
+		en
+		only
+		exe 'norm! 0'.(dOff>0? 'zl' : '')
 		if center
-			if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
-				winc t
-				exe 'e '.t:paths[dSp]
-				let w:txbi=dSp
-			en
-			only
-			exe 'norm! 0'.off.'zl'
 			call s:redraw()
 			exe (a:sp-getwinvar(1,'txbi')+1).'wincmd w'
 			let l0=a:ln-winheight(0)/2
 			let dif=line('w0')-(l0>1? l0 : 1)
 			exe dif>0? 'norm! '.dif."\<c-y>".a:ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".a:ln.'G' : a:ln.'G'
 		else
-			if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
-				winc t
-				exe 'e '.t:paths[dSp]
-				let w:txbi=dSp
-			en
-			only
-			exe 'norm! '.(a:ln? a:ln : 1).(aoff>0? 'zt0'.aoff.'zl' : 'zt0')
+			exe 'norm! '.(a:ln? a:ln : 1).zt0
 			call s:redraw()
 		en
 		return
 	en
 	let cSp=getwinvar(1,'txbi')
+	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : (dSp>cSp || (dSp==cSp)&&(dOff>0))? t:txb.size[cSp]-&columns : 0
 	let dir=dSp-cSp+(dSp==cSp)*(cOff-dOff)
-	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : dir>0? t:txb.size[cSp]-&columns : 0
 	if dir>0
 		while 1
 			let l0=line('w0')
