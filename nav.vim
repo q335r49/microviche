@@ -893,14 +893,14 @@ let txbCmd.init="if !exists('w:txbi')\n
 	\en"
 let txbCmd["\e"]=txbCmd.q
 
-let txbCmd.h='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.j='cal s:goto(getwinvar(1,''txbi''),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.k='cal s:goto(getwinvar(1,''txbi''),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.l='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0''),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.y='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.u='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.b='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.n='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,0,0)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.h='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0''),'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.j='cal s:goto(getwinvar(1,''txbi''),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.k='cal s:goto(getwinvar(1,''txbi''),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.l='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0''),'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.y='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.u='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.b='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,'ae')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.n='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,0,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,'ae')|let s:kc_num=''01''|redrawstatus!'
 let txbCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num.'1'"
 let txbCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num.'2'"
 let txbCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num.'3'"
@@ -1022,9 +1022,10 @@ fun! s:getDest(sp,off,N)
 	return [sp,offset]
 endfun
 
-fun! s:goto(sp,off,ln,jump,center)
-	if a:jump
-		if a:center
+fun! s:goto(sp,off,ln,...)
+	let [center,jump]=a:0? [stridx(a:flags,'e')==-1,stridx(a:flags,'a')==-1] : [1,1]
+	if jump
+		if center
 			let [sp,off]=t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
 			if t:paths[sp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 				winc t
@@ -1053,7 +1054,7 @@ fun! s:goto(sp,off,ln,jump,center)
 	en
 	let cSp=getwinvar(1,'txbi')
 	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : a:off>t:txb.size[cSp]-&columns? t:txb.size[cSp]-&columns : a:off
-	let [dSp,dOff]=!a:center? [(a:sp%t:txbL+t:txbL)%t:txbL,a:off] : t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
+	let [dSp,dOff]=!center? [(a:sp%t:txbL+t:txbL)%t:txbL,a:off] : t:txb.size[a:sp]>&columns? [a:sp,0] : s:getDest(a:sp,0,-(&columns-t:txb.size[a:sp])/2)
 	let dir=dSp-cSp+(dSp==cSp)*(cOff-dOff)
 	if dir>0
 		while 1
@@ -1110,7 +1111,7 @@ fun! s:goto(sp,off,ln,jump,center)
 	en
 	exe (a:sp-getwinvar(1,'txbi')+1).'wincmd w'
 	let l0=line('w0')
-	let dl0=a:center? a:ln-winheight(0)/2 : a:ln
+	let dl0=center? a:ln-winheight(0)/2 : a:ln
 	let dif=l0-(dl0>1? dl0 : 1)
 	let ll=line('$')
 	while dif && !(dl0>l0 && l0==ll)
@@ -1119,7 +1120,7 @@ fun! s:goto(sp,off,ln,jump,center)
 		let dif=l0-dl0
 		redr
 	endwhile
-	exe a:center? 'norm! '.a:ln.'G' : ''
+	exe center? 'norm! '.a:ln.'G' : ''
 endfun
 
 fun! s:redraw(...)
@@ -1886,7 +1887,7 @@ fun! s:mapKeyHandler(c)
 					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
-						call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0],1,1)
+						call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
 						return
 					en
 					let s:mPrevClk=[s:mR,s:mC]
@@ -1911,7 +1912,7 @@ fun! s:mapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
-			call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0],1,1)
+			call s:goto(s:mC,0,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
