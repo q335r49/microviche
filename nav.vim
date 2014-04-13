@@ -870,8 +870,8 @@ fun! s:dochar()
 	call g:TxbKeyHandler(k)
 endfun
 
+let s:count='03'
 fun! TxbKey(cmd)
-	let s:kc_num='01'
 	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:cmd)
@@ -893,24 +893,24 @@ let txbCmd.init="if !exists('w:txbi')\n
 	\en"
 let txbCmd["\e"]=txbCmd.q
 
-let txbCmd.h='call s:nav(-5,line(''w0''))|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.j='call s:nav(0,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.k='call s:nav(0,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.l='call s:nav(5,line(''w0''))|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.y='call s:nav(-5,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.u='call s:nav(5,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.b='call s:nav(-5,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.n='call s:nav(5,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num.'1'"
-let txbCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num.'2'"
-let txbCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num.'3'"
-let txbCmd.4="let s:kc_num=s:kc_num is '01'? '4' : s:kc_num.'4'"
-let txbCmd.5="let s:kc_num=s:kc_num is '01'? '5' : s:kc_num.'5'"
-let txbCmd.6="let s:kc_num=s:kc_num is '01'? '6' : s:kc_num.'6'"
-let txbCmd.7="let s:kc_num=s:kc_num is '01'? '7' : s:kc_num.'7'"
-let txbCmd.8="let s:kc_num=s:kc_num is '01'? '8' : s:kc_num.'8'"
-let txbCmd.9="let s:kc_num=s:kc_num is '01'? '9' : s:kc_num.'9'"
-let txbCmd.0="let s:kc_num=s:kc_num is '01'? '01': s:kc_num.'0'"
+let txbCmd.h="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(-s:count,line('w0'))|redrawstatus!"
+let txbCmd.j="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(0,line('w0')+s:count)|redrawstatus!"
+let txbCmd.k="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(0,line('w0')-s:count]))|redrawstatus!"
+let txbCmd.l="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(s:count,line('w0'))|redrawstatus!"
+let txbCmd.y="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.u="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.b="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.n="if s:count[0] isnot '0'|let s:count='0'.s:count|en|call s:nav(s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.1="let s:count=s:count[0] is '0'? '1' : s:count.'1'"
+let txbCmd.2="let s:count=s:count[0] is '0'? '2' : s:count.'2'"
+let txbCmd.3="let s:count=s:count[0] is '0'? '3' : s:count.'3'"
+let txbCmd.4="let s:count=s:count[0] is '0'? '4' : s:count.'4'"
+let txbCmd.5="let s:count=s:count[0] is '0'? '5' : s:count.'5'"
+let txbCmd.6="let s:count=s:count[0] is '0'? '6' : s:count.'6'"
+let txbCmd.7="let s:count=s:count[0] is '0'? '7' : s:count.'7'"
+let txbCmd.8="let s:count=s:count[0] is '0'? '8' : s:count.'8'"
+let txbCmd.9="let s:count=s:count[0] is '0'? '9' : s:count.'9'"
+let txbCmd.0="let s:count=s:count[0] is '0'? '01': s:count.'0'"
 let txbCmd["\<up>"]=txbCmd.k
 let txbCmd["\<down>"]=txbCmd.j
 let txbCmd["\<left>"]=txbCmd.h
@@ -983,11 +983,6 @@ let txbCmd.W=
 	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'(file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'ERROR: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
-fun! s:getOffset()
-	let cSp=getwinvar(1,'txbi')
-	return winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : &wrap? 0 : virtcol('.')-wincol()
-endfun
-
 fun! s:setCursor(l,vc,ix)
 	let wt=getwinvar(1,'txbi')
 	let wb=wt+winnr('$')-1
@@ -1023,100 +1018,26 @@ fun! s:getDest(sp,off,N)
 endfun
 
 fun! s:goto(sp,ln,...)
-	let [center,jump,aoff]=a:0? [stridx(a:1,'e')==-1,stridx(a:1,'a')==-1,stridx(a:1,'o')] : [1,1,-1]
 	let nSp=(a:sp%t:txbL+t:txbL)%t:txbL
-	let aoff=aoff>0? a:1[aoff]+0 : -1
-	let [dSp,dOff]=!center? [nSp,aoff>0? aoff : 0] : t:txb.size[nSp]>&columns? [nSp,0] : s:getDest(nSp,0,-(&columns-t:txb.size[nSp])/2)
-	let dOff=dOff>=t:txb.size[dSp]? t:txb.size[dSp]-1 : dOff
+	let [dSp,dOff]=a:0? [nSp,a:1>=t:txb.size[nSp]? t:txb.size[nSp]-1 : a:1>0? a:1 : 0] : t:txb.size[nSp]>&columns? [nSp,0] : s:getDest(nSp,0,-(&columns-t:txb.size[nSp])/2)
 	let ln=a:ln>0? a:ln : 1
-	if jump
-		if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
-			winc t
-			exe 'e '.t:paths[dSp]
-			let w:txbi=dSp
-		en
-		only
-		if center
-			exe 'norm! 0'.(dOff>0? dOff.'zl' : '')
-			call s:redraw()
-			exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
-			let l0=ln-winheight(0)/2
-			let dif=line('w0')-(l0>1? l0 : 1)
-			exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
-		else
-			exe 'norm! '.(ln? ln : 1).(dOff>0? 'zt0'.dOff.'zl' : 'zt0')
-			call s:redraw()
-		en
-		return
+	if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
+		winc t
+		exe 'e '.t:paths[dSp]
+		let w:txbi=dSp
 	en
-	let cSp=getwinvar(1,'txbi')
-	let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : (dSp>cSp || (dSp==cSp)&&(dOff>0))? t:txb.size[cSp]-&columns : 0
-	let dir=dSp-cSp+(dSp==cSp)*(cOff-dOff)
-	if dir>0
-		while 1
-			let l0=line('w0')
-			let dif=ln-l0
-			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
-			let cSp=getwinvar(1,'txbi')
-			if !((cSp-dSp+1)%t:txbL)
-				if winwidth(1)+dOff>t:kpSpH
-					call s:nav(t:kpSpH,yn)
-				else
-					call s:nav(winwidth(1)+dOff,yn)
-					break
-				en
-			elseif cSp==dSp
-				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : dOff
-				if dOff-cOff>t:kpSpH
-					call s:nav(t:kpSpH,yn)
-				else
-					call s:nav(dOff-cOff,yn)
-					break
-				en
-			else
-				call s:nav(t:kpSpH,yn)
-			en
-			redr
-		endwhile
-	elseif dir<0
-		while 1
-			let l0=line('w0')
-			let dif=ln-l0
-			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
-			let cSp=getwinvar(1,'txbi')
-			if !((cSp-dSp-1)%t:txbL)
-				if winwidth(1)+t:txb.size[dSp]-dOff>t:kpSpH
-					call s:nav(-t:kpSpH,yn)
-				else
-					call s:nav(-winwidth(1)-t:txb.size[dSp]+dOff,yn)
-					break
-				en
-			elseif cSp==dSp
-				let cOff=winwidth(1)>t:txb.size[cSp]? 0 : winnr('$')!=1? t:txb.size[cSp]-winwidth(1) : !&wrap? virtcol('.')-wincol() : dOff
-				if cOff-dOff>t:kpSpH
-					call s:nav(-t:kpSpH,yn)
-				else
-					call s:nav(dOff-cOff,yn)
-					break
-				en
-			else
-				call s:nav(-t:kpSpH,yn)
-			en
-			redr
-		endwhile
+	only
+	if a:0
+		exe 'norm! '.(ln? ln : 1).(dOff>0? 'zt0'.dOff.'zl' : 'zt0')
+		call s:redraw()
+	else
+		exe 'norm! 0'.(dOff>0? dOff.'zl' : '')
+		call s:redraw()
+		exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
+		let l0=ln-winheight(0)/2
+		let dif=line('w0')-(l0>1? l0 : 1)
+		exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
 	en
-	exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
-	let l0=line('w0')
-	let dl0=center? ln-winheight(0)/2 : ln
-	let dif=l0-(dl0>1? dl0 : 1)
-	let ll=line('$')
-	while dif && !(dl0>l0 && l0==ll)
-		exe dif>t:kpSpV? 'norm! '.t:kpSpV."\<c-y>" : dif<-t:kpSpV? 'norm! '.t:kpSpV."\<c-e>" : dif>0? 'norm! '.dif."\<c-y>" : 'norm! '.(-dif)."\<c-e>"
-		let l0=line('w0')
-		let dif=l0-dl0
-		redr
-	endwhile
-	exe center? 'norm! '.ln.'G' : ''
 endfun
 
 fun! s:redraw(...)
@@ -1916,7 +1837,7 @@ fun! s:mapKeyHandler(c)
 endfun
 
 let txbCmd.o="let s:kc_continue=''\n
-	\let s:mNum='01'\n
+	\let s:mCount='01'\n
 	\let s:mSavSettings=[&ch,&more,&ls,&stal]\n
 		\let [&more,&ls,&stal]=[0,0,0]\n
 		\let &ch=&lines\n
@@ -1941,32 +1862,32 @@ let txbCmd.O="let t:deepR=-1|".txbCmd.o
 let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
 \'q':"let s:mExit=0",
-\'h':"let s:mC=s:mC>s:mNum? s:mC-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
-\'j':"let s:mR=s:mR+s:mNum<t:deepR? s:mR+s:mNum : t:deepR|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'k':"let s:mR=s:mR>s:mNum? s:mR-s:mNum : 0|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'l':"let s:mC=s:mC+s:mNum<t:txbL? s:mC+s:mNum : t:txbL-1|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'y':"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'u':"let [s:mR,s:mC]=[max([s:mR-s:mNum,0]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'b':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:deepR]),max([s:mC-s:mNum,0])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'n':"let [s:mR,s:mC]=[min([s:mR+s:mNum,t:deepR]),min([s:mC+s:mNum,t:txbL-1])]|let s:mNum='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'H':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff>s:mNum*t:mapw? s:mCoff-s:mNum*t:mapw : 0|let s:mNum='01'",
-\'J':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff+s:mNum<t:deepR? s:mRoff+s:mNum : t:deepR|let s:mNum='01'",
-\'K':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mRoff=s:mRoff>s:mNum? s:mRoff-s:mNum : 0|let s:mNum='01'",
-\'L':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let s:mCoff=s:mCoff+s:mNum*t:mapw<t:mapw*t:txbL? s:mCoff+s:mNum*t:mapw : t:mapw*t:txbL|let s:mNum='01'",
-\'Y':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
-\'U':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mNum,0]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
-\'B':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:deepR]),max([s:mCoff-s:mNum*t:mapw,0])]|let s:mNum='01'",
-\'N':"let s:mNum=s:mNum is '01'? 3 : s:mNum|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mNum,t:deepR]),min([s:mCoff+s:mNum*t:mapw,t:txbL*t:mapw-1])]|let s:mNum='01'",
-\'1':"let s:mNum=s:mNum is '01'? 1 : s:mNum.'1'",
-\'2':"let s:mNum=s:mNum is '01'? 2 : s:mNum.'2'",
-\'3':"let s:mNum=s:mNum is '01'? 3 : s:mNum.'3'",
-\'4':"let s:mNum=s:mNum is '01'? 4 : s:mNum.'4'",
-\'5':"let s:mNum=s:mNum is '01'? 5 : s:mNum.'5'",
-\'6':"let s:mNum=s:mNum is '01'? 6 : s:mNum.'6'",
-\'7':"let s:mNum=s:mNum is '01'? 7 : s:mNum.'7'",
-\'8':"let s:mNum=s:mNum is '01'? 8 : s:mNum.'8'",
-\'9':"let s:mNum=s:mNum is '01'? 9 : s:mNum.'9'",
-\'0':"let s:mNum=s:mNum is '01'? '01' : s:mNum.'0'",
+\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
+\'j':"let s:mR=s:mR+s:mCount<t:deepR? s:mR+s:mCount : t:deepR|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'k':"let s:mR=s:mR>s:mCount? s:mR-s:mCount : 0|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'y':"let [s:mR,s:mC]=[max([s:mR-s:mCount,0]),max([s:mC-s:mCount,0])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'u':"let [s:mR,s:mC]=[max([s:mR-s:mCount,0]),min([s:mC+s:mCount,t:txbL-1])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'b':"let [s:mR,s:mC]=[min([s:mR+s:mCount,t:deepR]),max([s:mC-s:mCount,0])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'n':"let [s:mR,s:mC]=[min([s:mR+s:mCount,t:deepR]),min([s:mC+s:mCount,t:txbL-1])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
+\'H':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mCoff=s:mCoff>s:mCount*t:mapw? s:mCoff-s:mCount*t:mapw : 0|let s:mCount='01'",
+\'J':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mRoff=s:mRoff+s:mCount<t:deepR? s:mRoff+s:mCount : t:deepR|let s:mCount='01'",
+\'K':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mRoff=s:mRoff>s:mCount? s:mRoff-s:mCount : 0|let s:mCount='01'",
+\'L':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mCoff=s:mCoff+s:mCount*t:mapw<t:mapw*t:txbL? s:mCoff+s:mCount*t:mapw : t:mapw*t:txbL|let s:mCount='01'",
+\'Y':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mCount,0]),max([s:mCoff-s:mCount*t:mapw,0])]|let s:mCount='01'",
+\'U':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mCount,0]),min([s:mCoff+s:mCount*t:mapw,t:txbL*t:mapw-1])]|let s:mCount='01'",
+\'B':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mCount,t:deepR]),max([s:mCoff-s:mCount*t:mapw,0])]|let s:mCount='01'",
+\'N':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mCount,t:deepR]),min([s:mCoff+s:mCount*t:mapw,t:txbL*t:mapw-1])]|let s:mCount='01'",
+\'1':"let s:mCount=s:mCount is '01'? 1 : s:mCount.'1'",
+\'2':"let s:mCount=s:mCount is '01'? 2 : s:mCount.'2'",
+\'3':"let s:mCount=s:mCount is '01'? 3 : s:mCount.'3'",
+\'4':"let s:mCount=s:mCount is '01'? 4 : s:mCount.'4'",
+\'5':"let s:mCount=s:mCount is '01'? 5 : s:mCount.'5'",
+\'6':"let s:mCount=s:mCount is '01'? 6 : s:mCount.'6'",
+\'7':"let s:mCount=s:mCount is '01'? 7 : s:mCount.'7'",
+\'8':"let s:mCount=s:mCount is '01'? 8 : s:mCount.'8'",
+\'9':"let s:mCount=s:mCount is '01'? 9 : s:mCount.'9'",
+\'0':"let s:mCount=s:mCount is '01'? '01' : s:mCount.'0'",
 \'c':"let s:mR=s:mRoff+(&ch-2)/2\n
 	\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
 	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
