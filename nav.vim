@@ -1028,6 +1028,7 @@ fun! s:goto(sp,ln,...)
 	let aoff=aoff>0? a:1[aoff]+0 : -1
 	let [dSp,dOff]=!center? [nSp,aoff>0? aoff : 0] : t:txb.size[nSp]>&columns? [nSp,0] : s:getDest(nSp,0,-(&columns-t:txb.size[nSp])/2)
 	let dOff=dOff>=t:txb.size[dSp]? t:txb.size[dSp]-1 : dOff
+	let ln=a:ln>0? a:ln : 1
 	if jump
 		if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 			winc t
@@ -1039,11 +1040,11 @@ fun! s:goto(sp,ln,...)
 			exe 'norm! 0'.(dOff>0? dOff.'zl' : '')
 			call s:redraw()
 			exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
-			let l0=a:ln-winheight(0)/2
+			let l0=ln-winheight(0)/2
 			let dif=line('w0')-(l0>1? l0 : 1)
-			exe dif>0? 'norm! '.dif."\<c-y>".a:ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".a:ln.'G' : a:ln
+			exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
 		else
-			exe 'norm! '.(a:ln? a:ln : 1).(dOff>0? 'zt0'.dOff.'zl' : 'zt0')
+			exe 'norm! '.(ln? ln : 1).(dOff>0? 'zt0'.dOff.'zl' : 'zt0')
 			call s:redraw()
 		en
 		return
@@ -1054,7 +1055,7 @@ fun! s:goto(sp,ln,...)
 	if dir>0
 		while 1
 			let l0=line('w0')
-			let dif=a:ln-l0
+			let dif=ln-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
 			if !((cSp-dSp+1)%t:txbL)
@@ -1080,7 +1081,7 @@ fun! s:goto(sp,ln,...)
 	elseif dir<0
 		while 1
 			let l0=line('w0')
-			let dif=a:ln-l0
+			let dif=ln-l0
 			let yn=dif>t:kpSpV? l0+t:kpSpV : dif<-t:kpSpV? l0-t:kpSpV : !dif? l0 : dif>0? l0+dif : l0-dif
 			let cSp=getwinvar(1,'txbi')
 			if !((cSp-dSp-1)%t:txbL)
@@ -1106,7 +1107,7 @@ fun! s:goto(sp,ln,...)
 	en
 	exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
 	let l0=line('w0')
-	let dl0=center? a:ln-winheight(0)/2 : a:ln
+	let dl0=center? ln-winheight(0)/2 : ln
 	let dif=l0-(dl0>1? dl0 : 1)
 	let ll=line('$')
 	while dif && !(dl0>l0 && l0==ll)
@@ -1115,7 +1116,7 @@ fun! s:goto(sp,ln,...)
 		let dif=l0-dl0
 		redr
 	endwhile
-	exe center? 'norm! '.a:ln.'G' : ''
+	exe center? 'norm! '.ln.'G' : ''
 endfun
 
 fun! s:redraw(...)
