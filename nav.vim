@@ -1018,11 +1018,10 @@ fun! s:getDest(sp,off,N)
 endfun
 
 fun! s:goto(sp,ln,...)
-	let csp=(a:sp%t:txbL+t:txbL)%t:txbL
-	let [dsp,doff]=a:0? [csp,a:1>=t:txb.size[csp]? t:txb.size[csp]-1 : a:1>0? a:1 : 0] : t:txb.size[csp]>&columns? [csp,0] : s:getDest(csp,0,-(&columns-t:txb.size[csp])/2)
+	let sp=(a:sp%t:txbL+t:txbL)%t:txbL
 	let ln=a:ln>0? a:ln : 1
+	let [dsp,doff]=a:0? [sp,a:1>=t:txb.size[sp]? t:txb.size[sp]-1 : a:1>0? a:1 : 0] : t:txb.size[sp]>&columns? [sp,0] : s:getDest(sp,0,-(&columns-t:txb.size[sp])/2)
 	if t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))
-		winc t
 		exe 'e' t:paths[dsp]
 		let w:txbi=dsp
 	en
@@ -1033,7 +1032,7 @@ fun! s:goto(sp,ln,...)
 	else
 		exe 'norm! 0'.(doff>0? doff.'zl' : '')
 		call s:redraw()
-		exe (csp-getwinvar(1,'txbi')+1).'wincmd w'
+		exe (sp-getwinvar(1,'txbi')+1).'wincmd w'
 		let l0=ln-winheight(0)/2
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
