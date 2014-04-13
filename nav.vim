@@ -1005,38 +1005,32 @@ endfun
 
 fun! s:goto(sp,ln,...)
 	let sp=(a:sp%t:txbL+t:txbL)%t:txbL
-	let ln=a:ln>0? a:ln : 1
+	let dln=a:ln>0? a:ln : 1
 	let dsp=sp
-	if a:0
-		let doff=a:1>=t:txb.size[sp]? t:txb.size[sp]-1 : a:1>0? a:1 : 0
-	elseif t:txb.size[sp]>&columns
-		let doff=0
-	else
-		let doff=-(&columns-t:txb.size[sp])/2
-		while doff<0
-			let dsp=dsp>0? dsp-1 : t:txbL-1
-			let doff+=t:txb.size[dsp-1]+1
-		endwhile
-		while doff>t:txb.size[dsp]
-			let doff-=t:txb.size[dsp]+1
-			let dsp=dsp>=t:txbL-1? 0 : dsp+1
-		endwhile
-	en
+	let doff=a:0? a:1 : t:txb.size[sp]>&columns? 0 : -(&columns-t:txb.size[sp])/2
+	while doff<0
+		let dsp=dsp>0? dsp-1 : t:txbL-1
+		let doff+=t:txb.size[dsp-1]+1
+	endwhile
+	while doff>t:txb.size[dsp]
+		let doff-=t:txb.size[dsp]+1
+		let dsp=dsp>=t:txbL-1? 0 : dsp+1
+	endwhile
 	if t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 		exe 'e' t:paths[dsp]
 		let w:txbi=dsp
 	en
 	only
 	if a:0
-		exe 'norm! '.(ln? ln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
+		exe 'norm! '.(dln? dln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
 		call s:redraw()
 	else
 		exe 'norm! 0'.(doff>0? doff.'zl' : '')
 		call s:redraw()
 		exe (sp-getwinvar(1,'txbi')+1).'wincmd w'
-		let l0=ln-winheight(0)/2
+		let l0=dln-winheight(0)/2
 		let dif=line('w0')-(l0>1? l0 : 1)
-		exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
+		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
 	en
 endfun
 
