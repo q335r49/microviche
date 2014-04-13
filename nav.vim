@@ -1018,22 +1018,22 @@ fun! s:getDest(sp,off,N)
 endfun
 
 fun! s:goto(sp,ln,...)
-	let nSp=(a:sp%t:txbL+t:txbL)%t:txbL
-	let [dSp,dOff]=a:0? [nSp,a:1>=t:txb.size[nSp]? t:txb.size[nSp]-1 : a:1>0? a:1 : 0] : t:txb.size[nSp]>&columns? [nSp,0] : s:getDest(nSp,0,-(&columns-t:txb.size[nSp])/2)
+	let csp=(a:sp%t:txbL+t:txbL)%t:txbL
+	let [dsp,doff]=a:0? [csp,a:1>=t:txb.size[csp]? t:txb.size[csp]-1 : a:1>0? a:1 : 0] : t:txb.size[csp]>&columns? [csp,0] : s:getDest(csp,0,-(&columns-t:txb.size[csp])/2)
 	let ln=a:ln>0? a:ln : 1
-	if t:paths[dSp]!=#fnameescape(fnamemodify(expand('%'),':p'))
+	if t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 		winc t
-		exe 'e '.t:paths[dSp]
-		let w:txbi=dSp
+		exe 'e' t:paths[dsp]
+		let w:txbi=dsp
 	en
 	only
 	if a:0
-		exe 'norm! '.(ln? ln : 1).(dOff>0? 'zt0'.dOff.'zl' : 'zt0')
+		exe 'norm! '.(ln? ln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
 		call s:redraw()
 	else
-		exe 'norm! 0'.(dOff>0? dOff.'zl' : '')
+		exe 'norm! 0'.(doff>0? doff.'zl' : '')
 		call s:redraw()
-		exe (nSp-getwinvar(1,'txbi')+1).'wincmd w'
+		exe (csp-getwinvar(1,'txbi')+1).'wincmd w'
 		let l0=ln-winheight(0)/2
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".ln.'G' : dif<0? 'norm! '.-dif."\<c-e>".ln.'G' : ln
