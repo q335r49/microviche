@@ -893,14 +893,14 @@ let txbCmd.init="if !exists('w:txbi')\n
 	\en"
 let txbCmd["\e"]=txbCmd.q
 
-let txbCmd.h='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),line(''w0''),''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.j='cal s:goto(getwinvar(1,''txbi''),line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.k='cal s:goto(getwinvar(1,''txbi''),max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.l='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,line(''w0''),''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.y='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.u='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,max([1,line(''w0'')/t:kpLn*t:kpLn-s:kc_num*t:kpLn]),''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.b='cal s:goto(getwinvar(1,''txbi'')-s:kc_num+!!s:getOffset(),line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,''ae'')|let s:kc_num=''01''|redrawstatus!'
-let txbCmd.n='cal s:goto(getwinvar(1,''txbi'')+s:kc_num,line(''w0'')/t:kpLn*t:kpLn+s:kc_num*t:kpLn,''ae'')|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.h='call s:nav(-5,line(''w0''))|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.j='call s:nav(0,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.k='call s:nav(0,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.l='call s:nav(5,line(''w0''))|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.y='call s:nav(-5,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.u='call s:nav(5,max([1,line(''w0'')-5]))|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.b='call s:nav(-5,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
+let txbCmd.n='call s:nav(5,line(''w0'')+5)|let s:kc_num=''01''|redrawstatus!'
 let txbCmd.1="let s:kc_num=s:kc_num is '01'? '1' : s:kc_num.'1'"
 let txbCmd.2="let s:kc_num=s:kc_num is '01'? '2' : s:kc_num.'2'"
 let txbCmd.3="let s:kc_num=s:kc_num is '01'? '3' : s:kc_num.'3'"
