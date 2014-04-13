@@ -1016,11 +1016,8 @@ fun! s:goto(sp,ln,...)
 		let doff-=t:txb.size[dsp]+1
 		let dsp=dsp>=t:txbL-1? 0 : dsp+1
 	endwhile
-	if t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))
-		exe 'e' t:paths[dsp]
-		let w:txbi=dsp
-	en
-	only
+	exe t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'only|e'.t:paths[dsp] : 'only'
+	let w:txbi=dsp
 	if a:0
 		exe 'norm! '.(dln? dln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
 		call s:redraw()
