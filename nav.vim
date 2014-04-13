@@ -66,7 +66,7 @@ fun! s:printHelp()
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
 	\\n\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nOnce loaded, use the MOUSE to pan, or press [hotkey] followed by:
-	\\n    h j k l y u b n      Pan (takes count, eg, 3j=jjj)
+	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
 	\\n    r                    redraw
 	\\n    o O                  Open map / map visible and open map
 	\\n    m M                  map visible / Map all
@@ -1003,24 +1003,25 @@ fun! s:setCursor(l,vc,ix)
 	en
 endfun
 
-fun! s:getDest(sp,off,N)
-	let offset=a:off+a:N
-	let sp=a:sp
-	while offset<0
-		let sp=sp>0? sp-1 : t:txbL-1
-		let offset+=t:txb.size[sp-1]+1
-	endwhile
-	while offset>t:txb.size[sp]
-		let offset-=t:txb.size[sp]+1
-		let sp=sp>=t:txbL-1? 0 : sp+1
-	endwhile
-	return [sp,offset]
-endfun
-
 fun! s:goto(sp,ln,...)
 	let sp=(a:sp%t:txbL+t:txbL)%t:txbL
 	let ln=a:ln>0? a:ln : 1
-	let [dsp,doff]=a:0? [sp,a:1>=t:txb.size[sp]? t:txb.size[sp]-1 : a:1>0? a:1 : 0] : t:txb.size[sp]>&columns? [sp,0] : s:getDest(sp,0,-(&columns-t:txb.size[sp])/2)
+	let dsp=sp
+	if a:0
+		let doff=a:1>=t:txb.size[sp]? t:txb.size[sp]-1 : a:1>0? a:1 : 0
+	elseif t:txb.size[sp]>&columns
+		let doff=0
+	else
+		let doff=-(&columns-t:txb.size[sp])/2
+		while doff<0
+			let dsp=dsp>0? dsp-1 : t:txbL-1
+			let doff+=t:txb.size[dsp-1]+1
+		endwhile
+		while doff>t:txb.size[dsp]
+			let doff-=t:txb.size[dsp]+1
+			let dsp=dsp>=t:txbL-1? 0 : dsp+1
+		endwhile
+	en
 	if t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))
 		exe 'e' t:paths[dsp]
 		let w:txbi=dsp
