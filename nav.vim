@@ -1571,9 +1571,9 @@ fun! s:getMapDis()
 			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let pad=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
-	let t:deepR=len(pad)-1
-	let g:pad=pad
+	let bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:deepR=len(bgd)-1
+	let g:bgd=bgd
 	let s:disTxt=repeat([''],t:deepR+1)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
@@ -1600,7 +1600,7 @@ fun! s:getMapDis()
 				en
 				let padl=t:mapw
 			elseif empty(s:disTxt[i])
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l)
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(bgd[i],j*t:mapw+l,padl-l)
 				if empty(gridClr[j][i])
 					let intervals=[padl]
 					let s:disClr[i]=['']
@@ -1610,7 +1610,7 @@ fun! s:getMapDis()
 				en
 				let padl=t:mapw
 			else
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(pad[i],j*t:mapw+l,padl-l).s:disTxt[i]
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(bgd[i],j*t:mapw+l,padl-l).s:disTxt[i]
 				if empty(s:disClr[i][0])
 					let intervals[0]+=padl-l
 				else
@@ -1630,11 +1630,11 @@ fun! s:getMapDis()
 		if empty(get(s:gridLbl[0],i,''))
 			let padl-=t:mapw
 			if empty(s:disTxt[i])
-				let s:disTxt[i]=strpart(pad[i],0,padl)
+				let s:disTxt[i]=strpart(bgd[i],0,padl)
 				let intervals=[padl]
 				let s:disClr[i]=['']
 			else
-				let s:disTxt[i]=strpart(pad[i],0,padl).s:disTxt[i]
+				let s:disTxt[i]=strpart(bgd[i],0,padl).s:disTxt[i]
 				if empty(s:disClr[i][0])
 					let intervals[0]+=padl
 				else
