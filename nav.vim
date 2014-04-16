@@ -1223,18 +1223,17 @@ fun! s:mapSplit(col)
 	endfor
 	let tomerge={}
 	for r in changed
-		if empty(splitLbl[r])
-			let prevsp=a:col-1
-			let searchmin=a:col>88/t:mapw? a:col-88/t:mapw : 0
-			while prevsp>=searchend && !has_key(s:gridLbl[prevsp],r)
-				let prevsp-=1
-			endw
-			if prevsp<searchend
-            	let text=''
-				let begin=t:map*(prevsp+1)
+		if empty(splitLbl[r]) 
+			if a:col && s:disTxt[a:col*t:mapw-1]==#'>'
+				let prevsp=a:col-1
+				while !has_key(s:gridLbl[prevsp],r)
+					let prevsp-=1
+				endw
+				let begin=t:mapw*prevsp
+				let text=s:gridLbl[prevsp]
 			else
-            	let text=s:gridLbl[prevsp]
-				let begin=t:map*prevsp
+				let begin=t:mapw*a:col
+				let text=''
 			en
 			unlet splitLbl[r]
 		else
@@ -1244,7 +1243,8 @@ fun! s:mapSplit(col)
 		let l=len(text)
 		let end=t:mapw*a:col+t:mapw
 		let nextsp=a:col+1
-		let searchmax=a:col+88/t:mapw<t:txbL? a:col+88/t:mapw : t:txbL
+		let overwL=len(get(s:gridLbl[a:col],r,[''])
+		let searchamx=(l>overwL? l : overwL)/t:mapw+1
 		while nextsp<searchmax && !has_key(s:gridLbl[nextsp],r)	
 			let end+=t:mapw
 			let nextsp=a:col+1
