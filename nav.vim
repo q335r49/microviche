@@ -107,7 +107,7 @@ fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
-	let minimal={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','lines panned by j,k':15,'mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let minimal={'label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
 		let plane.settings=minimal
 	else
@@ -203,7 +203,6 @@ fun! TxbInit(...)
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
-		let t:kpLn=t:txb.settings['lines panned by j,k']
 		let t:msSp=t:txb.settings['mouse pan speed']
 		let t:gran=t:txb.settings['lines per map grid']
 		let t:deepest=max(t:txb.depth)
@@ -212,7 +211,7 @@ fun! TxbInit(...)
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'index(["label marker","working dir","writefile","split width","autoexe","map cell width","lines panned by j,k","mouse pan speed","lines per map grid"],v:key)!=-1')
+		call filter(t:txb.settings,'index(["label marker","working dir","writefile","split width","autoexe","map cell width","mouse pan speed","lines per map grid"],v:key)!=-1')
 		call s:redraw()
 		call s:getMapDis()
 	elseif c is "\<f1>"
@@ -489,23 +488,22 @@ let txbCmd.S="if !exists('w:txbi')\n
 	\en\n
 	\let s:kc_continue=''\n
 \else\n
-	\let settings_names=range(15)\n
-	\let settings_values=range(15)\n
+	\let settings_names=range(14)\n
+	\let settings_values=range(14)\n
 	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
 	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
 	\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
 	\let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])<=1? t:txb.settings['split width'] : 60]\n
 	\let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)<=1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
-	\let [settings_names[5],settings_values[5]]=['lines panned by j,k',has_key(t:txb.settings,'lines panned by j,k') && type(t:txb.settings['lines panned by j,k'])<=1? t:txb.settings['lines panned by j,k'] : 15]\n
-	\let [settings_names[6],settings_values[6]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
-	\let [settings_names[7],settings_values[7]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45]\n
-	\let [settings_names[8],settings_values[8]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
-	\let [settings_names[9],settings_values[9]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
-	\let [settings_names[10],settings_values[10]]=['label marker',has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : '']\n
-	\let [settings_names[11],settings_values[11]]=['    -- Split '.w:txbi.' --','##label##']\n
-	\let [settings_names[12],settings_values[12]]=['current width',get(t:txb.size,w:txbi,60)]\n
-	\let [settings_names[13],settings_values[13]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-	\let [settings_names[14],settings_values[14]]=['current file',get(t:txb.name,w:txbi,'')]\n
+	\let [settings_names[5],settings_values[5]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
+	\let [settings_names[6],settings_values[6]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45]\n
+	\let [settings_names[7],settings_values[7]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
+	\let [settings_names[8],settings_values[8]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
+	\let [settings_names[9],settings_values[9]]=['label marker',has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : '']\n
+	\let [settings_names[10],settings_values[10]]=['    -- Split '.w:txbi.' --','##label##']\n
+	\let [settings_names[11],settings_values[11]]=['current width',get(t:txb.size,w:txbi,60)]\n
+	\let [settings_names[12],settings_values[12]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
+	\let [settings_names[13],settings_values[13]]=['current file',get(t:txb.name,w:txbi,'')]\n
 	\let prevVal=deepcopy(settings_values)\n
 	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
 		\echohl MoreMsg\n
@@ -517,9 +515,9 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\en\n
 		\exe 'nn <silent>' settings_values[1] ':call TxbKey(\"init\")<cr>'\n
 		\let g:TXB_HOTKEY=settings_values[1]\n
-		\let t:txb.size[w:txbi]=settings_values[12]\n
-		\let t:txb.exe[w:txbi]=settings_values[13]\n
-		\if !empty(settings_values[14]) && settings_values[14]!=prevVal[14]\n
+		\let t:txb.size[w:txbi]=settings_values[11]\n
+		\let t:txb.exe[w:txbi]=settings_values[12]\n
+		\if !empty(settings_values[13]) && settings_values[13]!=prevVal[13]\n
 			\let t:paths[w:txbi]=s:sp_newfname[0]\n
 			\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 		\en\n
@@ -541,18 +539,16 @@ let txbCmd.S="if !exists('w:txbi')\n
 					\let s:kc_continue.='(Only appended splits will inherit new autoexe) '\n
 				\en\n
 			\en\n
-		\let t:txb.settings['lines panned by j,k']=settings_values[5]\n
-			\let t:kpLn=settings_values[5]\n
-		\let t:txb.settings['mouse pan speed']=settings_values[6]\n
-			\let t:msSp=settings_values[6]\n
-		\if t:txb.settings['lines per map grid']!=settings_values[7] || t:txb.settings['map cell width']!=settings_values[8]\n
-			\let t:txb.settings['lines per map grid']=settings_values[7]\n
-			\let t:gran=settings_values[7]\n
-			\let t:txb.settings['map cell width']=settings_values[8]\n
-			\let t:mapw=settings_values[8]\n
+		\let t:txb.settings['mouse pan speed']=settings_values[5]\n
+			\let t:msSp=settings_values[5]\n
+		\if t:txb.settings['lines per map grid']!=settings_values[6] || t:txb.settings['map cell width']!=settings_values[7]\n
+			\let t:txb.settings['lines per map grid']=settings_values[6]\n
+			\let t:gran=settings_values[6]\n
+			\let t:txb.settings['map cell width']=settings_values[7]\n
+			\let t:mapw=settings_values[7]\n
 			\call s:getMapDis()\n
 		\en\n
-		\if !empty(settings_values[9]) && settings_values[9]!=t:txb.settings['working dir']\n
+		\if !empty(settings_values[8]) && settings_values[8]!=t:txb.settings['working dir']\n
 			\let wd_msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
@@ -567,8 +563,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 							\exe 'cd' fnameescape(t:wdir)\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
-						\let t:txb.settings['working dir']=settings_values[9]\n
-						\let t:wdir=settings_values[9]\n
+						\let t:txb.settings['working dir']=settings_values[8]\n
+						\let t:wdir=settings_values[8]\n
 						\exe 'cd' fnameescape(t:wdir)\n
 						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
@@ -578,8 +574,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 			\en\n
 			\let s:kc_continue.=wd_msg\n
 		\en\n
-		\let t:txb.settings['label marker']=settings_values[10]\n
-			\let t:lblmrk=settings_values[10]\n
+		\let t:txb.settings['label marker']=settings_values[9]\n
+			\let t:lblmrk=settings_values[9]\n
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
@@ -649,10 +645,10 @@ let s:sp_exe={}
 let s:sp_exe.68=
 	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 	\if confirm==?'y'\n
-		\for k in [1,3,4,5,6,7,8,10]\n
+		\for k in [1,3,4,5,6,7,9]\n
 			\let vals[k]=get(a:errorcheck,a:keys[k],[vals[k]])[0]\n
 		\endfor\n
-		\for k in [9,12,13,14]\n
+		\for k in [8,11,12,13]\n
 			\let vals[k]=prevVal[k]\n
 		\endfor\n
 	\en"
@@ -703,13 +699,6 @@ let s:ErrorCheck['split width']=[60,
 	\else\n
 		\let vals[cursor]=input\n
 	\en",'default width for new splits; [c]hange value and [S]ave for the option to apply to current splits']
-let s:ErrorCheck['lines panned by j,k']=[15,
-	\"let input=str2nr(input)\n
-	\if input<=0\n
-		\let smsg.='Error: lines panned by j,k must be > 0'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'j k y u b n will place the top line at multiples of this number']
 let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbKey(\"S\")'"]
 let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
@@ -1178,6 +1167,117 @@ fun! s:mapSplit(col)
 		en
 		let line=search('^'.t:lblmrk.'\zs','W')
 	endwhile
+	let conflicts={}
+	let splitLbl={}
+	let splitClr={}
+	let splitPos={}
+	for j in keys(t:txb.map[a:col])
+		let r=j/t:gran
+		if has_key(splitLbl,r)
+			let key=a:col.' '.r
+			if !has_key(conflicts,key)
+				if splitLbl[r][0][0]<#'0'
+					let conflicts[key]=[a:col,r,splitLbl[r][0],splitPos[r][0]]
+					let splitPos[r]=[]
+				else
+					let conflicts[key]=[a:col,r,'0',-1]
+				en
+			en
+			if t:txb.map[a:col][j][0][0]<#conflicts[key][2][0]
+				if conflicts[key][3]!=-1
+					call add(splitPos[r],conflicts[key][3])
+				en
+				let conflicts[key][2]=t:txb.map[a:col][j][0]
+				let conflicts[key][3]=j
+			else
+				call add(splitPos[r],j)
+			en
+		else
+			let splitLbl[r]=[t:txb.map[a:col][j][0]]
+			let splitClr[r]=t:txb.map[a:col][j][1]
+			let splitPos[r]=[j]
+		en
+	endfor
+	for pos in values(conflicts)
+		call sort(splitPos[pos[1]])
+		if pos[3]!=-1
+			let splitLbl[pos[1]]=[pos[2]]+map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+			call insert(splitPos[pos[1]],pos[3])
+			let splitClr[pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+		else
+			let splitLbl[pos[1]]=map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+			let splitClr[pos[1]]=t:txb.map[pos[0]][splitPos[pos[1]][0]][1]
+		en
+	endfor
+	let changed=keys(splitLbl)
+	for i in s:gridLbl[a:col]
+		let ni=index(changed,i)
+		if ni!=-1
+			if splitLbl[r]==s:gridLbl[a:col][r] && splitClr[r]==s:gridClr[a:col][r] 
+				call remove(changed,ni)
+			en
+		else
+			call add(changed,i)
+			let splitLbl[i]=['']
+		en
+	endfor
+	let tomerge={}
+	for r in changed
+		if empty(splitLbl[r])
+			let prevsp=a:col-1
+			let searchmin=a:col>88/t:mapw? a:col-88/t:mapw : 0
+			while prevsp>=searchend && !has_key(s:gridLbl[prevsp],r)
+				let prevsp-=1
+			endw
+			if prevsp<searchend
+            	let text=''
+				let begin=t:map*(prevsp+1)
+			else
+            	let text=s:gridLbl[prevsp]
+				let begin=t:map*prevsp
+			en
+			unlet splitLbl[r]
+		else
+			begin=t:mapw*a:col
+			let text=splitLbl[r][0]
+		en
+		let l=len(text)
+		let end=t:mapw*a:col+t:mapw
+		let nextsp=a:col+1
+		let searchmax=a:col+88/t:mapw<t:txbL? a:col+88/t:mapw : t:txbL
+		while nextsp<searchmax && !has_key(s:gridLbl[nextsp],r)	
+			let end+=t:mapw
+			let nextsp=a:col+1
+		endwhile
+		if nextsp==t:txbL
+			let end=98989
+		en
+		let availspace=end-begin
+		if !l
+			let tomerge[r]=[[begin,end],['','']]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').s:bgd[r][begin:end-1].s:disTxt[end:]
+		elseif l>=availspace
+			let tomerge[r]=[[begin,end],[splitClr[r],'']]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text[:availspace-1].s:disTxt[end:]
+		else
+			let tomerge[r]=[[begin,begin+l-1,end],[splitClr[r],'','']]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.s:bgd[r][begin+l:end-1].s:disTxt[end:]
+		en
+	endfor
+	for r in keys(tomerge)
+		let t=0
+		for k in tomerge[r][0]
+			while s:disIx[r][t]<k
+				let t+=1
+			endwhile
+			if s:disIx[r][t]==k
+				let s:disClr=tomerge[r][1][k]
+			else
+				call insert(s:disIx[r],t,k)
+				call insert(s:disClr[r],t,tomerge[r][1][k])
+			en
+		endfor
+	endfor
 endfun
 
 let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
@@ -1573,7 +1673,6 @@ fun! s:getMapDis()
 	endfor
 	let bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(bgd)-1
-	let g:bgd=bgd
 	let s:disTxt=repeat([''],t:deepR+1)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
@@ -1649,7 +1748,7 @@ fun! s:getMapDis()
 			let sum=intervals[j]
 		endfor
 		let s:disIx[i]=intervals
-		let s:disIx[i][-1]=99999
+		let s:disIx[i][-1]=98989
 	endfor
 endfun
 

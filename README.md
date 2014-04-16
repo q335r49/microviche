@@ -13,7 +13,7 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 :---: | :---: | :---: | :---: | :---:
 <kbd>o</kbd> <kbd>O</kbd> | open map / remap and open || <kbd>A</kbd> <kbd>D</kbd> | append / delete split
 <kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>r</kbd> | redraw
-<kbd>L</kbd> | insert "marker(lnum)" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
+<kbd>L</kbd> | insert "[marker]lnum" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
 <kbd>q</kbd> <kbd>esc</kbd> | quit || <kbd>m</kbd> <kbd>M</kbd> | map visible / map all
 
 **Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. <kbd>f10</kbd> <kbd>m</kbd> will use labels to map all visible splits. Furthermore, displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
