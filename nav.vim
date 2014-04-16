@@ -1244,7 +1244,7 @@ fun! s:mapSplit(col)
 		let end=t:mapw*a:col+t:mapw
 		let nextsp=a:col+1
 		let overwL=len(get(s:gridLbl[a:col],r,[''])
-		let searchamx=(l>overwL? l : overwL)/t:mapw+1
+		let searchmax=(l>overwL? l : overwL)/t:mapw+1
 		while nextsp<searchmax && !has_key(s:gridLbl[nextsp],r)	
 			let end+=t:mapw
 			let nextsp=a:col+1
@@ -1255,13 +1255,13 @@ fun! s:mapSplit(col)
 		let availspace=end-begin
 		if !l
 			let tomerge[r]=[[begin,end],['','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').s:bgd[r][begin:end-1].s:disTxt[end:]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').t:bgd[r][begin:end-1].s:disTxt[end:]
 		elseif l>=availspace
 			let tomerge[r]=[[begin,end],[splitClr[r],'']]
 			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text[:availspace-1].s:disTxt[end:]
 		else
 			let tomerge[r]=[[begin,begin+l-1,end],[splitClr[r],'','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.s:bgd[r][begin+l:end-1].s:disTxt[end:]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.t:bgd[r][begin+l:end-1].s:disTxt[end:]
 		en
 	endfor
 	for r in keys(tomerge)
@@ -1278,6 +1278,8 @@ fun! s:mapSplit(col)
 			en
 		endfor
 	endfor
+	let s:gridLbl[a:col]=splitLbl
+	let s:gridPos[a:col]=splitClr
 endfun
 
 let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
@@ -1671,8 +1673,8 @@ fun! s:getMapDis()
 			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
-	let t:deepR=len(bgd)-1
+	let t:bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:deepR=len(t:bgd)-1
 	let s:disTxt=repeat([''],t:deepR+1)
 	let s:disClr=copy(s:disTxt)
 	let s:disIx=copy(s:disTxt)
@@ -1699,7 +1701,7 @@ fun! s:getMapDis()
 				en
 				let padl=t:mapw
 			elseif empty(s:disTxt[i])
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(bgd[i],j*t:mapw+l,padl-l)
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l)
 				if empty(gridClr[j][i])
 					let intervals=[padl]
 					let s:disClr[i]=['']
@@ -1709,7 +1711,7 @@ fun! s:getMapDis()
 				en
 				let padl=t:mapw
 			else
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(bgd[i],j*t:mapw+l,padl-l).s:disTxt[i]
+				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l).s:disTxt[i]
 				if empty(s:disClr[i][0])
 					let intervals[0]+=padl-l
 				else
@@ -1729,11 +1731,11 @@ fun! s:getMapDis()
 		if empty(get(s:gridLbl[0],i,''))
 			let padl-=t:mapw
 			if empty(s:disTxt[i])
-				let s:disTxt[i]=strpart(bgd[i],0,padl)
+				let s:disTxt[i]=strpart(t:bgd[i],0,padl)
 				let intervals=[padl]
 				let s:disClr[i]=['']
 			else
-				let s:disTxt[i]=strpart(bgd[i],0,padl).s:disTxt[i]
+				let s:disTxt[i]=strpart(t:bgd[i],0,padl).s:disTxt[i]
 				if empty(s:disClr[i][0])
 					let intervals[0]+=padl
 				else
