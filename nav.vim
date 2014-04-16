@@ -1130,9 +1130,6 @@ fun! s:redraw(...)
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
-	if a:0
-		call s:getMapDis()
-	en
 endfun
 let txbCmd.r="call s:redraw()|redr|let s:kc_continue='(redraw complete)'"
 let txbCmd.m="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
@@ -1210,7 +1207,7 @@ fun! s:mapSplit(col)
 		en
 	endfor
 	let changed=keys(splitLbl)
-	for i in s:gridLbl[a:col]
+	for i in keys(s:gridLbl[a:col])
 		let ni=index(changed,i)
 		if ni!=-1
 			if splitLbl[r]==s:gridLbl[a:col][r] && splitClr[r]==s:gridClr[a:col][r] 
@@ -1237,13 +1234,13 @@ fun! s:mapSplit(col)
 			en
 			unlet splitLbl[r]
 		else
-			begin=t:mapw*a:col
+			let begin=t:mapw*a:col
 			let text=splitLbl[r][0]
 		en
 		let l=len(text)
 		let end=t:mapw*a:col+t:mapw
 		let nextsp=a:col+1
-		let overwL=len(get(s:gridLbl[a:col],r,[''])
+		let overwL=len(get(s:gridLbl[a:col],r,[''])[0])
 		let searchmax=(l>overwL? l : overwL)/t:mapw+1
 		while nextsp<searchmax && !has_key(s:gridLbl[nextsp],r)	
 			let end+=t:mapw
@@ -1626,12 +1623,12 @@ endfun
 
 fun! s:getMapDis()
 	let s:gridLbl=range(t:txbL)
-	let gridClr=copy(s:gridLbl)
+	let s:gridClr=copy(s:gridLbl)
 	let s:gridPos=copy(s:gridLbl)
 	let conflicts={}
 	for i in copy(s:gridLbl)
 		let s:gridLbl[i]={}
-		let gridClr[i]={}
+		let s:gridClr[i]={}
 		let s:gridPos[i]={}
 		for j in keys(t:txb.map[i])
 			let r=j/t:gran
@@ -1656,7 +1653,7 @@ fun! s:getMapDis()
 				en
 			else
 				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
-				let gridClr[i][r]=t:txb.map[i][j][1]
+				let s:gridClr[i][r]=t:txb.map[i][j][1]
 				let s:gridPos[i][r]=[j]
 			en
 		endfor
@@ -1666,11 +1663,11 @@ fun! s:getMapDis()
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 			call insert(s:gridPos[pos[0]][pos[1]],pos[3])
-			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 		else
 			call sort(s:gridPos[pos[0]][pos[1]])
 			let s:gridLbl[pos[0]][pos[1]]=map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			let gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
+			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
 	let t:bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
@@ -1689,25 +1686,25 @@ fun! s:getMapDis()
 				if empty(s:disTxt[i])
 					let s:disTxt[i]=s:gridLbl[j][i][0]
 					let intervals=[padl]
-					let s:disClr[i]=[gridClr[j][i]]
+					let s:disClr[i]=[s:gridClr[j][i]]
 				else
 					let s:disTxt[i]=s:gridLbl[j][i][0][:padl-2].'>'.s:disTxt[i]
-					if gridClr[j][i]==s:disClr[i][0]
+					if s:gridClr[j][i]==s:disClr[i][0]
 						let intervals[0]+=padl
 					else
 						call insert(intervals,padl)
-						call insert(s:disClr[i],gridClr[j][i])
+						call insert(s:disClr[i],s:gridClr[j][i])
 					en
 				en
 				let padl=t:mapw
 			elseif empty(s:disTxt[i])
 				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l)
-				if empty(gridClr[j][i])
+				if empty(s:gridClr[j][i])
 					let intervals=[padl]
 					let s:disClr[i]=['']
 				else
 					let intervals=[l,padl-l]
-					let s:disClr[i]=[gridClr[j][i],'']
+					let s:disClr[i]=[s:gridClr[j][i],'']
 				en
 				let padl=t:mapw
 			else
@@ -1718,11 +1715,11 @@ fun! s:getMapDis()
 					call insert(intervals,padl-l)
 					call insert(s:disClr[i],'')
 				en
-				if empty(gridClr[j][i])
+				if empty(s:gridClr[j][i])
 					let intervals[0]+=l
 				else
 					call insert(intervals,l)
-					call insert(s:disClr[i],gridClr[j][i])
+					call insert(s:disClr[i],s:gridClr[j][i])
 				en
 				let padl=t:mapw
 			en
