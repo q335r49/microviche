@@ -1911,10 +1911,8 @@ let txbCmd.o="let s:kc_continue=''\n
 	\let s:mPrevClk=[0,0]\n
 	\let s:mPrevCoor=[0,0,0]\n
 	\let s:mR=line('.')/t:gran\n
-	\if s:mR>t:deepR\n
-		\call s:redraw(1)\n
-		\redr!\n
-	\en\n
+	\call s:redraw(1)\n
+	\redr!\n
 	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 	\let s:mC=w:txbi\n
 	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
@@ -1924,7 +1922,6 @@ let txbCmd.o="let s:kc_continue=''\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
-let txbCmd.O="let t:deepR=-1|".txbCmd.o
 
 let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
@@ -1988,3 +1985,10 @@ let s:mExe[" "]       =s:mExe.J
 let s:mExe["\<bs>"]   =s:mExe.K
 
 delf s:SID
+
+let GMD=function('s:getMapDis')
+let g:GL=s:gridLbl
+let g:GC=s:gridClr
+let g:DI=s:disIx
+let g:DC=s:disClr
+let g:DT=s:disTxt
