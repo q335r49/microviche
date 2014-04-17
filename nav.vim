@@ -1208,10 +1208,9 @@ fun! s:mapSplit(col)
 	endfor
 	let changed=keys(splitLbl)
 	for i in keys(s:gridLbl[a:col])
-		let ni=index(changed,i)
-		if ni!=-1
-			if splitLbl[r]==s:gridLbl[a:col][r] && splitClr[r]==s:gridClr[a:col][r] 
-				call remove(changed,ni)
+		if has_key(splitLbl,i)
+			if splitLbl[i]==s:gridLbl[a:col][i] && splitClr[i]==s:gridClr[a:col][i] 
+				call remove(changed,index(changed,i))
 			en
 		else
 			call add(changed,i)
@@ -1228,21 +1227,24 @@ fun! s:mapSplit(col)
 				endw
 				let begin=t:mapw*prevsp
 				let text=s:gridLbl[prevsp]
+				let beginc=prevsp
 			else
 				let begin=t:mapw*a:col
 				let text=''
+				let beginc=a:col
 			en
 			unlet splitLbl[r]
 		else
 			let begin=t:mapw*a:col
 			let text=splitLbl[r][0]
+			let beginc=a:col
 		en
 		let l=len(text)
-		let end=t:mapw*a:col+t:mapw
 		let nextsp=a:col+1
-		let overwL=len(get(s:gridLbl[a:col],r,[''])[0])
-		let searchmax=(l>overwL? l : overwL)/t:mapw+1
-		while nextsp<searchmax && !has_key(s:gridLbl[nextsp],r)	
+		let end=t:mapw*nextsp
+		let overwL=len(get(s:gridLbl[beginc],r,[''])[0])
+		let searchmax=(l>overwL? l : overwL)+begin-1
+		while end<=searchmax && nextsp<t:txbL && !has_key(s:gridLbl[nextsp],r)
 			let end+=t:mapw
 			let nextsp=a:col+1
 		endwhile
@@ -1252,31 +1254,34 @@ fun! s:mapSplit(col)
 		let availspace=end-begin
 		if !l
 			let tomerge[r]=[[begin,end],['','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').t:bgd[r][begin:end-1].s:disTxt[end:]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').t:bgd[r][begin : end-1].s:disTxt[r][end :]
 		elseif l>=availspace
 			let tomerge[r]=[[begin,end],[splitClr[r],'']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text[:availspace-1].s:disTxt[end:]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text[:availspace-2].'>'.s:disTxt[r][end :]
 		else
 			let tomerge[r]=[[begin,begin+l-1,end],[splitClr[r],'','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.t:bgd[r][begin+l:end-1].s:disTxt[end:]
+			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.t:bgd[r][begin+l : end-1].s:disTxt[r][end :]
 		en
 	endfor
 	for r in keys(tomerge)
 		let t=0
+		let t2=0
 		for k in tomerge[r][0]
 			while s:disIx[r][t]<k
 				let t+=1
 			endwhile
 			if s:disIx[r][t]==k
-				let s:disClr=tomerge[r][1][k]
+				let s:disClr[r][t]=tomerge[r][1][t2]
 			else
-				call insert(s:disIx[r],t,k)
-				call insert(s:disClr[r],t,tomerge[r][1][k])
+				call insert(s:disIx[r],k,t)
+   				call insert(s:disClr[r],tomerge[r][1][t2],t)
 			en
+			let t2+=1
 		endfor
 	endfor
 	let s:gridLbl[a:col]=splitLbl
-	let s:gridPos[a:col]=splitClr
+	let s:gridClr[a:col]=splitClr
+	let s:gridPos[a:col]=splitPos
 endfun
 
 let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
