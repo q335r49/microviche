@@ -1207,9 +1207,9 @@ fun! s:mapSplit(col)
 		en
 	endfor
 	let changed=keys(splitLbl)
-	for i in keys(s:gridLbl[a:col])
+	for i in keys(t:gridLbl[a:col])
 		if has_key(splitLbl,i)
-			if splitLbl[i]==s:gridLbl[a:col][i] && splitClr[i]==s:gridClr[a:col][i] 
+			if splitLbl[i]==t:gridLbl[a:col][i] && splitClr[i]==t:gridClr[a:col][i] 
 				call remove(changed,index(changed,i))
 			en
 		else
@@ -1220,13 +1220,13 @@ fun! s:mapSplit(col)
 	let tomerge={}
 	for r in changed
 		if empty(splitLbl[r]) 
-			if a:col && s:disTxt[a:col*t:mapw-1]==#'>'
+			if a:col && t:disTxt[a:col*t:mapw-1]==#'>'
 				let prevsp=a:col-1
-				while !has_key(s:gridLbl[prevsp],r)
+				while !has_key(t:gridLbl[prevsp],r)
 					let prevsp-=1
 				endw
 				let begin=t:mapw*prevsp
-				let text=s:gridLbl[prevsp]
+				let text=t:gridLbl[prevsp]
 				let beginc=prevsp
 			else
 				let begin=t:mapw*a:col
@@ -1242,9 +1242,9 @@ fun! s:mapSplit(col)
 		let l=len(text)
 		let nextsp=a:col+1
 		let end=t:mapw*nextsp
-		let overwL=len(get(s:gridLbl[beginc],r,[''])[0])
+		let overwL=len(get(t:gridLbl[beginc],r,[''])[0])
 		let searchmax=(l>overwL? l : overwL)+begin-1
-		while end<=searchmax && nextsp<t:txbL && !has_key(s:gridLbl[nextsp],r)
+		while end<=searchmax && nextsp<t:txbL && !has_key(t:gridLbl[nextsp],r)
 			let end+=t:mapw
 			let nextsp=a:col+1
 		endwhile
@@ -1254,34 +1254,34 @@ fun! s:mapSplit(col)
 		let availspace=end-begin
 		if !l
 			let tomerge[r]=[[begin,end],['','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').t:bgd[r][begin : end-1].s:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').t:bgd[r][begin : end-1].t:disTxt[r][end :]
 		elseif l>=availspace
 			let tomerge[r]=[[begin,end],[splitClr[r],'']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text[:availspace-2].'>'.s:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').text[:availspace-2].'>'.t:disTxt[r][end :]
 		else
 			let tomerge[r]=[[begin,begin+l-1,end],[splitClr[r],'','']]
-			let s:disTxt[r]=(begin? s:disTxt[r][:begin] : '').text.t:bgd[r][begin+l : end-1].s:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').text.t:bgd[r][begin+l : end-1].t:disTxt[r][end :]
 		en
 	endfor
 	for r in keys(tomerge)
 		let t=0
 		let t2=0
 		for k in tomerge[r][0]
-			while s:disIx[r][t]<k
+			while t:disIx[r][t]<k
 				let t+=1
 			endwhile
-			if s:disIx[r][t]==k
-				let s:disClr[r][t]=tomerge[r][1][t2]
+			if t:disIx[r][t]==k
+				let t:disClr[r][t]=tomerge[r][1][t2]
 			else
-				call insert(s:disIx[r],k,t)
-   				call insert(s:disClr[r],tomerge[r][1][t2],t)
+				call insert(t:disIx[r],k,t)
+   				call insert(t:disClr[r],tomerge[r][1][t2],t)
 			en
 			let t2+=1
 		endfor
 	endfor
-	let s:gridLbl[a:col]=splitLbl
-	let s:gridClr[a:col]=splitClr
-	let s:gridPos[a:col]=splitPos
+	let t:gridLbl[a:col]=splitLbl
+	let t:gridClr[a:col]=splitClr
+	let t:gridPos[a:col]=splitPos
 endfun
 
 let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
@@ -1627,122 +1627,122 @@ fun! s:nav(N,L)
 endfun
 
 fun! s:getMapDis()
-	let s:gridLbl=range(t:txbL)
-	let s:gridClr=copy(s:gridLbl)
-	let s:gridPos=copy(s:gridLbl)
+	let t:gridLbl=range(t:txbL)
+	let t:gridClr=copy(t:gridLbl)
+	let t:gridPos=copy(t:gridLbl)
 	let conflicts={}
-	for i in copy(s:gridLbl)
-		let s:gridLbl[i]={}
-		let s:gridClr[i]={}
-		let s:gridPos[i]={}
+	for i in copy(t:gridLbl)
+		let t:gridLbl[i]={}
+		let t:gridClr[i]={}
+		let t:gridPos[i]={}
 		for j in keys(t:txb.map[i])
 			let r=j/t:gran
-			if has_key(s:gridLbl[i],r)
+			if has_key(t:gridLbl[i],r)
 				let key=i.' '.r
 				if !has_key(conflicts,key)
-					if s:gridLbl[i][r][0][0]<#'0'
-				   		let conflicts[key]=[i,r,s:gridLbl[i][r][0],s:gridPos[i][r][0]]
-						let s:gridPos[i][r]=[]
+					if t:gridLbl[i][r][0][0]<#'0'
+				   		let conflicts[key]=[i,r,t:gridLbl[i][r][0],t:gridPos[i][r][0]]
+						let t:gridPos[i][r]=[]
 					else
 				   		let conflicts[key]=[i,r,'0',-1]
 					en
 				en
 				if t:txb.map[i][j][0][0]<#conflicts[key][2][0]
 					if conflicts[key][3]!=-1
-						call add(s:gridPos[i][r],conflicts[key][3])
+						call add(t:gridPos[i][r],conflicts[key][3])
 					en
 					let conflicts[key][2]=t:txb.map[i][j][0]
 					let conflicts[key][3]=j
 				else
-					call add(s:gridPos[i][r],j)
+					call add(t:gridPos[i][r],j)
 				en
 			else
-				let s:gridLbl[i][r]=[t:txb.map[i][j][0]]
-				let s:gridClr[i][r]=t:txb.map[i][j][1]
-				let s:gridPos[i][r]=[j]
+				let t:gridLbl[i][r]=[t:txb.map[i][j][0]]
+				let t:gridClr[i][r]=t:txb.map[i][j][1]
+				let t:gridPos[i][r]=[j]
 			en
 		endfor
 	endfor
 	for pos in values(conflicts)
 		if pos[3]!=-1
-			call sort(s:gridPos[pos[0]][pos[1]])
-			let s:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			call insert(s:gridPos[pos[0]][pos[1]],pos[3])
-			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+			call sort(t:gridPos[pos[0]][pos[1]])
+			let t:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+			call insert(t:gridPos[pos[0]][pos[1]],pos[3])
+			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 		else
-			call sort(s:gridPos[pos[0]][pos[1]])
-			let s:gridLbl[pos[0]][pos[1]]=map(copy(s:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			let s:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][s:gridPos[pos[0]][pos[1]][0]][1]
+			call sort(t:gridPos[pos[0]][pos[1]])
+			let t:gridLbl[pos[0]][pos[1]]=map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
 	let t:bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(t:bgd)-1
-	let s:disTxt=repeat([''],t:deepR+1)
-	let s:disClr=copy(s:disTxt)
-	let s:disIx=copy(s:disTxt)
+	let t:disTxt=repeat([''],t:deepR+1)
+	let t:disClr=copy(t:disTxt)
+	let t:disIx=copy(t:disTxt)
 	for i in range(t:deepR+1)
 		let j=t:txbL-1
 		let padl=t:mapw
 		while j>=0
-			let l=len(get(get(s:gridLbl[j],i,[]),0,''))
+			let l=len(get(get(t:gridLbl[j],i,[]),0,''))
 			if !l
 				let padl+=t:mapw
 			elseif l>=padl
-				if empty(s:disTxt[i])
-					let s:disTxt[i]=s:gridLbl[j][i][0]
+				if empty(t:disTxt[i])
+					let t:disTxt[i]=t:gridLbl[j][i][0]
 					let intervals=[padl]
-					let s:disClr[i]=[s:gridClr[j][i]]
+					let t:disClr[i]=[t:gridClr[j][i]]
 				else
-					let s:disTxt[i]=s:gridLbl[j][i][0][:padl-2].'>'.s:disTxt[i]
-					if s:gridClr[j][i]==s:disClr[i][0]
+					let t:disTxt[i]=t:gridLbl[j][i][0][:padl-2].'>'.t:disTxt[i]
+					if t:gridClr[j][i]==t:disClr[i][0]
 						let intervals[0]+=padl
 					else
 						call insert(intervals,padl)
-						call insert(s:disClr[i],s:gridClr[j][i])
+						call insert(t:disClr[i],t:gridClr[j][i])
 					en
 				en
 				let padl=t:mapw
-			elseif empty(s:disTxt[i])
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l)
-				if empty(s:gridClr[j][i])
+			elseif empty(t:disTxt[i])
+				let t:disTxt[i]=t:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l)
+				if empty(t:gridClr[j][i])
 					let intervals=[padl]
-					let s:disClr[i]=['']
+					let t:disClr[i]=['']
 				else
 					let intervals=[l,padl-l]
-					let s:disClr[i]=[s:gridClr[j][i],'']
+					let t:disClr[i]=[t:gridClr[j][i],'']
 				en
 				let padl=t:mapw
 			else
-				let s:disTxt[i]=s:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l).s:disTxt[i]
-				if empty(s:disClr[i][0])
+				let t:disTxt[i]=t:gridLbl[j][i][0].strpart(t:bgd[i],j*t:mapw+l,padl-l).t:disTxt[i]
+				if empty(t:disClr[i][0])
 					let intervals[0]+=padl-l
 				else
 					call insert(intervals,padl-l)
-					call insert(s:disClr[i],'')
+					call insert(t:disClr[i],'')
 				en
-				if empty(s:gridClr[j][i])
+				if empty(t:gridClr[j][i])
 					let intervals[0]+=l
 				else
 					call insert(intervals,l)
-					call insert(s:disClr[i],s:gridClr[j][i])
+					call insert(t:disClr[i],t:gridClr[j][i])
 				en
 				let padl=t:mapw
 			en
 			let j-=1
 		endw
-		if empty(get(s:gridLbl[0],i,''))
+		if empty(get(t:gridLbl[0],i,''))
 			let padl-=t:mapw
-			if empty(s:disTxt[i])
-				let s:disTxt[i]=strpart(t:bgd[i],0,padl)
+			if empty(t:disTxt[i])
+				let t:disTxt[i]=strpart(t:bgd[i],0,padl)
 				let intervals=[padl]
-				let s:disClr[i]=['']
+				let t:disClr[i]=['']
 			else
-				let s:disTxt[i]=strpart(t:bgd[i],0,padl).s:disTxt[i]
-				if empty(s:disClr[i][0])
+				let t:disTxt[i]=strpart(t:bgd[i],0,padl).t:disTxt[i]
+				if empty(t:disClr[i][0])
 					let intervals[0]+=padl
 				else
 					call insert(intervals,padl)
-					call insert(s:disClr[i],'')
+					call insert(t:disClr[i],'')
 				en
 			en
 		en
@@ -1751,8 +1751,8 @@ fun! s:getMapDis()
 			let intervals[j]=sum+intervals[j]
 			let sum=intervals[j]
 		endfor
-		let s:disIx[i]=intervals
-		let s:disIx[i][-1]=98989
+		let t:disIx[i]=intervals
+		let t:disIx[i][-1]=98989
 	endfor
 endfun
 
@@ -1760,7 +1760,7 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
 	if b<xe
-		let selection=get(s:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
+		let selection=get(t:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
 		let sele=s:mR+len(selection)-1
 		let truncb=b>=s:mCoff? 0 : s:mCoff-b
 		let trunce=truncb+xe-b
@@ -1773,42 +1773,42 @@ fun! s:disMap()
 	while i<=lastR
 		let j=0
 		if i<s:mR || i>sele
-			while s:disIx[i][j]<s:mCoff
+			while t:disIx[i][j]<s:mCoff
 				let j+=1
 			endw
-			exe 'echohl' s:disClr[i][j]
-			if s:disIx[i][j]>xe
-				echon s:disTxt[i][s:mCoff : xe] "\n"
+			exe 'echohl' t:disClr[i][j]
+			if t:disIx[i][j]>xe
+				echon t:disTxt[i][s:mCoff : xe] "\n"
 			else
-				echon s:disTxt[i][s:mCoff : s:disIx[i][j]-1]
+				echon t:disTxt[i][s:mCoff : t:disIx[i][j]-1]
 				let j+=1
-				while s:disIx[i][j]<xe
-					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+				while t:disIx[i][j]<xe
+					exe 'echohl' t:disClr[i][j]
+					echon t:disTxt[i][t:disIx[i][j-1] : t:disIx[i][j]-1]
 					let j+=1
 				endw
-				exe 'echohl' s:disClr[i][j]
-				echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
+				exe 'echohl' t:disClr[i][j]
+				echon t:disTxt[i][t:disIx[i][j-1] : xe] "\n"
 			en
 		else
 			let seltext=selection[i-s:mR][truncb : trunce]
 			if !truncb && b
-				while s:disIx[i][j]<s:mCoff
+				while t:disIx[i][j]<s:mCoff
 					let j+=1
 				endw
-				exe 'echohl' s:disClr[i][j]
-				if s:disIx[i][j]>vxe
-					echon s:disTxt[i][s:mCoff : vxe]
+				exe 'echohl' t:disClr[i][j]
+				if t:disIx[i][j]>vxe
+					echon t:disTxt[i][s:mCoff : vxe]
 				else
-					echon s:disTxt[i][s:mCoff : s:disIx[i][j]-1]
+					echon t:disTxt[i][s:mCoff : t:disIx[i][j]-1]
 					let j+=1
-					while s:disIx[i][j]<vxe
-						exe 'echohl' s:disClr[i][j]
-						echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+					while t:disIx[i][j]<vxe
+						exe 'echohl' t:disClr[i][j]
+						echon t:disTxt[i][t:disIx[i][j-1] : t:disIx[i][j]-1]
 						let j+=1
 					endw
-					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][s:disIx[i][j-1] : vxe]
+					exe 'echohl' t:disClr[i][j]
+					echon t:disTxt[i][t:disIx[i][j-1] : vxe]
 				en
 				let vOff=b+len(seltext)
 			else
@@ -1817,22 +1817,22 @@ fun! s:disMap()
 			echohl Visual
 			if vOff<xe
 				echon seltext
-				while s:disIx[i][j]<vOff
+				while t:disIx[i][j]<vOff
 					let j+=1
 				endw
-				exe 'echohl' s:disClr[i][j]
-				if s:disIx[i][j]>xe
-					echon s:disTxt[i][vOff : xe] "\n"
+				exe 'echohl' t:disClr[i][j]
+				if t:disIx[i][j]>xe
+					echon t:disTxt[i][vOff : xe] "\n"
 				else
-					echon s:disTxt[i][vOff : s:disIx[i][j]-1]
+					echon t:disTxt[i][vOff : t:disIx[i][j]-1]
 					let j+=1
-					while s:disIx[i][j]<xe
-						exe 'echohl' s:disClr[i][j]
-						echon s:disTxt[i][s:disIx[i][j-1] : s:disIx[i][j]-1]
+					while t:disIx[i][j]<xe
+						exe 'echohl' t:disClr[i][j]
+						echon t:disTxt[i][t:disIx[i][j-1] : t:disIx[i][j]-1]
 						let j+=1
 					endw
-					exe 'echohl' s:disClr[i][j]
-					echon s:disTxt[i][s:disIx[i][j-1] : xe] "\n"
+					exe 'echohl' t:disClr[i][j]
+					echon t:disTxt[i][t:disIx[i][j-1] : xe] "\n"
 				en
 			else
 				echon seltext "\n"
@@ -1876,7 +1876,7 @@ fun! s:mapKeyHandler(c)
 					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
-						call s:goto(s:mC,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
+						call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
 						return
 					en
 					let s:mPrevClk=[s:mR,s:mC]
@@ -1901,7 +1901,7 @@ fun! s:mapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
-			call s:goto(s:mC,get(s:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
+			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
@@ -1992,8 +1992,3 @@ let s:mExe["\<bs>"]   =s:mExe.K
 delf s:SID
 
 let GMD=function('s:getMapDis')
-let g:GL=s:gridLbl
-let g:GC=s:gridClr
-let g:DI=s:disIx
-let g:DC=s:disClr
-let g:DT=s:disTxt
