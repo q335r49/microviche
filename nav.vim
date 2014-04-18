@@ -1125,6 +1125,8 @@ let txbCmd.r="call s:redraw()|redr|let s:kc_continue='(redraw complete)'"
 let txbCmd.m="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
 
 fun! s:mapSplit(col)
+	let blankcell=repeat(' ',t:mapw)
+	let colIx=a:col*t:mapw
 	let newd=line('$')
 	let newdR=newd/t:gran
 	let curdR=t:txb.depth[a:col]/t:gran
@@ -1135,14 +1137,12 @@ fun! s:mapSplit(col)
 		let t:deepest=newd
 	en
 	if newdR>curdR
-		let dif=newdR-curdR
 		for i in range(curdR+1,newdR)
-			let t:bgd[i]=t:bgd[i][:a:col*t:mapw-1].repeat(' ',t:mapw).t:bgd[i][a:col*t:mapw+1 :]
+			let t:bgd[i]=t:bgd[i][:colIx-1].repeat(' ',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
 	elseif newdR<curdR
-		let dif=curdR-newdR
 		for i in range(newdR+1,curdR)
-			let t:bgd[i]=t:bgd[i][:a:col*t:mapw-1].repeat('.',t:mapw).t:bgd[i][a:col*t:mapw+1 :]
+			let t:bgd[i]=t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
 	en
 	let t:txb.depth[a:col]=newd
@@ -1227,10 +1227,9 @@ fun! s:mapSplit(col)
 		en
 	endfor
 	let tomerge={}
-	let blankcell=repeat(' ',t:mapw)
 	for r in changed
 		if !has_key(splitLbl,r) 
-			if a:col && t:disTxt[r][a:col*t:mapw-1]==#'#'
+			if a:col && t:disTxt[r][a:colIx-1]==#'#'
 				let prevsp=a:col-1
 				while !has_key(t:gridLbl[prevsp],r)
 					let prevsp-=1
@@ -1324,7 +1323,35 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? T
 		\let view=winsaveview()\n
 		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
 			\exe 'e' t:paths[i]\n 
-			\call s:mapSplit(i)\n
+			\let t:txb.depth[a:col]=line('$')\n
+			\let t:txb.map[a:col]={}\n
+			\norm! 1G0\n
+			\let line=search('^'.t:lblmrk,'Wc')\n
+			\while line\n
+				\let L=getline('.')[t:lblmrklen :]\n
+				\let lref=matchstr(L,'^\d*')\n
+				\if !empty(lref)\n
+					\let lbl=L[len(lref)]==':'? split(L[len(lref)+2:],'#',1) : []\n
+					\if lref<line\n
+						\let deletions=line-lref\n
+						\if prevnonblank(line-1)>=lref\n
+							\let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']\n
+						\else\n
+							\exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')\n
+						\en\n
+						\let line=line('.')\n
+					\elseif lref>line\n
+						\exe 'norm! '.(lref-line)."O\ej"\n
+						\let line=line('.')\n
+					\en\n
+				\else\n
+					\let lbl=split(L[1: ],'#',1)\n
+				\en\n
+				\if !empty(lbl) && !empty(lbl[0])\n
+					\let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]\n
+				\en\n
+				\let line=search('^'.t:lblmrk,'W')\n
+			\endwhile\n
 		\endfor\n
 		\exe 'e' t:paths[curwin]\n 
 		\call winrestview(view)\n
