@@ -1318,7 +1318,7 @@ fun! s:mapSplit(col)
 	let t:gridPos[a:col]=splitPos
 endfun
 
-let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
+let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
 		\let curwin=w:txbi\n
 		\let view=winsaveview()\n
 		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
@@ -1329,19 +1329,19 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to remap the entire plane? T
 			\let line=search('^'.t:lblmrk,'Wc')\n
 			\while line\n
 				\let L=getline('.')[t:lblmrklen :]\n
-				\let lref=matchstr(L,'^\d*')\n
+				\let lref=matchstr(L,'^\\d*')\n
 				\if !empty(lref)\n
 					\let lbl=L[len(lref)]==':'? split(L[len(lref)+2:],'#',1) : []\n
 					\if lref<line\n
 						\let deletions=line-lref\n
 						\if prevnonblank(line-1)>=lref\n
-							\let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']\n
+							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
 						\else\n
 							\exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')\n
 						\en\n
 						\let line=line('.')\n
 					\elseif lref>line\n
-						\exe 'norm! '.(lref-line)."O\ej"\n
+						\exe 'norm! '.(lref-line).'O\ej'\n
 						\let line=line('.')\n
 					\en\n
 				\else\n
