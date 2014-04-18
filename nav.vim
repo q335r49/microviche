@@ -85,7 +85,7 @@ fun! s:printHelp()
 	\\n    txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
 	\\n    txb: Intro             Just label 'Intro'
 	\\n    txb: Intro##bla bla    Just label 'Intro'
-	\\n\nPress [hotkey][o] to view the MAP:
+	\\n\nPress [hotkey][o] to map the visible region and open the MAP:
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view
