@@ -11,19 +11,19 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
-<kbd>o</kbd> <kbd>O</kbd> | open map / remap and open || <kbd>A</kbd> <kbd>D</kbd> | append / delete split
+<kbd>o</kbd> | open map || <kbd>A</kbd> <kbd>D</kbd> | append / delete split
 <kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>r</kbd> | redraw
 <kbd>L</kbd> | insert "[marker]lnum" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
 <kbd>q</kbd> <kbd>esc</kbd> | quit || <kbd>m</kbd> <kbd>M</kbd> | map visible / map all
 
-**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. <kbd>f10</kbd> <kbd>m</kbd> will use labels to map all visible splits. Furthermore, displaced labels will be relocated to *lnum* (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
+**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. Displaced labels will be relocated to *lnum*, if provided, by inserting or removing preceding blank lines, and any relocation failures will be highlighted in the map.
 
 The label syntax is: <samp>marker(lnum)(:)( label#highlght# ignored text)</samp>. Some examples:  
 &nbsp;&nbsp;&nbsp;txb:345 blah blah → just move to 345  
 &nbsp;&nbsp;&nbsp;txb:345<b>:</b> Intro#Search → move to 345: label <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
 &nbsp;&nbsp;&nbsp;txb: Intro## blah blah (or just txb: Intro) → just label <q>Intro</q>
 
-To **view the map**, press <kbd>f10</kbd> <kbd>o</kbd>:
+<kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> | | <kbd>f1</kbd> | help
 :---: | :---: | :---: | :---: | :---:

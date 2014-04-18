@@ -68,14 +68,13 @@ fun! s:printHelp()
 	\\nOnce loaded, use the MOUSE to pan, or press [hotkey] followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
 	\\n    r                    redraw
-	\\n    o O                  Open map / map visible and open map
+	\\n    o                    Open map
 	\\n    m M                  map visible / Map all
 	\\n    L                    insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n *  S                    Settings
 	\\n    W                    Write to file
-	\\n    ^X                   Delete hidden buffers
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n *  If [hotkey] becomes inaccessible, :call TxbKey('S')
@@ -439,15 +438,6 @@ fun! s:navPlane(dx,dy)
 	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
 	echon w:txbi '-' line('.')
 endfun
-
-fun! s:deleteHiddenBuffers()
-	let tpbl=[]
-	call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
-	for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
-		silent execute 'bwipeout' buf
-	endfor
-endfun
-let txbCmd["\<c-x>"]='cal s:deleteHiddenBuffers()|let s:kc_continue="Hidden Buffers Deleted"'
 
 fun! s:formatPar(str,w,pad)
 	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
@@ -1209,75 +1199,100 @@ fun! s:mapSplit(col)
 	let changed=keys(splitLbl)
 	for i in keys(t:gridLbl[a:col])
 		if has_key(splitLbl,i)
-			if splitLbl[i]==t:gridLbl[a:col][i] && splitClr[i]==t:gridClr[a:col][i] 
+			if splitLbl[i]==#t:gridLbl[a:col][i] && splitClr[i]==t:gridClr[a:col][i] 
 				call remove(changed,index(changed,i))
 			en
 		else
 			call add(changed,i)
-			let splitLbl[i]=['']
 		en
 	endfor
 	let tomerge={}
+	let blankcell=repeat(' ',t:mapw)
 	for r in changed
-		if empty(splitLbl[r]) 
-			if a:col && t:disTxt[a:col*t:mapw-1]==#'>'
+		if !has_key(splitLbl,r) 
+			if a:col && t:disTxt[r][a:col*t:mapw-1]==#'#'
 				let prevsp=a:col-1
 				while !has_key(t:gridLbl[prevsp],r)
 					let prevsp-=1
 				endw
 				let begin=t:mapw*prevsp
-				let text=t:gridLbl[prevsp]
+				let text=t:gridLbl[prevsp][r][0]
+				let l=len(text)
+				let textc=t:gridClr[prevsp][r]
 				let beginc=prevsp
 			else
 				let begin=t:mapw*a:col
 				let text=''
+				let l=0
+				let textc=''
 				let beginc=a:col
 			en
-			unlet splitLbl[r]
 		else
 			let begin=t:mapw*a:col
 			let text=splitLbl[r][0]
+			let l=len(text)
+			let textc=splitClr[r]
 			let beginc=a:col
 		en
-		let l=len(text)
 		let nextsp=a:col+1
-		let end=t:mapw*nextsp
-		let overwL=len(get(t:gridLbl[beginc],r,[''])[0])
-		let searchmax=(l>overwL? l : overwL)+begin-1
-		while end<=searchmax && nextsp<t:txbL && !has_key(t:gridLbl[nextsp],r)
-			let end+=t:mapw
-			let nextsp=a:col+1
+		while nextsp<t:txbL && !has_key(t:gridLbl[nextsp],r)
+			let nextsp+=1
 		endwhile
-		if nextsp==t:txbL
-			let end=98989
-		en
-		let availspace=end-begin
-		if !l
-			let tomerge[r]=[[begin,end],['','']]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').t:bgd[r][begin : end-1].t:disTxt[r][end :]
-		elseif l>=availspace
-			let tomerge[r]=[[begin,end],[splitClr[r],'']]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').text[:availspace-2].'>'.t:disTxt[r][end :]
+		let end=nextsp==t:txbL? 98989 : t:mapw*nextsp
+		if !has_key(t:gridLbl[beginc],r) && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell
+			let begint=begin-1
+			let text='#'.text
 		else
-			let tomerge[r]=[[begin,begin+l-1,end],[splitClr[r],'','']]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begin] : '').text.t:bgd[r][begin+l : end-1].t:disTxt[r][end :]
+			let begint=begin
+		en
+		if !l
+			let tomerge[r]=[[begin,end],[0,'']]
+			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').t:bgd[r][begint : end-1].t:disTxt[r][end :]
+		elseif l>=end-begin
+			let tomerge[r]=[[begin,end],[0,textc]]
+			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text[:end-begint-1].'#'.t:disTxt[r][end :]
+		else
+			let tomerge[r]=[[begin,begin+l,end],[0,textc,'']]
+			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
 		en
 	endfor
 	for r in keys(tomerge)
 		let t=0
-		let t2=0
-		for k in tomerge[r][0]
-			while t:disIx[r][t]<k
-				let t+=1
+		while t:disIx[r][t]<tomerge[r][0][0]
+			let t+=1
+		endwhile
+		if t:disIx[r][t]>tomerge[r][0][0] && tomerge[r][1][1]!=?t:disClr[r][t]
+			call insert(t:disIx[r],tomerge[r][0][0],t)
+			call insert(t:disClr[r],t:disClr[r][t],t)
+		en
+		let t+=1
+		let t2=1
+		let len=len(tomerge[r][0])
+		while t2<len
+			while t<len(t:disIx[r]) && t:disIx[r][t]<tomerge[r][0][t2]
+				call remove(t:disIx[r],t)
+				call remove(t:disClr[r],t)
 			endwhile
-			if t:disIx[r][t]==k
+			if t==len(t:disIx[r])
+				while t2<len
+					if disClr[r][-1]==?tomerge[r][1][t2:]
+						let t:disIx[r][-1]=tomerge[r][0][t2]
+					else
+						call add(t:disIx[r],tomerge[r][0][t2 :])
+						call add(t:disClr[r],tomerge[r][1][t2 :])
+					en
+					let t2+=1
+				endw
+				break
+			elseif t:disIx[r][t]==tomerge[r][0][t2]
 				let t:disClr[r][t]=tomerge[r][1][t2]
-			else
-				call insert(t:disIx[r],k,t)
-   				call insert(t:disClr[r],tomerge[r][1][t2],t)
+			elseif tomerge[r][1][t2]!=?t:disClr[r][t]
+				call insert(t:disIx[r],tomerge[r][0][t2],t)
+				call insert(t:disClr[r],tomerge[r][1][t2],t)
 			en
+			let t+=1
 			let t2+=1
-		endfor
+		endw
 	endfor
 	let t:gridLbl[a:col]=splitLbl
 	let t:gridClr[a:col]=splitClr
@@ -1693,7 +1708,7 @@ fun! s:getMapDis()
 					let intervals=[padl]
 					let t:disClr[i]=[t:gridClr[j][i]]
 				else
-					let t:disTxt[i]=t:gridLbl[j][i][0][:padl-2].'>'.t:disTxt[i]
+					let t:disTxt[i]=t:gridLbl[j][i][0][:padl-2].'#'.t:disTxt[i]
 					if t:gridClr[j][i]==t:disClr[i][0]
 						let intervals[0]+=padl
 					else
@@ -1992,3 +2007,4 @@ let s:mExe["\<bs>"]   =s:mExe.K
 delf s:SID
 
 let GMD=function('s:getMapDis')
+let MS=function('s:mapSplit')
