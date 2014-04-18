@@ -1125,7 +1125,27 @@ let txbCmd.r="call s:redraw()|redr|let s:kc_continue='(redraw complete)'"
 let txbCmd.m="call s:redraw(1)|redr|let s:kc_continue='(Remap complete)'"
 
 fun! s:mapSplit(col)
-	let t:txb.depth[a:col]=line('$')
+	let newd=line('$')
+	let newdR=newd/t:gran
+	let curdR=t:txb.depth[a:col]/t:gran
+	if newd>t:deepest
+		if newdR>t:deepR
+			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],newdR-t:deepR))
+		en
+		let t:deepest=newd
+	en
+	if newdR>curdR
+		let dif=newdR-curdR
+		for i in range(curdR+1,newdR)
+			let t:bgd[i]=t:bgd[i][:a:col*t:mapw-1].repeat(' ',t:mapw).t:bgd[i][a:col*t:mapw+1 :]
+		endfor
+	elseif newdR<curdR
+		let dif=curdR-newdR
+		for i in range(newdR+1,curdR)
+			let t:bgd[i]=t:bgd[i][:a:col*t:mapw-1].repeat('.',t:mapw).t:bgd[i][a:col*t:mapw+1 :]
+		endfor
+	en
+	let t:txb.depth[a:col]=newd
 	let t:txb.map[a:col]={}
 	norm! 1G0
 	let line=search('^'.t:lblmrk.'\zs','Wc')
@@ -1690,7 +1710,7 @@ fun! s:getMapDis()
 			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let t:bgd=map(range(1,t:deepest,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:bgd=map(range(1,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(t:bgd)-1
 	let t:disTxt=repeat([''],t:deepR+1)
 	let t:disClr=copy(t:disTxt)
