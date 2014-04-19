@@ -900,6 +900,7 @@ let txbCmd.D=
 			\call remove(t:gridClr,t_index)\n
 			\call remove(t:gridPos,t_index)\n
 			\let t:txbL=len(t:txb.name)\n
+			\call getMapDis()\n
 		\en\n
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
@@ -931,6 +932,7 @@ let txbCmd.A=
 			\call insert(t:gridClr,{},w:txbi+1)\n
 			\call insert(t:gridPos,{},w:txbi+1)\n
 			\let t:txbL=len(t:txb.name)\n
+			\call getMapDis()\n
 			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
@@ -1141,7 +1143,7 @@ fun! s:mapSplit(col)
 			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],dif))
 			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
 			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
-			call extend(t:disTxt,eval('['.join(repeat(["''"],dif),',').']'))
+			call extend(t:disTxt,copy(t:bgd[-dif:]))
 			let t:deepR=newdR
 		en
 		let t:deepest=newd
