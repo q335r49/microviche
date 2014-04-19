@@ -1137,7 +1137,11 @@ fun! s:mapSplit(col)
 	let curdR=t:txb.depth[a:col]/t:gran
 	if newd>t:deepest
 		if newdR>t:deepR
-			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],newdR-t:deepR))
+			let dif=newdR-t:deepR
+			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],dif))
+			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
+			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
+			call extend(t:disTxt,eval('['.join(repeat(["''"],dif),',').']'))
 			let t:deepR=newdR
 		en
 		let t:deepest=newd
@@ -1151,7 +1155,6 @@ fun! s:mapSplit(col)
 			let t:bgd[i]=t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
 	en
-	exe PRINT('t:deepest')
 	let t:txb.depth[a:col]=newd
 	let t:txb.map[a:col]={}
 	norm! 1G0
@@ -1606,7 +1609,7 @@ fun! s:nav(N,L)
 				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'rightb vert '.(winwidth(0)-t:txb.size[w:txbi]-1).'split '.t:paths[nextcol]
+				exe 'rightb '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:paths[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1750,7 +1753,6 @@ fun! s:getMapDis()
 	endfor
 	let t:bgd=map(range(1,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(t:bgd)-1
-	exe PRINT('t:deepR|len(t:bgd)|t:bgd|t:deepest|t:gran')
 	let t:disTxt=repeat([''],t:deepR+1)
 	let t:disClr=copy(t:disTxt)
 	let t:disIx=copy(t:disTxt)
