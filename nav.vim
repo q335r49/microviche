@@ -1078,7 +1078,7 @@ fun! s:redraw(...)
 		let nextcol=((colb-dif)%t:txbL+t:txbL)%t:txbL
 		for i in range(dif)
 			let nextcol=(nextcol+1)%t:txbL
-			exe 'bot vsp' t:paths[nextcol]
+			exe (t:txbL==1? 'bot vsp' : 'bot vsp '.t:paths[nextcol])
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
