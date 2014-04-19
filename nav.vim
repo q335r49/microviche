@@ -987,7 +987,7 @@ fun! s:goto(sp,ln,...)
 	else
 		exe 'norm! 0'.(doff>0? doff.'zl' : '')
 		call s:redraw()
-		exe (sp-getwinvar(1,'txbi')+1).'wincmd w'
+		exe ((sp-getwinvar(1,'txbi')+1+t:txbL)%t:txbL).'wincmd w'
 		let l0=dln-winheight(0)/2
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
