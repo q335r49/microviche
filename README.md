@@ -1,4 +1,4 @@
-**v1.8.3 Release Notes:** A more efficient but complex mapping algorithm is being used allowing the map to be partially redrawn, greatly increasing the speed of mapping for minor edits. (For example, new labels should show up immediately; future versions will hopefully remove explicit mapping commands altogether.) However, if you experience glitchiness, <samp>:call RefreshMap()</samp> to redraw the whole map (and email me if you can reproduce the bug).
+**v1.8.3 Release Notes:** The new mapping algorithm only redraws the changed parts of the map. If you experience glitchiness, <samp>:call RefreshMap()</samp> to redraw the whole map (and email me if you can reproduce the bug).
 
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
@@ -13,10 +13,9 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
-<kbd>o</kbd> | open map || <kbd>A</kbd> <kbd>D</kbd> | append / delete split
-<kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>r</kbd> | redraw
-<kbd>L</kbd> | insert "[marker]lnum" || <kbd>ctrl</kbd>+<kbd>x</kbd> | delete hidden buffers
-<kbd>q</kbd> <kbd>esc</kbd> | quit || <kbd>m</kbd> <kbd>M</kbd> | map visible / map all
+<kbd>r</kbd> <kbd>M</kbd> | redraw and remap visible / map all || <kbd>o</kbd> | open map
+<kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
+<kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
 **Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. Displaced labels will be relocated to *lnum*, if provided, by inserting or removing preceding blank lines, and any relocation failures will be highlighted in the map.
 
