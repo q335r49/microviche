@@ -1229,7 +1229,7 @@ fun! s:mapSplit(col)
 	let tomerge={}
 	for r in changed
 		if !has_key(splitLbl,r) 
-			if a:col && t:disTxt[r][a:colIx-1]==#'#'
+			if a:col && t:disTxt[r][colIx-1]==#'#'
 				let prevsp=a:col-1
 				while !has_key(t:gridLbl[prevsp],r)
 					let prevsp-=1
@@ -1275,30 +1275,35 @@ fun! s:mapSplit(col)
 			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
 		en
 	endfor
+	call DebugHere()
 	for r in keys(tomerge)
 		let t=0
 		while t:disIx[r][t]<tomerge[r][0][0]
 			let t+=1
 		endwhile
-		if t:disIx[r][t]>tomerge[r][0][0] && tomerge[r][1][1]!=?t:disClr[r][t]
-			call insert(t:disIx[r],tomerge[r][0][0],t)
-			call insert(t:disClr[r],t:disClr[r][t],t)
+		if t:disIx[r][t]>tomerge[r][0][0]
+			if tomerge[r][1][1]!=?t:disClr[r][t]
+				call insert(t:disIx[r],tomerge[r][0][0],t)
+				call insert(t:disClr[r],t:disClr[r][t],t)
+				let t+=1
+			en
+		else
+			let t+=1
 		en
-		let t+=1
 		let t2=1
 		let len=len(tomerge[r][0])
 		while t2<len
-			while t<len(t:disIx[r]) && t:disIx[r][t]<tomerge[r][0][t2]
+			while t:disIx[r][t]<tomerge[r][0][t2]
 				call remove(t:disIx[r],t)
 				call remove(t:disClr[r],t)
 			endwhile
-			if t==len(t:disIx[r])
-				while t2<len
-					if disClr[r][-1]==?tomerge[r][1][t2:]
-						let t:disIx[r][-1]=tomerge[r][0][t2]
+			if t:disIx[r][t]==98989
+				while t2<len && tomerge[r][0][t2]!=98989
+					if get(t:disClr[r],-2,-1)==?tomerge[r][1][t2]
+						let t:disIx[r][-2]=tomerge[r][0][t2]
 					else
-						call add(t:disIx[r],tomerge[r][0][t2 :])
-						call add(t:disClr[r],tomerge[r][1][t2 :])
+						call insert(t:disIx[r],tomerge[r][0][t2],-1)
+						call insert(t:disClr[r],tomerge[r][1][t2],-1)
 					en
 					let t2+=1
 				endw
