@@ -211,8 +211,8 @@ fun! TxbInit(...)
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'index(["label marker","working dir","writefile","split width","autoexe","map cell width","mouse pan speed","lines per map grid"],v:key)!=-1')
-		call s:redraw()
 		call s:getMapDis()
+		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
@@ -896,6 +896,9 @@ let txbCmd.D=
 			\call remove(t:txb.size,t_index)\n
 			\call remove(t:txb.exe,t_index)\n
 			\call remove(t:txb.map,t_index)\n
+			\call remove(t:gridLbl,t_index)\n
+			\call remove(t:gridClr,t_index)\n
+			\call remove(t:gridPos,t_index)\n
 			\let t:txbL=len(t:txb.name)\n
 		\en\n
 		\winc W\n
@@ -924,6 +927,9 @@ let txbCmd.A=
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\call insert(t:txb.map,{},w:txbi+1)\n
 			\call insert(t:txb.depth,100,w:txbi+1)\n
+			\call insert(t:gridLbl,{},w:txbi+1)\n
+			\call insert(t:gridClr,{},w:txbi+1)\n
+			\call insert(t:gridPos,{},w:txbi+1)\n
 			\let t:txbL=len(t:txb.name)\n
 			\call s:redraw()\n
 		\en\n
@@ -1132,18 +1138,20 @@ fun! s:mapSplit(col)
 	if newd>t:deepest
 		if newdR>t:deepR
 			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],newdR-t:deepR))
+			let t:deepR=newdR
 		en
 		let t:deepest=newd
 	en
 	if newdR>curdR
 		for i in range(curdR+1,newdR)
-			let t:bgd[i]=t:bgd[i][:colIx-1].repeat(' ',t:mapw).t:bgd[i][colIx+t:mapw :]
+			let t:bgd[i]=t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :]
 		endfor
 	elseif newdR<curdR
 		for i in range(newdR+1,curdR)
 			let t:bgd[i]=t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
 	en
+	exe PRINT('t:deepest')
 	let t:txb.depth[a:col]=newd
 	let t:txb.map[a:col]={}
 	norm! 1G0
@@ -1274,7 +1282,6 @@ fun! s:mapSplit(col)
 			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
 		en
 	endfor
-	call DebugHere()
 	for r in keys(tomerge)
 		let t=0
 		while t:disIx[r][t]<tomerge[r][0][0]
@@ -1743,6 +1750,7 @@ fun! s:getMapDis()
 	endfor
 	let t:bgd=map(range(1,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(t:bgd)-1
+	exe PRINT('t:deepR|len(t:bgd)|t:bgd|t:deepest|t:gran')
 	let t:disTxt=repeat([''],t:deepR+1)
 	let t:disClr=copy(t:disTxt)
 	let t:disIx=copy(t:disTxt)
