@@ -1268,7 +1268,7 @@ fun! s:mapSplit(col)
 			let nextsp+=1
 		endwhile
 		let end=nextsp==t:txbL? 98989 : t:mapw*nextsp
-		if !has_key(t:gridLbl[beginc],r) && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell
+		if begin && !has_key(t:gridLbl[beginc],r) && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell
 			let begint=begin-1
 			let text='#'.text
 		else
