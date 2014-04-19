@@ -1,3 +1,5 @@
+**1.8.3 introduces a more efficient but more complex mapping algorithm where the map can be partially redrawn, greatly increasing the speed of mapping for minor edits. (For example, new labels should show up immediately; future versions will remove explicit mapping.) However, if you experience glitchiness, <samp>:call RefreshMap()</samp> to redraw the whole map (and email me if you can reproduce the bug).**
+
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
