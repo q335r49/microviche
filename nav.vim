@@ -1169,17 +1169,15 @@ fun! s:mapSplit(col)
 		if lnum!=0
 			let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []
 			if lnum<line
-				let deletions=line-lnum
 				if prevnonblank(line-1)>=lnum
 					let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
 				else
-					exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')
+					exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')
 				en
-				let line=line('.')
 			elseif lnum>line
 				exe 'norm! '.(lnum-line)."O\ej"
-				let line=line('.')
 			en
+			let line=line('.')
 		else
 			let lbl=split(L[col('.'):],'#',1)
 		en
@@ -1341,34 +1339,32 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? Thi
 		\let view=winsaveview()\n
 		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
 			\exe 'e' t:paths[i]\n 
-			\let t:txb.depth[a:col]=line('$')\n
-			\let t:txb.map[a:col]={}\n
-			\norm! 1G0\n
-			\let line=search('^'.t:lblmrk,'Wc')\n
+			\let t:txb.depth[i]=line('$')\n
+			\let t:txb.map[i]={}\n
+			\exe 'norm! 1G0'\n
+			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
 			\while line\n
-				\let L=getline('.')[t:lblmrklen :]\n
-				\let lref=matchstr(L,'^\\d*')\n
-				\if !empty(lref)\n
-					\let lbl=L[len(lref)]==':'? split(L[len(lref)+2:],'#',1) : []\n
-					\if lref<line\n
-						\let deletions=line-lref\n
-						\if prevnonblank(line-1)>=lref\n
+				\let L=getline('.')\n
+				\let lnum=strpart(L,col('.')-1,6)\n
+				\if lnum!=0\n
+					\let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []\n
+					\if lnum<line\n
+						\if prevnonblank(line-1)>=lnum\n
 							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
 						\else\n
-							\exe 'norm! kd'.(deletions==1? 'd' : (deletions-1).'k')\n
+							\exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')\n
 						\en\n
-						\let line=line('.')\n
-					\elseif lref>line\n
-						\exe 'norm! '.(lref-line).'O\ej'\n
-						\let line=line('.')\n
+					\elseif lnum>line\n
+						\exe 'norm! '.(lnum-line).'O\ej'\n
 					\en\n
+					\let line=line('.')\n
 				\else\n
-					\let lbl=split(L[1: ],'#',1)\n
+					\let lbl=split(L[col('.'):],'#',1)\n
 				\en\n
 				\if !empty(lbl) && !empty(lbl[0])\n
-					\let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]\n
+					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
 				\en\n
-				\let line=search('^'.t:lblmrk,'W')\n
+				\let line=search('^'.t:lblmrk.'\\zs','W')\n
 			\endwhile\n
 		\endfor\n
 		\exe 'e' t:paths[curwin]\n 
