@@ -932,7 +932,7 @@ let txbCmd.A=
 			\call insert(t:gridClr,{},w:txbi+1)\n
 			\call insert(t:gridPos,{},w:txbi+1)\n
 			\let t:txbL=len(t:txb.name)\n
-			\call getMapDis()\n
+			\call s:getMapDis()\n
 			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
@@ -1141,20 +1141,22 @@ fun! s:mapSplit(col)
 		if newdR>t:deepR
 			let dif=newdR-t:deepR
 			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],dif))
+			for i in range(curdR+1,newdR)
+				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
+			endfor
 			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
 			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
-			call extend(t:disTxt,copy(t:bgd[-dif:]))
+			call extend(t:disTxt,copy(t:bgd[-dif :]))
 			let t:deepR=newdR
 		en
 		let t:deepest=newd
-	en
-	if newdR>curdR
+	elseif newdR>curdR
 		for i in range(curdR+1,newdR)
-			let t:bgd[i]=t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :]
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
 		endfor
 	elseif newdR<curdR
 		for i in range(newdR+1,curdR)
-			let t:bgd[i]=t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :] : repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
 	en
 	let t:txb.depth[a:col]=newd
