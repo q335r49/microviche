@@ -1133,6 +1133,7 @@ let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='(redraw complete)'"
 
 fun! s:mapSplit(col)
 	let blankcell=repeat(' ',t:mapw)
+	let negcell=repeat('.',t:mapw)
 	let colIx=a:col*t:mapw
 	let newd=line('$')
 	let newdR=newd/t:gran
@@ -1160,7 +1161,7 @@ fun! s:mapSplit(col)
 		let depthChanged=range(curdR+1,newdR)
 	elseif newdR<curdR
 		for i in range(newdR+1,curdR)
-			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :] : repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
 		endfor
 		let depthChanged=range(newdR+1,curdR)
 	else
@@ -1288,7 +1289,7 @@ fun! s:mapSplit(col)
 			let nextsp+=1
 		endwhile
 		let end=nextsp==t:txbL? 98989 : t:mapw*nextsp
-		if begin && !has_key(t:gridLbl[beginc],r) && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell
+		if begin && !has_key(t:gridLbl[beginc],r) && (r<=curdR && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell || r>curdR && t:disTxt[r][begin : begin+t:mapw-1]!=negcell)
 			let begint=begin-1
 			let text='#'.text
 		else
