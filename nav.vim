@@ -1144,20 +1144,27 @@ fun! s:mapSplit(col)
 			for i in range(curdR+1,newdR)
 				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
 			endfor
+			let depthChanged=range(curdR+1,newdR)
 			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
 			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
 			call extend(t:disTxt,copy(t:bgd[-dif :]))
 			let t:deepR=newdR
+		else
+			let depthChanged=[]
 		en
 		let t:deepest=newd
 	elseif newdR>curdR
 		for i in range(curdR+1,newdR)
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
 		endfor
+		let depthChanged=range(curdR+1,newdR)
 	elseif newdR<curdR
 		for i in range(newdR+1,curdR)
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :] : repeat('.',t:mapw).t:bgd[i][colIx+t:mapw :]
 		endfor
+		let depthChanged=range(newdR+1,curdR)
+	else
+		let depthChanged=[]
 	en
 	let t:txb.depth[a:col]=newd
 	let t:txb.map[a:col]={}
@@ -1228,29 +1235,40 @@ fun! s:mapSplit(col)
 			let splitClr[pos[1]]=t:txb.map[pos[0]][splitPos[pos[1]][0]][1]
 		en
 	endfor
-	let changed=keys(splitLbl)
+	let changed=copy(splitClr)
 	for i in keys(t:gridLbl[a:col])
 		if has_key(splitLbl,i)
 			if splitLbl[i]==#t:gridLbl[a:col][i] && splitClr[i]==t:gridClr[a:col][i] 
-				call remove(changed,index(changed,i))
+				unlet changed[i]
 			en
 		else
-			call add(changed,i)
+			let changed[i]=''
 		en
 	endfor
+	for i in depthChanged
+		let changed[i]=-1
+	endfor
 	let tomerge={}
-	for r in changed
+	for r in keys(changed)
 		if !has_key(splitLbl,r) 
-			if a:col && t:disTxt[r][colIx-1]==#'#'
+			if a:col && (t:disTxt[r][colIx-1]==#'#' || changed[i]==-1)
 				let prevsp=a:col-1
-				while !has_key(t:gridLbl[prevsp],r)
+				while !has_key(t:gridLbl[prevsp],r) && prevsp>=0
 					let prevsp-=1
 				endw
-				let begin=t:mapw*prevsp
-				let text=t:gridLbl[prevsp][r][0]
-				let l=len(text)
-				let textc=t:gridClr[prevsp][r]
-				let beginc=prevsp
+				if prevsp!=-1
+					let begin=t:mapw*prevsp
+					let text=t:gridLbl[prevsp][r][0]
+					let l=len(text)
+					let textc=t:gridClr[prevsp][r]
+					let beginc=prevsp
+				else
+					let begin=0
+					let text=''
+					let l=0
+					let textc=''
+					let beginc=0
+				en
 			else
 				let begin=t:mapw*a:col
 				let text=''
