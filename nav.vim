@@ -932,8 +932,8 @@ let txbCmd.A=
 			\call insert(t:gridClr,{},w:txbi+1)\n
 			\call insert(t:gridPos,{},w:txbi+1)\n
 			\let t:txbL=len(t:txb.name)\n
+			\call s:redraw(1)\n
 			\call s:getMapDis()\n
-			\call s:redraw()\n
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
