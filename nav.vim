@@ -900,7 +900,7 @@ let txbCmd.D=
 			\call remove(t:gridClr,t_index)\n
 			\call remove(t:gridPos,t_index)\n
 			\let t:txbL=len(t:txb.name)\n
-			\call getMapDis()\n
+			\call s:getMapDis()\n
 		\en\n
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
