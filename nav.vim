@@ -119,15 +119,12 @@ fun! TxbInit(...)
 			if !has_key(plane.settings,i)
 				let plane.settings[i]=minimal[i]
 			else
-				let cursor=0
-				let vals=[1]
-				let smsg=''
 				unlet! input
 				let input=plane.settings[i]
-				silent! exe get(s:ErrorCheck,i,['',''])[1]
-				if !empty(smsg)
+				silent! exe get(s:ErrorCheck,i,['','let errorcode=0'])[1]
+				if errorcode isnot 0
 					let plane.settings[i]=minimal[i]
-					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".smsg
+					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".errorcode
 				en
 			en
 		endfor
@@ -221,8 +218,8 @@ fun! TxbInit(...)
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
-		let t_dict=['##label##',g:TXB_HOTKEY,'##label##',plane.settings['working dir']]
-		if s:settingsPager(['    -- Global --','hotkey','    -- Plane --','working dir'],t_dict,s:ErrorCheck)
+		let t_dict={'    -- Global --':'##label##','hotkey':g:TXB_HOTKEY,'    -- Plane --':'##label##','working dir':plane.settings['working dir']}
+		if s:settingsPager(t_dict,['    -- Global --','hotkey','    -- Plane --','working dir'],s:ErrorCheck)==2
 			echo "\nApplying Settings ..."
 			sleep 200m
 			echon "."
@@ -230,13 +227,13 @@ fun! TxbInit(...)
 			echon "."
 			sleep 200m
 			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict[1] ':call TxbKey("init")<cr>'
-			let g:TXB_HOTKEY=t_dict[1]
+			exe 'nn <silent>' t_dict.hotkey ':call TxbKey("init")<cr>'
+			let g:TXB_HOTKEY=t_dict.hotkey
 			if !a0 && exists('g:TXB') && type(g:TXB)==4
-				let g:TXB.settings['working dir']=fnamemodify(t_dict[3],'p:')
+				let g:TXB.settings['working dir']=fnamemodify(t_dict['woring dir'],'p:')
 				call TxbInit()
 			else
-				let plane.settings['working dir']=fnamemodify(t_dict[3],'p:')
+				let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
 				let plane.name=plane_name_save
 				call TxbInit(plane)
 			en
@@ -471,36 +468,35 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 let txbCmd.S="if !exists('w:txbi')\n
-	\let [settings_names,settings_values]=[['hotkey'],[g:TXB_HOTKEY]]\n
-	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
+	\let settings={'hotkey':g:TXB_HOTKEY}\n
+	\if s:settingsPager(settings,['hotkey'],s:ErrorCheck)==2\n
 		\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
 			\exe 'silent! nunmap' g:TXB_HOTKEY\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[0] ':call TxbKey(\"init\")<cr>'\n
-		\let g:TXB_HOTKEY=settings_values[0]\n
+		\exe 'nn <silent>' settings['hotkey'] ':call TxbKey(\"init\")<cr>'\n
+		\let g:TXB_HOTKEY=settings['hotkey']\n
 	\en\n
 	\let s:kc_continue=''\n
 \else\n
-	\let settings_names=range(14)\n
-	\let settings_values=range(14)\n
-	\let [settings_names[0],settings_values[0]]=['    -- Global --','##label##']\n
-	\let [settings_names[1],settings_values[1]]=['hotkey',g:TXB_HOTKEY]\n
-	\let [settings_names[2],settings_values[2]]=['    -- Plane --','##label##']\n
-	\let [settings_names[3],settings_values[3]]=['split width',has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])<=1? t:txb.settings['split width'] : 60]\n
-	\let [settings_names[4],settings_values[4]]=['autoexe',has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)<=1? t:txb.settings.autoexe : 'se nowrap scb cole=2']\n
-	\let [settings_names[5],settings_values[5]]=['mouse pan speed',has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]]\n
-	\let [settings_names[6],settings_values[6]]=['lines per map grid',has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45]\n
-	\let [settings_names[7],settings_values[7]]=['map cell width',has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5]\n
-	\let [settings_names[8],settings_values[8]]=['working dir',has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : '']\n
-	\let [settings_names[9],settings_values[9]]=['label marker',has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : '']\n
-	\let [settings_names[10],settings_values[10]]=['    -- Split '.w:txbi.' --','##label##']\n
-	\let [settings_names[11],settings_values[11]]=['current width',get(t:txb.size,w:txbi,60)]\n
-	\let [settings_names[12],settings_values[12]]=['current autoexe',get(t:txb.exe,w:txbi,'se nowrap scb cole=2')]\n
-	\let [settings_names[13],settings_values[13]]=['current file',get(t:txb.name,w:txbi,'')]\n
-	\let prevVal=deepcopy(settings_values)\n
-	\if s:settingsPager(settings_names,settings_values,s:ErrorCheck)\n
+	\let settings={}
+	\let settings['    -- Global --']='##label##'\n
+	\let settings.hotkey=g:TXB_HOTKEY\n
+	\let settings['    -- Plane --']='##label##'\n
+	\let settings['split width']=has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])<=1? t:txb.settings['split width'] : 60\n
+	\let settings.autoexe=has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)<=1? t:txb.settings.autoexe : 'se nowrap scb cole=2'\n
+	\let settings['mouse pan speed']=has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]\n
+	\let settings['lines per map grid']=has_key(t:txb.settings,'lines per map grid') && type(t:txb.settings['lines per map grid'])<=1? t:txb.settings['lines per map grid'] : 45\n
+	\let settings['map cell width']=has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5\n
+	\let settings['working dir']=has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : ''\n
+	\let settings['label marker']=has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : ''\n
+	\let settings['    -- Split '.w:txbi.' --']='##label##'\n
+	\let settings['current width']=get(t:txb.size,w:txbi,60)\n
+	\let settings['current autoexe']=get(t:txb.exe,w:txbi,'se nowrap scb cole=2')\n
+	\let settings['current file']=get(t:txb.name,w:txbi,'')\n
+	\let prevVal=deepcopy(settings)\n
+	\if s:settingsPager(settings,['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:ErrorCheck)\n
 		\echohl MoreMsg\n
 		\let s:kc_continue='Settings saved! '\n
 		\if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
@@ -508,16 +504,16 @@ let txbCmd.S="if !exists('w:txbi')\n
 		\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
 			\silent! nunmap <f10>\n
 		\en\n
-		\exe 'nn <silent>' settings_values[1] ':call TxbKey(\"init\")<cr>'\n
-		\let g:TXB_HOTKEY=settings_values[1]\n
-		\let t:txb.size[w:txbi]=settings_values[11]\n
-		\let t:txb.exe[w:txbi]=settings_values[12]\n
-		\if !empty(settings_values[13]) && settings_values[13]!=prevVal[13]\n
+		\exe 'nn <silent>' settings.hotkey ':call TxbKey(\"init\")<cr>'\n
+		\let g:TXB_HOTKEY=settings.hotkey\n
+		\let t:txb.size[w:txbi]=settings['current width']\n
+		\let t:txb.exe[w:txbi]=settings['current autoexe']\n
+		\if !empty(settings[current file']) && settings['current file']!=prevVal['current file']\n
 			\let t:paths[w:txbi]=s:sp_newfname[0]\n
 			\let t:txb.name[w:txbi]=s:sp_newfname[1]\n
 		\en\n
-		\let t:txb.settings['split width']=settings_values[3]\n
-			\if prevVal[3]!=#t:txb.settings['split width']\n
+		\let t:txb.settings['split width']=settings['split width']\n
+			\if prevVal['split width']!=#t:txb.settings['split width']\n
 				\if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 					\let t:txb.size=repeat([t:txb.settings['split width']],len(t:txb.name))\n
 					\let s:kc_continue.='(Current splits resized) '\n
@@ -525,8 +521,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 					\let s:kc_continue.='(Only appended splits will inherit split width) '\n
 				\en\n
 			\en\n
-		\let t:txb.settings['autoexe']=settings_values[4]\n
-			\if prevVal[4]!=#t:txb.settings.autoexe\n
+		\let t:txb.settings['autoexe']=settings['autoexe']\n
+			\if prevVal['autoexe']!=#t:txb.settings.autoexe\n
 				\if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 					\let t:txb.exe=repeat([t:txb.settings.autoexe],len(t:txb.name))\n
 					\let s:kc_continue.='(Autoexe settings applied to current splits)'\n
@@ -534,16 +530,16 @@ let txbCmd.S="if !exists('w:txbi')\n
 					\let s:kc_continue.='(Only appended splits will inherit new autoexe) '\n
 				\en\n
 			\en\n
-		\let t:txb.settings['mouse pan speed']=settings_values[5]\n
-			\let t:msSp=settings_values[5]\n
-		\if t:txb.settings['lines per map grid']!=settings_values[6] || t:txb.settings['map cell width']!=settings_values[7]\n
-			\let t:txb.settings['lines per map grid']=settings_values[6]\n
-			\let t:gran=settings_values[6]\n
-			\let t:txb.settings['map cell width']=settings_values[7]\n
-			\let t:mapw=settings_values[7]\n
+		\let t:txb.settings['mouse pan speed']=settings['mouse pan speed']\n
+			\let t:msSp=settings['mouse pan speed']\n
+		\if t:txb.settings['lines per map grid']!=settings['lines per map grid'] || t:txb.settings['map cell width']!=settings['map cell width']\n
+			\let t:txb.settings['lines per map grid']=settings['lines per map grid']\n
+			\let t:gran=settings['lines per map grid']\n
+			\let t:txb.settings['map cell width']=settings['map cell width']\n
+			\let t:mapw=settings['map cell width']\n
 			\call s:getMapDis()\n
 		\en\n
-		\if !empty(settings_values[8]) && settings_values[8]!=t:txb.settings['working dir']\n
+		\if !empty(settings['working dir']) && settings['working dir']!=t:txb.settings['working dir']\n
 			\let wd_msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3; cancel at any time) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
@@ -558,8 +554,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 							\exe 'cd' fnameescape(t:wdir)\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
-						\let t:txb.settings['working dir']=settings_values[8]\n
-						\let t:wdir=settings_values[8]\n
+						\let t:txb.settings['working dir']=settings['working dir']\n
+						\let t:wdir=settings['working dir']\n
 						\exe 'cd' fnameescape(t:wdir)\n
 						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
@@ -569,8 +565,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 			\en\n
 			\let s:kc_continue.=wd_msg\n
 		\en\n
-		\let t:txb.settings['label marker']=settings_values[9]\n
-			\let t:lblmrk=settings_values[9]\n
+		\let t:txb.settings['label marker']=settings['label marker']\n
+			\let t:lblmrk=settings['label marker']\n
 		\echohl NONE\n
 		\call s:redraw()\n
 	\else\n
@@ -579,55 +575,57 @@ let txbCmd.S="if !exists('w:txbi')\n
 \en"
 
 let s:sp_pos=[0,0]
-fun! s:settingsPager(keys,vals,errorcheck)
+fun! s:settingsPager(dict,order,errorcheck)
 	let settings=[&more,&ch]
-	let continue=1
-	let smsg=''
-	let vals=deepcopy(a:vals)
-	let len=len(a:keys)
+	let exitcode=0
+	let errorcode=0
+	let vals=deepcopy(a:dict)
+	let len=len(a:order)
 	let [&more,&ch]=[0,len<8? len+3 : 11]
 	let cursor=s:sp_pos[0]<0? 0 : s:sp_pos[0]>=len? len-1 : s:sp_pos[0]
 	let height=&ch>3? &ch-3 : 1
 	let offset=s:sp_pos[1]<0? 0 : s:sp_pos[1]>len-height? (len-height>=0? len-height : 0) : s:sp_pos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	echohl MoreMsg
-	while continue
+	while !exitcode
 		redr!
 		echo 'Change Settings: [j] up [k] down [g] top [G] bottom [c]hange [S]ave [q]uit [D]efault'
 		for i in range(offset,offset+height-1)
 			if i==cursor
 				echohl Visual
-				if vals[i] isnot '##label##'
-					echo a:keys[i] ':' vals[i]
+				if vals[a:order[i]] isnot '##label##'
+					echo a:order[i] ':' vals[a:order[i]]
 				else
-					echo a:keys[i]
+					echo a:order[i]
 				en
 			elseif i<len
-				if vals[i] isnot '##label##'
+				if vals[a:order[i]] isnot '##label##'
 					echohl NONE
-					echo a:keys[i] ':' vals[i]
+					echo a:order[i] ':' vals[a:order[i]]
 				else
 					echohl Title
-					echo a:keys[i]
+					echo a:order[i]
 				en
 			en
 		endfor
-		if !empty(smsg)
+		if errorcode isnot 0
 			echohl WarningMsg
-			echo smsg
+			echo errorcode
 			echohl
 		else
 			echohl MoreMsg
-			echo get(a:errorcheck,a:keys[cursor],'')[2]
+			echo a:errorcheck[a:order[cursor]][2]
 		en
-		let smsg=''
 		let input=''
 		let c=getchar()
 		exe get(s:sp_exe,c,'')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 		if !empty(input)
-			exe get(a:errorcheck,a:keys[cursor],[0,'let vals[cursor]=input'])[1]
+			exe a:errorcheck[a:order[cursor]][1]
+			if errorcode is 0
+				let vals[a:order[cursor]]=input
+			en
 		en
 	endwhile
 	let [&more,&ch]=settings
@@ -640,100 +638,69 @@ let s:sp_exe={}
 let s:sp_exe.68=
 	\"echohl WarningMsg|let confirm=input('Restore defaults (y/n)?')|echohl None\n
 	\if confirm==?'y'\n
-		\for k in [1,3,4,5,6,7,9]\n
-			\let vals[k]=get(a:errorcheck,a:keys[k],[vals[k]])[0]\n
+		\for k in ['hotkey','split width','autoexe','mouse pan speed','lines per map grid','map cell width','label marker']\n
+			\let vals[k]=a:errorcheck[k][0]\n
 		\endfor\n
-		\for k in [8,11,12,13]\n
+		\for k in ['working dir','current width','current autoexe','current file']\n
 			\let vals[k]=prevVal[k]\n
 		\endfor\n
 	\en"
-let s:sp_exe.113="let continue=0|let exitcode=0"
+let s:sp_exe.113="let exitcode=1"
 let s:sp_exe.106='let cursor+=1'
 let s:sp_exe.107='let cursor-=1'
 let s:sp_exe.103='let cursor=0'
 let s:sp_exe.71='let cursor=len-1'
 let s:sp_exe.99=
-	\"if a:keys[cursor]==?'current file'\n
+	\"unlet! input\n
+	\if a:order[cursor]==?'current file'\n
 		\let prevwd=getcwd()\n
 		\exe 'cd' fnameescape(t:wdir)\n
-		\let input=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
+		\let input=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')\n
 		\let s:sp_newfname=[fnameescape(fnamemodify(input,':p')),input]\n
 		\exe 'cd' fnameescape(prevwd)\n
-	\elseif a:keys[cursor]==?'working dir'\n
-		\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]),'file')\n
-	\elseif vals[cursor] isnot '##label##'\n
-		\let input=input('Enter new value: ',type(vals[cursor])==1? vals[cursor] : string(vals[cursor]))\n
+	\elseif a:order[cursor]==?'working dir'\n
+		\let input=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')\n
+	\elseif vals[a:order[cursor]] isnot '##label##'\n
+		\let input=input('Enter new value: ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]))\n
 	\en\n"
 let s:sp_exe.83=
-	\"for i in range(len)\n
-		\let a:vals[i]=vals[i]\n
+	\"for i in keys(a:dict)\n
+		\let a:dict[i]=vals[i]\n
 	\endfor\n
-	\let continue=0\n
-	\let exitcode=1"
+	\let exitcode=2"
 let s:sp_exe.27=s:sp_exe.113
 
 let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb:','let vals[cursor]=input','(Default ''txb:'') Regex is allowed. Details: labels are found via search(''^''.labelmark)']
-let s:ErrorCheck['working dir']=['~',
-	\"if isdirectory(input)\n
-		\let vals[cursor]=fnamemodify(input,':p')\n
-	\else\n
-		\let smsg.='Error: Not a valid directory'\n
-	\en",'for files in plane with relative paths']
-let s:ErrorCheck['current file']=['','let vals[cursor]=input','file associated with this split']
-let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let vals[cursor]=input','command when current split is unhidden']
+let s:ErrorCheck['label marker']=['txb:','let errorcode=0','(Default ''txb:'') Regex is allowed; labels are found via search(''^''.labelmark)']
+let s:ErrorCheck['working dir']=['~',"let [errorcode, input]=isdirectory(input)? [0,fnamemodify(input,':p')] : ['Error: Not a valid directory',input]",'Directory for relative paths']
+let s:ErrorCheck['current file']=['','let errorcode=0','File associated with this split']
+let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let errorcode=0','Command when current split is revealed']
 let s:ErrorCheck['current width']=[60,
-	\"let input=str2nr(input)|if input<=2\n
-		\let smsg.='Error: current split width must be > 2'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'width of current split']
+	\"let input=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Current split width must be > 2'",'Width of current split']
 let s:ErrorCheck['split width']=[60,
-	\"let input=str2nr(input)|if input<=2\n
-		\let smsg.='Error: default split width must be > 2'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'default width for new splits; [c]hange value and [S]ave for the option to apply to current splits']
-let s:ErrorCheck.hotkey=['<f10>',"let vals[cursor]=input","For example: <f10>, <c-v> (ctrl-v), vx (v then x). WARNING: If the hotkey becomes inaccessible, evoke ':call TxbKey(\"S\")'"]
-let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let vals[cursor]=input",'default command on unhide for new splits; [c]hange and [S]ave for the option to apply to current splits']
+	\"let input=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Default split width must be > 2'",'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits']
+let s:ErrorCheck.hotkey=['<f10>',"let errorcode=0","Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, ':call TxbKey(\"S\")'"]
+let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let errorcode=0",'Default command on unhide for new splits; [c]hange and [S]ave for prompt to apply to current splits']
 let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
-	\"unlet! inList\n
-	\if type(input)==3\n
-		\let inList=input\n
-	\elseif type(input)==1\n
+	\"if type(input)==1\n
 		\try\n
-			\let inList=eval(input)\n
+			\let input=eval(input)\n
 		\catch\n
-			\let inList=''\n
+			\let input=''\n
 		\endtry\n
 	\else\n
-		\let inList=''\n
+		\let input=''\n
 	\en\n
-	\if type(inList)!=3\n
-		\let smsg.='Error: mouse pan speed must evaluate to a list'\n
-	\elseif empty(inList)\n
-		\let smsg.='list must be non-empty'\n
-	\elseif inList[0]\n
-		\let smsg.='Error: first element of mouse speed list must be 0'\n
-	\elseif eval(join(map(copy(inList),'v:val<0'),'+'))\n
-		\let smsg.='Error: mouse speed list must be non-negative'\n
-	\else\n
-		\let vals[cursor]=copy(inList)\n
-	\en",'for every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
+	\let errorcode=type(inList)!=3? 'Mouse pan speed must evaluate to a list' : empty(inList)? 'List must be non-empty' : inList[0]? 'First element of mouse speed list must be 0' : eval(join(map(copy(inList),'v:val<0'),'+'))?  'Mouse speed list must be non-negative' : 0",
+	\'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
 let s:ErrorCheck['lines per map grid']=[45,
-	\"let input=str2nr(input)\n
-	\if input<=0\n
-		\let smsg.='Error: lines per map grid must be > 0'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'Each map grid is 1 split and this many lines']
+	\"let modified=str2nr(input)\n
+	\let errorcode=input>0? 0 : 'Error: lines per map grid must be > 0'",'Each map grid is 1 split and this many lines']
 let s:ErrorCheck['map cell width']=[5,
-	\"let input=str2nr(input)\n
-	\if input<1\n
-		\let smsg.='Error: map cell width must be >= 1'\n
-	\else\n
-		\let vals[cursor]=input\n
-	\en",'number >= 1']
+	\"let modified=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Error: map cell width must be > 2'",'number >= 1']
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
