@@ -1,4 +1,4 @@
-**v1.8.3 Release Notes:** The new mapping algorithm only redraws the changed parts of the map. If you experience glitchiness, <samp>:call RefreshMap()</samp> to redraw the whole map (and email me if you can reproduce the bug).
+**_v1.8.3 notes:_** *The new mapping algorithm only updates the changed parts of the map. If you experience glitches, <samp>:call RefreshMap()</samp> to redraw (and email me if you can reproduce it).*
 
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
@@ -8,7 +8,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - (Only necessary when first creating a plane) Switch to the *working directory* via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Usage
+####Basic Navigation
 Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
@@ -17,12 +17,13 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
 <kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
-**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. Displaced labels will be relocated to *lnum*, if provided, by inserting or removing preceding blank lines, and any relocation failures will be displayed in the map.
+####Mapping
+Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. During remapping (with <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, or <kbd>M</kbd>) displaced labels will be relocated to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 
-The label syntax is: <samp>marker(lnum)(:)( label#highlght# ignored text)</samp>. Some examples:  
-&nbsp;&nbsp;&nbsp;txb:345 blah blah → just move to 345  
-&nbsp;&nbsp;&nbsp;txb:345<b>:</b> Intro#Search → move to 345: label <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;txb: Intro## blah blah (or just txb: Intro) → just label <q>Intro</q>
+The syntax is "<samp>marker(lnum)(:)( label#highlght# ignored text)</samp>", but it's easier to look at some examples:  
+&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just move to 345*  
+&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- move to 345: label <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah</samp> (or just <samp>txb: Intro</samp>)&nbsp;&nbsp; *- just label <q>Intro</q>*
 
 <kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
 
