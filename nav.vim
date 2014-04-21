@@ -111,7 +111,12 @@ fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
-	let defaults={'writefile':'','label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let defaults={}
+    for i in keys(s:ErrorCheck)
+		if s:ErrorCheck[i][3]
+			let defaults[i]==ErrorCheck[i][0]
+		en
+	endfor
 	if !exists('plane.settings')
 		let plane.settings=defaults
 	else
@@ -467,6 +472,39 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
+let s:ErrorCheck={}
+let s:ErrorCheck['writefile']=['','let errorcode=type(input)==1? 0 : 'Writefile must be string','Default settings save file.',1]
+let s:ErrorCheck['label marker']=['txb:','let errorcode=0','(Default ''txb:'') Regex is allowed; labels are found via search(''^''.labelmark)',1]
+let s:ErrorCheck['working dir']=['~',"let [errorcode, input]=isdirectory(input)? [0,fnamemodify(input,':p')] : ['Error: Not a valid directory',input]",'Directory for relative paths',1]
+let s:ErrorCheck['current file']=['','let errorcode=0','File associated with this split',0]
+let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let errorcode=0','Command when current split is revealed',0]
+let s:ErrorCheck['current width']=[60,
+	\"let input=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Current split width must be > 2'",'Width of current split',0]
+let s:ErrorCheck['split width']=[60,
+	\"let input=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Default split width must be > 2'",'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits',1]
+let s:ErrorCheck.hotkey=['<f10>',"let errorcode=0","Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, ':call TxbKey(\"S\")'",0]
+let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let errorcode=0",'Default command on unhide for new splits; [c]hange and [S]ave for prompt to apply to current splits',1]
+let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
+	\"if type(input)==1\n
+		\try\n
+			\let input=eval(input)\n
+		\catch\n
+			\let input=''\n
+		\endtry\n
+	\else\n
+		\let input=''\n
+	\en\n
+	\let errorcode=type(inList)!=3? 'Mouse pan speed must evaluate to a list' : empty(inList)? 'List must be non-empty' : inList[0]? 'First element of mouse speed list must be 0' : eval(join(map(copy(inList),'v:val<0'),'+'))?  'Mouse speed list must be non-negative' : 0",
+	\'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)',1]
+let s:ErrorCheck['lines per map grid']=[45,
+	\"let modified=str2nr(input)\n
+	\let errorcode=input>0? 0 : 'Error: lines per map grid must be > 0'",'Each map grid is 1 split and this many lines',1]
+let s:ErrorCheck['map cell width']=[5,
+	\"let modified=str2nr(input)\n
+	\let errorcode=input>2? 0 : 'Error: map cell width must be > 2'",'number >= 1',1]
+
 let txbCmd.S="if !exists('w:txbi')\n
 	\let settings={'hotkey':g:TXB_HOTKEY}\n
 	\if s:settingsPager(settings,['hotkey'],s:ErrorCheck)==2\n
@@ -480,10 +518,8 @@ let txbCmd.S="if !exists('w:txbi')\n
 	\en\n
 	\let s:kc_continue=''\n
 \else\n
-	\let settings={}
-	\let settings['    -- Global --']='##label##'\n
+	\let settings={'    -- Global --':'##label##','    -- Plane --':'##label##','    -- Split '.w:txbi.' --':'##label##'}
 	\let settings.hotkey=g:TXB_HOTKEY\n
-	\let settings['    -- Plane --']='##label##'\n
 	\let settings['split width']=has_key(t:txb.settings,'split width') && type(t:txb.settings['split width'])<=1? t:txb.settings['split width'] : 60\n
 	\let settings.autoexe=has_key(t:txb.settings,'autoexe') && type(t:txb.settings.autoexe)<=1? t:txb.settings.autoexe : 'se nowrap scb cole=2'\n
 	\let settings['mouse pan speed']=has_key(t:txb.settings,'mouse pan speed') && type(t:txb.settings['mouse pan speed'])==3? copy(t:txb.settings['mouse pan speed']) : [0,1,2,4,7,10,15,21,24,27]\n
@@ -491,7 +527,6 @@ let txbCmd.S="if !exists('w:txbi')\n
 	\let settings['map cell width']=has_key(t:txb.settings,'map cell width') && type(t:txb.settings['map cell width'])<=1? t:txb.settings['map cell width'] : 5\n
 	\let settings['working dir']=has_key(t:txb.settings,'working dir') && type(t:txb.settings['working dir'])==1? t:txb.settings['working dir'] : ''\n
 	\let settings['label marker']=has_key(t:txb.settings,'label marker') && type(t:txb.settings['label marker'])==1? t:txb.settings['label marker'] : ''\n
-	\let settings['    -- Split '.w:txbi.' --']='##label##'\n
 	\let settings['current width']=get(t:txb.size,w:txbi,60)\n
 	\let settings['current autoexe']=get(t:txb.exe,w:txbi,'se nowrap scb cole=2')\n
 	\let settings['current file']=get(t:txb.name,w:txbi,'')\n
@@ -669,38 +704,6 @@ let s:sp_exe.83=
 	\endfor\n
 	\let exitcode=2"
 let s:sp_exe.27=s:sp_exe.113
-
-let s:ErrorCheck={}
-let s:ErrorCheck['label marker']=['txb:','let errorcode=0','(Default ''txb:'') Regex is allowed; labels are found via search(''^''.labelmark)']
-let s:ErrorCheck['working dir']=['~',"let [errorcode, input]=isdirectory(input)? [0,fnamemodify(input,':p')] : ['Error: Not a valid directory',input]",'Directory for relative paths']
-let s:ErrorCheck['current file']=['','let errorcode=0','File associated with this split']
-let s:ErrorCheck['current autoexe']=['se nowrap scb cole=2','let errorcode=0','Command when current split is revealed']
-let s:ErrorCheck['current width']=[60,
-	\"let input=str2nr(input)\n
-	\let errorcode=input>2? 0 : 'Current split width must be > 2'",'Width of current split']
-let s:ErrorCheck['split width']=[60,
-	\"let input=str2nr(input)\n
-	\let errorcode=input>2? 0 : 'Default split width must be > 2'",'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits']
-let s:ErrorCheck.hotkey=['<f10>',"let errorcode=0","Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, ':call TxbKey(\"S\")'"]
-let s:ErrorCheck.autoexe=['se nowrap scb cole=2',"let errorcode=0",'Default command on unhide for new splits; [c]hange and [S]ave for prompt to apply to current splits']
-let s:ErrorCheck['mouse pan speed']=[[0,1,2,4,7,10,15,21,24,27],
-	\"if type(input)==1\n
-		\try\n
-			\let input=eval(input)\n
-		\catch\n
-			\let input=''\n
-		\endtry\n
-	\else\n
-		\let input=''\n
-	\en\n
-	\let errorcode=type(inList)!=3? 'Mouse pan speed must evaluate to a list' : empty(inList)? 'List must be non-empty' : inList[0]? 'First element of mouse speed list must be 0' : eval(join(map(copy(inList),'v:val<0'),'+'))?  'Mouse speed list must be non-negative' : 0",
-	\'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)']
-let s:ErrorCheck['lines per map grid']=[45,
-	\"let modified=str2nr(input)\n
-	\let errorcode=input>0? 0 : 'Error: lines per map grid must be > 0'",'Each map grid is 1 split and this many lines']
-let s:ErrorCheck['map cell width']=[5,
-	\"let modified=str2nr(input)\n
-	\let errorcode=input>2? 0 : 'Error: map cell width must be > 2'",'number >= 1']
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
