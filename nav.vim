@@ -64,28 +64,33 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8! (github.com/q335r49/microviche)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\n\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
+	\\n\n\\CSTARTUP AND NAVIGATION:\n
+	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
 	\\nOnce loaded, use the MOUSE to pan, or press [hotkey] followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
-	\\n    r                    redraw and remap visible splits
-	\\n    o                    Open map
-	\\n    M                   	Map all
-	\\n    L                    insert '[label marker][lnum]'
+	\\n    r                    Redraw and remap visible splits
+	\\n    o                    Remap visible and open map
+	\\n    M                    Map all
+	\\n    L                    Insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n *  S                    Settings
 	\\n    W                    Write to file
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n *  If [hotkey] becomes inaccessible, :call TxbKey('S')
-	\\n\nLABELS are lines that start with a label marker (default txb:) and specify a line number, a map label, or both. [hotkey][m] will use labels to map all visible splits. Furthermore, displaced labels will be relocated to lnum (if provided) by inserting or removing preceding blank lines; any relocation failures will be highlighted in the map.
-	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored).\n
-	\\nExamples: (Note the ':' when both lnum and label are provided):
+	\\n *  If [hotkey] becomes inaccessible, :call TxbKey('S') to set.
+	\\n\n\\CLABELING:\n
+	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with [hotkey][o], [r], or [M]) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
+	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored)
+	\\nEXAMPLES:
 	\\n    txb:345 bla bla        Just move to 345
-	\\n    txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
+	\\n *  txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
 	\\n    txb: Intro             Just label 'Intro'
 	\\n    txb: Intro##bla bla    Just label 'Intro'
-	\\n\nPress [hotkey][o] to map the visible region and open the MAP:
+	\\n----------
+	\\n*   Note the ':' separator when both lnum and label are given
+	\\n\n\\CMAP NAVIGATION:\n
+	\\nTo remap the visbile region and view the map, press [hotkey][o]:
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view

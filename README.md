@@ -13,11 +13,11 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
-<kbd>r</kbd> <kbd>M</kbd> | redraw & remap visible / all || <kbd>o</kbd> | open map
+<kbd>r</kbd> <kbd>M</kbd> | redraw & remap visible / all || <kbd>o</kbd> | map visible & open map
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
 <kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
-**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. Displaced labels will be relocated to *lnum*, if provided, by inserting or removing preceding blank lines, and any relocation failures will be highlighted in the map.
+**Labels** are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. Displaced labels will be relocated to *lnum*, if provided, by inserting or removing preceding blank lines, and any relocation failures will be displayed in the map.
 
 The label syntax is: <samp>marker(lnum)(:)( label#highlght# ignored text)</samp>. Some examples:  
 &nbsp;&nbsp;&nbsp;txb:345 blah blah → just move to 345  
