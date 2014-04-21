@@ -1861,7 +1861,7 @@ fun! s:disMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
 	if b<xe
-		let selection=get(t:gridLbl[s:mC],s:mR,[repeat(' ',t:mapw)])
+		let selection=get(t:gridLbl[s:mC],s:mR,[t:bgd[s:mR][b : b+t:mapw-1]])
 		let sele=s:mR+len(selection)-1
 		let truncb=b>=s:mCoff? 0 : s:mCoff-b
 		let trunce=truncb+xe-b

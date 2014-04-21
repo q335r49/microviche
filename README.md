@@ -28,11 +28,11 @@ The syntax is "<samp>marker(lnum)(:)( label#highlght#ignored)</samp>", but let's
 ####Map navigation
 <kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
 
-<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> | | <kbd>f1</kbd> | help
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help
 :---: | :---: | :---: | :---: | :---:
-<kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan <sup>(takes count)</sup> || <kbd>q</kbd> <kbd>esc</kbd> | quit
+<kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan <sup>(takes count)</sup> || <kbd>z</kbd> | zoom
 <kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
- <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>z</kbd> | zoom
+ <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
 ####Tips
 - When there are **labeling conflicts**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd>, in order of priority, will be shown, eg, <q>txb:321: !Important</q>
