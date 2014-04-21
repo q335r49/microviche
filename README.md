@@ -8,7 +8,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - (Only necessary when first creating a plane) Switch to the *working directory* via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Basic Commands
+####Basic commands
 Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
@@ -34,7 +34,7 @@ The syntax is "<samp>marker(lnum)(:)( label#highlght#ignored)</samp>", but let's
 <kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
  <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>z</kbd> | zoom
 
-#### Tips
+####Tips
 - When there are **labeling conflicts**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd>, in order of priority, will be shown, eg, <q>txb:321: !Important</q>
 - **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize. [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great Windows setup.
 - To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→<kbd>S</kbd>ave→apply all
