@@ -111,19 +111,19 @@ fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
-	let minimal={'writefile':'','label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
+	let defaults={'writefile':'','label marker':'txb:','working dir':getcwd(),'map cell width':5,'split width':60,'autoexe':'se nowrap scb cole=2','mouse pan speed':[0,1,2,4,7,10,15,21,24,27],'lines per map grid':45}
 	if !exists('plane.settings')
-		let plane.settings=minimal
+		let plane.settings=defaults
 	else
-		for i in keys(minimal)
+		for i in keys(defaults)
 			if !has_key(plane.settings,i)
-				let plane.settings[i]=minimal[i]
+				let plane.settings[i]=defaults[i]
 			else
 				unlet! input
 				let input=plane.settings[i]
 				silent! exe get(s:ErrorCheck,i,['','let errorcode=0'])[1]
 				if errorcode isnot 0
-					let plane.settings[i]=minimal[i]
+					let plane.settings[i]=defaults[i]
 					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".errorcode
 				en
 			en
@@ -212,7 +212,7 @@ fun! TxbInit(...)
 		let t:wdir=t:txb.settings['working dir']
 		let t:paths=abs_paths
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'has_key(minimal,v:key)')
+		call filter(t:txb.settings,'has_key(defaults,v:key)')
 		call s:getMapDis()
 		call s:redraw()
 	elseif c is "\<f1>"
