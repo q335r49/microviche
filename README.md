@@ -1,46 +1,41 @@
+**_v1.8.3 notes:_** *The new mapping algorithm only updates the changed parts of the map. If you experience glitches, <samp>:call RefreshMap()</samp> to redraw (and email me if you can reproduce it).*
+
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
 
 ####Startup
-- **[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open **[Vim](http://www.vim.org)**, and <samp>:source [downloads]/nav.vim</samp>
-- (Only necessary when first creating a plane) Switch to the **working directory** via <samp>:cd [dir]</samp> 
-- Evoke a file prompt with `F10`: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
+- [Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), and <samp>:source [downloads]/nav.vim</samp>
+- (Only necessary when first creating a plane) Switch to the *working directory* via <samp>:cd [dir]</samp> 
+- Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Usage
-Once loaded, pan with the **mouse** or by pressing `F10` followed by a key command
+####Basic Navigation
+Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
-Key | Action | | Key | Action
------ | ----- | --- | --- | ---
-`h``j``k``l``y``u``b``n` | ←↓↑→↖↗↙↘ (takes count) || `r` | redraw
-`F1` | help and warnings ||`A` `D` | append / delete split
-`drag` topleft | view map || `o` `O`| view map / remap and view
-`W` | Write plane to file || `S` | settings
-`L` | insert <samp>txb:lnum</samp> ||`Ctrl-X` | delete hidden buffers
-`q` `esc` | quit || `m` `M` | map visible / map all
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
+:---: | :---: | :---: | :---: | :---:
+<kbd>r</kbd> <kbd>M</kbd> | redraw & remap visible / all || <kbd>o</kbd> | map visible & open map
+<kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
+<kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
-**Map labels** start with [label marker], default <samp>txb:</samp>, and provide a line number, a label, a color, or all three. The general syntax is:
+####Mapping
+Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. During remapping (with <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, or <kbd>M</kbd>) displaced labels will be relocated to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 
-<samp>[label marker][lnum][:][ label[#highlght[#ignored]]]</samp>
+The syntax is "<samp>marker(lnum)(:)( label#highlght# ignored text)</samp>", but it's easier to look at some examples:  
+&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just move to 345*  
+&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- move to 345: label <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah</samp> (or just <samp>txb: Intro</samp>)&nbsp;&nbsp; *- just label <q>Intro</q>*
 
-Press `f10``m` to **map visible splits**. Displaced labels will be relocated to <samp>lnum</samp>, if provided, by inserting or removing preceding blank lines. If relocation fails the label will be highlighted <samp>ErrorMsg</samp>. Some examples:
-- <samp>txb:345 blah blah</samp> - just move to 345
-- <samp>txb:345: Intro#Search</samp> - move to 345, label *Intro*, highlight *Search*  
-(Note the `:`, needed only when both <samp>lnum</samp> and <samp>label</samp> are provided.)
-- <samp>txb: Intro##blah blah</samp> or <samp>txb: Intro</samp> - just label *Intro*
+<kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
 
-Once mapped, press `F10``o` to **view the map**:
-
-Key | Action | | Key | Action
---- | --- | --- | --- | ---
-`click`  `2click` | select / goto block || `h``j``k``l`|←↓↑→ (takes count)
-`drag` | pan || `y``u``b``n` | ↖↗↙↘ (takes count)
-`click` topleft | exit map || `H``J``K``L`` | pan ←↓↑→ (takes count)
-`F1` | help and warnings || `Y``U``B``N` | pan ↖↗↙↘ (takes count)
-`g` `enter` | goto label || `c` | center cursor
-`q` `esc` | quit || `z` | zoom
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> | | <kbd>f1</kbd> | help
+:---: | :---: | :---: | :---: | :---:
+<kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan <sup>(takes count)</sup> || <kbd>q</kbd> <kbd>esc</kbd> | quit
+<kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
+ <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>z</kbd> | zoom
 
 #### Tips
-- When there are **many labels for one map line**, the one prepended with: `!``"``$``%``&``'``(``)``*``+``,``-``.``/` (in order of priority) will be shown.
-- **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize (resizing occurs too frequently), . [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great setup for Windows.
-- To **turn off scrollbinding**: `F10``S`ettings → `c`hange <samp>autoexe</samp> to <samp>se </samp>**<samp>no</samp>**<samp>wrap noscb cole=2</samp> → `S`ave → `y` at 'apply to all' prompt.
-- If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for `S`ettings.
+- When there are **many labels for one map line**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd>, in order of priority, will be shown, eg, <q>txb:321: !Important</q>
+- **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize. [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great Windows setup.
+- To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→<kbd>S</kbd>ave→apply all
+- **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)
+- If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
