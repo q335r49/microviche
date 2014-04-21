@@ -1,7 +1,7 @@
 **_v1.8.3 notes:_** *The new mapping algorithm only updates the changed parts of the map. If you experience glitches, <samp>:call RefreshMap()</samp> to redraw (and email me if you can reproduce it).*
 
 #microViche
-microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](http://www.youtube.com/watch?v=xkED6Mv_4bc)**!
+microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
 ####Startup
 - [Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), and <samp>:source [downloads]/nav.vim</samp>
