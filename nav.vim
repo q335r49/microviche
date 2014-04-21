@@ -1357,8 +1357,8 @@ endfun
 let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
 		\let curwin=w:txbi\n
 		\let view=winsaveview()\n
-		\for i in map(range(1,t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe 'e' t:paths[i]\n 
+		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
+			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
 			\let t:txb.depth[i]=line('$')\n
 			\let t:txb.map[i]={}\n
 			\exe 'norm! 1G0'\n
@@ -1387,7 +1387,7 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? Thi
 				\let line=search('^'.t:lblmrk.'\\zs','W')\n
 			\endwhile\n
 		\endfor\n
-		\exe 'e' t:paths[curwin]\n 
+		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
 		\call winrestview(view)\n
 		\let t:deepest=max(t:txb.depth)\n
 		\call s:getMapDis()\n
