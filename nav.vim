@@ -1252,7 +1252,7 @@ fun! s:mapSplit(col)
 	let tomerge={}
 	for r in keys(changed)
 		if !has_key(splitLbl,r) 
-			if a:col && (t:disTxt[r][colIx-1]==#'#' || changed[i]==-1)
+			if a:col && (t:disTxt[r][colIx-1]==#'#' || changed[r]==-1)
 				let prevsp=a:col-1
 				while !has_key(t:gridLbl[prevsp],r) && prevsp>=0
 					let prevsp-=1
@@ -1289,7 +1289,8 @@ fun! s:mapSplit(col)
 			let nextsp+=1
 		endwhile
 		let end=nextsp==t:txbL? 98989 : t:mapw*nextsp
-		if begin && !has_key(t:gridLbl[beginc],r) && (r<=curdR && t:disTxt[r][begin : begin+t:mapw-1]!=blankcell || r>curdR && t:disTxt[r][begin : begin+t:mapw-1]!=negcell)
+		let prevContents=t:disTxt[r][begin : begin+t:mapw-1]
+		if begin && !has_key(t:gridLbl[beginc],r) && prevContents!=blankcell && prevContents!=negcell
 			let begint=begin-1
 			let text='#'.text
 		else
@@ -1297,13 +1298,13 @@ fun! s:mapSplit(col)
 		en
 		if !l
 			let tomerge[r]=[[begin,end],[0,'']]
-			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').t:bgd[r][begint : end-1].t:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').t:bgd[r][begint : end-1].t:disTxt[r][end :]
 		elseif l>=end-begin
 			let tomerge[r]=[[begin,end],[0,textc]]
-			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text[:end-begint-1].'#'.t:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').text[:end-begint-2].'#'.t:disTxt[r][end :]
 		else
 			let tomerge[r]=[[begin,begin+l,end],[0,textc,'']]
-			let t:disTxt[r]=(begint? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
+			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
 		en
 	endfor
 	for r in keys(tomerge)
@@ -1770,7 +1771,7 @@ fun! s:getMapDis()
 			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
 		en
 	endfor
-	let t:bgd=map(range(1,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+	let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
 	let t:deepR=len(t:bgd)-1
 	let t:disTxt=repeat([''],t:deepR+1)
 	let t:disClr=copy(t:disTxt)
@@ -2087,4 +2088,3 @@ let s:mExe["\<bs>"]   =s:mExe.K
 delf s:SID
 
 let RefreshMap=function('s:getMapDis')
-let MS=function('s:mapSplit')
