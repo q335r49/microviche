@@ -112,10 +112,8 @@ fun! TxbInit(...)
 	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let defaults={}
-    for i in keys(s:optatt)
-		if s:optatt[i].init isnot 0
-			let defaults[i]==eval(s:optatt[i].default)
-		en
+    for i in filter(keys(s:optatt),'s:optatt[v:val].required')
+		let defaults[i]==eval(s:optatt[i].default)
 	endfor
 	if !exists('plane.settings')
 		let plane.settings=defaults
@@ -124,8 +122,8 @@ fun! TxbInit(...)
 			if !has_key(plane.settings,i)
 				let plane.settings[i]=defaults[i]
 			else
-				unlet! input
-				let input=plane.settings[i]
+				unlet! arg
+				let arg=plane.settings[i]
 				silent! exe s:optatt[i].echeck
 				if emsg isnot 0
 					let plane.settings[i]=defaults[i]
@@ -212,7 +210,7 @@ fun! TxbInit(...)
 		let t:deepest=max(t:txb.depth)
 		let t:paths=abs_paths
 		for i in keys(t:txb.settings)
-			exe s:optatt[i].init
+			exe s:optatt[i].apply
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
@@ -221,27 +219,15 @@ fun! TxbInit(...)
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
-		let t_dict={'hotkey':g:TXB_HOTKEY,'working dir':plane.settings['working dir']}
-		if s:settingsPager(t_dict,['    -- Global --','hotkey','    -- Plane --','working dir'],s:optatt)==2
-			echo "\nApplying Settings ..."
-			sleep 200m
-			echon "."
-			sleep 200m
-			echon "."
-			sleep 200m
-			exe 'silent! nunmap' g:TXB_HOTKEY
-			exe 'nn <silent>' t_dict.hotkey ':call TxbKey("init")<cr>'
-			let g:TXB_HOTKEY=t_dict.hotkey
-			if !a0 && exists('g:TXB') && type(g:TXB)==4
-				let g:TXB.settings['working dir']=fnamemodify(t_dict['woring dir'],'p:')
-				call TxbInit()
-			else
-				let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
-				let plane.name=plane_name_save
-				call TxbInit(plane)
-			en
+		if !a0 && exists('g:TXB') && type(g:TXB)==4
+			let g:TXB.settings['working dir']=get(g:TXB.settings,'working dir','')
+			call s:settingsPager(g:TXB.settings,['    -- Global --','hotkey','    -- Plane --','working dir'],s:optatt)
+			call TxbInit()
 		else
-			redr|echo "Cancelled"
+			call s:settingsPager(plane.settings,['    -- Global --','hotkey','    -- Plane --','working dir'],s:optatt)
+			let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
+			let plane.name=plane_name_save
+			call TxbInit(plane)
 		en
 	else
 		let fileinp=input("> Enter file pattern or type HELP: ",'','file')
@@ -600,8 +586,6 @@ let s:optatt={
 				\en\n
 			\en"}}
 
-let txbCmd.S="let s:kc_continue=''|call s:settingsPager(t:txb.settings,!exists('w:txbi')?  ['   -- Global --','hotkey'] : ['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:optatt)"
-
 let s:spPos=[0,0]
 fun! s:settingsPager(dict,order,attr)
 	let settings=[&more,&ch]
@@ -722,6 +706,8 @@ let s:spExe={68: "let key=a:order[cursor]\n
 	\107: 'let cursor-=1',
 	\103: 'let cursor=0',
 	\71:  'let cursor=len-1'}
+
+let txbCmd.S="let s:kc_continue=''|call s:settingsPager(t:txb.settings,!exists('w:txbi')?  ['   -- Global --','hotkey'] : ['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:optatt)"
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
