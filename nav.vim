@@ -113,7 +113,9 @@ fun! TxbInit(...)
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let defaults={}
     for i in filter(keys(s:optatt),'s:optatt[v:val].required')
-		let defaults[i]==eval(s:optatt[i].default)
+		unlet! arg
+		exe s:optatt[i].getDef
+		let defaults[i]==arg
 	endfor
 	if !exists('plane.settings')
 		let plane.settings=defaults
@@ -458,19 +460,19 @@ fun! s:formatPar(str,w,pad)
 endfun
 
 " --- Option attributes ---- ( * Required ) --------------------
-" load     * Var name: Load from this var
-" doc      * String: Explanation of setting
-" apply    * Command (in: arg, out: emsg): Apply arg to current setting (only executed when value changed), optionally return a confirmation 'msg'
-" default    Expression: eval(optatt[key].default) is the default value
+" loadk    * Command (out: ret) Load from key into display
+" apply    * Command (in: arg; out: emsg) Apply arg to current setting (only executed when value changed), optionally return a confirmation 'emsg'
+" doc        String: Explanation of setting
+" getDef     Command (out: arg) Load default value into arg
 " echeck     Command (in: arg, out: arg, emsg): Normalize 'input' (eg, convert from string to array); return emsg: (number) 0 if no error, (string) message otherwise
-" getInput   Command (out: arg): Get user input when [c]hanged (if not provided, it's just :let input=input('New value: '))
-" required   Bool: If provided and true, ensure that variables named 'load' and 'cc' are never empty (default: empty string)
-" onInit     Command (in: dict): Executed when first loading a plane, to load setting in dict into var
+" getInput   Command (out: arg) Overwrite default (:let arg=input('New value: ') [c]hange behavior
+" required   Bool: If provided and true, ensure that key is always initialized (default: empty string)
+" onInit     Command (in: dict) Executed when first loading a plane; apply setting to initialization routine
 " --------------------------------------------------------------
 let s:optatt={
 	\'autoexe': {'doc': 'Default command on reveal for new splits; [c]hange and [S]ave for prompt to apply to current splits',
-		\'load': 'dict.autoexe',
-		\'default': "'se nowrap scb cole=2'",
+		\'loadk': 'let ret=dict.autoexe',
+		\'getDef': "let arg='se nowrap scb cole=2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([arg],t:txbL)\n
@@ -480,10 +482,10 @@ let s:optatt={
 			\en\n
 			\let dict.autoexe=arg"},
 	\'current autoexe': {'doc': 'Command when current split is revealed',
-		\'load': 't:txb.exe[w:txbi]',
+		\'loadk': 'let ret=t:txb.exe[w:txbi]',
 		\'apply': 'let t:txb.exe[w:txbi]=arg'},
 	\'current file': {'doc': 'File associated with this split',
-		\'load': 't:txb.name[w:txbi]',
+		\'loadk': 'let ret=t:txb.name[w:txbi]',
 		\'getInput':"let prevwd=getcwd()\n
 			\exe 'cd' fnameescape(t:wdir)\n
 			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')\n
@@ -496,12 +498,12 @@ let s:optatt={
 				\exe 'cd' fnameescape(prevwd)\n
 			\en"},
 	\'current width': {'doc': 'Width of current split',
-		\'load': 't:txb.size[w:txbi]',
+		\'loadk': 'let ret=t:txb.size[w:txbi]',
 		\'echeck': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Current split width must be > 2''',
 		\'apply': 'let t:txb.size[w:txbi]=arg'},
 	\'hotkey': {'doc': "Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
-		\'load': 'g:TXB_HOTKEY',
-		\'default': '''<f10>''',
+		\'loadk': 'let ret=g:TXB_HOTKEY',
+		\'getDef': 'let arg=''<f10>''',
 		\'required': 1,
 		\'apply': "if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
 				\exe 'silent! nunmap' g:TXB_HOTKEY\n
@@ -511,30 +513,30 @@ let s:optatt={
 			\exe 'nn <silent>' arg ':call TxbKey(\"init\")<cr>'\n
 			\let g:TXB_HOTKEY=arg"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''; labels are found via search(''^''.labelmark)',
-		\'load': 'dict[''label marker'']',
-		\'default': '''txb:''',
+		\'loadk': 'let ret=dict[''label marker'']',
+		\'getDef': 'let arg=''txb:''',
 		\'required': 1,
 		\'onInit': 'let t:lblmrk=dict["label marker"]',
 		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
 	\'lines per map grid': {'doc': 'Each map grid is 1 split and this many lines',
-		\'load': 'dict[''lines per map grid'']',
-		\'default': '45',
+		\'loadk': 'let ret=dict[''lines per map grid'']',
+		\'getDef': 'let arg=45',
 		\'echeck': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Error: lines per map grid must be > 0''',
 		\'required': 1,
 		\'cc': 't:gran',
 		\'onInit': 'let t:gran=dict["lines per map grid"]',
 		\'apply': 'let dict[''lines per map grid'']=arg|let t:gra=arg|call s:getMapDis()'},
 	\'map cell width': {'doc': 'Width of map column',
-		\'load': 'dict[''map cell width'']',
-		\'default': '5',
+		\'loadk': 'let ret=dict[''map cell width'']',
+		\'getDef': 'let arg=5',
 		\'echeck': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Error: map cell width must be > 2''',
 		\'required': 1,
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
 	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)',
-		\'load': 'copy(dict[''mouse pan speed''])',
-		\'default': '[0,1,2,4,7,10,15,21,24,27]',
+		\'loadk': 'let ret=copy(dict[''mouse pan speed''])',
+		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
 		\'echeck': "try\n
 				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
 			\catch\n
@@ -546,8 +548,8 @@ let s:optatt={
 		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
 		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
 	\'split width': {'doc': 'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits',
-		\'load': 'dict[''split width'']',
-		\'default': '60',
+		\'loadk': 'let ret=dict[''split width'']',
+		\'getDef': 'let arg=60',
 		\'echeck': "let art=str2nr(arg)\nlet emsg=arg>2? 0 : 'Default split width must be > 2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
@@ -558,13 +560,13 @@ let s:optatt={
 			\en\n
 			\let dict[''split width'']=arg"},
 	\'writefile': {'doc': 'Default settings save file',
-		\'load': 'dict[''writefile'']',
+		\'loadk': 'let ret=dict[''writefile'']',
 		\'echeck': 'let emsg=type(arg)==1? 0 : "Writefile must be string"',
 		\'required': 1,
 		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory for relative paths',
-		\'load': 'dict["working dir"]',
-		\'default': 'get(prevVal,"working dir","~")',
+		\'loadk': 'let ret=dict["working dir"]',
+		\'getDef': 'let arg=get(prevVal,"working dir","~")',
 		\'echeck': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Error: Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
@@ -603,12 +605,15 @@ fun! s:settingsPager(dict,order,attr)
 	let height=&ch>3? &ch-3 : 1
 	let offset=s:spPos[1]<0? 0 : s:spPos[1]>len-height? (len-height>=0? len-height : 0) : s:spPos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
-    for key in order
+	let undo={}
+	let disp={}
+    for key in a:order
 		if has_key(a:attr,key)
-			let disp[key]=eval(a:attr[key].load)
+			unlet! ret
+			exe a:attr[key].loadk
+			let disp[key]=ret
 		en
 	endfor
-	let undo={}
 	let emsg=0
 	let exitcode=0
 	while !exitcode
@@ -634,7 +639,7 @@ fun! s:settingsPager(dict,order,attr)
 			echohl
 		else
 			echohl
-			echo a:attr[a:order[cursor]].doc
+			echo get(a:attr[a:order[cursor]],doc,'')
 		en
 		exe get(s:spExe,getchar(),'')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
@@ -646,24 +651,19 @@ fun! s:settingsPager(dict,order,attr)
 	echohl NONE
 	return exitcode
 endfun
+
 let s:spExe={68: "let key=a:order[cursor]\n
-		\if has_key(disp,key) && has_key(a:attr,key) && has_key(a:attr[key],default)\n
+		\if has_key(disp,key) && has_key(a:attr,key) && has_key(a:attr[key],getDef)\n
 			\unlet! arg\n
-			\let arg=eval(a:attr[key].default)\n
+			\exe a:attr[key].getDef\n
 			\exe get(a:attr[key],'echeck','let emsg=0')\n
 			\if emsg is 0\n
 				\if arg!=#disp[key]\n
 					\if !has_key(undo,key)\n
 						\let undo[key]=arg\n
 					\en\n
-					\let disp[key]=arg\n
 					\exe a:attr[key].apply\n
-					\if has_key(a:attr[key],'load')\n
-						\exe 'let' a:attr[key].load '= arg'\n
-					\en\n
-					\if has_key(a:attr[key],'cc')\n
-						\exe 'let' a:attr[key].cc '= arg'\n
-					\en\n
+					\let disp[key]=arg\n
 				\en\n
 			\else\n
 				\let emsg='Default not loaded: '.emsg
@@ -678,14 +678,8 @@ let s:spExe={68: "let key=a:order[cursor]\n
 			\exe get(a:attr[key],'echeck','let emsg=0')\n
 			\if emsg is 0\n
 				\if arg!=#disp[key]\n
-					\let disp[key]=arg\n
 					\exe a:attr[key].apply\n
-					\if has_key(a:attr[key],'load')\n
-						\exe 'let' a:attr[key].load '= arg'\n
-					\en\n
-					\if has_key(a:attr[key],'cc')\n
-						\exe 'let' a:attr[key].cc '= arg'\n
-					\en\n
+					\let disp[key]=arg\n
 				\en\n
 			\else\n
 				\let emsg='Undo not performed: '.emsg
@@ -699,13 +693,8 @@ let s:spExe={68: "let key=a:order[cursor]\n
 			\exe get(a:attr[key],'getInput','let arg=input(\"Enter new value: \",type(dict[key])==1? dict[key] : string(dict[key]))')\n
 			\exe get(a:attr[key],'echeck','let emsg=0')\n
 			\if arg!=#disp[key] && emsg is 0\n
-				\let disp[key]=arg\n
 				\exe a:attr[key].apply\n
-				\exe 'let' a:attr[key].load '= arg'\n
-				\if has_key(a:attr[key],'cc')\n
-					\exe 'let' a:attr[key].cc '= arg'\n
-				\en\n
-				\exe 'let' disp[key] '= arg'\n
+				\let disp[key]=arg\n
 			\en\n
 		\en",
 	\113: "let exitcode=1",
