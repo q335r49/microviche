@@ -618,12 +618,9 @@ fun! s:settingsPager(dict,entry,attr)
 	let pad=repeat(' ',&columns)
 	let emsg=0
 	let continue=1
-	let title='= Settings =='
-	let title=title.repeat('=',contentw-len(title)-1).' = Description ==============='
 	let settingshelp=s:formatPar('> jkgG:up/down/top/bot c:change U:undo D:default q:quit',helpw,0)
 	while continue
 		redr!
-		echo title
 		let helpstr=get(get(a:attr,get(a:entry,cursor,''),{}),'doc','')
 		if emsg isnot 0
 			let warningmsg=s:formatPar('> '.emsg,helpw,0)
