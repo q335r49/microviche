@@ -224,10 +224,10 @@ fun! TxbInit(...)
 	elseif c is 83
 		if !a0 && exists('g:TXB') && type(g:TXB)==4
 			let g:TXB.settings['working dir']=get(g:TXB.settings,'working dir','')
-			call s:settingsPager(g:TXB.settings,['    -- Global --','hotkey','    -- Plane --','working dir'],s:optatt)
+			call s:settingsPager(g:TXB.settings,['Global','hotkey','Plane','working dir'],s:optatt)
 			call TxbInit()
 		else
-			call s:settingsPager(plane.settings,['    -- Global --','hotkey','    -- Plane --','working dir'],s:optatt)
+			call s:settingsPager(plane.settings,['Global','hotkey','Plane','working dir'],s:optatt)
 			let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
 			let plane.name=plane_name_save
 			call TxbInit(plane)
@@ -600,7 +600,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let dict=a:dict
 	let settings=[&more,&ch]
 	let len=len(a:entry)
-	let [&more,&ch]=[0,len<8? len+3 : 11]
+	let [&more,&ch]=[0,len+3>11? 11 : len+3]
 	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
 	let height=&ch-1
 	let offset=s:spPos[1]<0? 0 : s:spPos[1]>len-height? (len-height>=0? len-height : 0) : s:spPos[1]
@@ -624,19 +624,20 @@ fun! s:settingsPager(dict,entry,attr)
 	while continue
 		redr!
 		echo title
+		let helpstr=get(get(a:attr,get(a:entry,cursor,''),{}),'doc','')
 		if emsg isnot 0
 			let warningmsg=s:formatPar('> '.emsg,helpw,0)
 			let warningmsglen=len(warningmsg)
-			let helpmsg=warningmsg+s:formatPar('> '.get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)+settingshelp
+			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
 		else
 			let warningmsglen=0
-			let helpmsg=s:formatPar('> '.get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)+settingshelp
+			let doclines=(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
 		en
-		let helpmsglen=len(helpmsg)
+		let helpmsglen=len(doclines)
 		for i in range(offset,offset+height-1)
 			if i<len
 				let key=a:entry[i]
-				let line=has_key(disp,key)? key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
+				let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
 			else
 				let key=''
 				let line=' '
@@ -656,11 +657,11 @@ fun! s:settingsPager(dict,entry,attr)
 					echon pad[:contentw-len(line)-1]
 				en
 				if abspos<warningmsglen
-					echohl ErrorMsg
+					echohl WarningMsg
 				else
 					echohl
 				en
-				echon get(helpmsg,abspos,'')
+				echon get(doclines,abspos,'')
 			else
 				echon "\n" line[:&columns-1]
 			en
@@ -715,9 +716,9 @@ unlet s:applySettings
 
 let txbCmd.S="let s:kc_continue=''\n
 	\if exists('w:txbi')\n
-		\call s:settingsPager(t:txb.settings,['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:optatt)\n
+		\call s:settingsPager(t:txb.settings,['Global','hotkey','Plane','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
 	\else\n
-		\call s:settingsPager({},['   -- Global --','hotkey'],s:optatt)\n
+		\call s:settingsPager({},['Global','hotkey'],s:optatt)\n
 	\en"
 
 fun! s:pager(list,start)
