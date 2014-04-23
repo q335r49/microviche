@@ -678,7 +678,11 @@ fun! s:settingsPager(dict,entry,attr)
 	return exitcode
 endfun
 
-let s:applySettings="exe get(a:attr[key],'checkErr','let emsg=0')\n
+let s:applySettings="if empty(arg)\n
+			\let emsg='Input cannot be empty'\n
+		\else\n
+			\exe get(a:attr[key],'checkErr','let emsg=0')\n
+		\en\n
 		\if emsg is 0 && arg!=#disp[key]\n
 			\if !has_key(undo,key)\n
 				\let undo[key]=arg\n
@@ -699,7 +703,7 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 			\let arg=undo[key]\n".s:applySettings,
 	\99: "if has_key(disp,key)\n
 			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(dict[key])==1? dict[key] : string(dict[key]))')\n".s:applySettings,
+			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:applySettings,
 	\113: "let exitcode=1",
 	\27:  "let exitcode=1",
 	\106: 'let cursor+=1',
