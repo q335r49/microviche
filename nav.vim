@@ -614,23 +614,23 @@ fun! s:settingsPager(dict,entry,attr)
 			let disp[key]=ret
 		en
 	endfor
-	let helpw=&columns>80? &columns-40 : &columns/2
-	let contentw=&columns-helpw-2
+	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
 	let pad=repeat(' ',&columns)
 	let emsg=0
 	let exitcode=0
-	let title='= Settings '
-	let title=title.repeat('=',contentw-len(title)).' [jkgG] up/down/top/bottom [c]hange [U]ndo [D]efault [q]uit'
+	let title='= Settings =='
+	let title=title.repeat('=',contentw-len(title)-1).' = Description ==============='
+	let settingshelp=s:formatPar('> jkgG:up/down/top/bot c:change U:undo D:default q:quit',helpw,0)
 	while !exitcode
 		redr!
 		echo title
 		if emsg isnot 0
-			let warningmsg=s:formatPar(emsg,helpw,0)
+			let warningmsg=s:formatPar('> '.emsg,helpw,0)
 			let warningmsglen=len(warningmsg)
-			let helpmsg=warningmsg+s:formatPar(get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)
+			let helpmsg=warningmsg+s:formatPar('> '.get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)+settingshelp
 		else
 			let warningmsglen=0
-			let helpmsg=s:formatPar(get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)
+			let helpmsg=s:formatPar('> '.get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)+settingshelp
 		en
 		let helpmsglen=len(helpmsg)
 		for i in range(offset,offset+height-1)
@@ -646,14 +646,21 @@ fun! s:settingsPager(dict,entry,attr)
 			elseif !has_key(a:attr,key)
 				echohl Title
 			en
-			if i-offset<warningmsglen
-				echon "\n" len(line)>=contentw? line[:contentw-1] : line.pad[:contentw-len(line)-1]
-				echohl WarningMsg
-				echon ' ' get(helpmsg,i-offset,'')
-			elseif i-offset<helpmsglen
-				echon "\n" len(line)>=contentw? line[:contentw-1] : line.pad[:contentw-len(line)-1]
-				echohl Title
-				echon ' ' get(helpmsg,i-offset,'')
+			let abspos=i-offset
+			if abspos<helpmsglen
+				if len(line)>=contentw
+					echon "\n" line[:contentw-1]
+				else
+					echon "\n" line
+					echohl
+					echon pad[:contentw-len(line)-1]
+				en
+				if abspos<warningmsglen
+					echohl ErrorMsg
+				else
+					echohl
+				en
+				echon get(helpmsg,abspos,'')
 			else
 				echon "\n" line[:&columns-1]
 			en
