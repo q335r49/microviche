@@ -518,7 +518,7 @@ let s:optatt={
 		\'required': 1,
 		\'onInit': 'let t:lblmrk=dict["label marker"]',
 		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
-	\'lines per map grid': {'doc': 'Each map grid is 1 split and this many lines',
+	\'lines per map grid': {'doc': 'Lines mapped by each map line',
 		\'loadk': 'let ret=dict[''lines per map grid'']',
 		\'getDef': 'let arg=45',
 		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Lines per map grid must be > 0''',
@@ -534,7 +534,7 @@ let s:optatt={
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
-	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)',
+	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only applies when ttymouse is xterm2 or sgr)',
 		\'loadk': 'let ret=copy(dict[''mouse pan speed''])',
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
 		\'required': 1,
@@ -547,7 +547,7 @@ let s:optatt={
 				\let emsg='String evaluation error'\n
 			\endtry",
 		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
-	\'split width': {'doc': 'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits',
+	\'split width': {'doc': 'Default width for newly appended splits; [c]hange and [S]ave for prompt to apply to current splits',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
 		\'checkErr': "let arg=str2nr(arg)|let emsg=arg>2? 0 : 'Default split width must be > 2'",
@@ -564,7 +564,7 @@ let s:optatt={
 		\'checkErr': 'let emsg=type(arg)==1? 0 : "Writefile must be string"',
 		\'required': 1,
 		\'apply':'let dict[''writefile'']=arg'},
-	\'working dir': {'doc': 'Directory for relative paths',
+	\'working dir': {'doc': 'Directory assumed for loading splits with relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
 		\'getDef': 'let arg="~"',
 		\'checkErr': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
@@ -617,11 +617,11 @@ fun! s:settingsPager(dict,entry,attr)
 	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
 	let pad=repeat(' ',&columns)
 	let emsg=0
-	let exitcode=0
+	let continue=1
 	let title='= Settings =='
 	let title=title.repeat('=',contentw-len(title)-1).' = Description ==============='
 	let settingshelp=s:formatPar('> jkgG:up/down/top/bot c:change U:undo D:default q:quit',helpw,0)
-	while !exitcode
+	while continue
 		redr!
 		echo title
 		if emsg isnot 0
@@ -675,7 +675,6 @@ fun! s:settingsPager(dict,entry,attr)
 	redr
 	let s:spPos=[cursor,offset]
 	echohl
-	return exitcode
 endfun
 
 let s:applySettings="if empty(arg)\n
@@ -704,8 +703,8 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\99: "if has_key(disp,key)\n
 			\unlet! arg\n
 			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:applySettings,
-	\113: "let exitcode=1",
-	\27:  "let exitcode=1",
+	\113: "let continue=0",
+	\27:  "let continue=0",
 	\106: 'let cursor+=1',
 	\107: 'let cursor-=1',
 	\103: 'let cursor=0',
