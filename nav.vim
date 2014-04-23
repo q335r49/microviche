@@ -632,6 +632,7 @@ fun! s:settingsPager(dict,entry,attr)
 		en
 		let helpmsglen=len(doclines)
 		for i in range(offset,offset+height-1)
+			let scrPos=i-offset
 			if i<len
 				let key=a:entry[i]
 				let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
@@ -644,23 +645,25 @@ fun! s:settingsPager(dict,entry,attr)
 			elseif !has_key(a:attr,key)
 				echohl Title
 			en
-			let abspos=i-offset
-			if abspos<helpmsglen
+			if scrPos
+				echon "\n"
+			en
+			if scrPos<helpmsglen
 				if len(line)>=contentw
-					echon "\n" line[:contentw-1]
+					echon line[:contentw-1]
 				else
-					echon "\n" line
+					echon line
 					echohl
 					echon pad[:contentw-len(line)-1]
 				en
-				if abspos<warningmsglen
+				if scrPos<warningmsglen
 					echohl WarningMsg
 				else
 					echohl
 				en
-				echon get(doclines,abspos,'')
+				echon get(doclines,scrPos,'')
 			else
-				echon "\n" line[:&columns-1]
+				echon line[:&columns-1]
 			en
 			echohl
 		endfor
