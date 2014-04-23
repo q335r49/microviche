@@ -552,13 +552,13 @@ let s:optatt={
 		\'getDef': 'let arg=60',
 		\'checkErr': "let arg=str2nr(arg)|let emsg=arg>2? 0 : 'Default split width must be > 2'",
 		\'required': 1,
-		\'apply': "if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
-				\let t:txb.size=repeat([arg],t:txbL))\n
+		\'apply': "if 'y'==?input('Apply new default width to current splits? (y/n)')\n
+				\let t:txb.size=repeat([arg],t:txbL)\n
 				\let emsg='(Current splits resized)'\n
 			\else\n
-				\let emsg='(Only appended splits will inherit split width)'\n
+				\let emsg='(Only appended splits will inherit new width)'\n
 			\en\n
-			\let dict[''split width'']=arg"},
+			\let dict['split width']=arg"},
 	\'writefile': {'doc': 'Default settings save file',
 		\'loadk': 'let ret=dict[''writefile'']',
 		\'checkErr': 'let emsg=type(arg)==1? 0 : "Writefile must be string"',
@@ -602,7 +602,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let len=len(a:entry)
 	let [&more,&ch]=[0,len<8? len+3 : 11]
 	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
-	let height=&ch>3? &ch-3 : 1
+	let height=&ch-1
 	let offset=s:spPos[1]<0? 0 : s:spPos[1]>len-height? (len-height>=0? len-height : 0) : s:spPos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	let undo={}
@@ -614,35 +614,52 @@ fun! s:settingsPager(dict,entry,attr)
 			let disp[key]=ret
 		en
 	endfor
+	let helpw=&columns>80? &columns-40 : &columns/2
+	let contentw=&columns-helpw-2
+	let pad=repeat(' ',&columns)
 	let emsg=0
 	let exitcode=0
+	let title='= Settings '
+	let title=title.repeat('=',contentw-len(title)).' [jkgG] up/down/top/bottom [c]hange [U]ndo [D]efault [q]uit'
 	while !exitcode
 		redr!
-		echo '==== Settings ==== ( [j] up [k] down [g] top [G] bottom [c]hange [U]ndo [D]efault [q]uit ) ===='
+		echo title
+		if emsg isnot 0
+			let warningmsg=s:formatPar(emsg,helpw,0)
+			let warningmsglen=len(warningmsg)
+			let helpmsg=warningmsg+s:formatPar(get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)
+		else
+			let warningmsglen=0
+			let helpmsg=s:formatPar(get(get(a:attr,get(a:entry,cursor,''),{}),'doc',''),helpw,0)
+		en
+		let helpmsglen=len(helpmsg)
 		for i in range(offset,offset+height-1)
-			let key=get(a:entry,i)
+			if i<len
+				let key=a:entry[i]
+				let line=has_key(disp,key)? key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
+			else
+				let key=''
+				let line=' '
+			en
 			if i==cursor
 				echohl Visual
-				echo has_key(disp,key)? key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
-			elseif i<len
-				if has_key(disp,key)
-					echohl
-					echo key ':' (type(disp[key])==1? disp[key] : string(disp[key]))
-				else
-					echohl Title
-					echo key
-				en
+			elseif !has_key(a:attr,key)
+				echohl Title
 			en
+			if i-offset<warningmsglen
+				echon "\n" len(line)>=contentw? line[:contentw-1] : line.pad[:contentw-len(line)-1]
+				echohl WarningMsg
+				echon ' ' get(helpmsg,i-offset,'')
+			elseif i-offset<helpmsglen
+				echon "\n" len(line)>=contentw? line[:contentw-1] : line.pad[:contentw-len(line)-1]
+				echohl Title
+				echon ' ' get(helpmsg,i-offset,'')
+			else
+				echon "\n" line[:&columns-1]
+			en
+			echohl
 		endfor
 		let key=a:entry[cursor]
-		if emsg isnot 0
-			echohl WarningMsg
-			echo emsg
-			echohl
-		else
-			echohl
-			echo get(get(a:attr,key,{}),'doc','')
-		en
 		exe get(s:spExe,getchar(),'')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
@@ -662,23 +679,20 @@ let s:applySettings="exe get(a:attr[key],'checkErr','let emsg=0')\n
 			\exe a:attr[key].apply\n
 			\let disp[key]=arg\n
 		\en\n
-	\en\n"
+	\en"
 let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 			\let emsg='No default defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\exe a:attr[key].getDef\n"
-			\.s:applySettings,
+			\exe a:attr[key].getDef\n".s:applySettings,
 	\85: "if !has_key(disp,key) || !has_key(undo,key)\n
 			\let emsg='No undo defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\let arg=undo[key]\n"
-			\.s:applySettings,
+			\let arg=undo[key]\n".s:applySettings,
 	\99: "if has_key(disp,key)\n
 			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(\"Enter new value: \",type(dict[key])==1? dict[key] : string(dict[key]))')\n"
-			\.s:applySettings,
+			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(dict[key])==1? dict[key] : string(dict[key]))')\n".s:applySettings,
 	\113: "let exitcode=1",
 	\27:  "let exitcode=1",
 	\106: 'let cursor+=1',
@@ -687,7 +701,12 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\71:  'let cursor=len-1'}
 unlet s:applySettings
 
-let txbCmd.S="let s:kc_continue=''|call s:settingsPager(t:txb.settings,!exists('w:txbi')?  ['   -- Global --','hotkey'] : ['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:optatt)"
+let txbCmd.S="let s:kc_continue=''\n
+	\if exists('w:txbi')\n
+		\call s:settingsPager(t:txb.settings,['   -- Global --','hotkey','   -- Plane --','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','   -- Split '.w:txbi.' --','current width','current autoexe','current file'],s:optatt)\n
+	\else\n
+		\call s:settingsPager({},['   -- Global --','hotkey'],s:optatt)\n
+	\en"
 
 fun! s:pager(list,start)
 	if len(a:list)<&lines
