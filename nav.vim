@@ -209,8 +209,9 @@ fun! TxbInit(...)
 		let t:txbL=len(t:txb.name)
 		let t:deepest=max(t:txb.depth)
 		let t:paths=abs_paths
-		for i in keys(t:txb.settings)
-			exe s:optatt[i].apply
+		let dict=t:txb.settings
+		for i in keys(dict)
+			exe get(s:optatt[i].onInit,'')
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
@@ -458,25 +459,26 @@ endfun
 
 " --- Option attributes ---- ( * Required ) --------------------
 " load     * Var name: Load from this var
-" doc      * String: Description of setting
-" apply    * Command (args: arg, return: msg): Apply arg to current setting (only executed when value changed), optionally return a confirmation 'msg'
+" doc      * String: Explanation of setting
+" apply    * Command (in: arg, out: emsg): Apply arg to current setting (only executed when value changed), optionally return a confirmation 'msg'
 " default    Expression: eval(optatt[key].default) is the default value
-" echeck     Command (args: arg, return: arg, emsg): Normalize 'input'; return emsg: (number) 0 if no error, (string) message otherwise
-" getInput   Command (return: arg): Get user input when [c]hange is pressed by user, if not provided, it's just :let input=input('New value: ')
+" echeck     Command (in: arg, out: arg, emsg): Normalize 'input' (eg, convert from string to array); return emsg: (number) 0 if no error, (string) message otherwise
+" getInput   Command (out: arg): Get user input when [c]hanged (if not provided, it's just :let input=input('New value: '))
 " required   Bool: If provided and true, ensure that variables named 'load' and 'cc' are never empty (default: empty string)
+" onInit     Command (in: dict): Executed when first loading a plane, to load setting in dict into var
 " --------------------------------------------------------------
 let s:optatt={
 	\'autoexe': {'doc': 'Default command on reveal for new splits; [c]hange and [S]ave for prompt to apply to current splits',
-		\'load': 'a:dict.autoexe',
+		\'load': 'dict.autoexe',
 		\'default': "'se nowrap scb cole=2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([arg],t:txbL)\n
-				\let msg='(Autoexe settings applied to current splits)'\n
+				\let emsg='(Autoexe settings applied to current splits)'\n
 			\else\n
-				\let msg='(Only appended splits will inherit new autoexe)'\n
+				\let emsg='(Only appended splits will inherit new autoexe)'\n
 			\en\n
-			\let a:dict.autoexe=arg"},
+			\let dict.autoexe=arg"},
 	\'current autoexe': {'doc': 'Command when current split is revealed',
 		\'load': 't:txb.exe[w:txbi]',
 		\'apply': 'let t:txb.exe[w:txbi]=arg'},
@@ -509,26 +511,29 @@ let s:optatt={
 			\exe 'nn <silent>' arg ':call TxbKey(\"init\")<cr>'\n
 			\let g:TXB_HOTKEY=arg"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''; labels are found via search(''^''.labelmark)',
-		\'load': 'a:dict[''label marker'']',
+		\'load': 'dict[''label marker'']',
 		\'default': '''txb:''',
 		\'required': 1,
-		\'apply': 'let a:dict[''label marker'']=arg|let t:lblmrk=arg'},
+		\'onInit': 'let t:lblmrk=dict["label marker"]',
+		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
 	\'lines per map grid': {'doc': 'Each map grid is 1 split and this many lines',
-		\'load': 'a:dict[''lines per map grid'']',
+		\'load': 'dict[''lines per map grid'']',
 		\'default': '45',
 		\'echeck': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Error: lines per map grid must be > 0''',
 		\'required': 1,
 		\'cc': 't:gran',
-		\'apply': 'let a:dict[''lines per map grid'']=arg|let t:gra=arg'},
+		\'onInit': 'let t:gran=dict["lines per map grid"]',
+		\'apply': 'let dict[''lines per map grid'']=arg|let t:gra=arg'},
 	\'map cell width': {'doc': 'Width of map column',
-		\'load': 'a:dict[''map cell width'']',
+		\'load': 'dict[''map cell width'']',
 		\'default': '5',
 		\'echeck': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Error: map cell width must be > 2''',
 		\'required': 1,
 		\'cc': 't:mapw',
-		\'apply': 'let a:dict[''map cell width'']=arg|let t:mapw=arg'},
+		\'onInit': 'let t:mapw=dict["map cell width"]',
+		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg'},
 	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)',
-		\'load': 'copy(a:dict[''mouse pan speed''])',
+		\'load': 'copy(dict[''mouse pan speed''])',
 		\'default': '[0,1,2,4,7,10,15,21,24,27]',
 		\'echeck': "try\n
 				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
@@ -538,31 +543,33 @@ let s:optatt={
 			\endtry\n
 			\let emsg=type(inList)!=3? 'Mouse pan speed must evaluate to a list' : empty(inList)? 'List must be non-empty' : inList[0]? 'First element of mouse speed list must be 0' : eval(join(map(copy(inList),'v:val<0'),'+'))?  'Mouse speed list must be non-negative' : 0",
 		\'required': 1,
-		\'apply': 'let a:dict[''mouse pan speed'']=arg|let t:msSp=arg'},
+		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
+		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
 	\'split width': {'doc': 'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits',
-		\'load': 'a:dict[''split width'']',
+		\'load': 'dict[''split width'']',
 		\'default': '60',
 		\'echeck': "let art=str2nr(arg)\nlet emsg=arg>2? 0 : 'Default split width must be > 2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([arg],t:txbL))\n
-				\let msg='(Current splits resized)'\n
+				\let emsg='(Current splits resized)'\n
 			\else\n
-				\let msg='(Only appended splits will inherit split width)'\n
+				\let emsg='(Only appended splits will inherit split width)'\n
 			\en\n
-			\let a:dict[''split width'']=arg"},
+			\let dict[''split width'']=arg"},
 	\'writefile': {'doc': 'Default settings save file',
-		\'load': 'a:dict[''writefile'']',
+		\'load': 'dict[''writefile'']',
 		\'echeck': 'let emsg=type(arg)==1? 0 : "Writefile must be string"',
 		\'required': 1,
-		\'apply':'let a:dict[''writefile'']=arg'},
+		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory for relative paths',
-		\'load': 'a:dict["working dir"]',
+		\'load': 'dict["working dir"]',
 		\'default': 'get(prevVal,"working dir","~")',
 		\'echeck': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Error: Not a valid directory',arg]",
+		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
 		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')",
-		\'apply': "let msg='(Working dir not changed)'\n
+		\'apply': "let emsg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
 				\if confirm==?'y' || confirm==?'n'\n
@@ -576,18 +583,19 @@ let s:optatt={
 							\exe 'cd' fnameescape(t:wdir)\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
-						\let a:dict['working dir']=arg\n
+						\let dict['working dir']=arg\n
 						\let t:wdir=arg\n
 						\exe 'cd' fnameescape(t:wdir)\n
 						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
-						\let msg='(Working dir changed)'\n
+						\let emsg='(Working dir changed)'\n
 					\en\n
 				\en\n
 			\en"}}
 
 let s:spPos=[0,0]
 fun! s:settingsPager(dict,order,attr)
+	let dict=a:dict
 	let settings=[&more,&ch]
 	let len=len(a:order)
 	let [&more,&ch]=[0,len<8? len+3 : 11]
@@ -688,7 +696,7 @@ let s:spExe={68: "let key=a:order[cursor]\n
 	\99: "let key=a:order[cursor]\n
 		\if has_key(disp,key)\n
 			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(\"Enter new value: \",type(a:dict[key])==1? a:dict[key] : string(a:dict[key]))')\n
+			\exe get(a:attr[key],'getInput','let arg=input(\"Enter new value: \",type(dict[key])==1? dict[key] : string(dict[key]))')\n
 			\exe get(a:attr[key],'echeck','let emsg=0')\n
 			\if arg!=#disp[key] && emsg is 0\n
 				\let disp[key]=arg\n
