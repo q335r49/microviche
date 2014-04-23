@@ -112,10 +112,10 @@ fun! TxbInit(...)
 	let warnings=''
 	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let defaults={}
-    for i in filter(keys(s:optatt),'s:optatt[v:val].required')
+    for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
 		unlet! arg
-		exe s:optatt[i].getDef
-		let defaults[i]==arg
+		exe get(s:optatt[i],'getDef','let arg=""')
+		let defaults[i]=arg
 	endfor
 	if !exists('plane.settings')
 		let plane.settings=defaults
@@ -126,7 +126,7 @@ fun! TxbInit(...)
 			else
 				unlet! arg
 				let arg=plane.settings[i]
-				silent! exe s:optatt[i].checkErr
+				exe get(s:optatt[i],'checkErr','let emsg=0')
 				if emsg isnot 0
 					let plane.settings[i]=defaults[i]
 					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".emsg
@@ -476,7 +476,7 @@ let s:optatt={
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([arg],t:txbL)\n
-				\let emsg='(Autoexe settings applied to current splits)'\n
+				\let emsg='(Autoexe applied to current splits)'\n
 			\else\n
 				\let emsg='(Only appended splits will inherit new autoexe)'\n
 			\en\n
@@ -488,7 +488,7 @@ let s:optatt={
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
 		\'getInput':"let prevwd=getcwd()\n
 			\exe 'cd' fnameescape(t:wdir)\n
-			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')\n
+			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:entry[cursor]])==1? vals[a:entry[cursor]] : string(vals[a:entry[cursor]]),'file')\n
 			\exe 'cd' fnameescape(prevwd)",
 		\'apply': "if !empty(arg)\n
 				\let prevwd=getcwd()\n
@@ -499,7 +499,7 @@ let s:optatt={
 			\en"},
 	\'current width': {'doc': 'Width of current split',
 		\'loadk': 'let ret=t:txb.size[w:txbi]',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Current split width must be > 2''',
+		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Split width must be > 2''',
 		\'apply': 'let t:txb.size[w:txbi]=arg'},
 	\'hotkey': {'doc': "Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
 		\'loadk': 'let ret=g:TXB_HOTKEY',
@@ -521,7 +521,7 @@ let s:optatt={
 	\'lines per map grid': {'doc': 'Each map grid is 1 split and this many lines',
 		\'loadk': 'let ret=dict[''lines per map grid'']',
 		\'getDef': 'let arg=45',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Error: lines per map grid must be > 0''',
+		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Lines per map grid must be > 0''',
 		\'required': 1,
 		\'cc': 't:gran',
 		\'onInit': 'let t:gran=dict["lines per map grid"]',
@@ -529,7 +529,7 @@ let s:optatt={
 	\'map cell width': {'doc': 'Width of map column',
 		\'loadk': 'let ret=dict[''map cell width'']',
 		\'getDef': 'let arg=5',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Error: map cell width must be > 2''',
+		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Map cell width must be > 2''',
 		\'required': 1,
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
@@ -537,20 +537,20 @@ let s:optatt={
 	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works when ttymouse is xterm2 or sgr)',
 		\'loadk': 'let ret=copy(dict[''mouse pan speed''])',
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
-		\'checkErr': "try\n
-				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
-			\catch\n
-				\unlet! arg\n
-				\let arg=''\n
-			\endtry\n
-			\let emsg=type(inList)!=3? 'Mouse pan speed must evaluate to a list' : empty(inList)? 'List must be non-empty' : inList[0]? 'First element of mouse speed list must be 0' : eval(join(map(copy(inList),'v:val<0'),'+'))?  'Mouse speed list must be non-negative' : 0",
 		\'required': 1,
 		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
+		\'checkErr': "try\n
+				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
+				\let emsg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
+			\catch\n
+				\let arg=''\n
+				\let emsg='String evaluation error'\n
+			\endtry",
 		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
 	\'split width': {'doc': 'Default width for new splits; [c]hange and [S]ave for prompt to apply to current splits',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
-		\'checkErr': "let art=str2nr(arg)\nlet emsg=arg>2? 0 : 'Default split width must be > 2'",
+		\'checkErr': "let arg=str2nr(arg)|let emsg=arg>2? 0 : 'Default split width must be > 2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default split width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([arg],t:txbL))\n
@@ -566,11 +566,11 @@ let s:optatt={
 		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory for relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
-		\'getDef': 'let arg=get(prevVal,"working dir","~")',
-		\'checkErr': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Error: Not a valid directory',arg]",
+		\'getDef': 'let arg="~"',
+		\'checkErr': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
-		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:order[cursor]])==1? vals[a:order[cursor]] : string(vals[a:order[cursor]]),'file')",
+		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:entry[cursor]])==1? vals[a:entry[cursor]] : string(vals[a:entry[cursor]]),'file')",
 		\'apply': "let emsg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
@@ -596,10 +596,10 @@ let s:optatt={
 			\en"}}
 
 let s:spPos=[0,0]
-fun! s:settingsPager(dict,order,attr)
+fun! s:settingsPager(dict,entry,attr)
 	let dict=a:dict
 	let settings=[&more,&ch]
-	let len=len(a:order)
+	let len=len(a:entry)
 	let [&more,&ch]=[0,len<8? len+3 : 11]
 	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
 	let height=&ch>3? &ch-3 : 1
@@ -607,7 +607,7 @@ fun! s:settingsPager(dict,order,attr)
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	let undo={}
 	let disp={}
-    for key in a:order
+    for key in a:entry
 		if has_key(a:attr,key)
 			unlet! ret
 			exe a:attr[key].loadk
@@ -618,30 +618,30 @@ fun! s:settingsPager(dict,order,attr)
 	let exitcode=0
 	while !exitcode
 		redr!
-		echo 'Change Settings: [j] up [k] down [g] top [G] bottom [c]hange [U]ndo [D]efault [q]uit'
+		echo '==== Settings ==== ( [j] up [k] down [g] top [G] bottom [c]hange [U]ndo [D]efault [q]uit ) ===='
 		for i in range(offset,offset+height-1)
-			let key=get(order,i)
+			let key=get(a:entry,i)
 			if i==cursor
 				echohl Visual
-				echo has_key(disp,key)? key.' : '.disp[key] : key
+				echo has_key(disp,key)? key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
 			elseif i<len
 				if has_key(disp,key)
 					echohl
-					echo key ':' disp[key]
+					echo key ':' (type(disp[key])==1? disp[key] : string(disp[key]))
 				else
 					echohl Title
 					echo key
 				en
 			en
 		endfor
-		let key=a:order[cursor]
+		let key=a:entry[cursor]
 		if emsg isnot 0
 			echohl WarningMsg
 			echo emsg
 			echohl
 		else
 			echohl
-			echo get(get(a:attr,key,{}),doc,'')
+			echo get(get(a:attr,key,{}),'doc','')
 		en
 		exe get(s:spExe,getchar(),'')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
@@ -650,7 +650,7 @@ fun! s:settingsPager(dict,order,attr)
 	let [&more,&ch]=settings
 	redr
 	let s:spPos=[cursor,offset]
-	echohl NONE
+	echohl
 	return exitcode
 endfun
 
