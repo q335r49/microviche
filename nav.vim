@@ -706,6 +706,8 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\107: 'let cursor-=1',
 	\103: 'let cursor=0',
 	\71:  'let cursor=len-1'}
+let s:spExe.13=s:spExe.99
+let s:spExe.10=s:spExe.99
 unlet s:applySettings
 
 let txbCmd.S="let s:kc_continue=''\n
