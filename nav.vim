@@ -459,16 +459,16 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-"loadk()    ret REQUIRED Load current setting into ret
+"loadk()    ret REQUIRED Get setting and load into ret
 "apply(arg) msg REQUIRED When setting is changed, apply; optionally return str msg
-"doc            (str) What setting does
+"doc            (str) What the setting does
 "getDef()   arg Load default value into arg
 "check(arg) msg Normalize arg (eg convert from str to num) return msg (str if error, else num 0)
 "getInput() arg Overwrite default (let arg=input('New value:')) [c]hange behavior
-"required       (bool) Key should always be initialized (via getDef, '' if undefined)
+"required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined)
 "onInit()       Exe when loading plane
 let s:optatt={
-	\'autoexe': {'doc': 'Default command on reveal for new splits; [c]hange and [S]ave for prompt to apply to current splits',
+	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, [c]hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
 		\'getDef': "let arg='se nowrap scb cole=2'",
 		\'required': 1,
@@ -499,7 +499,7 @@ let s:optatt={
 		\'loadk': 'let ret=t:txb.size[w:txbi]',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Split width must be > 2''',
 		\'apply': 'let t:txb.size[w:txbi]=arg'},
-	\'hotkey': {'doc': "Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
+	\'hotkey': {'doc': "Global hotkey. Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
 		\'required': 1,
@@ -510,7 +510,7 @@ let s:optatt={
 			\en\n
 			\exe 'nn <silent>' arg ':call TxbKey(\"init\")<cr>'\n
 			\let g:TXB_HOTKEY=arg"},
-	\'label marker': {'doc': 'Regex for map marker, default ''txb:''; labels are found via search(''^''.labelmark)',
+	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
 		\'required': 1,
@@ -524,7 +524,7 @@ let s:optatt={
 		\'cc': 't:gran',
 		\'onInit': 'let t:gran=dict["lines per map grid"]',
 		\'apply': 'let dict[''lines per map grid'']=arg|let t:gra=arg|call s:getMapDis()'},
-	\'map cell width': {'doc': 'Width of map column',
+	\'map cell width': {'doc': 'Display width of map column',
 		\'loadk': 'let ret=dict[''map cell width'']',
 		\'getDef': 'let arg=5',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Map cell width must be > 2''',
@@ -532,20 +532,23 @@ let s:optatt={
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
-	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only applies when ttymouse is xterm2 or sgr)',
+	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works in terminal and when ttymouse is xterm2 or sgr)',
 		\'loadk': 'let ret=copy(dict[''mouse pan speed''])',
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
 		\'required': 1,
 		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
 		\'check': "try\n
-				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
+				\if type(arg)==1\n
+					\let temp=eval(arg)\n
+					\unlet! arg\n
+					\let arg=temp\n
+				\en\n
 				\let msg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
 			\catch\n
-				\let arg=''\n
 				\let msg='String evaluation error'\n
 			\endtry",
 		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
-	\'split width': {'doc': 'Default width for newly appended splits; [c]hange and [S]ave for prompt to apply to current splits',
+	\'split width': {'doc': 'Default split width (for appended splits, [c]hange for prompt to resize current splits)',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
 		\'check': "let arg=str2nr(arg)|let msg=arg>2? 0 : 'Default split width must be > 2'",
@@ -562,7 +565,7 @@ let s:optatt={
 		\'check': 'let msg=type(arg)==1? 0 : "Writefile must be string"',
 		\'required': 1,
 		\'apply':'let dict[''writefile'']=arg'},
-	\'working dir': {'doc': 'Directory assumed for loading splits with relative paths',
+	\'working dir': {'doc': 'Directory assumed when loading splits with relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
 		\'getDef': 'let arg="~"',
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
@@ -614,16 +617,16 @@ fun! s:settingsPager(dict,entry,attr)
 	let pad=repeat(' ',&columns)
 	let msg=0
 	let continue=1
-	let settingshelp=s:formatPar('> jkgG:up/down/top/bot c:change U:undo D:default q:quit',helpw,0)
+	let settingshelp=s:formatPar('[jkgG]down/up/bot/top [c]hange [U]ndo [D]efault [q]uit',helpw,0)
 	while continue
 		let helpstr=get(get(a:attr,get(a:entry,cursor,''),{}),'doc','')
 		if msg is 0
 			let warningmsglen=0
-			let doclines=(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
+			let doclines=(empty(helpstr)? [] : s:formatPar(helpstr,helpw,0))+settingshelp
 		else
-			let warningmsg=s:formatPar('> '.msg,helpw,0)
+			let warningmsg=s:formatPar(msg,helpw,0)
 			let warningmsglen=len(warningmsg)
-			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
+			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar(helpstr,helpw,0))+settingshelp
 		en
 		let helpmsglen=len(doclines)
 		redr!
@@ -661,9 +664,9 @@ fun! s:settingsPager(dict,entry,attr)
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
 	endwhile
+	let s:spPos=[cursor,offset]
 	let [&more,&ch]=settings
 	redr
-	let s:spPos=[cursor,offset]
 endfun
 
 let s:applySettings="if empty(arg)\n
@@ -672,9 +675,7 @@ let s:applySettings="if empty(arg)\n
 			\exe get(a:attr[key],'check','let msg=0')\n
 		\en\n
 		\if msg is 0 && arg!=#disp[key]\n
-			\if !has_key(undo,key)\n
-				\let undo[key]=arg\n
-			\en\n
+			\let undo[key]=get(undo,key,arg)\n
 			\exe a:attr[key].apply\n
 			\let disp[key]=arg\n
 		\en\n
