@@ -674,8 +674,8 @@ let s:applySettings="if empty(arg)\n
 		\else\n
 			\exe get(a:attr[key],'check','let msg=0')\n
 		\en\n
-		\if msg is 0 && arg!=#disp[key]\n
-			\let undo[key]=get(undo,key,arg)\n
+		\if (msg is 0) && (arg!=#disp[key])\n
+			\let undo[key]=get(undo,key,disp[key])\n
 			\exe a:attr[key].apply\n
 			\let disp[key]=arg\n
 		\en\n
