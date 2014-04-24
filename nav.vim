@@ -126,10 +126,10 @@ fun! TxbInit(...)
 			else
 				unlet! arg
 				let arg=plane.settings[i]
-				exe get(s:optatt[i],'checkErr','let emsg=0')
-				if emsg isnot 0
+				exe get(s:optatt[i],'check','let msg=0')
+				if msg isnot 0
 					let plane.settings[i]=defaults[i]
-					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".emsg
+					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".msg
 				en
 			en
 		endfor
@@ -459,16 +459,14 @@ fun! s:formatPar(str,w,pad)
 	return ret
 endfun
 
-" --- Option attributes ---- ( * Required ) --------------------
-" loadk    * Command (out: ret) Load from key into display
-" apply    * Command (in: arg; out: emsg) Apply arg to current setting (only executed when value changed), optionally return a confirmation 'emsg'
-" doc        String: Explanation of setting
-" getDef     Command (out: arg) Load default value into arg
-" checkErr   Command (in: arg, out: arg, emsg): Normalize 'input' (eg, convert from string to array); return emsg: (number) 0 if no error, (string) message otherwise
-" getInput   Command (out: arg) Overwrite default (:let arg=input('New value: ') [c]hange behavior
-" required   Bool: If provided and true, ensure that key is always initialized (default: empty string)
-" onInit     Command (in: dict) Executed when first loading a plane; apply setting to initialization routine
-" --------------------------------------------------------------
+"loadk()    ret REQUIRED Load current setting into ret
+"apply(arg) msg REQUIRED When setting is changed, apply; optionally return str msg
+"doc            (str) What setting does
+"getDef()   arg Load default value into arg
+"check(arg) msg Normalize arg (eg convert from str to num) return msg (str if error, else num 0)
+"getInput() arg Overwrite default (let arg=input('New value:')) [c]hange behavior
+"required       (bool) Key should always be initialized (via getDef, '' if undefined)
+"onInit()       Exe when loading plane
 let s:optatt={
 	\'autoexe': {'doc': 'Default command on reveal for new splits; [c]hange and [S]ave for prompt to apply to current splits',
 		\'loadk': 'let ret=dict.autoexe',
@@ -476,9 +474,9 @@ let s:optatt={
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([arg],t:txbL)\n
-				\let emsg='(Autoexe applied to current splits)'\n
+				\let msg='(Autoexe applied to current splits)'\n
 			\else\n
-				\let emsg='(Only appended splits will inherit new autoexe)'\n
+				\let msg='(Only appended splits will inherit new autoexe)'\n
 			\en\n
 			\let dict.autoexe=arg"},
 	\'current autoexe': {'doc': 'Command when current split is revealed',
@@ -499,7 +497,7 @@ let s:optatt={
 			\en"},
 	\'current width': {'doc': 'Width of current split',
 		\'loadk': 'let ret=t:txb.size[w:txbi]',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Split width must be > 2''',
+		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Split width must be > 2''',
 		\'apply': 'let t:txb.size[w:txbi]=arg'},
 	\'hotkey': {'doc': "Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
 		\'loadk': 'let ret=g:TXB_HOTKEY',
@@ -521,7 +519,7 @@ let s:optatt={
 	\'lines per map grid': {'doc': 'Lines mapped by each map line',
 		\'loadk': 'let ret=dict[''lines per map grid'']',
 		\'getDef': 'let arg=45',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>0? 0 : ''Lines per map grid must be > 0''',
+		\'check': 'let arg=str2nr(arg)|let msg=arg>0? 0 : ''Lines per map grid must be > 0''',
 		\'required': 1,
 		\'cc': 't:gran',
 		\'onInit': 'let t:gran=dict["lines per map grid"]',
@@ -529,7 +527,7 @@ let s:optatt={
 	\'map cell width': {'doc': 'Width of map column',
 		\'loadk': 'let ret=dict[''map cell width'']',
 		\'getDef': 'let arg=5',
-		\'checkErr': 'let arg=str2nr(arg)|let emsg=arg>2? 0 : ''Map cell width must be > 2''',
+		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Map cell width must be > 2''',
 		\'required': 1,
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
@@ -539,39 +537,39 @@ let s:optatt={
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
 		\'required': 1,
 		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
-		\'checkErr': "try\n
+		\'check': "try\n
 				\let arg=type(arg)==1? eval(arg) : type(arg)==3? arg : ''\n
-				\let emsg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
+				\let msg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
 			\catch\n
 				\let arg=''\n
-				\let emsg='String evaluation error'\n
+				\let msg='String evaluation error'\n
 			\endtry",
 		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
 	\'split width': {'doc': 'Default width for newly appended splits; [c]hange and [S]ave for prompt to apply to current splits',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
-		\'checkErr': "let arg=str2nr(arg)|let emsg=arg>2? 0 : 'Default split width must be > 2'",
+		\'check': "let arg=str2nr(arg)|let msg=arg>2? 0 : 'Default split width must be > 2'",
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([arg],t:txbL)\n
-				\let emsg='(Current splits resized)'\n
+				\let msg='(Current splits resized)'\n
 			\else\n
-				\let emsg='(Only appended splits will inherit new width)'\n
+				\let msg='(Only appended splits will inherit new width)'\n
 			\en\n
 			\let dict['split width']=arg"},
 	\'writefile': {'doc': 'Default settings save file',
 		\'loadk': 'let ret=dict[''writefile'']',
-		\'checkErr': 'let emsg=type(arg)==1? 0 : "Writefile must be string"',
+		\'check': 'let msg=type(arg)==1? 0 : "Writefile must be string"',
 		\'required': 1,
 		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory assumed for loading splits with relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
 		\'getDef': 'let arg="~"',
-		\'checkErr': "let [emsg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
+		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
 		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:entry[cursor]])==1? vals[a:entry[cursor]] : string(vals[a:entry[cursor]]),'file')",
-		\'apply': "let emsg='(Working dir not changed)'\n
+		\'apply': "let msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
 				\if confirm==?'y' || confirm==?'n'\n
@@ -590,7 +588,7 @@ let s:optatt={
 						\exe 'cd' fnameescape(t:wdir)\n
 						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
 						\exe 'cd' fnameescape(curwd)\n
-						\let emsg='(Working dir changed)'\n
+						\let msg='(Working dir changed)'\n
 					\en\n
 				\en\n
 			\en"}}
@@ -601,45 +599,36 @@ fun! s:settingsPager(dict,entry,attr)
 	let settings=[&more,&ch]
 	let len=len(a:entry)
 	let [&more,&ch]=[0,len+3>11? 11 : len+3]
-	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
 	let height=&ch-1
+	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
 	let offset=s:spPos[1]<0? 0 : s:spPos[1]>len-height? (len-height>=0? len-height : 0) : s:spPos[1]
 	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
 	let undo={}
 	let disp={}
-    for key in a:entry
-		if has_key(a:attr,key)
-			unlet! ret
-			exe a:attr[key].loadk
-			let disp[key]=ret
-		en
+    for key in filter(copy(a:entry),'has_key(a:attr,v:val)')
+		unlet! ret
+		exe a:attr[key].loadk
+		let disp[key]=ret
 	endfor
 	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
 	let pad=repeat(' ',&columns)
-	let emsg=0
+	let msg=0
 	let continue=1
 	let settingshelp=s:formatPar('> jkgG:up/down/top/bot c:change U:undo D:default q:quit',helpw,0)
 	while continue
-		redr!
 		let helpstr=get(get(a:attr,get(a:entry,cursor,''),{}),'doc','')
-		if emsg isnot 0
-			let warningmsg=s:formatPar('> '.emsg,helpw,0)
-			let warningmsglen=len(warningmsg)
-			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
-		else
+		if msg is 0
 			let warningmsglen=0
 			let doclines=(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
+		else
+			let warningmsg=s:formatPar('> '.msg,helpw,0)
+			let warningmsglen=len(warningmsg)
+			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar('> '.helpstr,helpw,0))+settingshelp
 		en
 		let helpmsglen=len(doclines)
-		for i in range(offset,offset+height-1)
-			let scrPos=i-offset
-			if i<len
-				let key=a:entry[i]
-				let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
-			else
-				let key=''
-				let line=' '
-			en
+		redr!
+		for [scrPos,i,key] in map(range(height),'[v:val,v:val+offset,get(a:entry,v:val+offset,"")]')
+			let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
 			if i==cursor
 				echohl Visual
 			elseif !has_key(a:attr,key)
@@ -663,7 +652,7 @@ fun! s:settingsPager(dict,entry,attr)
 				en
 				echon get(doclines,scrPos,'')
 			else
-				echon line[:&columns-1]
+				echon line[:&columns-2]
 			en
 			echohl
 		endfor
@@ -675,15 +664,14 @@ fun! s:settingsPager(dict,entry,attr)
 	let [&more,&ch]=settings
 	redr
 	let s:spPos=[cursor,offset]
-	echohl
 endfun
 
 let s:applySettings="if empty(arg)\n
-			\let emsg='Input cannot be empty'\n
+			\let msg='Input cannot be empty'\n
 		\else\n
-			\exe get(a:attr[key],'checkErr','let emsg=0')\n
+			\exe get(a:attr[key],'check','let msg=0')\n
 		\en\n
-		\if emsg is 0 && arg!=#disp[key]\n
+		\if msg is 0 && arg!=#disp[key]\n
 			\if !has_key(undo,key)\n
 				\let undo[key]=arg\n
 			\en\n
@@ -692,12 +680,12 @@ let s:applySettings="if empty(arg)\n
 		\en\n
 	\en"
 let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
-			\let emsg='No default defined for this value'\n
+			\let msg='No default defined for this value'\n
 		\else\n
 			\unlet! arg\n
 			\exe a:attr[key].getDef\n".s:applySettings,
 	\85: "if !has_key(disp,key) || !has_key(undo,key)\n
-			\let emsg='No undo defined for this value'\n
+			\let msg='No undo defined for this value'\n
 		\else\n
 			\unlet! arg\n
 			\let arg=undo[key]\n".s:applySettings,
