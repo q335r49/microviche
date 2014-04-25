@@ -1229,7 +1229,7 @@ fun! s:mapSplit(col)
 	let tomerge={}
 	for r in keys(changed)
 		if !has_key(splitLbl,r) 
-			if a:col && (t:disTxt[r][colIx-1]==#'#' || changed[r]==-1)
+			if a:col && (t:disTxt[r][colIx-1]=='#' || changed[r]==-1)
 				let prevsp=a:col-1
 				while !has_key(t:gridLbl[prevsp],r) && prevsp>=0
 					let prevsp-=1
@@ -1737,13 +1737,12 @@ fun! s:getMapDis()
 		endfor
 	endfor
 	for pos in values(conflicts)
+		call sort(t:gridPos[pos[0]][pos[1]])
 		if pos[3]!=-1
-			call sort(t:gridPos[pos[0]][pos[1]])
 			let t:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 			call insert(t:gridPos[pos[0]][pos[1]],pos[3])
 			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 		else
-			call sort(t:gridPos[pos[0]][pos[1]])
 			let t:gridLbl[pos[0]][pos[1]]=map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
 			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
 		en
