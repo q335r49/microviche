@@ -1,5 +1,3 @@
-**_v1.8.3 notes:_** *The new mapping algorithm only updates the changed parts of the map. If you experience glitches, <samp>:call RefreshMap()</samp> to redraw (and email me if you can reproduce it).*
-
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
@@ -40,3 +38,5 @@ The syntax is "<samp>marker(lnum)(:)( label#highlght#ignored)</samp>", but let's
 - To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→<kbd>S</kbd>ave→apply all
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
+- **v1.8.3 notes**:The new mapping algorithm only updates the changed parts of the map. If you experience glitches, <samp>:call RefreshMap()</samp> to redraw (and email me if you can reproduce it).*
+

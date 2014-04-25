@@ -213,7 +213,7 @@ fun! TxbInit(...)
 		let t:paths=abs_paths
 		let dict=t:txb.settings
 		for i in keys(dict)
-			exe get(s:optatt[i].onInit,'')
+			exe get(s:optatt[i],'onInit','')
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
@@ -1121,10 +1121,7 @@ fun! s:mapSplit(col)
 	if newd>t:deepest
 		if newdR>t:deepR
 			let dif=newdR-t:deepR
-			call extend(t:bgd,repeat([repeat('.',t:mapw*t:txbL)],dif))
-			for i in range(curdR+1,newdR)
-				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-			endfor
+			call extend(t:bgd,repeat([repeat('.',colIx).blankcell.repeat('.',(t:txbL-1-a:col)*t:mapw)],dif))
 			let depthChanged=range(curdR+1,newdR)
 			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
 			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
