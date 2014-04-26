@@ -1074,6 +1074,7 @@ fun! s:redraw(...)
 	winc =
 	winc b
 	let ccol=colb
+	let changedsplits={}
 	for i in range(1,numcols)
 		se wfw
 		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:paths[ccol]
@@ -1082,7 +1083,34 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			call s:mapSplit(ccol)
+			let changedsplits[a:col]=1
+			let t:txb.depth[a:col]=line('$')
+			let t:txb.map[a:col]={}
+			norm! 1G0
+			let line=search('^'.t:lblmrk.'\zs','Wc')
+			while line
+				let L=getline('.')
+				let lnum=strpart(L,col('.')-1,6)
+				if lnum!=0
+					let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []
+					if lnum<line
+						if prevnonblank(line-1)>=lnum
+							let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
+						else
+							exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')
+						en
+					elseif lnum>line
+						exe 'norm! '.(lnum-line)."O\ej"
+					en
+					let line=line('.')
+				else
+					let lbl=split(L[col('.'):],'#',1)
+				en
+				if !empty(lbl) && !empty(lbl[0])
+					let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]
+				en
+				let line=search('^'.t:lblmrk.'\zs','W')
+			endwhile
 		en
 		if i==numcols
 			let offset=t:txb.size[colt]-winwidth(1)-virtcol('.')+wincol()
@@ -1099,6 +1127,9 @@ fun! s:redraw(...)
 		winc h
 		let ccol=ccol? ccol-1 : t:txbL-1
 	endfor
+	if !empty(changedsplits)
+		call s:getMapDis(keys(changedsplits))
+	en
 	let t:deepest=max(t:txb.depth)
 	se scrollopt=ver,jump
 	if s:badSync
@@ -1110,226 +1141,6 @@ fun! s:redraw(...)
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 endfun
 let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='(redraw complete)'"
-
-fun! s:mapSplit(col)
-	let blankcell=repeat(' ',t:mapw)
-	let negcell=repeat('.',t:mapw)
-	let colIx=a:col*t:mapw
-	let newd=line('$')
-	let newdR=newd/t:gran
-	let curdR=t:txb.depth[a:col]/t:gran
-	if newd>t:deepest
-		if newdR>t:deepR
-			let dif=newdR-t:deepR
-			call extend(t:bgd,repeat([repeat('.',colIx).blankcell.repeat('.',(t:txbL-1-a:col)*t:mapw)],dif))
-			let depthChanged=range(curdR+1,newdR)
-			call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
-			call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
-			call extend(t:disTxt,copy(t:bgd[-dif :]))
-			let t:deepR=newdR
-		else
-			let depthChanged=[]
-		en
-		let t:deepest=newd
-	elseif newdR>curdR
-		for i in range(curdR+1,newdR)
-			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-		endfor
-		let depthChanged=range(curdR+1,newdR)
-	elseif newdR<curdR
-		for i in range(newdR+1,curdR)
-			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
-		endfor
-		let depthChanged=range(newdR+1,curdR)
-	else
-		let depthChanged=[]
-	en
-	let t:txb.depth[a:col]=newd
-	let t:txb.map[a:col]={}
-	norm! 1G0
-	let line=search('^'.t:lblmrk.'\zs','Wc')
-	while line
-		let L=getline('.')
-		let lnum=strpart(L,col('.')-1,6)
-		if lnum!=0
-			let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []
-			if lnum<line
-				if prevnonblank(line-1)>=lnum
-					let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
-				else
-					exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')
-				en
-			elseif lnum>line
-				exe 'norm! '.(lnum-line)."O\ej"
-			en
-			let line=line('.')
-		else
-			let lbl=split(L[col('.'):],'#',1)
-		en
-		if !empty(lbl) && !empty(lbl[0])
-			let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]
-		en
-		let line=search('^'.t:lblmrk.'\zs','W')
-	endwhile
-	let conflicts={}
-	let splitLbl={}
-	let splitClr={}
-	let splitPos={}
-	for j in keys(t:txb.map[a:col])
-		let r=j/t:gran
-		if has_key(splitLbl,r)
-			let key=a:col.' '.r
-			if !has_key(conflicts,key)
-				if splitLbl[r][0][0]<#'0'
-					let conflicts[key]=[a:col,r,splitLbl[r][0],splitPos[r][0]]
-					let splitPos[r]=[]
-				else
-					let conflicts[key]=[a:col,r,'0',-1]
-				en
-			en
-			if t:txb.map[a:col][j][0][0]<#conflicts[key][2][0]
-				if conflicts[key][3]!=-1
-					call add(splitPos[r],conflicts[key][3])
-				en
-				let conflicts[key][2]=t:txb.map[a:col][j][0]
-				let conflicts[key][3]=j
-			else
-				call add(splitPos[r],j)
-			en
-		else
-			let splitLbl[r]=[t:txb.map[a:col][j][0]]
-			let splitClr[r]=t:txb.map[a:col][j][1]
-			let splitPos[r]=[j]
-		en
-	endfor
-	for pos in values(conflicts)
-		call sort(splitPos[pos[1]])
-		if pos[3]!=-1
-			let splitLbl[pos[1]]=[pos[2]]+map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			call insert(splitPos[pos[1]],pos[3])
-			let splitClr[pos[1]]=t:txb.map[pos[0]][pos[3]][1]
-		else
-			let splitLbl[pos[1]]=map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			let splitClr[pos[1]]=t:txb.map[pos[0]][splitPos[pos[1]][0]][1]
-		en
-	endfor
-	let changed=copy(splitClr)
-	for i in keys(t:gridLbl[a:col])
-		if has_key(splitLbl,i)
-			if splitLbl[i]==#t:gridLbl[a:col][i] && splitClr[i]==t:gridClr[a:col][i] 
-				unlet changed[i]
-			en
-		else
-			let changed[i]=''
-		en
-	endfor
-	for i in depthChanged
-		let changed[i]=-1
-	endfor
-	let tomerge={}
-	for r in keys(changed)
-		if !has_key(splitLbl,r) 
-			if a:col && (t:disTxt[r][colIx-1]=='#' || changed[r]==-1)
-				let prevsp=a:col-1
-				while !has_key(t:gridLbl[prevsp],r) && prevsp>=0
-					let prevsp-=1
-				endw
-				if prevsp!=-1
-					let begin=t:mapw*prevsp
-					let text=t:gridLbl[prevsp][r][0]
-					let l=len(text)
-					let textc=t:gridClr[prevsp][r]
-					let beginc=prevsp
-				else
-					let begin=0
-					let text=''
-					let l=0
-					let textc=''
-					let beginc=0
-				en
-			else
-				let begin=t:mapw*a:col
-				let text=''
-				let l=0
-				let textc=''
-				let beginc=a:col
-			en
-		else
-			let begin=t:mapw*a:col
-			let text=splitLbl[r][0]
-			let l=len(text)
-			let textc=splitClr[r]
-			let beginc=a:col
-		en
-		let nextsp=a:col+1
-		while nextsp<t:txbL && !has_key(t:gridLbl[nextsp],r)
-			let nextsp+=1
-		endwhile
-		let end=nextsp==t:txbL? 98989 : t:mapw*nextsp
-		let prevContents=t:disTxt[r][begin : begin+t:mapw-1]
-		if begin && !has_key(t:gridLbl[beginc],r) && prevContents!=blankcell && prevContents!=negcell
-			let begint=begin-1
-			let text='#'.text
-		else
-			let begint=begin
-		en
-		if !l
-			let tomerge[r]=[[begin,end],[0,'']]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').t:bgd[r][begint : end-1].t:disTxt[r][end :]
-		elseif l>=end-begin
-			let tomerge[r]=[[begin,end],[0,textc]]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').text[:end-begint-2].'#'.t:disTxt[r][end :]
-		else
-			let tomerge[r]=[[begin,begin+l,end],[0,textc,'']]
-			let t:disTxt[r]=(begin? t:disTxt[r][:begint-1] : '').text.t:bgd[r][begint+l : end-1].t:disTxt[r][end :]
-		en
-	endfor
-	for r in keys(tomerge)
-		let t=0
-		while t:disIx[r][t]<tomerge[r][0][0]
-			let t+=1
-		endwhile
-		if t:disIx[r][t]>tomerge[r][0][0]
-			if tomerge[r][1][1]!=?t:disClr[r][t]
-				call insert(t:disIx[r],tomerge[r][0][0],t)
-				call insert(t:disClr[r],t:disClr[r][t],t)
-				let t+=1
-			en
-		else
-			let t+=1
-		en
-		let t2=1
-		let len=len(tomerge[r][0])
-		while t2<len
-			while t:disIx[r][t]<tomerge[r][0][t2]
-				call remove(t:disIx[r],t)
-				call remove(t:disClr[r],t)
-			endwhile
-			if t:disIx[r][t]==98989
-				while t2<len && tomerge[r][0][t2]!=98989
-					if get(t:disClr[r],-2,-1)==?tomerge[r][1][t2]
-						let t:disIx[r][-2]=tomerge[r][0][t2]
-					else
-						call insert(t:disIx[r],tomerge[r][0][t2],-1)
-						call insert(t:disClr[r],tomerge[r][1][t2],-1)
-					en
-					let t2+=1
-				endw
-				break
-			elseif t:disIx[r][t]==tomerge[r][0][t2]
-				let t:disClr[r][t]=tomerge[r][1][t2]
-			elseif tomerge[r][1][t2]!=?t:disClr[r][t]
-				call insert(t:disIx[r],tomerge[r][0][t2],t)
-				call insert(t:disClr[r],tomerge[r][1][t2],t)
-			en
-			let t+=1
-			let t2+=1
-		endw
-	endfor
-	let t:gridLbl[a:col]=splitLbl
-	let t:gridClr[a:col]=splitClr
-	let t:gridPos[a:col]=splitPos
-endfun
 
 let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
 		\let curwin=w:txbi\n
@@ -1699,60 +1510,95 @@ fun! s:nav(N,L)
 	return extrashift
 endfun
 
-fun! s:getMapDis()
-	let t:gridLbl=range(t:txbL)
-	let t:gridClr=copy(t:gridLbl)
-	let t:gridPos=copy(t:gridLbl)
-	let conflicts={}
-	for i in copy(t:gridLbl)
-		let t:gridLbl[i]={}
-		let t:gridClr[i]={}
-		let t:gridPos[i]={}
-		for j in keys(t:txb.map[i])
+fun! s:getMapDis(...)
+	let blankcell=repeat(' ',t:mapw)
+	let negcell=repeat('.',t:mapw)
+	let nrows={}
+	for sp in a:0? a:1 : range(t:txbL)
+		let colIx=sp*t:mapw
+		let newdR=t:txb.depth[sp]/t:gran
+		let curdR=t:oldDepth[sp]/t:gran
+		if t:txb.depth[sp]>t:deepest
+			if newdR>t:deepR
+				let dif=newdR-t:deepR
+				call extend(t:bgd,repeat([repeat('.',colIx).blankcell.repeat('.',(t:txbL-1-sp)*t:mapw)],dif))
+				call extend(nrows,eval('{'.join(map(range(curdR+1,newdR),"v:val.':-1'"),',').'}'),'keep')
+				call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
+				call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
+				call extend(t:disTxt,copy(t:bgd[-dif :]))
+				let t:deepR=newdR
+			en
+			let t:deepest=t:txb.depth[sp]
+		elseif newdR>curdR
+			for i in range(curdR+1,newdR)
+				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
+			endfor
+			call extend(nrows,eval('{'.join(map(range(curdR+1,newdR),"v:val.':-1'"),',').'}'),'keep')
+		elseif newdR<curdR
+			for i in range(newdR+1,curdR)
+				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
+			endfor
+			call extend(nrows,eval('{'.join(map(range(newdR+1,curdR),"v:val.':-1'"),',').'}'),'keep')
+		en
+		let t:oldDepth[sp]=t:txb.depth[sp]
+		let conflicts={}
+		let splitLbl={}
+		let splitClr={}
+		let splitPos={}
+		for j in keys(t:txb.map[sp])
 			let r=j/t:gran
-			if has_key(t:gridLbl[i],r)
-				let key=i.' '.r
+			if has_key(splitLbl,r)
+				let key=sp.' '.r
 				if !has_key(conflicts,key)
-					if t:gridLbl[i][r][0][0]<#'0'
-				   		let conflicts[key]=[i,r,t:gridLbl[i][r][0],t:gridPos[i][r][0]]
-						let t:gridPos[i][r]=[]
+					if splitLbl[r][0][0]<#'0'
+						let conflicts[key]=[sp,r,splitLbl[r][0],splitPos[r][0]]
+						let splitPos[r]=[]
 					else
-				   		let conflicts[key]=[i,r,'0',-1]
+						let conflicts[key]=[sp,r,'0',-1]
 					en
 				en
-				if t:txb.map[i][j][0][0]<#conflicts[key][2][0]
+				if t:txb.map[sp][j][0][0]<#conflicts[key][2][0]
 					if conflicts[key][3]!=-1
-						call add(t:gridPos[i][r],conflicts[key][3])
+						call add(splitPos[r],conflicts[key][3])
 					en
-					let conflicts[key][2]=t:txb.map[i][j][0]
+					let conflicts[key][2]=t:txb.map[sp][j][0]
 					let conflicts[key][3]=j
 				else
-					call add(t:gridPos[i][r],j)
+					call add(splitPos[r],j)
 				en
 			else
-				let t:gridLbl[i][r]=[t:txb.map[i][j][0]]
-				let t:gridClr[i][r]=t:txb.map[i][j][1]
-				let t:gridPos[i][r]=[j]
+				let splitLbl[r]=[t:txb.map[sp][j][0]]
+				let splitClr[r]=t:txb.map[sp][j][1]
+				let splitPos[r]=[j]
 			en
 		endfor
+		for pos in values(conflicts)
+			call sort(t:gridPos[pos[0]][pos[1]])
+			if pos[3]!=-1
+				let t:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+				call insert(t:gridPos[pos[0]][pos[1]],pos[3])
+				let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+			else
+				let t:gridLbl[pos[0]][pos[1]]=map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+				let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
+			en
+		endfor
+		let changed=copy(splitClr)
+		for i in keys(t:gridLbl[sp])
+			if has_key(splitLbl,i)
+				if splitLbl[i]==#t:gridLbl[sp][i] && splitClr[i]==t:gridClr[sp][i] 
+					unlet changed[i]
+				en
+			else
+				let changed[i]=''
+			en
+		endfor
+		for i in depthChanged
+			let changed[i]=-1
+		endfor
+		call extend(nrows,changed,'keep')
 	endfor
-	for pos in values(conflicts)
-		call sort(t:gridPos[pos[0]][pos[1]])
-		if pos[3]!=-1
-			let t:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			call insert(t:gridPos[pos[0]][pos[1]],pos[3])
-			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
-		else
-			let t:gridLbl[pos[0]][pos[1]]=map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-			let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
-		en
-	endfor
-	let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
-	let t:deepR=len(t:bgd)-1
-	let t:disTxt=repeat([''],t:deepR+1)
-	let t:disClr=copy(t:disTxt)
-	let t:disIx=copy(t:disTxt)
-	for i in range(t:deepR+1)
+	for i in keys(nrows)
 		let j=t:txbL-1
 		let padl=t:mapw
 		while j>=0
