@@ -9,7 +9,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 ####Basic commands
 Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
-<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move <sup>(takes count)</sup> || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
 <kbd>r</kbd> <kbd>M</kbd> | redraw & remap visible / all || <kbd>o</kbd> | map visible & open map
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
@@ -26,7 +26,7 @@ The syntax is "<samp>marker(lnum)(:)( label#highlght#ignored)</samp>", but let's
 ####Map navigation
 <kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
 
-<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | ←↓↑→↖↗↙↘ <sup>(takes count)</sup> || <kbd>f1</kbd> | help
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move <sup>(takes count)</sup> || <kbd>f1</kbd> | help
 :---: | :---: | :---: | :---: | :---:
 <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan <sup>(takes count)</sup> || <kbd>z</kbd> | zoom
 <kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor

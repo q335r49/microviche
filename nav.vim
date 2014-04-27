@@ -78,7 +78,7 @@ fun! s:printHelp()
 	\\n    W                    Write to file
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n *  If the hotkey becomes inaccessible, :call TxbKey('S') to set.
+	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
 	\\n\n\\CLABELING:\n
 	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored)
@@ -101,8 +101,7 @@ fun! s:printHelp()
 	\\n    click NW corner      Quit
 	\\n    drag to NW corner    (in the plane) Show map
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm."
-	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n----------"),
-	\width,(&columns-width)/2),s:help_bookmark)
+	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n----------"),width,(&columns-width)/2),s:help_bookmark)
 endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
@@ -658,7 +657,6 @@ fun! s:settingsPager(dict,entry,attr)
 	let &ch=chsav
 	redr
 endfun
-
 let s:applySettings="if empty(arg)\n
 			\let msg='Input cannot be empty'\n
 		\else\n
@@ -692,7 +690,6 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
 unlet s:applySettings
-
 let txbCmd.S="let s:kc_continue=''\n
 	\if exists('w:txbi')\n
 		\call s:settingsPager(t:txb.settings,['Global','hotkey','Plane','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
@@ -1073,9 +1070,9 @@ fun! s:redraw(...)
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
-			let changedsplits[a:col]=1
-			let t:txb.depth[a:col]=line('$')
-			let t:txb.map[a:col]={}
+			let changedsplits[ccol]=1
+			let t:txb.depth[ccol]=line('$')
+			let t:txb.map[ccol]={}
 			norm! 1G0
 			let line=search('^'.t:lblmrk.'\zs','Wc')
 			while line
@@ -1097,7 +1094,7 @@ fun! s:redraw(...)
 					let lbl=split(L[col('.'):],'#',1)
 				en
 				if !empty(lbl) && !empty(lbl[0])
-					let t:txb.map[a:col][line]=[lbl[0],get(lbl,1,'')]
+					let t:txb.map[ccol][line]=[lbl[0],get(lbl,1,'')]
 				en
 				let line=search('^'.t:lblmrk.'\zs','W')
 			endwhile
@@ -1131,49 +1128,6 @@ fun! s:redraw(...)
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 endfun
 let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='(redraw complete)'"
-
-let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
-		\let curwin=w:txbi\n
-		\let view=winsaveview()\n
-		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
-			\let t:txb.depth[i]=line('$')\n
-			\let t:txb.map[i]={}\n
-			\exe 'norm! 1G0'\n
-			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
-			\while line\n
-				\let L=getline('.')\n
-				\let lnum=strpart(L,col('.')-1,6)\n
-				\if lnum!=0\n
-					\let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []\n
-					\if lnum<line\n
-						\if prevnonblank(line-1)>=lnum\n
-							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
-						\else\n
-							\exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')\n
-						\en\n
-					\elseif lnum>line\n
-						\exe 'norm! '.(lnum-line).'O\ej'\n
-					\en\n
-					\let line=line('.')\n
-				\else\n
-					\let lbl=split(L[col('.'):],'#',1)\n
-				\en\n
-				\if !empty(lbl) && !empty(lbl[0])\n
-					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
-				\en\n
-				\let line=search('^'.t:lblmrk.'\\zs','W')\n
-			\endwhile\n
-		\endfor\n
-		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
-		\call winrestview(view)\n
-		\let t:deepest=max(t:txb.depth)\n
-		\call s:getMapDis()\n
-		\call s:redraw()\n
-		\let s:kc_continue='(Plane remapped)'\n
-	\else\n
-		\let s:kc_continue='(Plane remap cancelled)'\n
-	\en"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1835,6 +1789,49 @@ let txbCmd.o="let s:kc_continue=''\n
 	\call s:disMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
+
+let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
+		\let curwin=w:txbi\n
+		\let view=winsaveview()\n
+		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
+			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
+			\let t:txb.depth[i]=line('$')\n
+			\let t:txb.map[i]={}\n
+			\exe 'norm! 1G0'\n
+			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
+			\while line\n
+				\let L=getline('.')\n
+				\let lnum=strpart(L,col('.')-1,6)\n
+				\if lnum!=0\n
+					\let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []\n
+					\if lnum<line\n
+						\if prevnonblank(line-1)>=lnum\n
+							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
+						\else\n
+							\exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')\n
+						\en\n
+					\elseif lnum>line\n
+						\exe 'norm! '.(lnum-line).'O\ej'\n
+					\en\n
+					\let line=line('.')\n
+				\else\n
+					\let lbl=split(L[col('.'):],'#',1)\n
+				\en\n
+				\if !empty(lbl) && !empty(lbl[0])\n
+					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
+				\en\n
+				\let line=search('^'.t:lblmrk.'\\zs','W')\n
+			\endwhile\n
+		\endfor\n
+		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
+		\call winrestview(view)\n
+		\let t:deepest=max(t:txb.depth)\n
+		\call s:getMapDis()\n
+		\call s:redraw()\n
+		\let s:kc_continue='(Plane remapped)'\n
+	\else\n
+		\let s:kc_continue='(Plane remap cancelled)'\n
+	\en"
 
 let s:mExe={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
