@@ -6,8 +6,8 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - (Only necessary when first creating a plane) Switch to the *working directory* via <samp>:cd [dir]</samp> 
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
-####Basic commands
-Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
+####Commands
+Keyboard commands are accessed by first pressing <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
@@ -15,6 +15,14 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
 <kbd>S</kbd> <kbd>W</kbd> | settings / save settings || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
+The following commands work within the map (<kbd>f10</kbd> <kbd>o</kbd> to view):
+
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
+:---: | :---: | :---: | :---: | :---:
+<kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan (takes count) || <kbd>z</kbd> | zoom
+<kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
+ <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
+ 
 ####Labels
 Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. The map is updated on <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>. If a line number is provided, displaced labels will be restored by inserting or removing immediately preceding blank lines. Relocation failures will be shown as errors in the map.
 
@@ -23,15 +31,6 @@ The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's j
 &nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- move to 345: label <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
 &nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*  
 &nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*
-
-####Map navigation
-<kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
-
-<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help
-:---: | :---: | :---: | :---: | :---:
-<kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan (takes count) || <kbd>z</kbd> | zoom
-<kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
- <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
 ####Tips
 - When there are **labeling conflicts**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd>, in order of priority, will be shown, eg, <q>txb:321: !Important</q>
