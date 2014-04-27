@@ -486,7 +486,7 @@ let s:optatt={
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
 		\'getInput':"let prevwd=getcwd()\n
 			\exe 'cd' fnameescape(t:wdir)\n
-			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:entry[cursor]])==1? vals[a:entry[cursor]] : string(vals[a:entry[cursor]]),'file')\n
+			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:entry[s:spCursor]])==1? vals[a:entry[s:spCursor]] : string(vals[a:entry[s:spCursor]]),'file')\n
 			\exe 'cd' fnameescape(prevwd)",
 		\'apply': "if !empty(arg)\n
 				\let prevwd=getcwd()\n
@@ -571,7 +571,7 @@ let s:optatt={
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
-		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:entry[cursor]])==1? vals[a:entry[cursor]] : string(vals[a:entry[cursor]]),'file')",
+		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:entry[s:spCursor]])==1? vals[a:entry[s:spCursor]] : string(vals[a:entry[s:spCursor]]),'file')",
 		\'apply': "let msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
@@ -596,16 +596,16 @@ let s:optatt={
 				\en\n
 			\en"}}
 
-let s:spPos=[0,0]
+let [s:spCursor,s:spOff]=[0,0]
 fun! s:settingsPager(dict,entry,attr)
 	let dict=a:dict
 	let settings=[&more,&ch]
 	let len=len(a:entry)
 	let [&more,&ch]=[0,len+3>11? 11 : len+3]
 	let height=&ch-1
-	let cursor=s:spPos[0]<0? 0 : s:spPos[0]>=len? len-1 : s:spPos[0]
-	let offset=s:spPos[1]<0? 0 : s:spPos[1]>len-height? (len-height>=0? len-height : 0) : s:spPos[1]
-	let offset=offset<cursor-height? cursor-height : offset>cursor? cursor : offset
+	let s:spCursor=s:spCursor<0? 0 : s:spCursor>=len? len-1 : s:spCursor
+	let s:spOff=s:spOff<0? 0 : s:spOff>len-height? (len-height>=0? len-height : 0) : s:spOff
+	let s:spOff=s:spOff<s:spCursor-height? s:spCursor-height : s:spOff>s:spCursor? s:spCursor : s:spOff
 	let undo={}
 	let disp={}
     for key in filter(copy(a:entry),'has_key(a:attr,v:val)')
@@ -622,9 +622,9 @@ fun! s:settingsPager(dict,entry,attr)
 	let doclines=s:formatPar(settingshelp,helpw,0)
 	while continue
 		redr!
-		for [scrPos,i,key] in map(range(height),'[v:val,v:val+offset,get(a:entry,v:val+offset,"")]')
+		for [scrPos,i,key] in map(range(height),'[v:val,v:val+s:spOff,get(a:entry,v:val+s:spOff,"")]')
 			let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
-			if i==cursor
+			if i==s:spCursor
 				echohl Visual
 			elseif !has_key(a:attr,key)
 				echohl Title
@@ -651,15 +651,14 @@ fun! s:settingsPager(dict,entry,attr)
 			en
 			echohl
 		endfor
-		let key=a:entry[cursor]
+		let key=a:entry[s:spCursor]
 		let validkey=1
 		exe get(s:spExe,getchar(),'let validkey=0')
-		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
-		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
+		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=len? len-1 : s:spCursor
+		let s:spOff=s:spOff<s:spCursor-height+1? s:spCursor-height+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
 		let warnlines=msg is 0? [] : s:formatPar(msg,helpw,0)
-		let doclines=warnlines+s:formatPar(validkey? get(get(a:attr,a:entry[cursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
+		let doclines=warnlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
 	endwhile
-	let s:spPos=[cursor,offset]
 	let [&more,&ch]=settings
 	redr
 endfun
@@ -690,10 +689,10 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:applySettings,
 	\113: "let continue=0",
 	\27:  "let continue=0",
-	\106: 'let cursor+=1',
-	\107: 'let cursor-=1',
-	\103: 'let cursor=0',
-	\71:  'let cursor=len-1'}
+	\106: 'let s:spCursor+=1',
+	\107: 'let s:spCursor-=1',
+	\103: 'let s:spCursor=0',
+	\71:  'let s:spCursor=len-1'}
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
 unlet s:applySettings
