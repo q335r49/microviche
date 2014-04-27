@@ -1501,21 +1501,20 @@ fun! s:getMapDis(...)
 		for j in keys(t:txb.map[sp])
 			let r=j/t:gran
 			if has_key(splitLbl,r)
-				let key=sp.' '.r
-				if !has_key(conflicts,key)
+				if !has_key(conflicts,r)
 					if splitLbl[r][0][0]<#'0'
-						let conflicts[key]=[sp,r,splitLbl[r][0],splitPos[r][0]]
+						let conflicts[r]=[sp,r,splitLbl[r][0],splitPos[r][0]]
 						let splitPos[r]=[]
 					else
-						let conflicts[key]=[sp,r,'0',-1]
+						let conflicts[r]=[sp,r,'0',-1]
 					en
 				en
-				if t:txb.map[sp][j][0][0]<#conflicts[key][2][0]
-					if conflicts[key][3]!=-1
-						call add(splitPos[r],conflicts[key][3])
+				if t:txb.map[sp][j][0][0]<#conflicts[r][2][0]
+					if conflicts[r][3]!=-1
+						call add(splitPos[r],conflicts[r][3])
 					en
-					let conflicts[key][2]=t:txb.map[sp][j][0]
-					let conflicts[key][3]=j
+					let conflicts[r][2]=t:txb.map[sp][j][0]
+					let conflicts[r][3]=j
 				else
 					call add(splitPos[r],j)
 				en
