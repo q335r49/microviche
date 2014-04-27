@@ -11,12 +11,12 @@ Once loaded, pan with the mouse or enter a keyboard command with <kbd>f10</kbd>:
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
-<kbd>r</kbd> <kbd>M</kbd> | redraw & remap visible / all || <kbd>o</kbd> | map visible & open map
+<kbd>r</kbd> <kbd>M</kbd> | redraw visible / all || <kbd>o</kbd> | open map
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
-<kbd>S</kbd> <kbd>W</kbd> | settings / write settings to file || <kbd>q</kbd> <kbd>esc</kbd> | quit
+<kbd>S</kbd> <kbd>W</kbd> | settings / save settings || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
 ####Labels
-Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. During remapping (with <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, or <kbd>M</kbd>) displaced labels will be relocated to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
+Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. The map is updated on <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>. If a line number is provided, displaced labels will be restored by inserting or removing immediately preceding blank lines. Relocation failures will be shown as errors in the map.
 
 The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's just look at some examples:  
 &nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just move to 345*  
