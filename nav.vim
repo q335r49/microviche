@@ -54,10 +54,10 @@ fun! s:printHelp()
 	let WarningsAndSuggestions=
 	\ (v:version<=703? "\n> Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
 	\.(v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with [hotkey] W."
-	\: empty(&vi) || stridx(&vi,'!')==-1? "\n> Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with [hotkey] W." : '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with (hotkey) W."
+	\: empty(&vi) || stridx(&vi,'!')==-1? "\n> Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with (hotkey) W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use [hotkey] r or ':call TxbKey('r')'" : '')
+	\.(has('gui_running')? "\n> Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use (hotkey) r or ':call TxbKey('r')'" : '')
 	\.(&ttymouse==?'xterm'? "\n> Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
@@ -65,8 +65,8 @@ fun! s:printHelp()
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
 	\\n\n\\CSTARTUP AND NAVIGATION:\n
-	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press [hotkey] to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later [A]ppend others.\n
-	\\nOnce loaded, use the MOUSE to pan, or press [hotkey] followed by:
+	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
+	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
 	\\n    r                    Redraw and remap visible splits
 	\\n    o                    Remap visible and open map
@@ -78,11 +78,10 @@ fun! s:printHelp()
 	\\n    W                    Write to file
 	\\n    q <esc>              Abort
 	\\n----------
-	\\n *  If [hotkey] becomes inaccessible, :call TxbKey('S') to set.
+	\\n *  If the hotkey becomes inaccessible, :call TxbKey('S') to set.
 	\\n\n\\CLABELING:\n
-	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with [hotkey][o], [r], or [M]) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
+	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored)
-	\\nEXAMPLES:
 	\\n    txb:345 bla bla        Just move to 345
 	\\n *  txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
 	\\n    txb: Intro             Just label 'Intro'
@@ -90,7 +89,7 @@ fun! s:printHelp()
 	\\n----------
 	\\n *  Note the ':' separator when both lnum and label are given
 	\\n\n\\CMAP NAVIGATION:\n
-	\\nTo remap the visbile region and view the map, press [hotkey][o]:
+	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view
@@ -102,7 +101,7 @@ fun! s:printHelp()
 	\\n    click NW corner      Quit
 	\\n    drag to NW corner    (in the plane) Show map
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm."
-	\:"\n    [Mouse in map mode is unsupported in gVim and Windows]\n----------"),
+	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n----------"),
 	\width,(&columns-width)/2),s:help_bookmark)
 endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
@@ -614,7 +613,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
 	let pad=repeat(' ',contentw)
 	let continue=1
-	let settingshelp='[jkgG]down/up/bot/top [c]hange [U]ndo [D]efault [q]uit'
+	let settingshelp='jkgG:dn,up,top,bot (c)hange (U)ndo (D)efault (q)uit'
 	let errlines=[]
 	let doclines=s:formatPar(settingshelp,helpw,0)
 	while continue
