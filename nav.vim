@@ -599,13 +599,11 @@ let s:optatt={
 let [s:spCursor,s:spOff]=[0,0]
 fun! s:settingsPager(dict,entry,attr)
 	let dict=a:dict
-	let settings=[&more,&ch]
-	let len=len(a:entry)
-	let [&more,&ch]=[0,len+3>11? 11 : len+3]
-	let height=&ch-1
-	let s:spCursor=s:spCursor<0? 0 : s:spCursor>=len? len-1 : s:spCursor
-	let s:spOff=s:spOff<0? 0 : s:spOff>len-height? (len-height>=0? len-height : 0) : s:spOff
-	let s:spOff=s:spOff<s:spCursor-height? s:spCursor-height : s:spOff>s:spCursor? s:spCursor : s:spOff
+	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
+	let entries=len(a:entry)
+	let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
+	let s:spOff=s:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
+	let s:spOff=s:spOff<s:spCursor-&ch? s:spCursor-&ch : s:spOff>s:spCursor? s:spCursor : s:spOff
 	let undo={}
 	let disp={}
     for key in filter(copy(a:entry),'has_key(a:attr,v:val)')
@@ -614,15 +612,14 @@ fun! s:settingsPager(dict,entry,attr)
 		let disp[key]=ret
 	endfor
 	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
-	let pad=repeat(' ',&columns)
-	let msg=0
+	let pad=repeat(' ',contentw)
 	let continue=1
 	let settingshelp='[jkgG]down/up/bot/top [c]hange [U]ndo [D]efault [q]uit'
-	let warnlines=[]
+	let errlines=[]
 	let doclines=s:formatPar(settingshelp,helpw,0)
 	while continue
 		redr!
-		for [scrPos,i,key] in map(range(height),'[v:val,v:val+s:spOff,get(a:entry,v:val+s:spOff,"")]')
+		for [scrPos,i,key] in map(range(&ch),'[v:val,v:val+s:spOff,get(a:entry,v:val+s:spOff,"")]')
 			let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
 			if i==s:spCursor
 				echohl Visual
@@ -640,7 +637,7 @@ fun! s:settingsPager(dict,entry,attr)
 					echohl
 					echon pad[:contentw-len(line)-1]
 				en
-				if scrPos<len(warnlines)
+				if scrPos<len(errlines)
 					echohl WarningMsg
 				else
 					echohl MoreMsg
@@ -654,12 +651,12 @@ fun! s:settingsPager(dict,entry,attr)
 		let key=a:entry[s:spCursor]
 		let validkey=1
 		exe get(s:spExe,getchar(),'let validkey=0')
-		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=len? len-1 : s:spCursor
-		let s:spOff=s:spOff<s:spCursor-height+1? s:spCursor-height+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
-		let warnlines=msg is 0? [] : s:formatPar(msg,helpw,0)
-		let doclines=warnlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
+		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
+		let s:spOff=s:spOff<s:spCursor-&ch+1? s:spCursor-&ch+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
+		let errlines=msg is 0? [] : s:formatPar(msg,helpw,0)
+		let doclines=errlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
 	endwhile
-	let [&more,&ch]=settings
+	let &ch=chsav
 	redr
 endfun
 
@@ -692,7 +689,7 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\106: 'let s:spCursor+=1',
 	\107: 'let s:spCursor-=1',
 	\103: 'let s:spCursor=0',
-	\71:  'let s:spCursor=len-1'}
+	\71:  'let s:spCursor=entries-1'}
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
 unlet s:applySettings
