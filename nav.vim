@@ -207,14 +207,23 @@ fun! TxbInit(...)
 		let g:TXB=plane
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
-		let t:deepest=max(t:txb.depth)
-		let t:paths=abs_paths
 		let dict=t:txb.settings
 		for i in keys(dict)
 			exe get(s:optatt[i],'onInit','')
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
+		let t:deepest=max(t:txb.depth)
+		let t:paths=abs_paths
+		let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
+		let t:deepR=len(t:bgd)-1
+		let t:disTxt=copy(t:bgd)
+		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
+		let t:disIx=eval('['.join(repeat(['[98989]'],t:deepR+1),',').']')
+		let t:gridClr=eval('['.join(repeat(['{}'],t:txbL),',').']')
+		let t:gridLbl=deepcopy(t:gridClr)
+		let t:gridPos=deepcopy(t:gridClr)
+		let t:oldDepth=copy(t:txb.depth)
 		call s:getMapDis()
 		call s:redraw()
 	elseif c is "\<f1>"
@@ -1517,14 +1526,14 @@ fun! s:getMapDis(...)
 			en
 		endfor
 		for pos in values(conflicts)
-			call sort(t:gridPos[pos[0]][pos[1]])
+			call sort(splitPos[pos[1]])
 			if pos[3]!=-1
-				let t:gridLbl[pos[0]][pos[1]]=[pos[2]]+map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-				call insert(t:gridPos[pos[0]][pos[1]],pos[3])
-				let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+				let splitLbl[pos[1]]=[pos[2]]+map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+				call insert(splitPos[pos[1]],pos[3])
+				let splitClr[pos[1]]=t:txb.map[pos[0]][pos[3]][1]
 			else
-				let t:gridLbl[pos[0]][pos[1]]=map(copy(t:gridPos[pos[0]][pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-				let t:gridClr[pos[0]][pos[1]]=t:txb.map[pos[0]][t:gridPos[pos[0]][pos[1]][0]][1]
+				let splitLbl[pos[1]]=map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
+				let splitClr[pos[1]]=t:txb.map[pos[0]][splitPos[pos[1]][0]][1]
 			en
 		endfor
 		let changed=copy(splitClr)
@@ -1537,12 +1546,13 @@ fun! s:getMapDis(...)
 				let changed[i]=''
 			en
 		endfor
-		for i in depthChanged
-			let changed[i]=-1
-		endfor
 		call extend(nrows,changed,'keep')
+		let t:gridLbl[sp]=splitLbl
+		let t:gridClr[sp]=splitClr
+		let t:gridPos[sp]=splitPos
 	endfor
 	for i in keys(nrows)
+		let t:disTxt[i]=''
 		let j=t:txbL-1
 		let padl=t:mapw
 		while j>=0
