@@ -434,7 +434,7 @@ fun! s:navPlane(dx,dy)
 endfun
 
 fun! s:formatPar(str,w,pad)
-	let [pars,pad,bigpad,spc]=[split(a:str,"\n",1),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	let [pars,pad,bigpad,spc]=[split(a:str,"\n"),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
 	let ret=[]
 	for k in range(len(pars))
 		if pars[k][0]==#'\'
@@ -617,18 +617,10 @@ fun! s:settingsPager(dict,entry,attr)
 	let pad=repeat(' ',&columns)
 	let msg=0
 	let continue=1
-	let settingshelp=s:formatPar('[jkgG]down/up/bot/top [c]hange [U]ndo [D]efault [q]uit',helpw,0)
+	let settingshelp='[jkgG]down/up/bot/top [c]hange [U]ndo [D]efault [q]uit'
+	let warnlines=[]
+	let doclines=s:formatPar(settingshelp,helpw,0)
 	while continue
-		let helpstr=get(get(a:attr,get(a:entry,cursor,''),{}),'doc','')
-		if msg is 0
-			let warningmsglen=0
-			let doclines=(empty(helpstr)? [] : s:formatPar(helpstr,helpw,0))+settingshelp
-		else
-			let warningmsg=s:formatPar(msg,helpw,0)
-			let warningmsglen=len(warningmsg)
-			let doclines=warningmsg+(empty(helpstr)? [] : s:formatPar(helpstr,helpw,0))+settingshelp
-		en
-		let helpmsglen=len(doclines)
 		redr!
 		for [scrPos,i,key] in map(range(height),'[v:val,v:val+offset,get(a:entry,v:val+offset,"")]')
 			let line=has_key(disp,key)? ' '.key.' : '.(type(disp[key])==1? disp[key] : string(disp[key])) : key
@@ -640,7 +632,7 @@ fun! s:settingsPager(dict,entry,attr)
 			if scrPos
 				echon "\n"
 			en
-			if scrPos<helpmsglen
+			if scrPos<len(doclines)
 				if len(line)>=contentw
 					echon line[:contentw-1]
 				else
@@ -648,10 +640,10 @@ fun! s:settingsPager(dict,entry,attr)
 					echohl
 					echon pad[:contentw-len(line)-1]
 				en
-				if scrPos<warningmsglen
+				if scrPos<len(warnlines)
 					echohl WarningMsg
 				else
-					echohl
+					echohl MoreMsg
 				en
 				echon get(doclines,scrPos,'')
 			else
@@ -660,9 +652,12 @@ fun! s:settingsPager(dict,entry,attr)
 			echohl
 		endfor
 		let key=a:entry[cursor]
-		exe get(s:spExe,getchar(),'')
+		let validkey=1
+		exe get(s:spExe,getchar(),'let validkey=0')
 		let cursor=cursor<0? 0 : cursor>=len? len-1 : cursor
 		let offset=offset<cursor-height+1? cursor-height+1 : offset>cursor? cursor : offset
+		let warnlines=msg is 0? [] : s:formatPar(msg,helpw,0)
+		let doclines=warnlines+s:formatPar(validkey? get(get(a:attr,a:entry[cursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
 	endwhile
 	let s:spPos=[cursor,offset]
 	let [&more,&ch]=settings
