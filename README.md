@@ -21,8 +21,8 @@ Labels are lines that start with a label marker (default <q>txb:</q>) and specif
 The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's just look at some examples:  
 &nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just move to 345*  
 &nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- move to 345: label <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah</samp> *- just label <q>Intro</q>*
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro</samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; *- just label <q>Intro</q>*
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*
 
 ####Map navigation
 <kbd>f10</kbd> <kbd>o</kbd> will map all visible splits and open the map:
@@ -39,6 +39,5 @@ The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's j
 - To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→<kbd>S</kbd>ave→apply all
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
-- To **highight labels** with label marker <samp>txb:</samp> "Title":  
-<samp>syntax match Title +^txb\S*: \zs.[^#\n]*+ oneline display</samp>
+- To **syntax highight labels**, try: <samp>syntax match Title +^txb\S*: \zs.[^#\n]*+ oneline display</samp>
 
