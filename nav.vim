@@ -14,6 +14,7 @@ se scrolloff=0                               "Ensures correct vertical panning
 augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
+let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 let s:hotkeyArg=':call TxbKey("init")<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
@@ -212,10 +213,10 @@ fun! TxbInit(...)
 	elseif c is 83
 		if !a:0 && exists('g:TXB') && type(g:TXB)==4
 			let g:TXB.settings['working dir']=get(g:TXB.settings,'working dir','')
-			call s:settingsPager(g:TXB.settings,['Global','hotkey','Plane','working dir'],s:optatt)
+			call s:settingsPager(g:TXB.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 			call TxbInit()
 		else
-			call s:settingsPager(plane.settings,['Global','hotkey','Plane','working dir'],s:optatt)
+			call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 			let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
 			let plane.name=plane_name_save
 			call TxbInit(plane)
@@ -412,12 +413,11 @@ fun! <SID>doDragXterm2()
 endfun
 let txbMsInit.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
-let s:panAcc=[0,1,2,4,7,10,15,21,24,27]
 fun! s:panWin(dx,dy)
-	exe "norm! ".(a:dy>0? get(s:panAcc,a:dy,s:panAcc[-1])."\<c-y>" : a:dy<0? get(s:panAcc,-a:dy,s:panAcc[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
+	exe "norm! ".(a:dy>0? get(g:TXB_MSSP,a:dy,g:TXB_MSSP[-1])."\<c-y>" : a:dy<0? get(g:TXB_MSSP,-a:dy,g:TXB_MSSP[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
 endfun
 fun! s:navPlane(dx,dy)
-	call s:nav(a:dx>0? -get(t:msSp,a:dx,t:msSp[-1]) : get(t:msSp,-a:dx,t:msSp[-1]),a:dy<0? line('w0')+get(t:msSp,-a:dy,t:msSp[-1]) : line('w0')-get(t:msSp,a:dy,t:msSp[-1]))
+	call s:nav(a:dx>0? -get(g:TXB_MSSP,a:dx,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,-a:dx,g:TXB_MSSP[-1]),a:dy<0? line('w0')+get(g:TXB_MSSP,-a:dy,g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,a:dy,g:TXB_MSSP[-1]))
 	echon w:txbi '-' line('.')
 endfun
 
@@ -501,6 +501,20 @@ let s:optatt={
 			\en\n
 			\let g:TXB_HOTKEY=arg\n
 			\exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg"},
+	\'mouse pan speed': {'doc': 'Pan speed[N] steps for every N mouse steps (only applies in terminal and ttymouse=xterm2 or sgr)',
+		\'loadk': 'let ret=g:TXB_MSSP',
+		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
+		\'check': "try\n
+				\if type(arg)==1\n
+					\let temp=eval(arg)\n
+					\unlet! arg\n
+					\let arg=temp\n
+				\en\n
+				\let msg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
+			\catch\n
+				\let msg='String evaluation error'\n
+			\endtry",
+		\'apply': 'let g:TXB_MSSP=arg'},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
@@ -523,22 +537,6 @@ let s:optatt={
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
-	\'mouse pan speed': {'doc': 'For every N steps with mouse, pan speed[N] steps in plane (only works in terminal and when ttymouse is xterm2 or sgr)',
-		\'loadk': 'let ret=copy(dict[''mouse pan speed''])',
-		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
-		\'required': 1,
-		\'onInit': 'let t:msSp=dict["mouse pan speed"]',
-		\'check': "try\n
-				\if type(arg)==1\n
-					\let temp=eval(arg)\n
-					\unlet! arg\n
-					\let arg=temp\n
-				\en\n
-				\let msg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
-			\catch\n
-				\let msg='String evaluation error'\n
-			\endtry",
-		\'apply': 'let dict[''mouse pan speed'']=arg|let t:msSp=arg'},
 	\'split width': {'doc': 'Default split width (for appended splits, [c]hange for prompt to resize current splits)',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
@@ -686,9 +684,9 @@ let s:spExe.10=s:spExe.99
 unlet s:ApplySettingsCmd
 let txbCmd.S="let s:kc_continue=''\n
 	\if exists('w:txbi')\n
-		\call s:settingsPager(t:txb.settings,['Global','hotkey','Plane','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
+		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
 	\else\n
-		\call s:settingsPager({},['Global','hotkey'],s:optatt)\n
+		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:optatt)\n
 	\en"
 
 fun! s:pager(list,start)
