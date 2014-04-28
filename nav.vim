@@ -11,13 +11,13 @@ se virtualedit=all                           "Makes leftmost split align correct
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
 se scrolloff=0                               "Ensures correct vertical panning
 
+augroup TXB
+au!
+
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let s:DEFmapArg=':call TxbKey("init")<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
-augroup TXB
-	au!
-	au VimEnter * if maparg('<f10>')==?s:DEFmapArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
-augroup END
+au VimEnter * if maparg('<f10>')==?s:DEFmapArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 
@@ -26,9 +26,7 @@ if !has("gui_running")
 		call s:redraw()
 		call s:nav(a:col/2-&columns/4,line('w0')-winheight(0)/4+a:row/2)
 	endfun
-	augroup TXB
-		au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
-	augroup END
+	au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
 	nn <silent> <leftmouse> :exe get(txbMsInit,&ttymouse,g:txbMsInit.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
