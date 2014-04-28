@@ -1459,31 +1459,26 @@ fun! s:getMapDis(...)
 		let t:oldDepth=copy(t:txb.depth)
 	en
 	for sp in a:0? a:1 : range(t:txbL)
-		let colIx=sp*t:mapw
 		let newdR=t:txb.depth[sp]/t:gran
-		let curdR=t:oldDepth[sp]/t:gran
-		if t:txb.depth[sp]>t:deepest
-			if newdR>t:deepR
-				let dif=newdR-t:deepR
-				call extend(t:bgd,repeat([repeat('.',colIx).blankcell.repeat('.',(t:txbL-1-sp)*t:mapw)],dif))
-				call extend(nrows,eval('{'.join(map(range(curdR+1,newdR),"v:val.':-1'"),',').'}'),'keep')
-				call extend(t:disIx,eval('['.join(repeat(['[98989]'],dif),',').']'))
-				call extend(t:disClr,eval('['.join(repeat(["['']"],dif),',').']'))
-				call extend(t:disTxt,copy(t:bgd[-dif :]))
-				let t:deepR=newdR
-			en
-			let t:deepest=t:txb.depth[sp]
-		elseif newdR>curdR
-			for i in range(curdR+1,newdR)
-				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-				let nrows[i]=-1
-			endfor
-		elseif newdR<curdR
-			for i in range(newdR+1,curdR)
-				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
-				let nrows[i]=-1
-			endfor
-		en
+		let t:deepest=t:txb.depth[sp]>t:deepest?  t:txb.depth[sp] : t:deepest
+		while newdR>len(t:bgd)-1
+			call add(t:bgd,repeat('.',t:txbL*t:mapw))
+			call add(t:disIx,[98989])
+			call add(t:disClr,[''])
+			call add(t:disTxt,'')
+		endwhile
+		let i=t:oldDepth[sp]/t:gran
+		let colIx=sp*t:mapw
+		while i<newdR
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
+			let nrows[i]=-1
+			let i+=1
+		endwhile
+		while i>newdR
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
+			let nrows[i]=-1
+			let i-=1
+		endwhile
 		let t:oldDepth[sp]=t:txb.depth[sp]
 		let conflicts={}
 		let splitLbl={}
@@ -1541,6 +1536,7 @@ fun! s:getMapDis(...)
 		let t:gridClr[sp]=splitClr
 		let t:gridPos[sp]=splitPos
 	endfor
+	let t:deepR=len(t:bgd)-1
 	for i in keys(nrows)
 		let t:disTxt[i]=''
 		let j=t:txbL-1
