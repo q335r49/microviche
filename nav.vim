@@ -213,17 +213,7 @@ fun! TxbInit(...)
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
-		let t:deepest=max(t:txb.depth)
 		let t:paths=abs_paths
-		let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.repeat('.',t:mapw).'" : "'.repeat(' ',t:mapw).'"''),'''')')
-		let t:deepR=len(t:bgd)-1
-		let t:disTxt=copy(t:bgd)
-		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
-		let t:disIx=eval('['.join(repeat(['[98989]'],t:deepR+1),',').']')
-		let t:gridClr=eval('['.join(repeat(['{}'],t:txbL),',').']')
-		let t:gridLbl=deepcopy(t:gridClr)
-		let t:gridPos=deepcopy(t:gridClr)
-		let t:oldDepth=copy(t:txb.depth)
 		call s:getMapDis()
 		call s:redraw()
 	elseif c is "\<f1>"
@@ -606,8 +596,8 @@ let s:optatt={
 let [s:spCursor,s:spOff]=[0,0]
 fun! s:settingsPager(dict,entry,attr)
 	let dict=a:dict
-	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
 	let entries=len(a:entry)
+	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
 	let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
 	let s:spOff=s:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
 	let s:spOff=s:spOff<s:spCursor-&ch? s:spCursor-&ch : s:spOff>s:spCursor? s:spCursor : s:spOff
@@ -620,6 +610,7 @@ fun! s:settingsPager(dict,entry,attr)
 	endfor
 	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
 	let pad=repeat(' ',contentw)
+	let msg=0
 	let continue=1
 	let settingshelp='jkgG:dn,up,top,bot (c)hange (U)ndo (D)efault (q)uit'
 	let errlines=[]
@@ -1467,6 +1458,18 @@ fun! s:getMapDis(...)
 	let blankcell=repeat(' ',t:mapw)
 	let negcell=repeat('.',t:mapw)
 	let nrows={}
+	if !a:0
+		let t:deepest=max(t:txb.depth)
+		let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.blankcell.'"''),'''')')
+		let t:deepR=len(t:bgd)-1
+		let t:disTxt=copy(t:bgd)
+		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
+		let t:disIx=eval('['.join(repeat(['[98989]'],t:deepR+1),',').']')
+		let t:gridClr=eval('['.join(repeat(['{}'],t:txbL),',').']')
+		let t:gridLbl=deepcopy(t:gridClr)
+		let t:gridPos=deepcopy(t:gridClr)
+		let t:oldDepth=copy(t:txb.depth)
+	en
 	for sp in a:0? a:1 : range(t:txbL)
 		let colIx=sp*t:mapw
 		let newdR=t:txb.depth[sp]/t:gran
@@ -1904,5 +1907,3 @@ let s:mExe[" "]       =s:mExe.J
 let s:mExe["\<bs>"]   =s:mExe.K
 
 delf s:SID
-
-let RefreshMap=function('s:getMapDis')

@@ -7,15 +7,15 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 - Evoke a file prompt with <kbd>f10</kbd>: you can start with a pattern (eg, <samp>*.txt</samp>) or a single file.
 
 ####Commands
-Keyboard commands are accessed by first pressing <kbd>f10</kbd>:
+Drag the mouse to pan. Access keyboard commands by first pressing <kbd>f10</kbd>:
 
-<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
+<kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | pan (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
 <kbd>r</kbd> <kbd>M</kbd> | redraw visible / all || <kbd>o</kbd> | open map
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
 <kbd>S</kbd> <kbd>W</kbd> | settings / save settings || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
-The following commands work within the map (<kbd>f10</kbd> <kbd>o</kbd> to view):
+The following commands apply in the map (<kbd>f10</kbd> <kbd>o</kdb>):
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
