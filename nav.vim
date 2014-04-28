@@ -156,13 +156,13 @@ let s:pagercom.27=s:pagercom.113
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
 	let warnings=''
-	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	let defaults={}
     for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
 		unlet! arg
 		exe get(s:optatt[i],'getDef','let arg=""')
 		let defaults[i]=arg
 	endfor
+	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n"),'settings':{'working dir':fnamemodify(getcwd(),':p')}}
 	if !exists('plane.settings')
 		let plane.settings=defaults
 	else
@@ -210,7 +210,6 @@ fun! TxbInit(...)
 	exe 'cd' fnameescape(plane.settings['working dir'])
 	let unreadable=[]
 	let plane_name_save=copy(plane.name)
-	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
 			if !isdirectory(plane.name[i])
@@ -221,9 +220,9 @@ fun! TxbInit(...)
 			call remove(plane.size,i)
 			call remove(plane.exe,i)
 			call remove(plane.map,i)
-			call remove(abs_paths,i)
 		en
 	endfor
+	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	exe 'cd' fnameescape(prevwd)
 	if !empty(plane.name)
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
@@ -273,7 +272,6 @@ fun! TxbInit(...)
 			call TxbInit()
 		else
 			call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
-			let plane.settings['working dir']=fnamemodify(t_dict['working dir'],'p:')
 			let plane.name=plane_name_save
 			call TxbInit(plane)
 		en
@@ -1444,7 +1442,7 @@ endfun
 fun! s:getMapDis(...)
 	let blankcell=repeat(' ',t:mapw)
 	let negcell=repeat('.',t:mapw)
-	let nrows={}
+	let redR={}
 	if !a:0
 		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.blankcell.'"''),'''')')
 		let t:deepR=len(t:bgd)-1
@@ -1463,17 +1461,18 @@ fun! s:getMapDis(...)
 			call add(t:disIx,[98989])
 			call add(t:disClr,[''])
 			call add(t:disTxt,'')
+			let redR[len(t:bgd)-1]=1
 		endwhile
 		let i=t:oldDepth[sp]/t:gran
 		let colIx=sp*t:mapw
 		while i<newdR
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-			let nrows[i]=-1
+			let redR[i]=1
 			let i+=1
 		endwhile
 		while i>newdR
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
-			let nrows[i]=-1
+			let redR[i]=1
 			let i-=1
 		endwhile
 		let t:oldDepth[sp]=t:txb.depth[sp]
@@ -1528,13 +1527,13 @@ fun! s:getMapDis(...)
 				let changed[i]=''
 			en
 		endfor
-		call extend(nrows,changed,'keep')
+		call extend(redR,changed,'keep')
 		let t:gridLbl[sp]=splitLbl
 		let t:gridClr[sp]=splitClr
 		let t:gridPos[sp]=splitPos
 	endfor
 	let t:deepR=len(t:bgd)-1
-	for i in keys(nrows)
+	for i in keys(redR)
 		let t:disTxt[i]=''
 		let j=t:txbL-1
 		let padl=t:mapw
