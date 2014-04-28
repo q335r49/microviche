@@ -53,15 +53,15 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n> Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8.4! (github.com/q335r49/microviche)\n"
-	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
-	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\n\n\\CSTARTUP AND NAVIGATION\n
+	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
+	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
+	\."\n    STARTUP\n
 	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
+	\\n    BASIC COMMANDS\n
 	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
-	\\n    r                    Redraw and remap visible splits
-	\\n    o                    Remap visible and open map
+	\\n    r                    Redraw & remap visible splits
+	\\n    o                    Remap visible & open map
 	\\n    M                    Map all
 	\\n    L                    Insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
@@ -71,29 +71,29 @@ fun! s:printHelp()
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
-	\\n\n\\CLABELS\n
+	\\n\n    LABELS\n
 	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
-	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored)
+	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
 	\\n    txb:345 bla bla        Just move to 345
 	\\n *  txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
 	\\n    txb: Intro             Just label 'Intro'
 	\\n    txb: Intro##bla bla    Just label 'Intro'
 	\\n----------
 	\\n *  Note the ':' separator when both lnum and label are given
-	\\n\n\\CMAP NAVIGATION\n
+	\\n\n    MAP NAVIGATION\n
 	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
 	\\n    c                    Put cursor at center of view
-	\\n    g <cr>               Go to block and exit map
+	\\n    g <cr>               Go to block & exit map
 	\\n    z                    Change zoom
 	\\n    q                    Quit"
 	\.(ttymouseWorks? "\n *  doubleclick          Go to block
 	\\n    drag                 Pan
 	\\n    click NW corner      Quit
 	\\n    drag to NW corner    (in the plane) Show map
-	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm."
-	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n----------"),width,(&columns-width)/2),s:help_bookmark)
+	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
+	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
 endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 
@@ -422,7 +422,10 @@ fun! s:navPlane(dx,dy)
 endfun
 
 fun! s:formatPar(str,w,pad)
-	let [pars,pad,bigpad,spc]=[split(a:str,"\n"),repeat(" ",a:pad),repeat(" ",a:w+10),repeat(' ',len(&brk))]
+	let pars=split(a:str,"\n")
+	let pad=repeat(" ",a:pad)
+	let bigpad=repeat(" ",a:w+10)
+	let spc=repeat(' ',len(&brk))
 	let ret=[]
 	for k in range(len(pars))
 		if pars[k][0]==#'\'
