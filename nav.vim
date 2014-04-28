@@ -17,7 +17,7 @@ let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 let s:hotkeyArg=':call TxbKey("init")<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
-au VimEnter * if maparg('<f10>')==?s:hotkeyArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
+au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
 if !has('gui_running')
 	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
@@ -96,6 +96,62 @@ fun! s:printHelp()
 	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
 endfun
 let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
+fun! s:pager(list,start)
+	if len(a:list)<&lines
+		let [more,&more]=[&more,0]
+		ec join(a:list,"\n")."\nPress ENTER to continue"
+		while index([10,13,113,27],getchar())==-1
+		endwhile
+		redr
+		let &more=more
+		return 0
+	else
+		let pad=repeat(' ',&columns)
+		let settings=[&more,&ch]
+		let [&more,&ch]=[0,&lines]
+		let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
+		let next=a:start<0? 0 : a:start>bot? bot : a:start
+		while continue
+			if pos!=next
+				let pos=next
+				redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
+			en
+			exe get(s:pagercom,getchar(),'')
+		endwhile
+		redr
+		let [&more,&ch]=settings
+		return pos
+	en
+endfun
+let s:pagercom={113:'let continue=0',
+\32:"let t=&lines/2\n
+	\while pos<bot && t>0\n
+		\let t-=1\n
+		\exe s:pagercom.106\n
+	\endw",
+\106:"if pos<bot\n
+		\let pos=pos+1\n
+		\let next=pos\n
+		\let dispw=strdisplaywidth(a:list[pos+&lines-2])\n
+		\if dispw>49\n
+			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
+		\else\n
+			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
+		\en\n
+	\en",
+\107:'let next=pos>0? pos-1 : pos',
+\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
+\103:'let next=0',
+\71:'let next=bot'}
+let s:pagercom["\<up>"]=s:pagercom.107
+let s:pagercom["\<down>"]=s:pagercom.106
+let s:pagercom["\<ScrollWheelUp>"]=s:pagercom.107
+let s:pagercom["\<ScrollWheelDown>"]=s:pagercom.106
+let s:pagercom["\<left>"]=s:pagercom.98
+let s:pagercom["\<right>"]=s:pagercom.32
+let s:pagercom.100=s:pagercom.32
+let s:pagercom.117=s:pagercom.98
+let s:pagercom.27=s:pagercom.113
 
 fun! TxbInit(...)
 	se noequalalways winwidth=1 winminwidth=0
@@ -651,6 +707,7 @@ fun! s:settingsPager(dict,entry,attr)
 	endwhile
 	let &ch=chsav
 	redr
+	echo
 endfun
 let s:ApplySettingsCmd="if empty(arg)\n
 			\let msg='Input cannot be empty'\n
@@ -691,63 +748,6 @@ let txbCmd.S="let s:kc_continue=''\n
 	\else\n
 		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:optatt)\n
 	\en"
-
-fun! s:pager(list,start)
-	if len(a:list)<&lines
-		let [more,&more]=[&more,0]
-		ec join(a:list,"\n")."\nPress ENTER to continue"
-		while index([10,13,113,27],getchar())==-1
-		endwhile
-		redr
-		let &more=more
-		return 0
-	else
-		let pad=repeat(' ',&columns)
-		let settings=[&more,&ch]
-		let [&more,&ch]=[0,&lines]
-		let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
-		let next=a:start<0? 0 : a:start>bot? bot : a:start
-		while continue
-			if pos!=next
-				let pos=next
-				redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
-			en
-			exe get(s:pagercom,getchar(),'')
-		endwhile
-		redr
-		let [&more,&ch]=settings
-		return pos
-	en
-endfun
-let s:pagercom={113:'let continue=0',
-\32:"let t=&lines/2\n
-	\while pos<bot && t>0\n
-		\let t-=1\n
-		\exe s:pagercom.106\n
-	\endw",
-\106:"if pos<bot\n
-		\let pos=pos+1\n
-		\let next=pos\n
-		\let dispw=strdisplaywidth(a:list[pos+&lines-2])\n
-		\if dispw>49\n
-			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
-		\else\n
-			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
-		\en\n
-	\en",
-\107:'let next=pos>0? pos-1 : pos',
-\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
-\103:'let next=0',
-\71:'let next=bot'}
-let s:pagercom["\<up>"]=s:pagercom.107
-let s:pagercom["\<down>"]=s:pagercom.106
-let s:pagercom["\<ScrollWheelUp>"]=s:pagercom.107
-let s:pagercom["\<ScrollWheelDown>"]=s:pagercom.106
-let s:pagercom["\<left>"]=s:pagercom.98
-let s:pagercom["\<right>"]=s:pagercom.32
-let s:pagercom.100=s:pagercom.32
-let s:pagercom.117=s:pagercom.98
-let s:pagercom.27=s:pagercom.113
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1476,13 +1476,13 @@ fun! s:getMapDis(...)
 		elseif newdR>curdR
 			for i in range(curdR+1,newdR)
 				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
+				let nrows[i]=-1
 			endfor
-			call extend(nrows,eval('{'.join(map(range(curdR+1,newdR),"v:val.':-1'"),',').'}'),'keep')
 		elseif newdR<curdR
 			for i in range(newdR+1,curdR)
 				let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
+				let nrows[i]=-1
 			endfor
-			call extend(nrows,eval('{'.join(map(range(newdR+1,curdR),"v:val.':-1'"),',').'}'),'keep')
 		en
 		let t:oldDepth[sp]=t:txb.depth[sp]
 		let conflicts={}
