@@ -1105,7 +1105,6 @@ fun! s:redraw(...)
 	if !empty(changedsplits)
 		call s:getMapDis(keys(changedsplits))
 	en
-	let t:deepest=max(t:txb.depth)
 	se scrollopt=ver,jump
 	if s:badSync
 		windo 1
@@ -1447,8 +1446,7 @@ fun! s:getMapDis(...)
 	let negcell=repeat('.',t:mapw)
 	let nrows={}
 	if !a:0
-		let t:deepest=max(t:txb.depth)
-		let t:bgd=map(range(0,t:deepest+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.blankcell.'"''),'''')')
+		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.blankcell.'"''),'''')')
 		let t:deepR=len(t:bgd)-1
 		let t:disTxt=copy(t:bgd)
 		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
@@ -1460,7 +1458,6 @@ fun! s:getMapDis(...)
 	en
 	for sp in a:0? a:1 : range(t:txbL)
 		let newdR=t:txb.depth[sp]/t:gran
-		let t:deepest=t:txb.depth[sp]>t:deepest?  t:txb.depth[sp] : t:deepest
 		while newdR>len(t:bgd)-1
 			call add(t:bgd,repeat('.',t:txbL*t:mapw))
 			call add(t:disIx,[98989])
@@ -1821,7 +1818,6 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to rescan the plane? This wi
 		\endfor\n
 		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
 		\call winrestview(view)\n
-		\let t:deepest=max(t:txb.depth)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
 		\let s:kc_continue='(Plane remapped)'\n
