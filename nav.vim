@@ -216,7 +216,7 @@ fun! TxbInit(...)
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
-		if !a0 && exists('g:TXB') && type(g:TXB)==4
+		if !a:0 && exists('g:TXB') && type(g:TXB)==4
 			let g:TXB.settings['working dir']=get(g:TXB.settings,'working dir','')
 			call s:settingsPager(g:TXB.settings,['Global','hotkey','Plane','working dir'],s:optatt)
 			call TxbInit()
