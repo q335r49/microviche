@@ -857,6 +857,8 @@ let txbCmd.D=
 			\call remove(t:txb.exe,t_index)\n
 			\call remove(t:txb.map,t_index)\n
 			\call remove(t:gridLbl,t_index)\n
+			\call remove(t:txb.depth,t_index)\n
+			\call remove(t:oldDepth,t_index)\n
 			\call remove(t:gridClr,t_index)\n
 			\call remove(t:gridPos,t_index)\n
 			\let t:txbL=len(t:txb.name)\n
@@ -888,6 +890,7 @@ let txbCmd.A=
 			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
 			\call insert(t:txb.map,{},w:txbi+1)\n
 			\call insert(t:txb.depth,100,w:txbi+1)\n
+			\call insert(t:oldDepth,100,w:txbi+1)\n
 			\call insert(t:gridLbl,{},w:txbi+1)\n
 			\call insert(t:gridClr,{},w:txbi+1)\n
 			\call insert(t:gridPos,{},w:txbi+1)\n
