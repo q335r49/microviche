@@ -11,13 +11,12 @@ se virtualedit=all                           "Makes leftmost split align correct
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
 se scrolloff=0                               "Ensures correct vertical panning
 
-if !exists('g:TXB_HOTKEY')
-	let g:TXB_HOTKEY='<f10>'
-en
-exe 'nn <silent>' g:TXB_HOTKEY ':call TxbKey("init")<cr>'
+let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
+let s:DEFmapArg=':call TxbKey("init")<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
 augroup TXB
 	au!
-	au VimEnter * if stridx(maparg('<f10>'),'TXB')!=-1 | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY ':call TxbKey("init")<cr>'
+	au VimEnter * if maparg('<f10>')==?s:DEFmapArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
 augroup END
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
@@ -500,13 +499,13 @@ let s:optatt={
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
 		\'required': 1,
-		\'apply': "if stridx(maparg(g:TXB_HOTKEY),'TXB')!=-1\n
+		\'apply': "if maparg(g:TXB_HOTKEY)==?s:DEFmapArg\n
 				\exe 'silent! nunmap' g:TXB_HOTKEY\n
-			\elseif stridx(maparg('<f10>'),'TXB')!=-1\n
+			\elseif maparg('<f10>')==?s:DEFmapArg\n
 				\silent! nunmap <f10>\n
 			\en\n
-			\exe 'nn <silent>' arg ':call TxbKey(\"init\")<cr>'\n
-			\let g:TXB_HOTKEY=arg"},
+			\let g:TXB_HOTKEY=arg\n
+			\exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
@@ -657,7 +656,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let &ch=chsav
 	redr
 endfun
-let s:applySettings="if empty(arg)\n
+let s:DEFapplySettings="if empty(arg)\n
 			\let msg='Input cannot be empty'\n
 		\else\n
 			\exe get(a:attr[key],'check','let msg=0')\n
@@ -672,15 +671,15 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 			\let msg='No default defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\exe a:attr[key].getDef\n".s:applySettings,
+			\exe a:attr[key].getDef\n".s:DEFapplySettings,
 	\85: "if !has_key(disp,key) || !has_key(undo,key)\n
 			\let msg='No undo defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\let arg=undo[key]\n".s:applySettings,
+			\let arg=undo[key]\n".s:DEFapplySettings,
 	\99: "if has_key(disp,key)\n
 			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:applySettings,
+			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:DEFapplySettings,
 	\113: "let continue=0",
 	\27:  "let continue=0",
 	\106: 'let s:spCursor+=1',
@@ -689,7 +688,7 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\71:  'let s:spCursor=entries-1'}
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
-unlet s:applySettings
+unlet s:DEFapplySettings
 let txbCmd.S="let s:kc_continue=''\n
 	\if exists('w:txbi')\n
 		\call s:settingsPager(t:txb.settings,['Global','hotkey','Plane','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
@@ -1802,7 +1801,7 @@ let txbCmd.o="let s:kc_continue=''\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
-let txbCmd.M="if 'y'==?input('Are you sure you want to map the entire plane? This will cycle through every file in the plane (y/n): ','y')\n
+let txbCmd.M="if 'y'==?input('Are you sure you want to rescan the plane? This will cycle through every file (y/n): ','y')\n
 		\let curwin=w:txbi\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
