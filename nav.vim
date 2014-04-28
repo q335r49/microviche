@@ -11,26 +11,20 @@ se virtualedit=all                           "Makes leftmost split align correct
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
 se scrolloff=0                               "Ensures correct vertical panning
 
-augroup TXB
-au!
+augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
-let s:DEFmapArg=':call TxbKey("init")<cr>'
-exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
-au VimEnter * if maparg('<f10>')==?s:DEFmapArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg
+let s:hotkeyArg=':call TxbKey("init")<cr>'
+exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
+au VimEnter * if maparg('<f10>')==?s:hotkeyArg) | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
-let s:badSync=v:version<704 || v:version==704 && !has('patch131')
-
-if !has("gui_running")
-	fun! <SID>centerCursor(row,col)
-		call s:redraw()
-		call s:nav(a:col/2-&columns/4,line('w0')-winheight(0)/4+a:row/2)
-	endfun
-	au VimResized * if exists('w:txbi') | call <SID>centerCursor(winline(),eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')) | en
+if !has('gui_running')
+	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
 	nn <silent> <leftmouse> :exe get(txbMsInit,&ttymouse,g:txbMsInit.default)()<cr>
 else
 	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
 en
+let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 
 fun! s:SID()
 	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
@@ -500,13 +494,13 @@ let s:optatt={
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
 		\'required': 1,
-		\'apply': "if maparg(g:TXB_HOTKEY)==?s:DEFmapArg\n
+		\'apply': "if maparg(g:TXB_HOTKEY)==?s:hotkeyArg\n
 				\exe 'silent! nunmap' g:TXB_HOTKEY\n
-			\elseif maparg('<f10>')==?s:DEFmapArg\n
+			\elseif maparg('<f10>')==?s:hotkeyArg\n
 				\silent! nunmap <f10>\n
 			\en\n
 			\let g:TXB_HOTKEY=arg\n
-			\exe 'nn <silent>' g:TXB_HOTKEY s:DEFmapArg"},
+			\exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
@@ -552,9 +546,9 @@ let s:optatt={
 		\'required': 1,
 		\'apply': "if 'y'==?input('Apply new default width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([arg],t:txbL)\n
-				\let msg='(Current splits resized)'\n
+				\let msg='(All splits resized)'\n
 			\else\n
-				\let msg='(Only appended splits will inherit new width)'\n
+				\let msg='(Only newly appended splits will inherit new width)'\n
 			\en\n
 			\let dict['split width']=arg"},
 	\'writefile': {'doc': 'Default settings save file',
@@ -657,7 +651,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let &ch=chsav
 	redr
 endfun
-let s:DEFapplySettings="if empty(arg)\n
+let s:ApplySettingsCmd="if empty(arg)\n
 			\let msg='Input cannot be empty'\n
 		\else\n
 			\exe get(a:attr[key],'check','let msg=0')\n
@@ -672,15 +666,15 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 			\let msg='No default defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\exe a:attr[key].getDef\n".s:DEFapplySettings,
+			\exe a:attr[key].getDef\n".s:ApplySettingsCmd,
 	\85: "if !has_key(disp,key) || !has_key(undo,key)\n
 			\let msg='No undo defined for this value'\n
 		\else\n
 			\unlet! arg\n
-			\let arg=undo[key]\n".s:DEFapplySettings,
+			\let arg=undo[key]\n".s:ApplySettingsCmd,
 	\99: "if has_key(disp,key)\n
 			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:DEFapplySettings,
+			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:ApplySettingsCmd,
 	\113: "let continue=0",
 	\27:  "let continue=0",
 	\106: 'let s:spCursor+=1',
@@ -689,7 +683,7 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 	\71:  'let s:spCursor=entries-1'}
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
-unlet s:DEFapplySettings
+unlet s:ApplySettingsCmd
 let txbCmd.S="let s:kc_continue=''\n
 	\if exists('w:txbi')\n
 		\call s:settingsPager(t:txb.settings,['Global','hotkey','Plane','split width','autoexe','mouse pan speed','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
