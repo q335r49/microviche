@@ -613,7 +613,7 @@ let s:optatt={
 		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory assumed when loading splits with relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
-		\'getDef': 'let arg="~"',
+		\'getDef': 'let arg=fnamemodify(getcwd(),":p")',
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
