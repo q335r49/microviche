@@ -58,10 +58,10 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n> Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8! (github.com/q335r49/microviche)\n"
+	let s:help_bookmark=s:pager(s:formatPar("\nWelcome to microViche v1.8.4! (github.com/q335r49/microviche)\n"
 	\.(empty(WarningsAndSuggestions)? "\nWarnings and Suggestions: (none)\n" : "\nWarnings and Suggestions:".WarningsAndSuggestions."\n")
 	\."\nCurrent hotkey: ".g:TXB_HOTKEY."\n
-	\\n\n\\CSTARTUP AND NAVIGATION:\n
+	\\n\n\\CSTARTUP AND NAVIGATION\n
 	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
 	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
@@ -76,7 +76,7 @@ fun! s:printHelp()
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
-	\\n\n\\CLABELING:\n
+	\\n\n\\CLABELS\n
 	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 	\\n\nSYNTAX: marker(lnum)(:)( label#highlght#ignored)
 	\\n    txb:345 bla bla        Just move to 345
@@ -85,7 +85,7 @@ fun! s:printHelp()
 	\\n    txb: Intro##bla bla    Just label 'Intro'
 	\\n----------
 	\\n *  Note the ':' separator when both lnum and label are given
-	\\n\n\\CMAP NAVIGATION:\n
+	\\n\n\\CMAP NAVIGATION\n
 	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
@@ -480,7 +480,7 @@ let s:optatt={
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
 		\'getInput':"let prevwd=getcwd()\n
 			\exe 'cd' fnameescape(t:wdir)\n
-			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(vals[a:entry[s:spCursor]])==1? vals[a:entry[s:spCursor]] : string(vals[a:entry[s:spCursor]]),'file')\n
+			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')\n
 			\exe 'cd' fnameescape(prevwd)",
 		\'apply': "if !empty(arg)\n
 				\let prevwd=getcwd()\n
@@ -565,7 +565,7 @@ let s:optatt={
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
 		\'required': 1,
-		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(vals[a:entry[s:spCursor]])==1? vals[a:entry[s:spCursor]] : string(vals[a:entry[s:spCursor]]),'file')",
+		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')",
 		\'apply': "let msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
 				\let confirm=input('Step 2/3 (Recommended): Would you like to convert current files to absolute paths so that their locations remain unaffected? (y/n/cancel)')\n
