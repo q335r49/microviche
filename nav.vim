@@ -475,7 +475,7 @@ let s:optatt={
 			\let dict.autoexe=arg"},
 	\'current autoexe': {'doc': 'Command when current split is revealed',
 		\'loadk': 'let ret=t:txb.exe[w:txbi]',
-		\'apply': 'let t:txb.exe[w:txbi]=arg'},
+		\'apply': 'let t:txb.exe[w:txbi]=arg|call s:redraw()'},
 	\'current file': {'doc': 'File associated with this split',
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
 		\'getInput':"let prevwd=getcwd()\n
@@ -488,11 +488,14 @@ let s:optatt={
 				\let t:paths[w:txbi]=fnameescape(fnamemodify(arg,':p'))\n
 				\let t:txb.name[w:txbi]=arg\n
 				\exe 'cd' fnameescape(prevwd)\n
+				\let curview=winsaveview()\n
+				\call s:redraw()\n
+				\call winrestview(curview)\n
 			\en"},
 	\'current width': {'doc': 'Width of current split',
 		\'loadk': 'let ret=t:txb.size[w:txbi]',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Split width must be > 2''',
-		\'apply': 'let t:txb.size[w:txbi]=arg'},
+		\'apply': 'let t:txb.size[w:txbi]=arg|call s:redraw()'},
 	\'hotkey': {'doc': "Global hotkey. Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
@@ -971,15 +974,8 @@ fun! s:redraw(...)
 		else
 			let w:txbi=ix
 		en
-	elseif get(t:paths,w:txbi,'')!=#name0
-		let ix=index(t:paths,name0)
-		if ix==-1
-			let prev_txbi=w:txbi
-			exe 'e' t:paths[prev_txbi]
-			let w:txbi=prev_txbi
-		else
-			let w:txbi=ix
-		en
+	elseif t:paths[w:txbi]!=#name0
+		exe 'e' t:paths[w:txbi]
 	en
 	let win0=winnr()
 	let pos=[bufnr('%'),line('w0'),line('.'), virtcol('.')]
