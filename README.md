@@ -15,7 +15,7 @@ Drag the mouse to pan. Access keyboard commands by first pressing <kbd>f10</kbd>
 <kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert "[marker]lnum"
 <kbd>S</kbd> <kbd>W</kbd> | settings / save settings || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
-The following commands apply in the map (<kbd>f10</kbd> <kbd>o</kdb>):
+The following commands apply in the map (<kbd>f10</kbd> <kbd>o</kbd>):
 
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
