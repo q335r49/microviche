@@ -3,7 +3,7 @@ microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microf
 
 ####Startup
 - [Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), and <samp>:source [downloads]/nav.vim</samp>
-- Press <kbd>f10</kbd> to populate the plane: you can use a pattern like '*.txt' or start with one file and add others later.
+- Press <kbd>f10</kbd> to populate the plane.
 
 ####Commands
 Drag the mouse to pan. Access keyboard commands by first pressing <kbd>f10</kbd>:

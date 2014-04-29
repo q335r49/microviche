@@ -15,7 +15,7 @@ augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
-let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|let TXB=TxbInit(exists("TXB")? TXB : "")? TXB : t:txb\|en<cr>'
+let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|if !TxbInit(exists("TXB")? TXB : "")\|let TXB=t:txb\|en\|en<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
@@ -56,7 +56,7 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\n    STARTUP\n
-	\\nPress the hotkey to populate the plane: you can try a pattern like '*.txt' or start with a single file and (A)ppend others later.\n
+	\\nPress the hotkey to populate the plane.\n
 	\\n    BASIC COMMANDS\n
 	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
@@ -156,14 +156,14 @@ let s:pagercom.27=s:pagercom.113
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
-		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
+		let plane={'settings':{'working dir':input("> Creating a new plane...\n> Working directory:\n? ",getcwd())}}
 		if empty(plane.settings['working dir'])
 			return 1
 		en
 		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
 		let prevwd=getcwd()
 		exe 'cd' fnameescape(plane.settings['working dir'])
-		let input=input("\n> Enter file pattern: \n? ",'','file')
+		let input=input("\n> Starting files: (Enter a single file or a filepattern such as '*.txt'. Press tab for completion.)\n? ",'','file')
 		if empty(input)
 			let plane.name=split(glob(input),"\n")
 			return 1
@@ -245,15 +245,15 @@ fun! TxbInit(seed)
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if !empty(unreadable)
 			let warnings.="\n> Unreadable files will be removed!"
-			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (f1) help (esc) cancel\n? "
+			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
 			let confirmKeys=[82]
 		else
-			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (f1) help (esc) cancel\n? "
+			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
 			let confirmKeys=[10,13]
 		en
 	elseif !empty(unreadable)
 		let warnings.="\n> No readable files!"
-		let confirmMsg="> (S)et working dir & global options (f1) help (enter) ok\n? "
+		let confirmMsg="> (N)ew plane (S)et working dir & global options (f1) help (enter) ok\n? "
 		let confirmKeys=[-1]
 	else
 		let confirmMsg='> No matches'
@@ -265,8 +265,8 @@ fun! TxbInit(seed)
 	echohl WarningMsg | echon warnings
 	echohl | ec confirmMsg
 	let c=empty(confirmKeys)? 0 : getchar()
+	echon nr2char(c)
 	if index(confirmKeys,c)!=-1
-		echon '(load)'
 		if bufix==-1 | tabe | en
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
@@ -281,15 +281,14 @@ fun! TxbInit(seed)
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
-		return 1
+	elseif c is 78
+		return TxbInit('')
 	elseif c is 83
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 		let plane.name=plane_name_save
 		return TxbInit(plane)
-	else
-		echon '(cancel)'
-		return TxbInit('')
 	en
+	return 1
 endfun
 
 let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
