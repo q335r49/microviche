@@ -15,7 +15,7 @@ augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
-let s:hotkeyArg=':call {exists("w:txbi")? "TxbKey" : "TxbInit"}()<cr>'
+let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|call TxbInit(exists("g:TXB")? g:TXB : "")\|en<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
@@ -153,7 +153,7 @@ let s:pagercom.100=s:pagercom.32
 let s:pagercom.117=s:pagercom.98
 let s:pagercom.27=s:pagercom.113
 
-fun! TxbInit(...)
+fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	let warnings=''
 	let defaults={}
@@ -162,7 +162,24 @@ fun! TxbInit(...)
 		exe get(s:optatt[i],'getDef','let arg=""')
 		let defaults[i]=arg
 	endfor
-	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
+	if empty(a:seed)
+		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
+		if empty(plane.settings['working dir'])
+			return
+		en
+		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
+		let prevwd=getcwd()
+		exe 'cd' fnameescape(plane.settings['working dir'])
+		let input=input("\n> Enter file pattern: \n? ",'','file')
+		if empty(input)
+			let plane.name=split(glob(input),"\n")
+			return
+		en
+		let plane.name=split(glob(input),"\n")
+		exe 'cd' fnameescape(prevwd)
+	else
+		let plane=type(a:seed)==4? deepcopy(a:seed) : type(a:seed)==3? {'name':copy(a:seed)} : {'name':split(glob(a:seed),"\n")}
+	en
 	if !exists('plane.settings')                                    
 		let plane.settings=defaults
 	else
@@ -242,15 +259,14 @@ fun! TxbInit(...)
 		let confirmMsg='> No matches'
 		let confirmKeys=[]
 	en
-	if a:0 || exists('g:TXB')
-		echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
-		echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
-		echon "\n> working dir: ".plane.settings['working dir']
-		echohl WarningMsg | echon warnings | echohl
-		ec confirmMsg
-	en
+	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
+	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
+	echon "\n> working dir: ".plane.settings['working dir']
+	echohl WarningMsg | echon warnings | echohl
+	ec confirmMsg
 	let c=empty(confirmKeys)? 0 : getchar()
 	if index(confirmKeys,c)!=-1
+		echon '(confirmed)'
 		if bufix==-1 | tabe | en
 		let g:TXB=plane
 		let t:txb=plane
@@ -267,33 +283,11 @@ fun! TxbInit(...)
 	elseif c is "\<f1>"
 		call s:printHelp()
 	elseif c is 83
-		if !a:0 && exists('g:TXB') && type(g:TXB)==4
-			let g:TXB.settings['working dir']=get(g:TXB.settings,'working dir','')
-			call s:settingsPager(g:TXB.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
-			call TxbInit()
-		else
-			call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
-			let plane.name=plane_name_save
-			call TxbInit(plane)
-		en
+		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
+		let plane.name=plane_name_save
+		call TxbInit(plane)
 	else
-		if !empty(confirmKeys)
-			echon '(cancelled)'
-		en
-		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
-		if !empty(plane.settings['working dir'])
-			let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
-			let prevwd=getcwd()
-			exe 'cd' fnameescape(plane.settings['working dir'])
-			let input=input("\n> Enter file pattern: \n? ",'','file')
-			if !empty(input)
-				let plane.name=split(glob(input),"\n")
-				exe 'cd' fnameescape(prevwd)
-				call TxbInit(plane)
-			else
-				exe 'cd' fnameescape(prevwd)
-			en
-		en
+		call TxbInit('')
 	en
 endfun
 
@@ -800,10 +794,10 @@ fun! s:dochar()
 endfun
 
 let s:count='03'
-fun! TxbKey(...)
+fun! TxbKey(cmd)
 	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
-	call s:doCmdKeyhandler(a:0? a:1 : 'null')
+	call s:doCmdKeyhandler(a:cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
