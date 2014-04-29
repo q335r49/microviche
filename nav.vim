@@ -162,15 +162,7 @@ fun! TxbInit(...)
 		exe get(s:optatt[i],'getDef','let arg=""')
 		let defaults[i]=arg
 	endfor
-	if !a:0
-		let plane=exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]}
-	elseif type(a:1)==4
-		let plane=deepcopy(a:1)
-	elseif type(a:1)==3
-		let plane={'name':copy(a:1)}
-	else
-		throw "Error: argument be list filename or dictionary"
-	en
+	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n")}
 	if !exists('plane.settings')                                    
 		let plane.settings=defaults
 	else
@@ -234,28 +226,27 @@ fun! TxbInit(...)
 	exe 'cd' fnameescape(prevwd)
 	if !empty(plane.name)
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
-		if !empty(unreadable) && a:0 && type(a:1)==4
-			let warnings.="\n> Warning: unreadable file(s) will be REMOVED from the plane (This is often because of an incorrect working directory; change in (S)ettings)"
-			let confirmMsg="> (R) Remove and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S) settings (F1) help (esc) cancel"
+		if !empty(unreadable)
+			let warnings.="\n> Unreadable files will be removed!"
+			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (F1) help (esc) cancel\n? "
 			let confirmKeys=[82]
 		else
-			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S) settings (F1) help (esc) cancel"
+			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (F1) help (esc) cancel\n? "
 			let confirmKeys=[10,13]
 		en
-	elseif !empty(unreadable) || a:0 && type(a:1)==4
-		let warnings.="\n> No readable files (make sure working dir is correct)"
-		let confirmMsg="> (S) settings (F1) help (enter) ok"
+	elseif !empty(unreadable)
+		let warnings.="\n> No readable files!"
+		let confirmMsg="> (S)et working dir & global options (F1) help (enter) ok\n? "
 		let confirmKeys=[-1]
 	else
-		let confirmMsg=''
+		let confirmMsg='> No matches'
 		let confirmKeys=[]
 	en
 	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
 	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
 	echon "\n> working dir: ".plane.settings['working dir']
-	echohl WarningMsg | echon warnings
-	echohl moremsg | ec confirmMsg
-	echohl
+	echohl WarningMsg | echon warnings | echohl
+	ec confirmMsg
 	let c=empty(confirmKeys)? 0 : getchar()
 	if index(confirmKeys,c)!=-1
 		if bufix==-1 | tabe | en
@@ -284,6 +275,9 @@ fun! TxbInit(...)
 			call TxbInit(plane)
 		en
 	else
+		if !empty(confirmKeys)
+			echon '(cancelled)'
+		en
 		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
 		if !empty(plane.settings['working dir'])
 			let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
