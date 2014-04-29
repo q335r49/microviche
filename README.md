@@ -2,8 +2,7 @@
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
 ####Startup
-- [Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), and <samp>:source [downloads]/nav.vim</samp>
-- Press <kbd>f10</kbd> to populate the plane.
+[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source [downloads]/nav.vim</samp>, and press <kbd>f10</kbd>.
 
 ####Commands
 Drag the mouse to pan. Access keyboard commands by first pressing <kbd>f10</kbd>:

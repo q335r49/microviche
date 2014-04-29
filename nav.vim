@@ -279,14 +279,15 @@ fun! TxbInit(seed)
 		let t:paths=abs_paths
 		call s:getMapDis()
 		call s:redraw()
-	elseif c is "\<f1>"
-		call s:printHelp()
-	elseif c is 78
-		return TxbInit('')
+		return 0
 	elseif c is 83
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 		let plane.name=plane_name_save
 		return TxbInit(plane)
+	elseif c is 78
+		return TxbInit('')
+	elseif c is "\<f1>"
+		call s:printHelp()
 	en
 	return 1
 endfun
