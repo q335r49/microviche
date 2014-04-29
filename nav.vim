@@ -15,7 +15,7 @@ augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
-let s:hotkeyArg=':call TxbKey("init")<cr>'
+let s:hotkeyArg=':call {exists("w:txbi")? "TxbKey" : "TxbInit"}()<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
@@ -242,11 +242,13 @@ fun! TxbInit(...)
 		let confirmMsg='> No matches'
 		let confirmKeys=[]
 	en
-	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
-	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
-	echon "\n> working dir: ".plane.settings['working dir']
-	echohl WarningMsg | echon warnings | echohl
-	ec confirmMsg
+	if a:0 || exists('g:TXB')
+		echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
+		echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
+		echon "\n> working dir: ".plane.settings['working dir']
+		echohl WarningMsg | echon warnings | echohl
+		ec confirmMsg
+	en
 	let c=empty(confirmKeys)? 0 : getchar()
 	if index(confirmKeys,c)!=-1
 		if bufix==-1 | tabe | en
@@ -798,10 +800,10 @@ fun! s:dochar()
 endfun
 
 let s:count='03'
-fun! TxbKey(cmd)
+fun! TxbKey(...)
 	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
-	call s:doCmdKeyhandler(a:cmd)
+	call s:doCmdKeyhandler(a:0? a:1 : 'null')
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
@@ -814,11 +816,8 @@ fun! s:doCmdKeyhandler(c)
 endfun
 let txbCmd.q="let s:kc_continue=''"
 let txbCmd[-1]="let s:kc_continue=''"
-let txbCmd.init="if !exists('w:txbi')\n
-		\call TxbInit()\n
- 		\let s:kc_continue=''\n
-	\en"
 let txbCmd["\e"]=txbCmd.q
+let txbCmd.null=''
 
 let txbCmd.h="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0'))|redrawstatus!"
 let txbCmd.j="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')+s:count)|redrawstatus!"
