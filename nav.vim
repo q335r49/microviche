@@ -44,14 +44,14 @@ fun! s:printHelp()
 	redir END
 	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
 	let WarningsAndSuggestions=
-	\ (v:version<=703? "\n> Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
-	\.(v:version<703 || v:version==703 && !has('patch106')? "\n> Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n> Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with (hotkey) W."
-	\: empty(&vi) || stridx(&vi,'!')==-1? "\n> Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with (hotkey) W." : '')
-	\.(len(split(laggyAu,"\n"))>4? "\n> Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n> Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use (hotkey) r or ':call TxbKey('r')'" : '')
-	\.(&ttymouse==?'xterm'? "\n> Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
-	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n> Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
+	\ (v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
+	\.(v:version<703 || v:version==703 && !has('patch106')? "\n# Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n# Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with (hotkey) W."
+	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with (hotkey) W." : '')
+	\.(len(split(laggyAu,"\n"))>4? "\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
+	\.(has('gui_running')? "\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use (hotkey) r or ':call TxbKey('r')'" : '')
+	\.(&ttymouse==?'xterm'? "\n# Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
+	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
@@ -153,14 +153,14 @@ let s:pagercom.27=s:pagercom.113
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
-		let plane={'settings':{'working dir':input("> Creating a new plane...\n> Working directory:\n? ",getcwd())}}
+		let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
 		if empty(plane.settings['working dir'])
 			return 1
 		en
 		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
 		let prevwd=getcwd()
 		exe 'cd' fnameescape(plane.settings['working dir'])
-		let input=input("\n> Starting files: (Enter a single file or a filepattern such as '*.txt'. Press tab for completion.)\n? ",'','file')
+		let input=input("\n? Starting files (enter a single file or a filepattern such as '*.txt'; press tab for completion): ",'','file')
 		if empty(input)
 			let plane.name=split(glob(input),"\n")
 			return 1
@@ -189,7 +189,7 @@ fun! TxbInit(seed)
 				exe get(s:optatt[i],'check','let msg=0')
 				if msg isnot 0
 					let plane.settings[i]=defaults[i]
-					let prompt.="\n> WARNING: invalid setting (default will be used): ".i.": ".msg
+					let prompt.="\n# WARNING: invalid setting (default will be used): ".i.": ".msg
 				en
 			en
 		endfor
@@ -239,21 +239,22 @@ fun! TxbInit(seed)
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	exe 'cd' fnameescape(prevwd)
 	if empty(plane.name)
-		let prompt.="\n> No matches\n> (N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
+		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
 	else
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if !empty(unreadable)
-			let prompt.="\n> Unreadable files will be removed!\n> (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
+			let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 			let confirmKeys=[82,114]
 		else
-			let prompt.="\n> (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
+			let prompt.="\n? (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 			let confirmKeys=[10,13]
 		en
 	en
-	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
-	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
-	echon "\n> working dir: " plane.settings['working dir'] confirmMsg
+	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable ...\n# ".join(plane.name,', ')
+	echon empty(unreadable)? '' : "\n# ".len(unreadable).' unreadable ...\n# '.join(unreadable,', ')
+	echon empty(plane.name)? '' : ("\n# Working dir: ".plane.settings['working dir'])
+	echon prompt
 	let c=getchar()
 	echon strtrans(type(c)? c : nr2char(c))
 	if index(confirmKeys,c)!=-1
