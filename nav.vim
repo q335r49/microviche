@@ -171,7 +171,7 @@ fun! TxbInit(seed)
 		let plane=type(a:seed)==4? deepcopy(a:seed) : type(a:seed)==3? {'name':copy(a:seed)} : {'name':split(glob(a:seed),"\n")}
 	en
 	let defaults={}
-	let warnings=''
+	let prompt=''
     for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
 		unlet! arg
 		exe get(s:optatt[i],'getDef','let arg=""')
@@ -189,7 +189,7 @@ fun! TxbInit(seed)
 				exe get(s:optatt[i],'check','let msg=0')
 				if msg isnot 0
 					let plane.settings[i]=defaults[i]
-					let warnings.="\n> Warning: invalid setting (default will be used): ".i.": ".msg
+					let prompt.="\n> WARNING: invalid setting (default will be used): ".i.": ".msg
 				en
 			en
 		endfor
@@ -238,30 +238,23 @@ fun! TxbInit(seed)
 	endfor
 	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
 	exe 'cd' fnameescape(prevwd)
-	if !empty(plane.name)
-		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
-		if !empty(unreadable)
-			let warnings.="\n> Unreadable files will be removed!"
-			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
-			let confirmKeys=[82]
-		else
-			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
-			let confirmKeys=[10,13]
-		en
-	elseif !empty(unreadable)
-		let warnings.="\n> No readable files!"
-		let confirmMsg="> (N)ew plane (S)et working dir & global options (f1) help (enter) ok\n? "
+	if empty(plane.name)
+		let prompt.="\n> No matches\n> (N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
 		let confirmKeys=[-1]
 	else
-		let confirmMsg='> No matches'
-		let confirmKeys=[]
+		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		if !empty(unreadable)
+			let prompt.="\n> Unreadable files will be removed!\n> (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
+			let confirmKeys=[82,114]
+		else
+			let prompt.="\n> (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel\n? "
+			let confirmKeys=[10,13]
+		en
 	en
 	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
 	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
-	echon "\n> working dir: ".plane.settings['working dir']
-	echohl WarningMsg | echon warnings
-	echohl | ec confirmMsg
-	let c=empty(confirmKeys)? 0 : getchar()
+	echon "\n> working dir: " plane.settings['working dir'] confirmMsg
+	let c=getchar()
 	echon strtrans(type(c)? c : nr2char(c))
 	if index(confirmKeys,c)!=-1
 		if bufix==-1 | tabe | en
@@ -277,11 +270,11 @@ fun! TxbInit(seed)
 		call s:getMapDis()
 		call s:redraw()
 		return 0
-	elseif c is 83
+	elseif index([83,115],c)!=-1
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 		let plane.name=plane_name_save
 		return TxbInit(plane)
-	elseif c is 78
+	elseif index([78,110],c)!=-1
 		return TxbInit('')
 	elseif c is "\<f1>"
 		call s:printHelp()
@@ -517,7 +510,7 @@ endfun
 "required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined)
 "onInit()       Exe when loading plane
 let s:optatt={
-	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, [c]hange for prompt to apply to current splits)',
+	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, (c)hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
 		\'getDef': "let arg='se nowrap scb cole=2'",
 		\'required': 1,
@@ -598,7 +591,7 @@ let s:optatt={
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
-	\'split width': {'doc': 'Default split width (for appended splits, [c]hange for prompt to resize current splits)',
+	\'split width': {'doc': 'Default split width (for appended splits, (c)hange for prompt to resize current splits)',
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
 		\'check': "let arg=str2nr(arg)|let msg=arg>2? 0 : 'Default split width must be > 2'",
