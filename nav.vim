@@ -55,10 +55,7 @@ fun! s:printHelp()
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
-	\."\n    STARTUP\n
-	\\nPress the hotkey to populate the plane.\n
-	\\n    BASIC COMMANDS\n
-	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
+	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan, or press (hotkey) followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
 	\\n    r                    Redraw & remap visible splits
 	\\n    o                    Remap visible & open map
@@ -71,7 +68,7 @@ fun! s:printHelp()
 	\\n    q <esc>              Abort
 	\\n----------
 	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
-	\\n\n    LABELS\n
+	\\n\n    Labels\n
 	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
 	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
 	\\n    txb:345 bla bla        Just move to 345
@@ -80,7 +77,7 @@ fun! s:printHelp()
 	\\n    txb: Intro##bla bla    Just label 'Intro'
 	\\n----------
 	\\n *  Note the ':' separator when both lnum and label are given
-	\\n\n    MAP NAVIGATION\n
+	\\n\n    Map Commands\n
 	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
@@ -265,7 +262,7 @@ fun! TxbInit(seed)
 	echohl WarningMsg | echon warnings
 	echohl | ec confirmMsg
 	let c=empty(confirmKeys)? 0 : getchar()
-	echon nr2char(c)
+	echon strtrans(type(c)? c : nr2char(c))
 	if index(confirmKeys,c)!=-1
 		if bufix==-1 | tabe | en
 		let t:txb=plane
