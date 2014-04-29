@@ -56,7 +56,7 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\n    STARTUP\n
-	\\nStart by navigate to the WORKING DIRECTORY to create a plane. (After creation, the plane can be accessed from any directory). Press the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
+	\\nPress the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
 	\\n    BASIC COMMANDS\n
 	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
@@ -163,24 +163,13 @@ fun! TxbInit(...)
 		let defaults[i]=arg
 	endfor
 	if !a:0
-		if exists('g:TXB') && type(g:TXB)==4
-			let plane=deepcopy(g:TXB)
-		else
-			let plane={'name':[]}
-		en
+		let plane=exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]}
 	elseif type(a:1)==4
 		let plane=deepcopy(a:1)
 	elseif type(a:1)==3
 		let plane={'name':copy(a:1)}
 	else
-		let plane={'settings':{'working dir':fnamemodify(input("\n> Enter working directory for file name completion & resolving relative paths, default current directory:\n? ",getcwd()),':p')}}
-		if empty(plane.settings['working dir'])
-			let plane.settings['working dir']=getcwd()
-		en
-		let prevwd=getcwd()
-		exe 'cd' fnameescape(plane.settings['working dir'])
-		let plane.name=split(glob(a:1),"\n")
-		exe 'cd' fnameescape(prevwd)
+		throw "Error: argument be list filename or dictionary"
 	en
 	if !exists('plane.settings')                                    
 		let plane.settings=defaults
@@ -295,11 +284,19 @@ fun! TxbInit(...)
 			call TxbInit(plane)
 		en
 	else
-		let fileinp=input("> Enter file pattern or type HELP: \n? ",'','file')
-		if fileinp==?'help'
-			call s:printHelp()
-		elseif !empty(fileinp)
-			call TxbInit(fileinp)
+		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
+		if !empty(plane.settings['working dir'])
+			let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
+			let prevwd=getcwd()
+			exe 'cd' fnameescape(plane.settings['working dir'])
+			let input=input("\n> Enter file pattern: \n? ",'','file')
+			if !empty(input)
+				let plane.name=split(glob(input),"\n")
+				exe 'cd' fnameescape(prevwd)
+				call TxbInit(plane)
+			else
+				exe 'cd' fnameescape(prevwd)
+			en
 		en
 	en
 endfun
