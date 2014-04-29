@@ -235,16 +235,16 @@ fun! TxbInit(...)
 	if !empty(plane.name)
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if !empty(unreadable) && a:0 && type(a:1)==4
-			let warnings.="\n> Warning: unreadable file(s) will be REMOVED from the plane (This is often because of an incorrect working directory; change in [S]ettings)"
-			let confirmMsg="> [R] Remove and ".(bufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let warnings.="\n> Warning: unreadable file(s) will be REMOVED from the plane (This is often because of an incorrect working directory; change in (S)ettings)"
+			let confirmMsg="> (R) Remove and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S) settings (F1) help (esc) cancel"
 			let confirmKeys=[82]
 		else
-			let confirmMsg="> [enter] ".(bufix!=-1? "restore plane " : "load in new tab ")."[S] settings [F1] help [esc] cancel"
+			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S) settings (F1) help (esc) cancel"
 			let confirmKeys=[10,13]
 		en
 	elseif !empty(unreadable) || a:0 && type(a:1)==4
-		let warnings.="\n> No readable files remain (make sure working dir is correct)"
-		let confirmMsg="> [S] settings [F1] help [esc] cancel"
+		let warnings.="\n> No readable files (make sure working dir is correct)"
+		let confirmMsg="> (S) settings (F1) help (enter) ok"
 		let confirmKeys=[-1]
 	else
 		let confirmMsg=''
@@ -253,7 +253,7 @@ fun! TxbInit(...)
 	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
 	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
 	echon "\n> working dir: ".plane.settings['working dir']
-	echohl WarningMsg | ec warnings
+	echohl WarningMsg | echon warnings
 	echohl moremsg | ec confirmMsg
 	echohl
 	let c=empty(confirmKeys)? 0 : getchar()
