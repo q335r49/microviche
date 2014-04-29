@@ -251,9 +251,9 @@ fun! TxbInit(seed)
 			let confirmKeys=[10,13]
 		en
 	en
-	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable ...\n# ".join(plane.name,', ')
-	echon empty(unreadable)? '' : "\n# ".len(unreadable).' unreadable ...\n# '.join(unreadable,', ')
-	echon empty(plane.name)? '' : ("\n# Working dir: ".plane.settings['working dir'])
+	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable\n# ".join(plane.name,', ')
+	echon empty(unreadable)? '' : "\n# ".len(unreadable).' unreadable\n# '.join(unreadable,', ')
+	echon empty(plane.name)? '' : "\n# Working dir: ".plane.settings['working dir']
 	echon prompt
 	let c=getchar()
 	echon strtrans(type(c)? c : nr2char(c))
@@ -794,13 +794,13 @@ endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
 	if s:kc_continue==' '
-		echon w:txbi '.' line('.')
+		echon '? ' w:txbi '.' line('.') ' ' str2nr(s:count) ' ' strtrans(a:c)
 		call feedkeys("\<plug>TxbZ")
 	elseif !empty(s:kc_continue)
-		redr|echon w:txbi '.' line('.') ' ' s:kc_continue
+		redr|echon '# ' s:kc_continue
 	en
 endfun
-let txbCmd.q="let s:kc_continue=''"
+let txbCmd.q="let s:kc_continue='  '"
 let txbCmd[-1]="let s:kc_continue=''"
 let txbCmd["\e"]=txbCmd.q
 let txbCmd.null=''
@@ -829,7 +829,7 @@ let txbCmd["\<left>"]=txbCmd.h
 let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
-	\let s:kc_continue='(labeled)'\n
+	\let s:kc_continue='Labeled'\n
 	\if -1!=match(L,'^'.t:lblmrk)\n
 		\call setline(line('.'),substitute(L,'^'.t:lblmrk.'\\zs\\d*\\ze',line('.'),''))\n
 	\else\n
@@ -862,7 +862,7 @@ let txbCmd.D=
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw()\n
-		\let s:kc_continue='(Split deleted)'\n
+		\let s:kc_continue='Split deleted'\n
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
@@ -903,7 +903,7 @@ let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let input=input('Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
-	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'(file write aborted)'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'ERROR: File not writable' : 'File written, '':source '.input.''' to restore']\n
+	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:setCursor(l,vc,ix)
@@ -1110,7 +1110,7 @@ fun! s:redraw(...)
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 endfun
-let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='(redraw complete)'"
+let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='Redraw complete'"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1817,9 +1817,9 @@ let txbCmd.M="if 'y'==?input('Are you sure you want to rescan the plane? This wi
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
-		\let s:kc_continue='(Plane remapped)'\n
+		\let s:kc_continue='Plane remapped'\n
 	\else\n
-		\let s:kc_continue='(Plane remap cancelled)'\n
+		\let s:kc_continue='Plane remap cancelled'\n
 	\en"
 
 let s:mExe={"\e":"let s:mExit=0|redr",
