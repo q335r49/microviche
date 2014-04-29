@@ -792,7 +792,7 @@ fun! TxbKey(cmd)
 	call s:doCmdKeyhandler(a:cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:txbCmd,a:c,'let s:kc_continue="(f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
+	exe get(g:txbCmd,a:c,'let s:kc_continue="(0..9) count (f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
 	if s:kc_continue==' '
 		echon '? ' w:txbi '.' line('.') ' ' str2nr(s:count) ' ' strtrans(a:c)
 		call feedkeys("\<plug>TxbZ")
@@ -1747,9 +1747,10 @@ fun! s:mapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mExe,a:c,'')
+		exe get(s:mExe,a:c,'let invalidkey=1')
 		if s:mExit==1
 			call s:disMap()
+			echon exists('invalidkey')? ' (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom' : s:mCount is '01'? '' : ' '.s:mCount
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
