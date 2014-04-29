@@ -15,7 +15,7 @@ augroup TXB | au!
 
 let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
 let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
-let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|call TxbInit(exists("g:TXB")? g:TXB : "")\|en<cr>'
+let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|let TXB=TxbInit(exists("TXB")? TXB : "")? TXB : t:txb\|en<cr>'
 exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
 
@@ -99,7 +99,7 @@ let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
 fun! s:pager(list,start)
 	if len(a:list)<&lines
 		let [more,&more]=[&more,0]
-		ec join(a:list,"\n")."\nPress ENTER to continue"
+		ec join(a:list,"\n")."\nPress enter to continue"
 		while index([10,13,113,27],getchar())==-1
 		endwhile
 		redr
@@ -155,17 +155,10 @@ let s:pagercom.27=s:pagercom.113
 
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
-	let warnings=''
-	let defaults={}
-    for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
-		unlet! arg
-		exe get(s:optatt[i],'getDef','let arg=""')
-		let defaults[i]=arg
-	endfor
 	if empty(a:seed)
 		let plane={'settings':{'working dir':input("> Enter working directory:\n? ",getcwd())}}
 		if empty(plane.settings['working dir'])
-			return
+			return 1
 		en
 		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
 		let prevwd=getcwd()
@@ -173,13 +166,20 @@ fun! TxbInit(seed)
 		let input=input("\n> Enter file pattern: \n? ",'','file')
 		if empty(input)
 			let plane.name=split(glob(input),"\n")
-			return
+			return 1
 		en
 		let plane.name=split(glob(input),"\n")
 		exe 'cd' fnameescape(prevwd)
 	else
 		let plane=type(a:seed)==4? deepcopy(a:seed) : type(a:seed)==3? {'name':copy(a:seed)} : {'name':split(glob(a:seed),"\n")}
 	en
+	let defaults={}
+	let warnings=''
+    for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
+		unlet! arg
+		exe get(s:optatt[i],'getDef','let arg=""')
+		let defaults[i]=arg
+	endfor
 	if !exists('plane.settings')                                    
 		let plane.settings=defaults
 	else
@@ -245,15 +245,15 @@ fun! TxbInit(seed)
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
 		if !empty(unreadable)
 			let warnings.="\n> Unreadable files will be removed!"
-			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (F1) help (esc) cancel\n? "
+			let confirmMsg="> (R)emove unreadable files and ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (f1) help (esc) cancel\n? "
 			let confirmKeys=[82]
 		else
-			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (F1) help (esc) cancel\n? "
+			let confirmMsg="> (enter) ".(bufix!=-1? "restore plane " : "load in new tab ")."(S)et working dir & global options (f1) help (esc) cancel\n? "
 			let confirmKeys=[10,13]
 		en
 	elseif !empty(unreadable)
 		let warnings.="\n> No readable files!"
-		let confirmMsg="> (S)et working dir & global options (F1) help (enter) ok\n? "
+		let confirmMsg="> (S)et working dir & global options (f1) help (enter) ok\n? "
 		let confirmKeys=[-1]
 	else
 		let confirmMsg='> No matches'
@@ -262,13 +262,12 @@ fun! TxbInit(seed)
 	echon empty(plane.name)? '' : "\n> ".len(plane.name).' readable: '.join(plane.name,', ')
 	echon empty(unreadable)? '' : "\n> ".len(unreadable).' unreadable: '.join(unreadable,', ')
 	echon "\n> working dir: ".plane.settings['working dir']
-	echohl WarningMsg | echon warnings | echohl
-	ec confirmMsg
+	echohl WarningMsg | echon warnings
+	echohl | ec confirmMsg
 	let c=empty(confirmKeys)? 0 : getchar()
 	if index(confirmKeys,c)!=-1
-		echon '(confirmed)'
+		echon '(load)'
 		if bufix==-1 | tabe | en
-		let g:TXB=plane
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
 		let dict=t:txb.settings
@@ -282,12 +281,14 @@ fun! TxbInit(seed)
 		call s:redraw()
 	elseif c is "\<f1>"
 		call s:printHelp()
+		return 1
 	elseif c is 83
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
 		let plane.name=plane_name_save
-		call TxbInit(plane)
+		return TxbInit(plane)
 	else
-		call TxbInit('')
+		echon '(cancel)'
+		return TxbInit('')
 	en
 endfun
 
