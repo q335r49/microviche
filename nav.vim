@@ -792,7 +792,7 @@ fun! TxbKey(cmd)
 	call s:doCmdKeyhandler(a:cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:txbCmd,a:c,'let s:kc_continue="Invalid command: Press '.g:TXB_HOTKEY.' F1 for help"')
+	exe get(g:txbCmd,a:c,'let s:kc_continue="(f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
 	if s:kc_continue==' '
 		echon '? ' w:txbi '.' line('.') ' ' str2nr(s:count) ' ' strtrans(a:c)
 		call feedkeys("\<plug>TxbZ")
