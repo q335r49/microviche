@@ -56,7 +56,7 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\n    STARTUP\n
-	\\nPress the hotkey to bring up a prompt. You can try a pattern like '*.txt', or you can enter a file name and later (A)ppend others.\n
+	\\nPress the hotkey to populate the plane: you can try a pattern like '*.txt' or start with a single file and (A)ppend others later.\n
 	\\n    BASIC COMMANDS\n
 	\\nOnce loaded, use the MOUSE to pan, or press the hotkey followed by:
 	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
