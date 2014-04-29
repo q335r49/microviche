@@ -162,8 +162,27 @@ fun! TxbInit(...)
 		exe get(s:optatt[i],'getDef','let arg=""')
 		let defaults[i]=arg
 	endfor
-	let plane=!a:0? exists('g:TXB') && type(g:TXB)==4? deepcopy(g:TXB) : {'name':[]} : type(a:1)==4? deepcopy(a:1) : type(a:1)==3? {'name':copy(a:1)} : {'name':split(glob(a:1),"\n"),'settings':{'working dir':fnamemodify(getcwd(),':p')}}
-	if !exists('plane.settings')
+	if !a:0
+		if exists('g:TXB') && type(g:TXB)==4
+			let plane=deepcopy(g:TXB)
+		else
+			let plane={'name':[]}
+		en
+	elseif type(a:1)==4
+		let plane=deepcopy(a:1)
+	elseif type(a:1)==3
+		let plane={'name':copy(a:1)}
+	else
+		let plane={'settings':{'working dir':fnamemodify(input("\n> Enter working directory for file name completion & resolving relative paths, default current directory:\n? ",getcwd()),':p')}}
+		if empty(plane.settings['working dir'])
+			let plane.settings['working dir']=getcwd()
+		en
+		let prevwd=getcwd()
+		exe 'cd' fnameescape(plane.settings['working dir'])
+		let plane.name=split(glob(a:1),"\n")
+		exe 'cd' fnameescape(prevwd)
+	en
+	if !exists('plane.settings')                                    
 		let plane.settings=defaults
 	else
 		for i in keys(defaults)
@@ -276,7 +295,7 @@ fun! TxbInit(...)
 			call TxbInit(plane)
 		en
 	else
-		let fileinp=input("> Enter file pattern or type HELP: ",'','file')
+		let fileinp=input("> Enter file pattern or type HELP: \n? ",'','file')
 		if fileinp==?'help'
 			call s:printHelp()
 		elseif !empty(fileinp)
@@ -652,7 +671,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let s:spOff=s:spOff<s:spCursor-&ch? s:spCursor-&ch : s:spOff>s:spCursor? s:spCursor : s:spOff
 	let undo={}
 	let disp={}
-    for key in filter(copy(a:entry),'has_key(a:attr,v:val)')
+	for key in filter(copy(a:entry),'has_key(a:attr,v:val)')
 		unlet! ret
 		exe a:attr[key].loadk
 		let disp[key]=ret
