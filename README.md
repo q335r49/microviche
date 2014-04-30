@@ -37,4 +37,3 @@ The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's j
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
 - To **syntax highight labels**, try: <samp>syntax match Title +^txb\S*: \zs.[^#\n]*+ oneline display</samp>
-

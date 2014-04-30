@@ -56,16 +56,16 @@ fun! s:printHelp()
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan, or press (hotkey) followed by:
-	\\n    h j k l y u b n      Pan (takes count, eg, 3jjj=3j3j3j)
-	\\n    r                    Redraw & remap visible splits
-	\\n    o                    Remap visible & open map
+	\\n    h j k l y u b n      pan (takes count, eg, 3jjj=3j3j3j)
+	\\n    r                    redraw
+	\\n    o                    open map
 	\\n    M                    Map all
 	\\n    L                    Insert '[label marker][lnum]'
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n *  S                    Settings
 	\\n    W                    Write to file
-	\\n    q <esc>              Abort
+	\\n    q <esc>              quit
 	\\n----------
 	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
 	\\n\n    Labels\n
@@ -81,14 +81,14 @@ fun! s:printHelp()
 	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
-	\\n    c                    Put cursor at center of view
-	\\n    g <cr>               Go to block & exit map
-	\\n    z                    Change zoom
-	\\n    q                    Quit"
-	\.(ttymouseWorks? "\n *  doubleclick          Go to block
-	\\n    drag                 Pan
-	\\n    click NW corner      Quit
-	\\n    drag to NW corner    (in the plane) Show map
+	\\n    c                    center cursor
+	\\n    g <cr>               go
+	\\n    z                    zoom
+	\\n    q                    quit"
+	\.(ttymouseWorks? "\n *  doubleclick          go
+	\\n    drag                 pan
+	\\n    click NW corner      quit
+	\\n    drag to NW corner    (in the plane) show map
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
 	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
 endfun
@@ -268,6 +268,10 @@ fun! TxbInit(seed)
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
 		let t:paths=abs_paths
+		if empty(a:seed)
+			echon "\n# Optional preliminary scan"
+			exe g:txbCmd.M
+		en
 		call s:getMapDis()
 		call s:redraw()
 		return 0
@@ -902,7 +906,7 @@ let txbCmd.A=
 let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
-	\let input=input('Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
+	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
 	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
@@ -1781,8 +1785,8 @@ let txbCmd.o="let s:kc_continue=''\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
-let txbCmd.M="if 'y'==?input('Are you sure you want to rescan the plane? This will cycle through every file (y/n): ','y')\n
-		\let curwin=w:txbi\n
+let txbCmd.M="if 'y'==?input('? Rebuild entire map by scanning all files at once? (y/n): ')\n
+		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
 			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
