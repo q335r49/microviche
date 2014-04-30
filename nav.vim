@@ -1070,7 +1070,7 @@ fun! s:redraw(...)
 					let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []
 					if lnum<line
 						if prevnonblank(line-1)>=lnum
-							let lbl=[" Error! ".get(lbl,0,''),'ErrorMsg']
+							let lbl=["! Error ".get(lbl,0,''),'ErrorMsg']
 						else
 							exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')
 						en
