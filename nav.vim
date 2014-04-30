@@ -1516,7 +1516,7 @@ fun! s:getMapDis(...)
 				let splitClr[r]=t:txb.map[sp][conflicts[r][1]][1]
 			else
 				let splitLbl[r]=map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
-				let splitClr[r]=t:txb.map[sp][conflicts[r][1]][1]
+				let splitClr[r]=t:txb.map[sp][splitPos[r][0]][1]
 			en
 		endfor
 		let changed=copy(splitClr)
