@@ -31,7 +31,7 @@ The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's j
 &nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*
 
 ####Tips
-- When there are **labeling conflicts**, the one prepended with: <kbd>!</kbd> <kbd>"</kbd> <kbd>$</kbd> <kbd>%</kbd> <kbd>&</kbd> <kbd>'</kbd> <kbd>(</kbd> <kbd>)</kbd> <kbd>*</kbd> <kbd>+</kbd> <kbd>,</kbd> <kbd>-</kbd> <kbd>.</kbd> <kbd>/</kbd>, in order of priority, will be shown, eg, <q>txb:321: !Important</q>
+- To resolve **labeling conflicts**, the case-insensitive alphabetically first label starting with <q>!</q> will be shown, eg, <q>txb:321: !aaaImportant</q>. On cursor-over, the rest will be shown in line number order.
 - **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize. [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great Windows setup.
 - To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→<kbd>S</kbd>ave→apply all
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)

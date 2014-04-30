@@ -1486,19 +1486,19 @@ fun! s:getMapDis(...)
 			let r=j/t:gran
 			if has_key(splitLbl,r)
 				if !has_key(conflicts,r)
-					if splitLbl[r][0][0]<#'0'
-						let conflicts[r]=[sp,r,splitLbl[r][0],splitPos[r][0]]
+					if splitLbl[r][0][0]=='!'
+						let conflicts[r]=[splitLbl[r][0],splitPos[r][0]]
 						let splitPos[r]=[]
 					else
-						let conflicts[r]=[sp,r,'0',-1]
+						let conflicts[r]=['$',0]
 					en
 				en
-				if t:txb.map[sp][j][0][0]<#conflicts[r][2][0]
-					if conflicts[r][3]!=-1
-						call add(splitPos[r],conflicts[r][3])
+				if t:txb.map[sp][j][0][0]=='!' && t:txb.map[sp][j][0]<?conflicts[r][0]
+					if conflicts[r][1]
+						call add(splitPos[r],conflicts[r][1])
 					en
-					let conflicts[r][2]=t:txb.map[sp][j][0]
-					let conflicts[r][3]=j
+					let conflicts[r][0]=t:txb.map[sp][j][0]
+					let conflicts[r][1]=j
 				else
 					call add(splitPos[r],j)
 				en
@@ -1508,15 +1508,15 @@ fun! s:getMapDis(...)
 				let splitPos[r]=[j]
 			en
 		endfor
-		for pos in values(conflicts)
-			call sort(splitPos[pos[1]])
-			if pos[3]!=-1
-				let splitLbl[pos[1]]=[pos[2]]+map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-				call insert(splitPos[pos[1]],pos[3])
-				let splitClr[pos[1]]=t:txb.map[pos[0]][pos[3]][1]
+		for r in keys(conflicts)
+			call sort(splitPos[r])
+			if conflicts[r][1]
+				let splitLbl[r]=[conflicts[r][0]]+map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
+				call insert(splitPos[r],conflicts[r][1])
+				let splitClr[r]=t:txb.map[sp][conflicts[r][1]][1]
 			else
-				let splitLbl[pos[1]]=map(copy(splitPos[pos[1]]),'t:txb.map[pos[0]][v:val][0]')
-				let splitClr[pos[1]]=t:txb.map[pos[0]][splitPos[pos[1]][0]][1]
+				let splitLbl[r]=map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
+				let splitClr[r]=t:txb.map[sp][conflicts[r][1]][1]
 			en
 		endfor
 		let changed=copy(splitClr)
@@ -1785,7 +1785,7 @@ let txbCmd.o="let s:kc_continue=''\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
-let txbCmd.M="if 'y'==?input('? Rebuild entire map by scanning all files at once? (y/n): ')\n
+let txbCmd.M="if 'y'==?input('? Build entire map by scanning all files? (Map will always be partially updated on (o)pening and (r)edrawing) (y/n): ')\n
 		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
