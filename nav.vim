@@ -907,7 +907,7 @@ let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
-	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['unlet! txb_temp_plane','let txb_temp_plane='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(txb_temp_plane)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
+	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:setCursor(l,vc,ix)
