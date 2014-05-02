@@ -92,7 +92,7 @@ fun! s:printHelp()
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
 	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
 endfun
-let txbCmd["\<f1>"]='call s:printHelp()|let s:kc_continue=""'
+let txbCmd["\<f1>"]='call s:printHelp()|let mes=""'
 fun! s:pager(list,start)
 	if len(a:list)<&lines
 		let [more,&more]=[&more,0]
@@ -742,7 +742,7 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
 unlet s:ApplySettingsCmd
-let txbCmd.S="let s:kc_continue=''\n
+let txbCmd.S="let mes=''\n
 	\if exists('w:txbi')\n
 		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
 	\else\n
@@ -791,49 +791,48 @@ endfun
 
 let s:count='03'
 fun! TxbKey(cmd)
-	let s:kc_continue=' '
 	let g:TxbKeyHandler=function("s:doCmdKeyhandler")
 	call s:doCmdKeyhandler(a:cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
-	exe get(g:txbCmd,a:c,'let s:kc_continue="(0..9) count (f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
-	if s:kc_continue==' '
+	exe get(g:txbCmd,a:c,'let mes="(0..9) count (f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
+	if mes==' '
 		echon '? ' w:txbi '.' line('.') ' ' str2nr(s:count) ' ' strtrans(a:c)
 		call feedkeys("\<plug>TxbZ")
-	elseif !empty(s:kc_continue)
-		redr|echon '# ' s:kc_continue
+	elseif !empty(mes)
+		redr|echon '# ' mes
 	en
 endfun
-let txbCmd.q="let s:kc_continue='  '"
-let txbCmd[-1]="let s:kc_continue=''"
+let txbCmd.q="let mes='  '"
+let txbCmd[-1]="let mes=''"
 let txbCmd["\e"]=txbCmd.q
-let txbCmd.null=''
+let txbCmd.null='let mes=" "'
 
-let txbCmd.h="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0'))|redrawstatus!"
-let txbCmd.j="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')+s:count)|redrawstatus!"
-let txbCmd.k="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')-s:count)|redrawstatus!"
-let txbCmd.l="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0'))|redrawstatus!"
-let txbCmd.y="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!"
-let txbCmd.u="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')-s:count)|redrawstatus!"
-let txbCmd.b="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!"
-let txbCmd.n="let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')+s:count)|redrawstatus!"
-let txbCmd.1="let s:count=s:count[0] is '0'? '1' : s:count.'1'"
-let txbCmd.2="let s:count=s:count[0] is '0'? '2' : s:count.'2'"
-let txbCmd.3="let s:count=s:count[0] is '0'? '3' : s:count.'3'"
-let txbCmd.4="let s:count=s:count[0] is '0'? '4' : s:count.'4'"
-let txbCmd.5="let s:count=s:count[0] is '0'? '5' : s:count.'5'"
-let txbCmd.6="let s:count=s:count[0] is '0'? '6' : s:count.'6'"
-let txbCmd.7="let s:count=s:count[0] is '0'? '7' : s:count.'7'"
-let txbCmd.8="let s:count=s:count[0] is '0'? '8' : s:count.'8'"
-let txbCmd.9="let s:count=s:count[0] is '0'? '9' : s:count.'9'"
-let txbCmd.0="let s:count=s:count[0] is '0'? '01': s:count.'0'"
+let txbCmd.h="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0'))|redrawstatus!"
+let txbCmd.j="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')+s:count)|redrawstatus!"
+let txbCmd.k="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')-s:count)|redrawstatus!"
+let txbCmd.l="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0'))|redrawstatus!"
+let txbCmd.y="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.u="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.b="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.n="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.1="let mes=' '|let s:count=s:count[0] is '0'? '1' : s:count.'1'"
+let txbCmd.2="let mes=' '|let s:count=s:count[0] is '0'? '2' : s:count.'2'"
+let txbCmd.3="let mes=' '|let s:count=s:count[0] is '0'? '3' : s:count.'3'"
+let txbCmd.4="let mes=' '|let s:count=s:count[0] is '0'? '4' : s:count.'4'"
+let txbCmd.5="let mes=' '|let s:count=s:count[0] is '0'? '5' : s:count.'5'"
+let txbCmd.6="let mes=' '|let s:count=s:count[0] is '0'? '6' : s:count.'6'"
+let txbCmd.7="let mes=' '|let s:count=s:count[0] is '0'? '7' : s:count.'7'"
+let txbCmd.8="let mes=' '|let s:count=s:count[0] is '0'? '8' : s:count.'8'"
+let txbCmd.9="let mes=' '|let s:count=s:count[0] is '0'? '9' : s:count.'9'"
+let txbCmd.0="let mes=' '|let s:count=s:count[0] is '0'? '01': s:count.'0'"
 let txbCmd["\<up>"]=txbCmd.k
 let txbCmd["\<down>"]=txbCmd.j
 let txbCmd["\<left>"]=txbCmd.h
 let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
-	\let s:kc_continue='Labeled'\n
+	\let mes='Labeled'\n
 	\if -1!=match(L,'^'.t:lblmrk)\n
 		\call setline(line('.'),substitute(L,'^'.t:lblmrk.'\\zs\\d*\\ze',line('.'),''))\n
 	\else\n
@@ -846,7 +845,7 @@ let txbCmd.L="let L=getline('.')\n
 let txbCmd.D=
 	\"redr\n
 	\if t:txbL==1\n
-		\let s:kc_continue='Cannot delete last split!'\n
+		\let mes='Cannot delete last split!'\n
 	\elseif input('Really delete current column (y/n)? ')==?'y'\n
 		\let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 		\if t_index!=-1\n
@@ -866,7 +865,7 @@ let txbCmd.D=
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw()\n
-		\let s:kc_continue='Split deleted'\n
+		\let mes='Split deleted'\n
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
@@ -878,11 +877,11 @@ let txbCmd.A=
 		\exe 'cd' fnameescape(t:wdir)\n
 		\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
-			\let s:kc_continue='File not appended'\n
+			\let mes='File not appended'\n
 		\elseif empty(file)\n
-			\let s:kc_continue='File name is empty'\n
+			\let mes='File name is empty'\n
 		\else\n
-			\let s:kc_continue='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
+			\let mes='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 			\call insert(t:txb.name,file,w:txbi+1)\n
 			\call insert(t:paths,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
 			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
@@ -899,7 +898,7 @@ let txbCmd.A=
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
-		\let s:kc_continue='Current file not in plane! [hotkey] r redraw before appending.'\n
+		\let mes='Current file not in plane! [hotkey] r redraw before appending.'\n
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
@@ -907,7 +906,7 @@ let txbCmd.W=
 	\"let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
-	\let [t:txb.settings.writefile,s:kc_continue]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
+	\let [t:txb.settings.writefile,mes]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\exe 'cd' fnameescape(prevwd)"
 
 fun! s:setCursor(l,vc,ix)
@@ -1114,7 +1113,7 @@ fun! s:redraw(...)
 	let offset=virtcol('.')-wincol()
 	exe 'norm!' pos[1].'zt'.pos[2].'G'.(pos[3]<=offset? offset+1 : pos[3]>offset+winwidth(0)? offset+winwidth(0) : pos[3])
 endfun
-let txbCmd.r="call s:redraw(1)|redr|let s:kc_continue='Redraw complete'"
+let txbCmd.r="call s:redraw(1)|redr|let mes='Redraw complete'"
 
 fun! s:nav(N,L)
 	let cBf=bufnr('')
@@ -1765,7 +1764,7 @@ fun! s:mapKeyHandler(c)
 	en
 endfun
 
-let txbCmd.o="let s:kc_continue=''\n
+let txbCmd.o="let mes=''\n
 	\let s:mCount='01'\n
 	\let s:mSavSettings=[&ch,&more,&ls,&stal]\n
 		\let [&more,&ls,&stal]=[0,0,0]\n
@@ -1822,9 +1821,9 @@ let txbCmd.M="if 'y'==?input('? Build entire map by scanning all files? (Map wil
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
-		\let s:kc_continue='Plane remapped'\n
+		\let mes='Plane remapped'\n
 	\else\n
-		\let s:kc_continue='Plane remap cancelled'\n
+		\let mes='Plane remap cancelled'\n
 	\en"
 
 let s:mExe={"\e":"let s:mExit=0|redr",
