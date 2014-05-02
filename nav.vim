@@ -1098,6 +1098,9 @@ fun! s:redraw(...)
 			exe 'vert res'.(dif>=0? '+'.dif : dif)
 			norm! 0
 		en
+		if s:badSync
+			1
+		en
 		winc h
 		let ccol=ccol? ccol-1 : t:txbL-1
 	endfor
@@ -1105,9 +1108,6 @@ fun! s:redraw(...)
 		call s:getMapDis(keys(changedsplits))
 	en
 	se scrollopt=ver,jump
-	if s:badSync
-		windo 1
-	en
 	silent exe "norm! :syncbind\<cr>"
 	exe bufwinnr(pos[0]).'winc w'
 	let offset=virtcol('.')-wincol()
