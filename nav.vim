@@ -2,7 +2,6 @@
 
 if &cp|se nocompatible|en                    "[Vital] Enable vim features
 se noequalalways winwidth=1 winminwidth=0    "[Vital] Needed for correct panning
-
 se sidescroll=1                              "Smoother panning
 se nostartofline                             "Keeps cursor in the same position when panning
 se mouse=a                                   "Enables mouse
@@ -807,9 +806,9 @@ let txbCmd.7="let mes=' '|let s:count=s:count[0] is '0'? '7' : s:count.'7'"
 let txbCmd.8="let mes=' '|let s:count=s:count[0] is '0'? '8' : s:count.'8'"
 let txbCmd.9="let mes=' '|let s:count=s:count[0] is '0'? '9' : s:count.'9'"
 let txbCmd.0="let mes=' '|let s:count=s:count[0] is '0'? '01': s:count.'0'"
-let txbCmd["\<up>"]=txbCmd.k
-let txbCmd["\<down>"]=txbCmd.j
-let txbCmd["\<left>"]=txbCmd.h
+let txbCmd["\<up>"]   =txbCmd.k
+let txbCmd["\<down>"] =txbCmd.j
+let txbCmd["\<left>"] =txbCmd.h
 let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
@@ -823,8 +822,7 @@ let txbCmd.L="let L=getline('.')\n
 		\startinsert\n
 	\en"
 
-let txbCmd.D=
-	\"redr\n
+let txbCmd.D="redr\n
 	\if t:txbL==1\n
 		\let mes='Cannot delete last split!'\n
 	\elseif input('Really delete current column (y/n)? ')==?'y'\n
@@ -850,8 +848,7 @@ let txbCmd.D=
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let txbCmd.A=
-	\"let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
+let txbCmd.A="let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
 	\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\if t_index!=-1\n
 		\let prevwd=getcwd()\n
@@ -879,12 +876,11 @@ let txbCmd.A=
 		\en\n
 		\exe 'cd' fnameescape(prevwd)\n
 	\else\n
-		\let mes='Current file not in plane! [hotkey] r redraw before appending.'\n
+		\let mes='Current file not in plane! (hotkey) (r)edraw before appending.'\n
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let txbCmd.W=
-	\"let prevwd=getcwd()\n
+let txbCmd.W="let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
 	\let [t:txb.settings.writefile,mes]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
@@ -1731,7 +1727,7 @@ fun! s:mapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mExe,a:c,'let invalidkey=1')
+		exe get(s:mCase,a:c,'let invalidkey=1')
 		if s:mExit==1
 			call s:disMap()
 			echon exists('invalidkey')? ' (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom' : s:mCount is '01'? '' : ' '.s:mCount
@@ -1744,70 +1740,7 @@ fun! s:mapKeyHandler(c)
 		en
 	en
 endfun
-
-let txbCmd.o="let mes=''\n
-	\let s:mCount='01'\n
-	\let s:mSavSettings=[&ch,&more,&ls,&stal]\n
-		\let [&more,&ls,&stal]=[0,0,0]\n
-		\let &ch=&lines\n
-	\let s:mPrevClk=[0,0]\n
-	\let s:mPrevCoor=[0,0,0]\n
-	\let s:mR=line('.')/t:gran\n
-	\call s:redraw(1)\n
-	\redr!\n
-	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
-	\let s:mC=w:txbi\n
-	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
-	\let s:mExit=1\n
-	\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
-	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
-	\call s:disMap()\n
-	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
-	\call feedkeys(\"\\<plug>TxbY\")\n"
-
-let txbCmd.M="if 'y'==?input('? Build entire map by scanning all files? (Map will always be partially updated on (o)pening and (r)edrawing) (y/n): ')\n
-		\let curwin=exists('w:txbi')? w:txbi : 0\n
-		\let view=winsaveview()\n
-		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
-			\let t:txb.depth[i]=line('$')\n
-			\let t:txb.map[i]={}\n
-			\exe 'norm! 1G0'\n
-			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
-			\while line\n
-				\let L=getline('.')\n
-				\let lnum=strpart(L,col('.')-1,6)\n
-				\if lnum!=0\n
-					\let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []\n
-					\if lnum<line\n
-						\if prevnonblank(line-1)>=lnum\n
-							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
-						\else\n
-							\exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')\n
-						\en\n
-					\elseif lnum>line\n
-						\exe 'norm! '.(lnum-line).'O\ej'\n
-					\en\n
-					\let line=line('.')\n
-				\else\n
-					\let lbl=split(L[col('.'):],'#',1)\n
-				\en\n
-				\if !empty(lbl) && !empty(lbl[0])\n
-					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
-				\en\n
-				\let line=search('^'.t:lblmrk.'\\zs','W')\n
-			\endwhile\n
-		\endfor\n
-		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
-		\call winrestview(view)\n
-		\call s:getMapDis()\n
-		\call s:redraw()\n
-		\let mes='Plane remapped'\n
-	\else\n
-		\let mes='Plane remap cancelled'\n
-	\en"
-
-let s:mExe={"\e":"let s:mExit=0|redr",
+let s:mCase={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
 \'q':"let s:mExit=0",
 \'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
@@ -1860,12 +1793,74 @@ let s:mExe={"\e":"let s:mExit=0|redr",
 		\redr!\n
 	\en\n",
 \'g':'let s:mExit=2'}
-let s:mExe["\<c-m>"]  =s:mExe.g
-let s:mExe["\<right>"]=s:mExe.l
-let s:mExe["\<left>"] =s:mExe.h
-let s:mExe["\<down>"] =s:mExe.j
-let s:mExe["\<up>"]   =s:mExe.k
-let s:mExe[" "]       =s:mExe.J
-let s:mExe["\<bs>"]   =s:mExe.K
+let s:mCase["\<c-m>"]  =s:mCase.g
+let s:mCase["\<right>"]=s:mCase.l
+let s:mCase["\<left>"] =s:mCase.h
+let s:mCase["\<down>"] =s:mCase.j
+let s:mCase["\<up>"]   =s:mCase.k
+let s:mCase[" "]       =s:mCase.J
+let s:mCase["\<bs>"]   =s:mCase.K
+
+let txbCmd.o="let mes=''\n
+	\let s:mCount='01'\n
+	\let s:mSavSettings=[&ch,&more,&ls,&stal]\n
+		\let [&more,&ls,&stal]=[0,0,0]\n
+		\let &ch=&lines\n
+	\let s:mPrevClk=[0,0]\n
+	\let s:mPrevCoor=[0,0,0]\n
+	\let s:mR=line('.')/t:gran\n
+	\call s:redraw(1)\n
+	\redr!\n
+	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
+	\let s:mC=w:txbi\n
+	\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
+	\let s:mExit=1\n
+	\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
+	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+	\call s:disMap()\n
+	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
+	\call feedkeys(\"\\<plug>TxbY\")\n"
+
+let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map partially updates on (o)pening and (r)edrawing) (y/n): ')\n
+		\let curwin=exists('w:txbi')? w:txbi : 0\n
+		\let view=winsaveview()\n
+		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
+			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
+			\let t:txb.depth[i]=line('$')\n
+			\let t:txb.map[i]={}\n
+			\exe 'norm! 1G0'\n
+			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
+			\while line\n
+				\let L=getline('.')\n
+				\let lnum=strpart(L,col('.')-1,6)\n
+				\if lnum!=0\n
+					\let lbl=lnum[len(lnum+0)]==':'? split(L[col('.')+len(lnum+0)+1:],'#',1) : []\n
+					\if lnum<line\n
+						\if prevnonblank(line-1)>=lnum\n
+							\let lbl=[' Error! '.get(lbl,0,''),'ErrorMsg']\n
+						\else\n
+							\exe 'norm! kd'.(line-lnum==1? 'd' : (line-lnum-1).'k')\n
+						\en\n
+					\elseif lnum>line\n
+						\exe 'norm! '.(lnum-line).'O\ej'\n
+					\en\n
+					\let line=line('.')\n
+				\else\n
+					\let lbl=split(L[col('.'):],'#',1)\n
+				\en\n
+				\if !empty(lbl) && !empty(lbl[0])\n
+					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
+				\en\n
+				\let line=search('^'.t:lblmrk.'\\zs','W')\n
+			\endwhile\n
+		\endfor\n
+		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
+		\call winrestview(view)\n
+		\call s:getMapDis()\n
+		\call s:redraw()\n
+		\let mes='Plane remapped'\n
+	\else\n
+		\let mes='Plane remap cancelled'\n
+	\en"
 
 delf s:SID
