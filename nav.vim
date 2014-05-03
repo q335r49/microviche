@@ -1,7 +1,7 @@
 "https://github.com/q335r49/microviche
 
-if &cp|se nocompatible|en                    "[Vital] Enable vim features
-se noequalalways winwidth=1 winminwidth=0    "[Vital] Needed for correct panning
+if &cp|se nocompatible|en                    "(Vital) Enable vim features
+se noequalalways winwidth=1 winminwidth=0    "(Vital) Needed for correct panning
 se sidescroll=1                              "Smoother panning
 se nostartofline                             "Keeps cursor in the same position when panning
 se mouse=a                                   "Enables mouse
@@ -144,7 +144,7 @@ fun! TxbInit(seed)
 		exe 'cd' fnameescape(plane.settings['working dir'])
 		let input=input("\n? Starting files (enter a single file or a filepattern such as '*.txt'; press tab for completion): ",'','file')
 		if empty(input)
-			let plane.name=split(glob(input),"\n")
+			exe 'cd' fnameescape(prevwd)
 			return 1
 		en
 		let plane.name=split(glob(input),"\n")
@@ -177,6 +177,7 @@ fun! TxbInit(seed)
 		endfor
 	en
 	let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
+	let plane_save=deepcopy(plane)
 	if !exists('plane.size')
 		let plane.size=repeat([60],len(plane.name))
 	elseif len(plane.size)<len(plane.name)
@@ -205,7 +206,6 @@ fun! TxbInit(seed)
 	let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
 	let unreadable=[]
-	let plane_name_save=copy(plane.name)
 	for i in range(len(plane.name)-1,0,-1)
 		if !filereadable(plane.name[i])
 			if !isdirectory(plane.name[i])
@@ -258,8 +258,8 @@ fun! TxbInit(seed)
 		call s:redraw()
 		return 0
 	elseif index([83,115],c)!=-1
+		let plane=plane_save
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
-		let plane.name=plane_name_save
 		return TxbInit(plane)
 	elseif index([78,110],c)!=-1
 		return TxbInit('')
