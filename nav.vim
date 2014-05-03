@@ -55,12 +55,12 @@ fun! s:printHelp()
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
-	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan, or press (hotkey) followed by:
+	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan or press (hotkey) followed by:
 	\\n    h j k l y u b n      pan (takes count, eg, 3jjj=3j3j3j)
 	\\n    r                    redraw
 	\\n    o                    open map
 	\\n    M                    Map all
-	\\n    L                    Insert '[label marker][lnum]'
+	\\n    L                    Label (insert [marker][lnum])
 	\\n    D A                  Delete / Append split
 	\\n    <f1>                 Help
 	\\n *  S                    Settings
@@ -76,7 +76,7 @@ fun! s:printHelp()
 	\\n    txb: Intro             Just label 'Intro'
 	\\n    txb: Intro##bla bla    Just label 'Intro'
 	\\n----------
-	\\n *  Note the ':' separator when both lnum and label are given
+	\\n *  Note the ': ' separator when both lnum and label are given
 	\\n\n    Map Commands\n
 	\\nTo remap the visbile region and view the map, press (hotkey) o
 	\\n    h j k l y u b n      Move (takes count)
@@ -92,63 +92,46 @@ fun! s:printHelp()
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
 	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
 endfun
-let txbCmd["\<f1>"]='call s:printHelp()|let mes=""'
 fun! s:pager(list,start)
 	if len(a:list)<&lines
-		let [more,&more]=[&more,0]
-		ec join(a:list,"\n")."\nPress enter to continue"
-		while index([10,13,113,27],getchar())==-1
-		endwhile
-		redr
-		let &more=more
+		ec join(a:list,"\n")
 		return 0
-	else
-		let pad=repeat(' ',&columns)
-		let settings=[&more,&ch]
-		let [&more,&ch]=[0,&lines]
-		let [pos,bot,continue]=[-1,max([len(a:list)-&lines+1,0]),1]
-		let next=a:start<0? 0 : a:start>bot? bot : a:start
-		while continue
-			if pos!=next
-				let pos=next
-				redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit"
-			en
-			exe get(s:pagercom,getchar(),'')
-		endwhile
-		redr
-		let [&more,&ch]=settings
-		return pos
 	en
+	let pad=repeat(' ',46)
+	let settings=[&more,&ch]
+	let [&more,&ch]=[0,&lines]
+	let [pos,bot,continue]=[-1,len(a:list)-&lines,1]
+	let next=a:start<0? 0 : a:start>bot? bot : a:start
+	while continue
+		if pos!=next
+			let pos=next
+			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit"
+		en
+		exe get(s:pgCase,getchar(),'')
+	endwhile
+	redr
+	let [&more,&ch]=settings
+	return pos
 endfun
-let s:pagercom={113:'let continue=0',
-\32:"let t=&lines/2\n
-	\while pos<bot && t>0\n
-		\let t-=1\n
-		\exe s:pagercom.106\n
-	\endw",
+let s:pgCase={113:'let continue=0',
+\32:"for i in range(bot>pos? bot-pos : 0)\n
+		\exe s:pgCase.106\n
+	\endfor",
 \106:"if pos<bot\n
-		\let pos=pos+1\n
-		\let next=pos\n
-		\let dispw=strdisplaywidth(a:list[pos+&lines-2])\n
-		\if dispw>49\n
-			\echon '\r'.a:list[pos+&lines-2].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
-		\else\n
-			\echon '\r'.a:list[pos+&lines-2].pad[:50-dispw].'\nSPACE/d/j:down, b/u/k:up, g/G:top/bottom, q:quit'\n
-		\en\n
+		\let pos+=1\n
+		\let next+=1\n
+		\echon '\r' a:list[pos+&lines-2] strpart(pad,0,46-strdisplaywidth(a:list[pos+&lines-2])) '\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit'\n
 	\en",
 \107:'let next=pos>0? pos-1 : pos',
 \98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
 \103:'let next=0',
 \71:'let next=bot'}
-let s:pagercom["\<up>"]=s:pagercom.107
-let s:pagercom["\<down>"]=s:pagercom.106
-let s:pagercom["\<ScrollWheelUp>"]=s:pagercom.107
-let s:pagercom["\<ScrollWheelDown>"]=s:pagercom.106
-let s:pagercom["\<left>"]=s:pagercom.98
-let s:pagercom["\<right>"]=s:pagercom.32
-let s:pagercom.100=s:pagercom.32
-let s:pagercom.117=s:pagercom.98
-let s:pagercom.27=s:pagercom.113
+let s:pgCase["\<up>"]   =s:pgCase.107 | let s:pgCase["\<ScrollWheelUp>"]  =s:pgCase.107
+let s:pgCase["\<down>"] =s:pgCase.106 | let s:pgCase["\<ScrollWheelDown>"]=s:pgCase.106
+let s:pgCase["\<left>"] =s:pgCase.98  | let s:pgCase.117=s:pgCase.98
+let s:pgCase["\<right>"]=s:pgCase.32  | let s:pgCase.100=s:pgCase.32
+let s:pgCase.27=s:pgCase.113
+let txbCmd["\<f1>"]='call s:printHelp()|let mes=""'
 
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
