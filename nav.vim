@@ -53,7 +53,7 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n# Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\Rv1.8.4 \n\n\n\n\n\n\n\n\n\\CWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
+	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4 \n\n\n\n\n\n\n\n\n\\C\nWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan or press (hotkey) followed by:
 	\\n    h j k l y u b n      pan (takes count, eg, 3jjj=3j3j3j)
@@ -90,7 +90,7 @@ fun! s:printHelp()
 	\\n    click NW corner      quit
 	\\n    drag to NW corner    (in the plane) show map
 	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
-	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,min([9999,(&columns-width)/2])),s:help_bookmark)
+	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,repeat(' ',(&columns-width)/2)),s:help_bookmark)
 endfun
 fun! s:pager(list,start)
 	if len(a:list)<&lines
@@ -461,30 +461,28 @@ fun! s:navPlane(dx,dy)
 endfun
 
 fun! s:formatPar(str,w,pad)
-	let pars=split(a:str,"\n")
-	let pad=repeat(" ",a:pad)
-	let bigpad=repeat(" ",a:w+10)
-	let spc=repeat(' ',len(&brk))
+	let spaces=repeat(" ",a:w+10)
+	let trspace=repeat(' ',len(&brk))
 	let ret=[]
-	for k in range(len(pars))
-		if pars[k][0]==#'\'
-			let format=pars[k][1]
-			let pars[k]=pars[k][(format=='\'? 1 : 2):]
+	let format=''
+	for par in split(a:str,"\n")
+		if par=~'\\\u'
+			let format=par
 		else
+			let seg=[0]
+			while seg[-1]<len(par)-a:w
+				let ix=(a:w+strridx(tr(strpart(par,seg[-1],a:w),&brk,trspace),' '))%a:w
+				call add(seg,seg[-1]+ix-(par[seg[-1]+ix]=~'\s'))
+				let ix=seg[-2]+ix+1
+				while par[ix]==" "
+					let ix+=1
+				endwhile
+				call add(seg,ix)
+			endw
+			call add(seg,len(par)-1)
+			let ret+=map(range(len(seg)/2),format==#'\C'? 'a:pad.spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].par[seg[2*v:val]:seg[2*v:val+1]]' : format==#'\R'? 'a:pad.spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].par[seg[2*v:val]:seg[2*v:val+1]]' : 'a:pad.par[seg[2*v:val]:seg[2*v:val+1]]')
 			let format=''
 		en
-		let seg=[0]
-		while seg[-1]<len(pars[k])-a:w
-			let ix=(a:w+strridx(tr(pars[k][seg[-1]:seg[-1]+a:w-1],&brk,spc),' '))%a:w
-			call add(seg,seg[-1]+ix-(pars[k][seg[-1]+ix=~'\s']))
-			let ix=seg[-2]+ix+1
-			while pars[k][ix]==" "
-				let ix+=1
-			endwhile
-			call add(seg,ix)
-		endw
-		call add(seg,len(pars[k])-1)
-		let ret+=map(range(len(seg)/2),format==#'C'? 'pad.bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : format==#'R'? 'pad.bigpad[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].pars[k][seg[2*v:val]:seg[2*v:val+1]]' : 'pad.pars[k][seg[2*v:val]:seg[2*v:val+1]]')
 	endfor
 	return ret
 endfun
@@ -648,7 +646,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let continue=1
 	let settingshelp='jkgG:dn,up,top,bot (c)hange (U)ndo (D)efault (q)uit'
 	let errlines=[]
-	let doclines=s:formatPar(settingshelp,helpw,0)
+	let doclines=s:formatPar(settingshelp,helpw,'')
 	while continue
 		redr!
 		for [scrPos,i,key] in map(range(&ch),'[v:val,v:val+s:spOff,get(a:entry,v:val+s:spOff,"")]')
@@ -685,8 +683,8 @@ fun! s:settingsPager(dict,entry,attr)
 		exe get(s:spExe,getchar(),'let validkey=0')
 		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
 		let s:spOff=s:spOff<s:spCursor-&ch+1? s:spCursor-&ch+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
-		let errlines=msg is 0? [] : s:formatPar(msg,helpw,0)
-		let doclines=errlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,0)
+		let errlines=msg is 0? [] : s:formatPar(msg,helpw,'')
+		let doclines=errlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,'')
 	endwhile
 	let &ch=chsav
 	redr
