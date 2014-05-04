@@ -1498,12 +1498,10 @@ fun! s:getMapDis(...)
 		endfor
 		let changed=copy(splitClr)
 		for i in keys(t:gridLbl[sp])
-			if has_key(splitLbl,i)
-				if splitLbl[i]==#t:gridLbl[sp][i] && splitClr[i]==t:gridClr[sp][i] 
-					unlet changed[i]
-				en
-			else
+			if !has_key(splitLbl,i)
 				let changed[i]=''
+			elseif splitLbl[i]==#t:gridLbl[sp][i] && splitClr[i]==t:gridClr[sp][i] 
+				unlet changed[i]
 			en
 		endfor
 		call extend(redR,changed,'keep')
