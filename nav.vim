@@ -1487,11 +1487,12 @@ fun! s:getMapDis(...)
 		for r in keys(conflicts)
 			call sort(splitPos[r])
 			if conflicts[r][1]
-				let splitLbl[r]=[conflicts[r][0]]+map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
+				let splitLbl[r]=['+'.conflicts[r][0]]+map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
 				call insert(splitPos[r],conflicts[r][1])
 				let splitClr[r]=t:txb.map[sp][conflicts[r][1]][1]
 			else
 				let splitLbl[r]=map(copy(splitPos[r]),'t:txb.map[sp][v:val][0]')
+				let splitLbl[r][0]='+'.splitLbl[r][0]
 				let splitClr[r]=t:txb.map[sp][splitPos[r][0]][1]
 			en
 		endfor
