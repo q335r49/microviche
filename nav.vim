@@ -533,9 +533,9 @@ let s:optatt={
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
 		\'required': 1,
-		\'apply': "if maparg(g:TXB_HOTKEY)==?s:hotkeyArg\n
+		\'apply': "if escape(maparg(g:TXB_HOTKEY),'|')==?s:hotkeyArg\n
 				\exe 'silent! nunmap' g:TXB_HOTKEY\n
-			\elseif maparg('<f10>')==?s:hotkeyArg\n
+			\elseif escape(maparg('<f10>'),'|')==?s:hotkeyArg\n
 				\silent! nunmap <f10>\n
 			\en\n
 			\let g:TXB_HOTKEY=arg\n
