@@ -234,7 +234,7 @@ fun! TxbInit(seed)
 		en
 	en
 	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable\n# ".join(plane.name,', ')
-	echon empty(unreadable)? '' : "\n# ".len(unreadable).' unreadable\n# '.join(unreadable,', ')
+	echon empty(unreadable)? '' : "\n# ".len(unreadable)." unreadable\n# ".join(unreadable,', ')
 	echon empty(plane.name)? '' : "\n# Working dir: ".plane.settings['working dir']
 	echon prompt
 	let c=getchar()
