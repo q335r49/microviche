@@ -1704,7 +1704,9 @@ fun! s:mapKeyHandler(c)
 					let s:mPrevCoor=copy(s:msStat)
 				else
 					let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
+					let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR
 					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
+					let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
 						call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
