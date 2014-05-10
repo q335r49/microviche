@@ -7,7 +7,7 @@ Use the mouse to pan or evoke commands with <kbd>f10</kbd>:
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | pan (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
 <kbd>r</kbd> <kbd>M</kbd> | redraw visible / all || <kbd>o</kbd> | open map
-<kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | Label <q>(marker)(lnum)</q>
+<kbd>A</kbd> <kbd>D</kbd> | append / delete split || <kbd>L</kbd> | insert label
 <kbd>S</kbd> <kbd>W</kbd> | settings / save settings || <kbd>q</kbd> <kbd>esc</kbd> | quit
 
 In the map (<kbd>f10</kbd> <kbd>o</kbd>):
@@ -21,7 +21,7 @@ In the map (<kbd>f10</kbd> <kbd>o</kbd>):
 ####Labels
 Labels are lines that start with a label marker (default <q>txb:</q>) and specify an anchor, title, or both. When the map is updated (<kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>), displaced labels are reanchored by inserting or removing immediately preceding blank lines. Anchoring failures are shown in the map.
 
-The syntax is <samp>marker(anchor)(:)( title#highlght#ignored)</samp>, but let's just consider some examples:  
+The syntax is <q>marker(anchor)(:)( title#highlght#ignored)</q>, but let's just consider some examples:  
 &nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *anchor to line 345*  
 &nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *anchor 345, title <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
 &nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *just title <q>Intro</q>*  
