@@ -1418,11 +1418,11 @@ fun! s:nav(N,L)
 endfun
 
 fun! s:getMapDis(...)
-	let blankcell=repeat(' ',t:mapw)
+	let poscell=repeat(' ',t:mapw)
 	let negcell=repeat('.',t:mapw)
-	let redR={}
+	let newR={}
 	if !a:0
-		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.blankcell.'"''),'''')')
+		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.poscell.'"''),'''')')
 		let t:deepR=len(t:bgd)-1
 		let t:disTxt=copy(t:bgd)
 		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
@@ -1439,18 +1439,18 @@ fun! s:getMapDis(...)
 			call add(t:disIx,[98989])
 			call add(t:disClr,[''])
 			call add(t:disTxt,'')
-			let redR[len(t:bgd)-1]=1
+			let newR[len(t:bgd)-1]=1
 		endwhile
 		let i=t:oldDepth[sp]/t:gran
 		let colIx=sp*t:mapw
 		while i>newdR
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
-			let redR[i]=1
+			let newR[i]=1
 			let i-=1
 		endwhile
 		while i<=newdR
-			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-			let redR[i]=1
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].poscell.t:bgd[i][colIx+t:mapw :] : poscell.t:bgd[i][colIx+t:mapw :]
+			let newR[i]=1
 			let i+=1
 		endwhile
 		let t:oldDepth[sp]=t:txb.depth[sp]
@@ -1504,13 +1504,13 @@ fun! s:getMapDis(...)
 				unlet changed[i]
 			en
 		endfor
-		call extend(redR,changed,'keep')
+		call extend(newR,changed,'keep')
 		let t:gridLbl[sp]=splitLbl
 		let t:gridClr[sp]=splitClr
 		let t:gridPos[sp]=splitPos
 	endfor
 	let t:deepR=len(t:bgd)-1
-	for i in keys(redR)
+	for i in keys(newR)
 		let t:disTxt[i]=''
 		let j=t:txbL-1
 		let padl=t:mapw
