@@ -1744,22 +1744,14 @@ endfun
 let s:mCase={"\e":"let s:mExit=0|redr",
 \"\<f1>":'call s:printHelp()',
 \'q':"let s:mExit=0",
-\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0",
-\'j':"let s:mR=s:mR+s:mCount<t:deepR? s:mR+s:mCount : t:deepR|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'k':"let s:mR=s:mR>s:mCount? s:mR-s:mCount : 0|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'y':"let [s:mR,s:mC]=[max([s:mR-s:mCount,0]),max([s:mC-s:mCount,0])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'u':"let [s:mR,s:mC]=[max([s:mR-s:mCount,0]),min([s:mC+s:mCount,t:txbL-1])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'b':"let [s:mR,s:mC]=[min([s:mR+s:mCount,t:deepR]),max([s:mC-s:mCount,0])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'n':"let [s:mR,s:mC]=[min([s:mR+s:mCount,t:deepR]),min([s:mC+s:mCount,t:txbL-1])]|let s:mCount='01'|let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0|let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0", 
-\'H':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mCoff=s:mCoff>s:mCount*t:mapw? s:mCoff-s:mCount*t:mapw : 0|let s:mCount='01'",
-\'J':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mRoff=s:mRoff+s:mCount<t:deepR? s:mRoff+s:mCount : t:deepR|let s:mCount='01'",
-\'K':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mRoff=s:mRoff>s:mCount? s:mRoff-s:mCount : 0|let s:mCount='01'",
-\'L':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let s:mCoff=s:mCoff+s:mCount*t:mapw<t:mapw*t:txbL? s:mCoff+s:mCount*t:mapw : t:mapw*t:txbL|let s:mCount='01'",
-\'Y':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mCount,0]),max([s:mCoff-s:mCount*t:mapw,0])]|let s:mCount='01'",
-\'U':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[max([s:mRoff-s:mCount,0]),min([s:mCoff+s:mCount*t:mapw,t:txbL*t:mapw-1])]|let s:mCount='01'",
-\'B':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mCount,t:deepR]),max([s:mCoff-s:mCount*t:mapw,0])]|let s:mCount='01'",
-\'N':"let s:mCount=s:mCount is '01'? 3 : s:mCount|let [s:mRoff,s:mCoff]=[min([s:mRoff+s:mCount,t:deepR]),min([s:mCoff+s:mCount*t:mapw,t:txbL*t:mapw-1])]|let s:mCount='01'",
+\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0",
+\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1",
+\'j':"let s:mR=s:mR+s:mCount<t:deepR? s:mR+s:mCount : t:deepR",
+\'k':"let s:mR=s:mR>s:mCount? s:mR-s:mCount : 0",
+\'H':"let s:mCoff=s:mCoff>s:mCount*t:mapw? s:mCoff-s:mCount*t:mapw : 0|let s:mCount='01'",
+\'L':"let s:mCoff=s:mCoff+s:mCount*t:mapw<t:mapw*t:txbL? s:mCoff+s:mCount*t:mapw : t:mapw*t:txbL-1|let s:mCount='01'",
+\'J':"let s:mRoff=s:mRoff+s:mCount<t:deepR? s:mRoff+s:mCount : t:deepR|let s:mCount='01'",
+\'K':"let s:mRoff=s:mRoff>s:mCount? s:mRoff-s:mCount : 0|let s:mCount='01'",
 \'1':"let s:mCount=s:mCount is '01'? 1 : s:mCount.'1'",
 \'2':"let s:mCount=s:mCount is '01'? 2 : s:mCount.'2'",
 \'3':"let s:mCount=s:mCount is '01'? 3 : s:mCount.'3'",
@@ -1794,6 +1786,17 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\redr!\n
 	\en\n",
 \'g':'let s:mExit=2'}
+let s:mCase.y=s:mCase.h.'|'.s:mCase.k
+let s:mCase.u=s:mCase.l.'|'.s:mCase.k
+let s:mCase.b=s:mCase.h.'|'.s:mCase.j
+let s:mCase.n=s:mCase.l.'|'.s:mCase.j
+let s:mCase.Y=s:mCase.H.'|'.s:mCase.K
+let s:mCase.U=s:mCase.L.'|'.s:mCase.K
+let s:mCase.B=s:mCase.H.'|'.s:mCase.J
+let s:mCase.N=s:mCase.L.'|'.s:mCase.J
+for i in ['h','j','k','l','y','u','b','n','H','J','K','L','Y','U','B','N']
+	let s:mCase[i].="|let s:mCount='01'|let [s:mCoff,s:mRoff]=[s:mC*t:mapw<=s:mCoff? s:mC*t:mapw : s:mC*t:mapw-&columns+t:mapw>s:mCoff? s:mC*t:mapw-&columns+t:mapw : s:mCoff, s:mR-&ch+2>s:mRoff? s:mR-&ch+2 : s:mR<s:mRoff? s:mR : s:mRoff]"
+endfor
 let s:mCase["\<c-m>"]  =s:mCase.g
 let s:mCase["\<right>"]=s:mCase.l
 let s:mCase["\<left>"] =s:mCase.h
