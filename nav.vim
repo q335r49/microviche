@@ -1443,15 +1443,15 @@ fun! s:getMapDis(...)
 		endwhile
 		let i=t:oldDepth[sp]/t:gran
 		let colIx=sp*t:mapw
-		while i<newdR
-			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
-			let redR[i]=1
-			let i+=1
-		endwhile
 		while i>newdR
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
 			let redR[i]=1
 			let i-=1
+		endwhile
+		while i<=newdR
+			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].blankcell.t:bgd[i][colIx+t:mapw :] : blankcell.t:bgd[i][colIx+t:mapw :]
+			let redR[i]=1
+			let i+=1
 		endwhile
 		let t:oldDepth[sp]=t:txb.depth[sp]
 		let conflicts={}
