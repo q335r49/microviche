@@ -776,7 +776,7 @@ fun! TxbKey(cmd)
 endfun
 fun! s:doCmdKeyhandler(c)
 	exe get(g:txbCmd,a:c,'let mes="(0..9) count (f1) help (hjklyubn) move (r)edraw (M)ap all (o)pen map (A)ppend (D)elete (L)abel (S)ettings (W)rite settings (q)uit"')
-	if mes==' '
+	if mes is ' '
 		echon '? ' w:txbi '.' line('.') ' ' str2nr(s:count) ' ' strtrans(a:c)
 		call feedkeys("\<plug>TxbZ")
 	elseif !empty(mes)
@@ -788,23 +788,23 @@ let txbCmd[-1]="let mes=''"
 let txbCmd["\e"]=txbCmd.q
 let txbCmd.null='let mes=" "'
 
-let txbCmd.h="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0'))|redrawstatus!"
-let txbCmd.j="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')+s:count)|redrawstatus!"
-let txbCmd.k="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(0,line('w0')-s:count)|redrawstatus!"
-let txbCmd.l="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0'))|redrawstatus!"
-let txbCmd.y="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!"
-let txbCmd.u="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')-s:count)|redrawstatus!"
-let txbCmd.b="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!"
-let txbCmd.n="let mes=' '|let s:count=s:count[0] is '0'? s:count : '0'.s:count|call s:nav(s:count,line('w0')+s:count)|redrawstatus!"
-let txbCmd.1="let mes=' '|let s:count=s:count[0] is '0'? '1' : s:count.'1'"
-let txbCmd.2="let mes=' '|let s:count=s:count[0] is '0'? '2' : s:count.'2'"
-let txbCmd.3="let mes=' '|let s:count=s:count[0] is '0'? '3' : s:count.'3'"
-let txbCmd.4="let mes=' '|let s:count=s:count[0] is '0'? '4' : s:count.'4'"
-let txbCmd.5="let mes=' '|let s:count=s:count[0] is '0'? '5' : s:count.'5'"
-let txbCmd.6="let mes=' '|let s:count=s:count[0] is '0'? '6' : s:count.'6'"
-let txbCmd.7="let mes=' '|let s:count=s:count[0] is '0'? '7' : s:count.'7'"
-let txbCmd.8="let mes=' '|let s:count=s:count[0] is '0'? '8' : s:count.'8'"
-let txbCmd.9="let mes=' '|let s:count=s:count[0] is '0'? '9' : s:count.'9'"
+let txbCmd.h="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0'))|redrawstatus!"
+let txbCmd.j="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')+s:count)|redrawstatus!"
+let txbCmd.k="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')-s:count)|redrawstatus!"
+let txbCmd.l="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0'))|redrawstatus!"
+let txbCmd.y="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.u="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0')-s:count)|redrawstatus!"
+let txbCmd.b="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.n="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0')+s:count)|redrawstatus!"
+let txbCmd.1="let mes=' '|let s:count=s:count[0] is '0'? 1   : s:count.'1'"
+let txbCmd.2="let mes=' '|let s:count=s:count[0] is '0'? 2   : s:count.'2'"
+let txbCmd.3="let mes=' '|let s:count=s:count[0] is '0'? 3   : s:count.'3'"
+let txbCmd.4="let mes=' '|let s:count=s:count[0] is '0'? 4   : s:count.'4'"
+let txbCmd.5="let mes=' '|let s:count=s:count[0] is '0'? 5   : s:count.'5'"
+let txbCmd.6="let mes=' '|let s:count=s:count[0] is '0'? 6   : s:count.'6'"
+let txbCmd.7="let mes=' '|let s:count=s:count[0] is '0'? 7   : s:count.'7'"
+let txbCmd.8="let mes=' '|let s:count=s:count[0] is '0'? 8   : s:count.'8'"
+let txbCmd.9="let mes=' '|let s:count=s:count[0] is '0'? 9   : s:count.'9'"
 let txbCmd.0="let mes=' '|let s:count=s:count[0] is '0'? '01': s:count.'0'"
 let txbCmd["\<up>"]   =txbCmd.k
 let txbCmd["\<down>"] =txbCmd.j
@@ -1742,61 +1742,63 @@ fun! s:mapKeyHandler(c)
 	en
 endfun
 let s:mCase={"\e":"let s:mExit=0|redr",
-\"\<f1>":'call s:printHelp()',
-\'q':"let s:mExit=0",
-\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0",
-\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1",
-\'j':"let s:mR=s:mR+s:mCount<t:deepR? s:mR+s:mCount : t:deepR",
-\'k':"let s:mR=s:mR>s:mCount? s:mR-s:mCount : 0",
-\'H':"let s:mCoff=s:mCoff>s:mCount*t:mapw? s:mCoff-s:mCount*t:mapw : 0|let s:mCount='01'",
-\'L':"let s:mCoff=s:mCoff+s:mCount*t:mapw<t:mapw*t:txbL? s:mCoff+s:mCount*t:mapw : t:mapw*t:txbL-1|let s:mCount='01'",
-\'J':"let s:mRoff=s:mRoff+s:mCount<t:deepR? s:mRoff+s:mCount : t:deepR|let s:mCount='01'",
-\'K':"let s:mRoff=s:mRoff>s:mCount? s:mRoff-s:mCount : 0|let s:mCount='01'",
-\'1':"let s:mCount=s:mCount is '01'? 1 : s:mCount.'1'",
-\'2':"let s:mCount=s:mCount is '01'? 2 : s:mCount.'2'",
-\'3':"let s:mCount=s:mCount is '01'? 3 : s:mCount.'3'",
-\'4':"let s:mCount=s:mCount is '01'? 4 : s:mCount.'4'",
-\'5':"let s:mCount=s:mCount is '01'? 5 : s:mCount.'5'",
-\'6':"let s:mCount=s:mCount is '01'? 6 : s:mCount.'6'",
-\'7':"let s:mCount=s:mCount is '01'? 7 : s:mCount.'7'",
-\'8':"let s:mCount=s:mCount is '01'? 8 : s:mCount.'8'",
-\'9':"let s:mCount=s:mCount is '01'? 9 : s:mCount.'9'",
-\'0':"let s:mCount=s:mCount is '01'? '01' : s:mCount.'0'",
-\'c':"let s:mR=s:mRoff+(&ch-2)/2\n
-	\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
-	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
-	\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
-\'z':"call s:disMap()\n
-	\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
-	\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
-	\if input<10 || width<1\n
-		\echohl ErrorMsg\n
-		\echo 'Error: Invalid values'\n
-		\sleep 500m\n
-		\redr!\n
-	\elseif input!=t:gran || width!=t:mapw\n
-		\let s:mR=s:mR*t:gran/input\n
-		\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
-		\let t:txb.settings['lines per map grid']=input\n
-		\let t:gran=input\n
-		\let t:mapw=width\n
-		\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
-		\call s:getMapDis()\n
-		\let s:mPrevClk=[0,0]\n
-		\redr!\n
-	\en\n",
-\'g':'let s:mExit=2'}
+	\"\<f1>":'call s:printHelp()',
+	\'q':"let s:mExit=0",
+	\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0",
+	\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1",
+	\'j':"let s:mR=s:mR+s:mCount<t:deepR? s:mR+s:mCount : t:deepR",
+	\'k':"let s:mR=s:mR>s:mCount? s:mR-s:mCount : 0",
+	\'H':"let s:mCoff=s:mCoff>s:mCount*t:mapw? s:mCoff-s:mCount*t:mapw : 0|let s:mCount='01'",
+	\'L':"let s:mCoff=s:mCoff+s:mCount*t:mapw<t:mapw*t:txbL? s:mCoff+s:mCount*t:mapw : t:mapw*t:txbL-1|let s:mCount='01'",
+	\'J':"let s:mRoff=s:mRoff+s:mCount<t:deepR? s:mRoff+s:mCount : t:deepR|let s:mCount='01'",
+	\'K':"let s:mRoff=s:mRoff>s:mCount? s:mRoff-s:mCount : 0|let s:mCount='01'",
+	\'1':"let s:mCount=s:mCount is '01'? 1 : s:mCount.'1'",
+	\'2':"let s:mCount=s:mCount is '01'? 2 : s:mCount.'2'",
+	\'3':"let s:mCount=s:mCount is '01'? 3 : s:mCount.'3'",
+	\'4':"let s:mCount=s:mCount is '01'? 4 : s:mCount.'4'",
+	\'5':"let s:mCount=s:mCount is '01'? 5 : s:mCount.'5'",
+	\'6':"let s:mCount=s:mCount is '01'? 6 : s:mCount.'6'",
+	\'7':"let s:mCount=s:mCount is '01'? 7 : s:mCount.'7'",
+	\'8':"let s:mCount=s:mCount is '01'? 8 : s:mCount.'8'",
+	\'9':"let s:mCount=s:mCount is '01'? 9 : s:mCount.'9'",
+	\'0':"let s:mCount=s:mCount is '01'? '01' : s:mCount.'0'",
+	\'c':"let s:mR=s:mRoff+(&ch-2)/2\n
+		\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
+		\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
+		\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
+	\'z':"call s:disMap()\n
+		\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
+		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
+		\if input<10 || width<1\n
+			\echohl ErrorMsg\n
+			\echo 'Error: Invalid values'\n
+			\sleep 500m\n
+			\redr!\n
+		\elseif input!=t:gran || width!=t:mapw\n
+			\let s:mR=s:mR*t:gran/input\n
+			\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
+			\let t:txb.settings['lines per map grid']=input\n
+			\let t:gran=input\n
+			\let t:mapw=width\n
+			\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+			\call s:getMapDis()\n
+			\let s:mPrevClk=[0,0]\n
+			\redr!\n
+		\en\n",
+	\'g':'let s:mExit=2'}
 let s:mCase.y=s:mCase.h.'|'.s:mCase.k
 let s:mCase.u=s:mCase.l.'|'.s:mCase.k
 let s:mCase.b=s:mCase.h.'|'.s:mCase.j
 let s:mCase.n=s:mCase.l.'|'.s:mCase.j
+for i in split('h j k l y u b n')
+	let s:mCase[i].="\nlet s:mCount='01'\n
+		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&columns+t:mapw? s:mC*t:mapw-&columns+t:mapw : s:mCoff\n
+		\let s:mRoff=s:mRoff<s:mR-&ch+2? s:mR-&ch+2 : s:mRoff>s:mR? s:mR : s:mRoff"
+endfor
 let s:mCase.Y=s:mCase.H.'|'.s:mCase.K
 let s:mCase.U=s:mCase.L.'|'.s:mCase.K
 let s:mCase.B=s:mCase.H.'|'.s:mCase.J
 let s:mCase.N=s:mCase.L.'|'.s:mCase.J
-for i in ['h','j','k','l','y','u','b','n','H','J','K','L','Y','U','B','N']
-	let s:mCase[i].="|let s:mCount='01'|let [s:mCoff,s:mRoff]=[s:mC*t:mapw<=s:mCoff? s:mC*t:mapw : s:mC*t:mapw-&columns+t:mapw>s:mCoff? s:mC*t:mapw-&columns+t:mapw : s:mCoff, s:mR-&ch+2>s:mRoff? s:mR-&ch+2 : s:mR<s:mRoff? s:mR : s:mRoff]"
-endfor
 let s:mCase["\<c-m>"]  =s:mCase.g
 let s:mCase["\<right>"]=s:mCase.l
 let s:mCase["\<left>"] =s:mCase.h
