@@ -41,7 +41,6 @@ fun! s:printHelp()
 		silent au WinEnter
 		silent au WinLeave
 	redir END
-	let ttymouseWorks=!has('gui_running') && (has('unix') || has('vms'))
 	let WarningsAndSuggestions=
 	\ (v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
 	\.(v:version<703 || v:version==703 && !has('patch106')? "\n# Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
@@ -49,47 +48,46 @@ fun! s:printHelp()
 	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with (hotkey) W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
 	\.(has('gui_running')? "\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use (hotkey) r or ':call TxbKey('r')'" : '')
+	\.(has('gui_running') || !(has('unix') || has('vms'))? "\n# Warning: gVim and non-unix terminals do not support mouse in map mode" : '')
 	\.(&ttymouse==?'xterm'? "\n# Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
-	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
+	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4.1 \n\n\n\n\n\n\n\n\n\\C\nWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
-	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
-	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan or press (hotkey) followed by:
-	\\n    h j k l y u b n      pan (takes count, eg, 3jjj=3j3j3j)
-	\\n    r                    redraw
-	\\n    o                    open map
-	\\n    M                    Map all
-	\\n    L                    Label (insert [marker][lnum])
-	\\n    D A                  Delete / Append split
+	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4.1 5/2014 \n\n\n\nCurrent hotkey: ".g:TXB_HOTKEY
+	\.(empty(WarningsAndSuggestions)? "\n\nWarnings & Suggestions: (none)\n" : "\n\nWarnings & Suggestions:".WarningsAndSuggestions."\n")
+	\."\nPress (hotkey) to load or initialize a plane.\n
+	\\nPan with the mouse or press (hotley) followed by:
+	\\n    h j k l y u b n      Pan (note: 3jjj=3j3j3j)
+	\\n    r / M                Redraw visible / all
+	\\n    A D                  Append / Delete split
+	\\n    S / W                Settings / Save settings
+	\\n    o                    Open map
+	\\n    L                    Label
 	\\n    <f1>                 Help
-	\\n *  S                    Settings
-	\\n    W                    Write to file
-	\\n    q <esc>              quit
-	\\n----------
-	\\n *  Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
-	\\n\n    Labels\n
-	\\nLabels are lines that start with a label marker (default 'txb:') and specify a line number, label text, or both. In addition to updating the map, remapping (with (hotkey) o, r, or M) will move any displaced labels to the provided line number by inserting or removing preceding blank lines. Any relocation failures will be displayed in the map.
-	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
-	\\n    txb:345 bla bla        Just move to 345
-	\\n *  txb:345: Intro#Search  Move to 345, label 'Intro', color 'Search'
-	\\n    txb: Intro             Just label 'Intro'
-	\\n    txb: Intro##bla bla    Just label 'Intro'
-	\\n----------
-	\\n *  Note the ': ' separator when both lnum and label are given
-	\\n\n    Map Commands\n
-	\\nTo remap the visbile region and view the map, press (hotkey) o
+	\\n    q <esc>              Quit
+	\\n\nIn the map ((hotkey) o):
 	\\n    h j k l y u b n      Move (takes count)
 	\\n    H J K L Y U B N      Pan (takes count)
-	\\n    c                    center cursor
-	\\n    g <cr>               go
-	\\n    z                    zoom
-	\\n    q                    quit"
-	\.(ttymouseWorks? "\n *  doubleclick          go
-	\\n    drag                 pan
-	\\n    click NW corner      quit
-	\\n    drag to NW corner    (in the plane) show map
-	\\n----------\n *  The mouse only works when ttymouse is set to xterm, xterm2 or sgr. The 'hotcorner' is disabled for xterm.\n\n\n\n\n\n\n\n\n\n"
-	\:"\n    (Mouse in map mode is unsupported in gVim and Windows)\n\n\n\n\n\n\n\n\n\n")."4/29/2014\n\n",width,repeat(' ',(&columns-width)/2)),s:help_bookmark)
+	\\n    g <cr> doubleclick   Go
+	\\n    click / drag         Select / pan
+	\\n    z                    Zoom
+	\\n    c                    Center cursor
+	\\n    <f1>                 Help
+	\\n    q <esc>              Quit
+	\\n\nLabels:\n
+	\\n    Labels are lines that start with a label marker (default 'txb:') and specify an anchor, title, or both. When the map is updated ((hotkey) o, r, or M) displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures will be shown in the map.
+	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
+	\\n    txb:345 bla bla        Anchor to line 345
+	\\n    txb:345: Intro#Search  Anchor 345, title 'Intro', color 'Search'
+	\\n    txb: Intro             Just title 'Intro'
+	\\n    txb: Intro##bla bla    Just title 'Intro'
+	\\n(Note the ': ' separator when both anchor and title are given)
+	\\n
+	\\nTips:\n
+	\\n- Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
+	\\n- To resolve labeling conflicts, the case-insensitive alphabetically first title starting with '!' will be shown, eg, 'txb:321: !aaaImportant'. On cursor-over, the rest will be shown in line number order.
+	\\n- Keyboard-free navigation is possible: dragging to the top left corner opens the map and clicking the top left corner closes it. (Terminal emulator only, and ttymouse must be set to 'sgr' or 'xterm2'.)
+	\\n- To highight labels, :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display
+	\\n\n\n\ngithub.com/q335r49/microviche\n\n\n",width,repeat(' ',(&columns-width)/2)),s:help_bookmark)
 endfun
 fun! s:pager(list,start)
 	if len(a:list)<&lines
@@ -465,7 +463,7 @@ fun! s:formatPar(str,w,pad)
 	let ret=[]
 	let format=''
 	for par in split(a:str,"\n")
-		if par=~'\\\u'
+		if par=~'^\\\u'
 			let format=par
 		else
 			let seg=[0]
