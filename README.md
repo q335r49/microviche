@@ -1,5 +1,5 @@
 #microViche
-microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader: it lets you pan and zoom through text. Installing is simple: **[download](https://raw.github.com/q335r49/textabyss/master/nav.vim)** nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
+microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader: it lets you pan and zoom through text. Installing is simple: [download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>. Check out the **[youtube video](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
 ####Commands
 Use the mouse to pan or evoke commands with <kbd>f10</kbd>:
@@ -19,13 +19,13 @@ In the map (<kbd>f10</kbd> <kbd>o</kbd>):
  <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
  
 ####Labels
-Labels are lines that start with a label marker (default <q>txb:</q>) and specify an anchor, a title, or both. When the map is updated (<kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>), displaced labels are reanchored by inserting or removing immediately preceding blank lines. Anchoring failures will be shown in the map.
+Labels are lines that start with a label marker (default <q>txb:</q>) and specify an anchor, title, or both. When the map is updated (<kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>), displaced labels are reanchored by inserting or removing immediately preceding blank lines. Anchoring failures are shown in the map.
 
 The syntax is <samp>marker(anchor)(:)( title#highlght#ignored)</samp>, but let's just consider some examples:  
-&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- anchor to line 345*  
-&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- anchor 345, title <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just title <q>Intro</q>*  
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *- just title <q>Intro</q>*
+&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *anchor to line 345*  
+&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *anchor 345, title <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *just title <q>Intro</q>*  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *just title <q>Intro</q>*
 
 ####Tips
 - To resolve **labeling conflicts**, the case-insensitive alphabetically first title starting with <q>!</q> will be shown, eg, <q>txb:321: !aaaImportant</q>. On cursor-over, the rest will be shown in line number order.
