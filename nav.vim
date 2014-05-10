@@ -52,7 +52,7 @@ fun! s:printHelp()
 	\.(&ttymouse==?'xterm'? "\n# Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(ttymouseWorks && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4 \n\n\n\n\n\n\n\n\n\\C\nWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
+	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4.1 \n\n\n\n\n\n\n\n\n\\C\nWelcome to microViche!\n\n\n\n\n    Current hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n    Warnings & Suggestions: (none)\n" : "\n    Warnings & Suggestions:".WarningsAndSuggestions."\n")
 	\."\nPress (hotkey) to load or initialize a plane. Once loaded, use the mouse to pan or press (hotkey) followed by:
 	\\n    h j k l y u b n      pan (takes count, eg, 3jjj=3j3j3j)
@@ -1420,7 +1420,6 @@ endfun
 fun! s:getMapDis(...)
 	let poscell=repeat(' ',t:mapw)
 	let negcell=repeat('.',t:mapw)
-	let newR={}
 	if !a:0
 		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.poscell.'"''),'''')')
 		let t:deepR=len(t:bgd)-1
@@ -1432,9 +1431,10 @@ fun! s:getMapDis(...)
 		let t:gridPos=deepcopy(t:gridClr)
 		let t:oldDepth=copy(t:txb.depth)
 	en
+	let newR={}
 	for sp in a:0? a:1 : range(t:txbL)
-		let newdR=t:txb.depth[sp]/t:gran
-		while newdR>len(t:bgd)-1
+		let newD=t:txb.depth[sp]/t:gran
+		while newD>len(t:bgd)-1
 			call add(t:bgd,repeat('.',t:txbL*t:mapw))
 			call add(t:disIx,[98989])
 			call add(t:disClr,[''])
@@ -1443,12 +1443,12 @@ fun! s:getMapDis(...)
 		endwhile
 		let i=t:oldDepth[sp]/t:gran
 		let colIx=sp*t:mapw
-		while i>newdR
+		while i>newD
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
 			let newR[i]=1
 			let i-=1
 		endwhile
-		while i<=newdR
+		while i<=newD
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].poscell.t:bgd[i][colIx+t:mapw :] : poscell.t:bgd[i][colIx+t:mapw :]
 			let newR[i]=1
 			let i+=1
@@ -1827,7 +1827,7 @@ let txbCmd.o="let mes=''\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
-let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map partially updates on (o)pening and (r)edrawing) (y/n): ')\n
+let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map always partially updates on (o)pening and (r)edrawing) (y/n): ')\n
 		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n

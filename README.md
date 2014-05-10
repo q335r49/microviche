@@ -1,8 +1,7 @@
 #microViche
 microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader for Vim - it lets you pan and zoom through archives. It has great mouse support, mapping, and a **[youtube demo](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
-####Startup
-[Download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>.
+Installation is simple: **[download]**(https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>.
 
 ####Commands
 Drag the mouse to pan. Access keyboard commands by first pressing <kbd>f10</kbd>:
@@ -24,7 +23,7 @@ The following commands apply in the map (<kbd>f10</kbd> <kbd>o</kbd>):
 ####Labels
 Labels are lines that start with a label marker (default <q>txb:</q>) and specify a line number, a map label, or both. The map is updated on <kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>. If a line number is provided, displaced labels will be restored by inserting or removing immediately preceding blank lines. Relocation failures will be shown as errors in the map.
 
-The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's just look at some examples:  
+The syntax is <samp>marker(lnum)(:)( label#highlght#ignored)</samp>, but let's just consider some examples:  
 &nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just move to 345*  
 &nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *- move to 345: label <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
 &nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *- just label <q>Intro</q>*  
