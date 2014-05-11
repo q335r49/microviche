@@ -44,37 +44,37 @@ fun! s:printHelp()
 	let WarningsAndSuggestions=
 	\ (v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
 	\.(v:version<703 || v:version==703 && !has('patch106')? "\n# Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n# Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with (hotkey) W."
-	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with (hotkey) W." : '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n# Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with hotkey W."
+	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with hotkey W." : '')
 	\.(len(split(laggyAu,"\n"))>4? "\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use (hotkey) r or ':call TxbKey('r')'" : '')
+	\.(has('gui_running')? "\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use hotkey r or ':call TxbKey('r')'" : '')
 	\.(has('gui_running') || !(has('unix') || has('vms'))? "\n# Warning: gVim and non-unix terminals do not support mouse in map mode" : '')
-	\.(&ttymouse==?'xterm'? "\n# Warning: ttymouse - Mouse panning disabled for 'xterm'. Try ':set ttymouse=xterm2' or 'sgr'." : '')
 	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
 	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4.1 5/2014 \n\n\n\nCurrent hotkey: ".g:TXB_HOTKEY
 	\.(empty(WarningsAndSuggestions)? "\n\nWarnings & Suggestions: (none)\n" : "\n\nWarnings & Suggestions:".WarningsAndSuggestions."\n")
-	\."\nPress (hotkey) to load or initialize a plane.\n
-	\\nPan with the mouse or press (hotley) followed by:
-	\\n    h j k l y u b n      Pan (note: 3jjj=3j3j3j)
-	\\n    r / M                Redraw visible / all
-	\\n    A D                  Append / Delete split
-	\\n    S / W                Settings / Save settings
-	\\n    o                    Open map
-	\\n    L                    Label
-	\\n    <f1>                 Help
-	\\n    q <esc>              Quit
-	\\n\nIn the map ((hotkey) o):
-	\\n    h j k l y u b n      Move (takes count)
-	\\n    H J K L Y U B N      Pan (takes count)
-	\\n    g <cr> doubleclick   Go
-	\\n    click / drag         Select / pan
-	\\n    z                    Zoom
-	\\n    c                    Center cursor
-	\\n    <f1>                 Help
-	\\n    q <esc>              Quit
+	\."\nPress the hotkey to load or initialize a plane. Once loaded, pan with the mouse or press the hotkey followed by:
+	\\n
+	\\n    h j k l y u b n  Pan (note: 3jjj=3j3j3j)
+	\\n    r / M            Redraw visible / all
+	\\n    A D              Append / Delete split
+	\\n    S / W            Settings / Save settings
+	\\n    o                Open map
+	\\n    L                Label
+	\\n    <f1>             Help
+	\\n    q <esc>          Quit
+	\\n\nIn the map (hotkey o):
+    \\n
+	\\n    h j k l y u b n  Move (takes count)
+	\\n    H J K L Y U B N  Pan (takes count)
+	\\n    g <cr> dblclick  Go
+	\\n    click / drag     Select / pan
+	\\n    z                Zoom
+	\\n    c                Center cursor
+	\\n    <f1>             Help
+	\\n    q <esc>          Quit
 	\\n\nLabels:\n
-	\\n    Labels are lines that start with a label marker (default 'txb:') and specify an anchor, title, or both. When the map is updated ((hotkey) o, r, or M) displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures will be shown in the map.
+	\\nLabels are lines that start with a label marker (default 'txb:') and specify an anchor, title, or both. When the map is updated (hotkey o, r, or M) displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
 	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
 	\\n    txb:345 bla bla        Anchor to line 345
 	\\n    txb:345: Intro#Search  Anchor 345, title 'Intro', color 'Search'
@@ -83,10 +83,10 @@ fun! s:printHelp()
 	\\n(Note the ': ' separator when both anchor and title are given)
 	\\n
 	\\nTips:\n
-	\\n- Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.
-	\\n- To resolve labeling conflicts, the case-insensitive alphabetically first title starting with '!' will be shown, eg, 'txb:321: !aaaImportant'. On cursor-over, the rest will be shown in line number order.
-	\\n- Keyboard-free navigation is possible: dragging to the top left corner opens the map and clicking the top left corner closes it. (Terminal emulator only, and ttymouse must be set to 'sgr' or 'xterm2'.)
-	\\n- To highight labels, :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display
+	\\n# Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.\n
+	\\n# To resolve labeling conflicts, the case-insensitive alphabetically first title starting with '!' will be shown, eg, 'txb:321: !aaaImportant'. On cursor-over, the rest will be shown in line number order.\n
+	\\n# Keyboard-free navigation is possible: dragging to the top left corner opens the map and clicking the top left corner closes it. (Terminal emulator only, and ttymouse must be set to 'sgr' or 'xterm2'.)\n
+	\\n# To highight labels, :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display\n
 	\\n\n\n\ngithub.com/q335r49/microviche\n\n\n",width,repeat(' ',(&columns-width)/2)),s:help_bookmark)
 endfun
 fun! s:pager(list,start)
@@ -917,7 +917,7 @@ fun! s:goto(sp,ln,...)
 		let doff-=t:txb.size[dsp]+1
 		let dsp=dsp>=t:txbL-1? 0 : dsp+1
 	endwhile
-	exe t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'only|e'.t:paths[dsp] : 'only'
+	exe t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'only|e '.t:paths[dsp] : 'only'
 	let w:txbi=dsp
 	if a:0
 		exe 'norm! '.(dln? dln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
@@ -1829,7 +1829,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[i] : ''\n
+			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e '.t:paths[i] : ''\n
 			\let t:txb.depth[i]=line('$')\n
 			\let t:txb.map[i]={}\n
 			\exe 'norm! 1G0'\n
@@ -1858,7 +1858,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 				\let line=search('^'.t:lblmrk.'\\zs','W')\n
 			\endwhile\n
 		\endfor\n
-		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e'.t:paths[curwin] : ''\n
+		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e '.t:paths[curwin] : ''\n
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
