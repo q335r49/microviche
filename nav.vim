@@ -1,5 +1,4 @@
 "https://github.com/q335r49/microviche
-
 if &cp|se nocompatible|en                    "(Vital) Enable vim features
 se noequalalways winwidth=1 winminwidth=0    "(Vital) Needed for correct panning
 se sidescroll=1                              "Smoother panning
@@ -10,112 +9,55 @@ se virtualedit=all                           "Makes leftmost split align correct
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
 se scrolloff=0                               "Ensures correct vertical panning
 
-augroup TXB | au!
-
-let g:TXB_HOTKEY=exists('g:TXB_HOTKEY')? g:TXB_HOTKEY : '<f10>'
-let g:TXB_MSSP=exists('g:TXB_MSSP') && type(g:TXB_MSSP)==3 && g:TXB_MSSP[0]==0? g:TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
+let TXB_HOTKEY=exists('TXB_HOTKEY')? TXB_HOTKEY : '<f10>'
 let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|if !TxbInit(exists("TXB")? TXB : "")\|let TXB=t:txb\|en\|en<cr>'
-exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
-au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg
+exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
 
-if !has('gui_running')
+augroup TXB | au!
+au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
+if has('gui_running')
+	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
+else
+	let TXB_MSSP=exists('TXB_MSSP') && type(TXB_MSSP)==3 && TXB_MSSP[0]==0? TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
 	nn <silent> <leftmouse> :exe txbMouse[has_key(txbMouse,&ttymouse)? &ttymouse : 'default']()<cr>
-else
-	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 en
-let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 
-let s:help_bookmark=0
-fun! s:printHelp()
-	redir => laggyAu
-		silent au BufEnter
-		silent au BufLeave
-		silent au WinEnter
-		silent au WinLeave
-	redir END
-	let warnings=(v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
-	\.(v:version<703 || v:version==703 && !has('patch106')? "\n# Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n# Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with hotkey W."
-	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with hotkey W." : '')
-	\.(len(split(laggyAu,"\n"))>4? "\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands (':au Bufenter' to list) or use 'BufRead' or 'BufHidden'?" : '')
-	\.(has('gui_running')? "\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use hotkey r or ':call TxbKey('r')'" : '')
-	\.(has('gui_running') || !(has('unix') || has('vms'))? "\n# Warning: gVim and non-unix terminals do not support mouse in map mode" : '')
-	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
-	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let disp=s:formatPar(" \n\n\\R\nv1.8.4.1 5/2014 \n\n\n\nCurrent hotkey: ".g:TXB_HOTKEY
-	\.(empty(warnings)? "\n\nWarnings & Suggestions: (none)\n" : "\n\nWarnings & Suggestions:".warnings."\n")
-	\."\nPress the hotkey to load or initialize a plane. Once loaded, pan with the mouse or press the hotkey followed by:\n
-	\\n    h j k l y u b n  Pan (note: 3jjj=3j3j3j)
-	\\n    r / M            Redraw visible / all
-	\\n    A D              Append / Delete split
-	\\n    S / W            Settings / Save settings
-	\\n    o                Open map
-	\\n    L                Label
-	\\n    <f1>             Help
-	\\n    q <esc>          Quit
-	\\n\nIn the map (hotkey o):\n
-	\\n    h j k l y u b n  Move (takes count)
-	\\n    H J K L Y U B N  Pan (takes count)
-	\\n    g <cr> dblclick  Go
-	\\n    click / drag     Select / pan
-	\\n    z                Zoom
-	\\n    c                Center cursor
-	\\n    <f1>             Help
-	\\n    q <esc>          Quit
-	\\n\nLabels:\n
-	\\nLabels are lines that start with a label marker (default 'txb:') and specify an anchor, title, or both. When the map is updated (hotkey o, r, or M) displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
-	\\n\nSyntax: marker(lnum)(:)( label#highlght#ignored)
-	\\n    txb:345 bla bla        Anchor to line 345
-	\\n    txb:345: Intro#Search  Anchor 345, title 'Intro', color 'Search'
-	\\n    txb: Intro             Just title 'Intro'
-	\\n    txb: Intro##bla bla    Just title 'Intro'
-	\\n(Note the ': ' separator when both anchor and title are given)\n
-	\\nTips:\n
-	\\n# Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.\n
-	\\n# To resolve labeling conflicts, the case-insensitive alphabetically first title starting with '!' will be shown, eg, 'txb:321: !aaaImportant'. On cursor-over, the rest will be shown in line number order.\n
-	\\n# Keyboard-free navigation is possible: dragging to the top left corner opens the map and clicking the top left corner closes it. (Terminal emulator only, and ttymouse must be set to 'sgr' or 'xterm2'.)\n
-	\\n# To highight labels, :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display\n
-	\\n\n\n\ngithub.com/q335r49/microviche\n\n\n",width,repeat(' ',(&columns-width)/2))
-	if len(disp)<&lines
-		ec join(disp,"\n")
-		return
-	en
-	let pad=repeat(' ',46)
-	let settings=[&more,&ch]
-	let [&more,&ch]=[0,&lines]
-	let [pos,bot,continue]=[-1,len(disp)-&lines,1]
-	let next=s:help_bookmark<0? 0 : s:help_bookmark>bot? bot : s:help_bookmark
-	let switch={113:'let continue=0',
-	\32:"for i in range(bot>pos? bot-pos : 0)\n
-			\exe switch.106\n
-		\endfor",
-	\106:"if pos<bot\n
-			\let pos+=1\n
-			\let next+=1\n
-			\echon '\r' disp[pos+&lines-2] strpart(pad,0,46-strdisplaywidth(disp[pos+&lines-2])) '\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit'\n
-		\en",
-	\107:'let next=pos>0? pos-1 : pos',
-	\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
-	\103:'let next=0',
-	\71:'let next=bot'}
-	let switch["\<up>"]   =switch.107 | let switch["\<ScrollWheelUp>"]  =switch.107
-	let switch["\<down>"] =switch.106 | let switch["\<ScrollWheelDown>"]=switch.106
-	let switch["\<left>"] =switch.98  | let switch.117=switch.98
-	let switch["\<right>"]=switch.32  | let switch.100=switch.32
-	let switch.27=switch.113
-	while continue
-		if pos!=next
-			let pos=next
-			redr!|echo join(disp[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit"
-		en
-		exe get(switch,getchar(),'')
-	endwhile
-	redr
-	let [&more,&ch]=settings
-	let s:help_bookmark=pos
-endfun
-let txbCmd={"\<f1>":'call s:printHelp()|let mes=""'}
+let txbCmd={"\<f1>":"let mes=' '\nredir => laggyAu\n
+		\exe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\n
+	\redir END\n
+	\ec '\nVersion                     Hotkey\n-------                     ------\n1.8.4.1 5/2014              '.g:TXB_HOTKEY
+	\.'\n\nWarnings\n--------'.(v:version<=703? '\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.': '')
+	\.(v:version<703 || v:version==703 && !has('patch106')? '\n# Warning: Vim < 7.3.106 - Splits won''t sync until mouse release': '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  '\n# Warning: Vim < 7.3.30 - Plane can''t be saved to viminfo; write settings to file with hotkey W.'
+	\: empty(&vi) || stridx(&vi,'!')==-1? '\n# Warning: Viminfo not set - Plane will not be remembered between sessions because ''viminfo'' doe not contain ''!''. Try '':set viminfo+=!'' or write to file with hotkey W.' : '')
+	\.(len(split(laggyAu,'\n'))>4? '\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands ('':au Bufenter'' to list) or use ''BufRead'' or ''BufHidden''?' : '')
+	\.(has('gui_running')? '\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use hotkey r or '':call TxbKey(''r'')''' : '')
+	\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# Warning: gVim and non-unix terminals do not support mouse in map mode' : '')
+	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# Suggestion: ''set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')
+	\.'\n\nHotkey Commands:                    Map Commands (hotkey o):
+	\\n----------------                    ------------------------
+	\\nhjklyubn  Pan (note: 3jjj=3j3j3j)   hjklyubn       Move (takes count)
+	\\nr / M     Redraw visible / all      HJKLYUBN       Pan (takes count)
+	\\nA D       Append / Delete split     g <cr> 2click  Go
+	\\nS / W     Settings / Write to file  click / drag   Select / pan
+	\\no         Open map                  z              Zoom
+	\\nL         Label                     c              Center cursor
+	\\n<f1>      Help                      <f1>           Help
+	\\nq <esc>   Quit                      q <esc>        Quit\n
+	\\nLabel Syntax: marker(lnum)(:)( label#highlght#ignored)
+	\\n------------------------------------------------------
+	\\ntxb:345 bla bla            Anchor to line 345
+	\\ntxb:345: Intro#Search      Anchor 345, title ''Intro'', color ''Search''
+	\\ntxb: Intro                 Just title ''Intro''
+	\\ntxb: Intro##bla bla        Just title ''Intro''\n
+	\\n# Note the '': '' separator when both anchor and title are given in a label.
+	\\n# The map is updated on hotkey o, r, or M
+	\\n# On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
+	\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
+	\\n# To resolve labeling conflicts, the case-insensitive alphabetically first title starting with ''!'' will be shown, eg, ''txb:321: !Aaaa''.
+	\\n# Keyboard-free navigation: dragging to the top left corner opens the map and clicking the top left corner closes it. (ttymouse=sgr or xterm2 only)
+	\\n# Label syntax highlighting: :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\ncall getchar()"}
 
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
@@ -139,9 +81,9 @@ fun! TxbInit(seed)
 	en
 	let defaults={}
 	let prompt=''
-    for i in filter(keys(s:optatt),'get(s:optatt[v:val],"required")')
+    for i in filter(keys(s:option),'get(s:option[v:val],"required")')
 		unlet! arg
-		exe get(s:optatt[i],'getDef','let arg=""')
+		exe get(s:option[i],'getDef','let arg=""')
 		let defaults[i]=arg
 	endfor
 	if !exists('plane.settings')                                    
@@ -153,7 +95,7 @@ fun! TxbInit(seed)
 			else
 				unlet! arg
 				let arg=plane.settings[i]
-				exe get(s:optatt[i],'check','let msg=0')
+				exe get(s:option[i],'check','let msg=0')
 				if msg isnot 0
 					let plane.settings[i]=defaults[i]
 					let prompt.="\n# WARNING: invalid setting (default will be used): ".i.": ".msg
@@ -230,7 +172,7 @@ fun! TxbInit(seed)
 		let t:txbL=len(t:txb.name)
 		let dict=t:txb.settings
 		for i in keys(dict)
-			exe get(s:optatt[i],'onInit','')
+			exe get(s:option[i],'onInit','')
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
@@ -244,18 +186,18 @@ fun! TxbInit(seed)
 		return 0
 	elseif index([83,115],c)!=-1
 		let plane=plane_save
-		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:optatt)
+		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:option)
 		return TxbInit(plane)
 	elseif index([78,110],c)!=-1
 		return TxbInit('')
 	elseif c is "\<f1>"
-		call s:printHelp()
+		exe g:txbCmd[c]
 	en
 	return 1
 endfun
 
 let txbMouse={}
-fun! txbMouse.default() dict
+fun! txbMouse.default()
 	if exists('w:txbi')
 		let cpos=[line('.'),virtcol('.'),w:txbi]
 		let [c,w0]=[getchar(),-1]
@@ -341,7 +283,7 @@ fun! txbMouse.default() dict
 	return ''
 endfun
 
-fun! txbMouse.sgr() dict
+fun! txbMouse.sgr()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
@@ -386,11 +328,11 @@ fun! <SID>doDragSGR()
 	endwhile
 endfun
 
-fun! txbMouse.xterm() dict
+fun! txbMouse.xterm()
 	return "norm! \<leftmouse>"
 endfun
 
-fun! txbMouse.xterm2() dict
+fun! txbMouse.xterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
@@ -475,7 +417,7 @@ endfun
 "getInput() arg Overwrite default (let arg=input('New value:')) [c]hange behavior
 "required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined)
 "onInit()       Exe when loading plane
-let s:optatt={
+let s:option={
 	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, (c)hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
 		\'getDef': "let arg='se nowrap scb cole=2'",
@@ -705,9 +647,9 @@ let s:spExe.10=s:spExe.99
 unlet s:ApplySettingsCmd
 let txbCmd.S="let mes=''\n
 	\if exists('w:txbi')\n
-		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:optatt)\n
+		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:option)\n
 	\else\n
-		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:optatt)\n
+		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:option)\n
 	\en"
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
@@ -915,6 +857,7 @@ fun! s:goto(sp,ln,...)
 	en
 endfun
 
+let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 fun! s:redraw(...)
 	let name0=fnameescape(fnamemodify(expand('%'),':p'))
 	if !exists('w:txbi')
@@ -1723,7 +1666,7 @@ fun! s:mapKeyHandler(c)
 	en
 endfun
 let s:mCase={"\e":"let s:mExit=0|redr",
-	\"\<f1>":'call s:printHelp()',
+	\"\<f1>":'exe g:txbCmd["\<f1>"]|redr!',
 	\'q':"let s:mExit=0",
 	\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0",
 	\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1",
