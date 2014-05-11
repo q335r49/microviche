@@ -20,18 +20,11 @@ au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en
 
 if !has('gui_running')
 	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
-	nn <silent> <leftmouse> :exe get(txbMsInit,&ttymouse,g:txbMsInit.default)()<cr>
+	nn <silent> <leftmouse> :exe txbMouse[has_key(txbMouse,&ttymouse)? &ttymouse : 'default']()<cr>
 else
-	nn <silent> <leftmouse> :exe <SID>initDragDefault()<cr>
+	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 en
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
-
-fun! s:SID()
-	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
-endfun
-
-let txbMsInit={}
-let txbCmd={}
 
 let s:help_bookmark=0
 fun! s:printHelp()
@@ -41,8 +34,7 @@ fun! s:printHelp()
 		silent au WinEnter
 		silent au WinLeave
 	redir END
-	let WarningsAndSuggestions=
-	\ (v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
+	let warnings=(v:version<=703? "\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.": '')
 	\.(v:version<703 || v:version==703 && !has('patch106')? "\n# Warning: Vim < 7.3.106 - Splits won't sync until mouse release": '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  "\n# Warning: Vim < 7.3.30 - Plane can't be saved to viminfo; write settings to file with hotkey W."
 	\: empty(&vi) || stridx(&vi,'!')==-1? "\n# Warning: Viminfo not set - Plane will not be remembered between sessions because 'viminfo' doe not contain '!'. Try ':set viminfo+=!' or write to file with hotkey W." : '')
@@ -51,10 +43,9 @@ fun! s:printHelp()
 	\.(has('gui_running') || !(has('unix') || has('vms'))? "\n# Warning: gVim and non-unix terminals do not support mouse in map mode" : '')
 	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? "\n# Suggestion: 'set ttymouse=xterm2' or 'sgr' allows mouse panning in map mode." : '')
 	let width=&columns>80? min([&columns-10,80]) : &columns-2
-	let s:help_bookmark=s:pager(s:formatPar(" \n\n\\R\nv1.8.4.1 5/2014 \n\n\n\nCurrent hotkey: ".g:TXB_HOTKEY
-	\.(empty(WarningsAndSuggestions)? "\n\nWarnings & Suggestions: (none)\n" : "\n\nWarnings & Suggestions:".WarningsAndSuggestions."\n")
-	\."\nPress the hotkey to load or initialize a plane. Once loaded, pan with the mouse or press the hotkey followed by:
-	\\n
+	let disp=s:formatPar(" \n\n\\R\nv1.8.4.1 5/2014 \n\n\n\nCurrent hotkey: ".g:TXB_HOTKEY
+	\.(empty(warnings)? "\n\nWarnings & Suggestions: (none)\n" : "\n\nWarnings & Suggestions:".warnings."\n")
+	\."\nPress the hotkey to load or initialize a plane. Once loaded, pan with the mouse or press the hotkey followed by:\n
 	\\n    h j k l y u b n  Pan (note: 3jjj=3j3j3j)
 	\\n    r / M            Redraw visible / all
 	\\n    A D              Append / Delete split
@@ -63,8 +54,7 @@ fun! s:printHelp()
 	\\n    L                Label
 	\\n    <f1>             Help
 	\\n    q <esc>          Quit
-	\\n\nIn the map (hotkey o):
-    \\n
+	\\n\nIn the map (hotkey o):\n
 	\\n    h j k l y u b n  Move (takes count)
 	\\n    H J K L Y U B N  Pan (takes count)
 	\\n    g <cr> dblclick  Go
@@ -80,55 +70,52 @@ fun! s:printHelp()
 	\\n    txb:345: Intro#Search  Anchor 345, title 'Intro', color 'Search'
 	\\n    txb: Intro             Just title 'Intro'
 	\\n    txb: Intro##bla bla    Just title 'Intro'
-	\\n(Note the ': ' separator when both anchor and title are given)
-	\\n
+	\\n(Note the ': ' separator when both anchor and title are given)\n
 	\\nTips:\n
 	\\n# Settings can also be accessed with :call TxbKey('S'), such as when the hotkey is inaccessible.\n
 	\\n# To resolve labeling conflicts, the case-insensitive alphabetically first title starting with '!' will be shown, eg, 'txb:321: !aaaImportant'. On cursor-over, the rest will be shown in line number order.\n
 	\\n# Keyboard-free navigation is possible: dragging to the top left corner opens the map and clicking the top left corner closes it. (Terminal emulator only, and ttymouse must be set to 'sgr' or 'xterm2'.)\n
 	\\n# To highight labels, :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display\n
-	\\n\n\n\ngithub.com/q335r49/microviche\n\n\n",width,repeat(' ',(&columns-width)/2)),s:help_bookmark)
-endfun
-fun! s:pager(list,start)
-	if len(a:list)<&lines
-		ec join(a:list,"\n")
-		return 0
+	\\n\n\n\ngithub.com/q335r49/microviche\n\n\n",width,repeat(' ',(&columns-width)/2))
+	if len(disp)<&lines
+		ec join(disp,"\n")
+		return
 	en
 	let pad=repeat(' ',46)
 	let settings=[&more,&ch]
 	let [&more,&ch]=[0,&lines]
-	let [pos,bot,continue]=[-1,len(a:list)-&lines,1]
-	let next=a:start<0? 0 : a:start>bot? bot : a:start
+	let [pos,bot,continue]=[-1,len(disp)-&lines,1]
+	let next=s:help_bookmark<0? 0 : s:help_bookmark>bot? bot : s:help_bookmark
+	let switch={113:'let continue=0',
+	\32:"for i in range(bot>pos? bot-pos : 0)\n
+			\exe switch.106\n
+		\endfor",
+	\106:"if pos<bot\n
+			\let pos+=1\n
+			\let next+=1\n
+			\echon '\r' disp[pos+&lines-2] strpart(pad,0,46-strdisplaywidth(disp[pos+&lines-2])) '\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit'\n
+		\en",
+	\107:'let next=pos>0? pos-1 : pos',
+	\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
+	\103:'let next=0',
+	\71:'let next=bot'}
+	let switch["\<up>"]   =switch.107 | let switch["\<ScrollWheelUp>"]  =switch.107
+	let switch["\<down>"] =switch.106 | let switch["\<ScrollWheelDown>"]=switch.106
+	let switch["\<left>"] =switch.98  | let switch.117=switch.98
+	let switch["\<right>"]=switch.32  | let switch.100=switch.32
+	let switch.27=switch.113
 	while continue
 		if pos!=next
 			let pos=next
-			redr!|echo join(a:list[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit"
+			redr!|echo join(disp[pos : pos+&lines-2],"\n")."\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit"
 		en
-		exe get(s:pgCase,getchar(),'')
+		exe get(switch,getchar(),'')
 	endwhile
 	redr
 	let [&more,&ch]=settings
-	return pos
+	let s:help_bookmark=pos
 endfun
-let s:pgCase={113:'let continue=0',
-\32:"for i in range(bot>pos? bot-pos : 0)\n
-		\exe s:pgCase.106\n
-	\endfor",
-\106:"if pos<bot\n
-		\let pos+=1\n
-		\let next+=1\n
-		\echon '\r' a:list[pos+&lines-2] strpart(pad,0,46-strdisplaywidth(a:list[pos+&lines-2])) '\nSPACE/d/j:down b/u/k:up g/G:top/bottom q:quit'\n
-	\en",
-\107:'let next=pos>0? pos-1 : pos',
-\98:'let next=pos-&lines/2>0? pos-&lines/2 : 0',
-\103:'let next=0',
-\71:'let next=bot'}
-let s:pgCase["\<up>"]   =s:pgCase.107 | let s:pgCase["\<ScrollWheelUp>"]  =s:pgCase.107
-let s:pgCase["\<down>"] =s:pgCase.106 | let s:pgCase["\<ScrollWheelDown>"]=s:pgCase.106
-let s:pgCase["\<left>"] =s:pgCase.98  | let s:pgCase.117=s:pgCase.98
-let s:pgCase["\<right>"]=s:pgCase.32  | let s:pgCase.100=s:pgCase.32
-let s:pgCase.27=s:pgCase.113
-let txbCmd["\<f1>"]='call s:printHelp()|let mes=""'
+let txbCmd={"\<f1>":'call s:printHelp()|let mes=""'}
 
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
@@ -267,8 +254,8 @@ fun! TxbInit(seed)
 	return 1
 endfun
 
-let s:glidestep=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
-fun! <SID>initDragDefault()
+let txbMouse={}
+fun! txbMouse.default() dict
 	if exists('w:txbi')
 		let cpos=[line('.'),virtcol('.'),w:txbi]
 		let [c,w0]=[getchar(),-1]
@@ -332,11 +319,12 @@ fun! <SID>initDragDefault()
 		else
 			return "keepj norm! \<leftmouse>"
 		en
+		let glide=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
 		if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
 			let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
 			let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
 			while !getchar(1) && glv+glh
-				let [y,x,vc,hc]=[vc>get(s:glidestep,glv,1),hc>get(s:glidestep,glh,1),vc+1,hc+1]
+				let [y,x,vc,hc]=[vc>get(glide,glv,1),hc>get(glide,glh,1),vc+1,hc+1]
 				if y||x
 					let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
 					call winrestview(v)
@@ -352,9 +340,8 @@ fun! <SID>initDragDefault()
 	en
 	return ''
 endfun
-let txbMsInit.default=function("\<SNR>".s:SID()."_initDragDefault")
 
-fun! <SID>initDragSGR()
+fun! txbMouse.sgr() dict
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
@@ -398,14 +385,12 @@ fun! <SID>doDragSGR()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let txbMsInit.sgr=function("\<SNR>".s:SID()."_initDragSGR")
 
-fun! <SID>initDragXterm()
+fun! txbMouse.xterm() dict
 	return "norm! \<leftmouse>"
 endfun
-let txbMsInit.xterm=function("\<SNR>".s:SID()."_initDragXterm")
 
-fun! <SID>initDragXterm2()
+fun! txbMouse.xterm2() dict
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
 		if exists('w:txbi')
@@ -423,7 +408,6 @@ fun! <SID>initDragXterm2()
 	else
 		let s:prevCoord=[0,0,0]
 		let s:dragHandler=function("s:navPlane")
-		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
 	return ''
 endfun
@@ -447,7 +431,6 @@ fun! <SID>doDragXterm2()
 	while getchar(0) isnot 0
 	endwhile
 endfun
-let txbMsInit.xterm2=function("\<SNR>".s:SID()."_initDragXterm2")
 
 fun! s:panWin(dx,dy)
 	exe "norm! ".(a:dy>0? get(g:TXB_MSSP,a:dy,g:TXB_MSSP[-1])."\<c-y>" : a:dy<0? get(g:TXB_MSSP,-a:dy,g:TXB_MSSP[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
@@ -1866,5 +1849,3 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 	\else\n
 		\let mes='Plane remap cancelled'\n
 	\en"
-
-delf s:SID
