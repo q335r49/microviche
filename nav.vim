@@ -1760,7 +1760,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
 		\exe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\n
 	\redir END\n
-	\let tipstr='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
+	\let warnings='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
 	\: empty(&vi) || stridx(&vi,'!')==-1? '# '':set viminfo+=!'' to remember plane between sessions (or write to file with hotkey W and restore via :source file)' : '')
 	\.(len(split(laggyAu,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
@@ -1774,42 +1774,29 @@ let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
 	\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown in the map instead of other labels.
 	\\n# Keyboard-free navigation: in the plane, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
 	\\n# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
+	\let commands='VERSION  1.8.4.1 5/2014            HOTKEY        '.g:TXB_HOTKEY.'\n\n
+	\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n
+	\hjklyubn Pan (takes count)         hjklyubn      Move (takes count)\n
+	\r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)\n
+	\A D      Append / Delete split     g <cr> 2click Go\n
+	\S / W    Settings / Write to file  click / drag  Select / pan\n
+	\o        Open map                  z             Zoom\n
+	\L        Label                     c             Center cursor\n
+	\<f1>     Help                      <f1>          Help\n
+	\q <esc>  Quit                      q <esc>       Quit\n\n
+	\LABEL marker(anchor)(:)( title)(#highlght)(#comment)\n
+	\txb:345 bla bla            Anchor only\ntxb:345: Title#Visual      Anchor, title, color\n
+	\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
 	\let columnw=71\n
-	\let condense=&columns>100\n
-	\if condense\nlet tips=s:formatPar(tipstr,&columns-columnw,'')\nen\nlet line=0\n
-	\ec ' '\nechohl Title\nechon '\nVERSION'\nechohl\nechon '  1.8.4.1 5/2014            '\nechohl Title\nechon 'HOTKEY'\nechohl\nechon '        ' g:TXB_HOTKEY\n
-	\echon condense? '               '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec ' '\n
-	\echon condense? '                                                                    '.get(tips,line,'') : ''\nlet line+=1\n
-	\echohl Title\nec 'HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)'\nechohl\n
-	\echon condense? '           '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'hjklyubn Pan (takes count)         hjklyubn      Move (takes count)'\n
-	\echon condense? '  '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)'\n
-	\echon condense? '   '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'A D      Append / Delete split     g <cr> 2click Go'\n
-	\echon condense? '                  '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'S / W    Settings / Write to file  click / drag  Select / pan'\n
-	\echon condense? '        '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'o        Open map                  z             Zoom'\n
-	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'L        Label                     c             Center cursor'\n
-	\echon condense? '       '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec '<f1>     Help                      <f1>          Help'\n
-	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'q <esc>  Quit                      q <esc>       Quit'\n
-	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec ' '\n
-	\echon condense? '                                                                    '.get(tips,line,'') : ''\nlet line+=1\n
-	\echohl Title\nec 'LABEL'\nechohl\nechon ' marker(anchor)(:)( title)(#highlght)(#comment)'\n
-	\echon condense? '                 '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'txb:345 bla bla            Anchor only'\n
-	\echon condense? '                               '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'txb:345: Title#Visual      Anchor, title, color'\n
-	\echon condense? '                      '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'txb: Title                 Title only'\n
-	\echon condense? '                                '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec 'txb: Title##bla bla        Title only'\n
-	\echon condense? '                                '.get(tips,line,'') : ''\nlet line+=1\n
-	\ec condense? len(tips)>=line? repeat(' ',columnw-2).join(tips[line :],'\n'.repeat(' ',columnw-2)) : '' : '\n'.tipstr\n
-	\echohl\ncall getchar()"
+	\if &columns>116\n
+		\let blanks=repeat(' ',columnw)\n
+		\let warncol=s:formatPar(warnings,&columns-columnw-3,'')\n
+		\let comcol=s:formatPar(commands,columnw,'')\n
+		\ec '\n'\n
+		\for i in range(len(comcol)>len(warncol)? len(comcol) : len(warncol))\n
+			\ec get(comcol,i,blanks) strpart(blanks,0,columnw-len(get(comcol,i,blanks))) get(warncol,i,'')\n
+		\endfor\n
+	\else\n
+		\echon '\n' commands '\n\n' warnings\n
+	\en\n
+	\call getchar()"
