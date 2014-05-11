@@ -22,10 +22,10 @@ In the map (<kbd>f10</kbd> <kbd>o</kbd>):
 Labels are lines that start with a label marker (default <q>txb:</q>) and specify an anchor, title, or both. When the map is updated (<kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>), displaced labels are reanchored by inserting or removing immediately preceding blank lines. Anchoring failures are shown in the map.
 
 The syntax is <q>marker(anchor)(:)( title#highlght#ignored)</q>, but let's just consider some examples:  
-&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *anchor to line 345*  
-&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> *anchor 345, title <q>Intro</q>, color <q>Search</q>* (Note the <b>:</b> separator).  
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> *just title <q>Intro</q>*  
-&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> *just title <q>Intro</q>*
+&nbsp;&nbsp;&nbsp;<samp>txb:345 blah blah&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> anchor to line 345  
+&nbsp;&nbsp;&nbsp;<samp>txb:345<b>:</b> Intro#Search&nbsp;&nbsp;&nbsp;</samp> anchor 345, title <q>Intro</q>, color <q>Search</q> (Note the <b>:</b> separator).  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</samp> just title <q>Intro</q>  
+&nbsp;&nbsp;&nbsp;<samp>txb: Intro## blah blah&nbsp;&nbsp;</samp> just title <q>Intro</q>
 
 ####Tips
 - To resolve **labeling conflicts**, the case-insensitive alphabetically first title starting with <q>!</q> will be shown, eg, <q>txb:321: !aaaImportant</q>. On cursor-over, the rest will be shown in line number order.
