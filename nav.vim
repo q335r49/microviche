@@ -15,49 +15,13 @@ exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
 
 augroup TXB | au!
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
+let TXB_MSSP=exists('TXB_MSSP') && type(TXB_MSSP)==3 && TXB_MSSP[0]==0? TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 else
-	let TXB_MSSP=exists('TXB_MSSP') && type(TXB_MSSP)==3 && TXB_MSSP[0]==0? TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
 	nn <silent> <leftmouse> :exe txbMouse[has_key(txbMouse,&ttymouse)? &ttymouse : 'default']()<cr>
 en
-
-let txbCmd={"\<f1>":"let mes=' '\nredir => laggyAu\n
-		\exe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\n
-	\redir END\n
-	\ec '\nVersion                     Hotkey\n-------                     ------\n1.8.4.1 5/2014              '.g:TXB_HOTKEY
-	\.'\n\nWarnings\n--------'.(v:version<=703? '\n# Warning: Vim < 7.4 - Vim 7.4 is recommended.': '')
-	\.(v:version<703 || v:version==703 && !has('patch106')? '\n# Warning: Vim < 7.3.106 - Splits won''t sync until mouse release': '')
-	\.(v:version<703 || v:version==703 && !has('patch30')?  '\n# Warning: Vim < 7.3.30 - Plane can''t be saved to viminfo; write settings to file with hotkey W.'
-	\: empty(&vi) || stridx(&vi,'!')==-1? '\n# Warning: Viminfo not set - Plane will not be remembered between sessions because ''viminfo'' doe not contain ''!''. Try '':set viminfo+=!'' or write to file with hotkey W.' : '')
-	\.(len(split(laggyAu,'\n'))>4? '\n# Warning: Autocommands - Mouse panning may lag due to BufEnter, BufLeave, WinEnter, and WinLeave autocommands. Slim down autocommands ('':au Bufenter'' to list) or use ''BufRead'' or ''BufHidden''?' : '')
-	\.(has('gui_running')? '\n# Warning: gVim - Auto-redrawing on resize disabled (resizing occurs too frequently in gVim): use hotkey r or '':call TxbKey(''r'')''' : '')
-	\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# Warning: gVim and non-unix terminals do not support mouse in map mode' : '')
-	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# Suggestion: ''set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')
-	\.'\n\nHotkey Commands:                    Map Commands (hotkey o):
-	\\n----------------                    ------------------------
-	\\nhjklyubn  Pan (note: 3jjj=3j3j3j)   hjklyubn       Move (takes count)
-	\\nr / M     Redraw visible / all      HJKLYUBN       Pan (takes count)
-	\\nA D       Append / Delete split     g <cr> 2click  Go
-	\\nS / W     Settings / Write to file  click / drag   Select / pan
-	\\no         Open map                  z              Zoom
-	\\nL         Label                     c              Center cursor
-	\\n<f1>      Help                      <f1>           Help
-	\\nq <esc>   Quit                      q <esc>        Quit\n
-	\\nLabel Syntax: marker(lnum)(:)( label#highlght#ignored)
-	\\n------------------------------------------------------
-	\\ntxb:345 bla bla            Anchor to line 345
-	\\ntxb:345: Intro#Search      Anchor 345, title ''Intro'', color ''Search''
-	\\ntxb: Intro                 Just title ''Intro''
-	\\ntxb: Intro##bla bla        Just title ''Intro''\n
-	\\n# Note the '': '' separator when both anchor and title are given in a label.
-	\\n# The map is updated on hotkey o, r, or M
-	\\n# On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
-	\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
-	\\n# To resolve labeling conflicts, the case-insensitive alphabetically first title starting with ''!'' will be shown, eg, ''txb:321: !Aaaa''.
-	\\n# Keyboard-free navigation: dragging to the top left corner opens the map and clicking the top left corner closes it. (ttymouse=sgr or xterm2 only)
-	\\n# Label syntax highlighting: :syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\ncall getchar()"}
 
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
@@ -645,12 +609,12 @@ let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
 let s:spExe.13=s:spExe.99
 let s:spExe.10=s:spExe.99
 unlet s:ApplySettingsCmd
-let txbCmd.S="let mes=''\n
+let txbCmd={'S':"let mes=''\n
 	\if exists('w:txbi')\n
 		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:option)\n
 	\else\n
 		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:option)\n
-	\en"
+	\en"}
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -1792,3 +1756,60 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 	\else\n
 		\let mes='Plane remap cancelled'\n
 	\en"
+
+let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
+		\exe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\n
+	\redir END\n
+	\let tipstr='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
+	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
+	\: empty(&vi) || stridx(&vi,'!')==-1? '# '':set viminfo+=!'' to remember plane between sessions (or write to file with hotkey W and restore via :source file)' : '')
+	\.(len(split(laggyAu,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
+	\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
+	\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
+	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')
+	\.'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
+	\\n# The map is updated on hotkey o, r, or M
+	\\n# On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
+	\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
+	\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown in the map instead of other labels.
+	\\n# Keyboard-free navigation: in the plane, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
+	\\n# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
+	\let columnw=71\n
+	\let condense=&columns>100\n
+	\if condense\nlet tips=s:formatPar(tipstr,&columns-columnw,'')\nen\nlet line=0\n
+	\ec ' '\nechohl Title\nechon '\nVERSION'\nechohl\nechon '  1.8.4.1 5/2014            '\nechohl Title\nechon 'HOTKEY'\nechohl\nechon '        ' g:TXB_HOTKEY\n
+	\echon condense? '               '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec ' '\n
+	\echon condense? '                                                                    '.get(tips,line,'') : ''\nlet line+=1\n
+	\echohl Title\nec 'HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)'\nechohl\n
+	\echon condense? '           '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'hjklyubn Pan (takes count)         hjklyubn      Move (takes count)'\n
+	\echon condense? '  '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)'\n
+	\echon condense? '   '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'A D      Append / Delete split     g <cr> 2click Go'\n
+	\echon condense? '                  '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'S / W    Settings / Write to file  click / drag  Select / pan'\n
+	\echon condense? '        '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'o        Open map                  z             Zoom'\n
+	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'L        Label                     c             Center cursor'\n
+	\echon condense? '       '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec '<f1>     Help                      <f1>          Help'\n
+	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'q <esc>  Quit                      q <esc>       Quit'\n
+	\echon condense? '                '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec ' '\n
+	\echon condense? '                                                                    '.get(tips,line,'') : ''\nlet line+=1\n
+	\echohl Title\nec 'LABEL'\nechohl\nechon ' marker(anchor)(:)( title)(#highlght)(#comment)'\n
+	\echon condense? '                 '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'txb:345 bla bla            Anchor only'\n
+	\echon condense? '                               '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'txb:345: Title#Visual      Anchor, title, color'\n
+	\echon condense? '                      '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'txb: Title                 Title only'\n
+	\echon condense? '                                '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec 'txb: Title##bla bla        Title only'\n
+	\echon condense? '                                '.get(tips,line,'') : ''\nlet line+=1\n
+	\ec condense? len(tips)>=line? repeat(' ',columnw-2).join(tips[line :],'\n'.repeat(' ',columnw-2)) : '' : '\n'.tipstr\n
+	\echohl\ncall getchar()"
