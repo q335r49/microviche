@@ -1,4 +1,5 @@
 "https://github.com/q335r49/microviche
+
 if &cp|se nocompatible|en                    "(Vital) Enable vim features
 se noequalalways winwidth=1 winminwidth=0    "(Vital) Needed for correct panning
 se sidescroll=1                              "Smoother panning
@@ -1774,7 +1775,7 @@ let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
 	\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown in the map instead of other labels.
 	\\n# Keyboard-free navigation: in the plane, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
 	\\n# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
-	\let commands='VERSION  1.8.4.1 5/2014            HOTKEY        '.g:TXB_HOTKEY.'\n\n
+	\let commands='microViche 1.8.4.1 5/2014          HOTKEY        '.g:TXB_HOTKEY.'\n\n
 	\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n
 	\hjklyubn Pan (takes count)         hjklyubn      Move (takes count)\n
 	\r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)\n
@@ -1787,16 +1788,14 @@ let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
 	\LABEL marker(anchor)(:)( title)(#highlght)(#comment)\n
 	\txb:345 bla bla            Anchor only\ntxb:345: Title#Visual      Anchor, title, color\n
 	\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
-	\let columnw=71\n
 	\if &columns>116\n
-		\let blanks=repeat(' ',columnw)\n
-		\let warncol=s:formatPar(warnings,&columns-columnw-3,'')\n
-		\let comcol=s:formatPar(commands,columnw,'')\n
-		\ec '\n'\n
+		\let blanks=repeat(' ',71)\n
+		\let warncol=s:formatPar(warnings,&columns-71-3,'')\n
+		\let comcol=s:formatPar(commands,71,'')\n
 		\for i in range(len(comcol)>len(warncol)? len(comcol) : len(warncol))\n
-			\ec get(comcol,i,blanks) strpart(blanks,0,columnw-len(get(comcol,i,blanks))) get(warncol,i,'')\n
+			\ec get(comcol,i,blanks) strpart(blanks,0,71-len(get(comcol,i,blanks))) get(warncol,i,'')\n
 		\endfor\n
 	\else\n
-		\echon '\n' commands '\n\n' warnings\n
+		\echon commands '\n\n' warnings\n
 	\en\n
 	\call getchar()"
