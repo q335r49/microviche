@@ -1,5 +1,5 @@
 #microViche
-microViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader: it lets you pan and zoom through text. Installing is simple: [download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>. Check out the **[youtube video](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
+MicroViche is sort of like a [microfiche](http://www.wisegeek.org/what-is-microfiche.htm) reader: it lets you pan and zoom through text. Installation is simple: [download](https://raw.github.com/q335r49/textabyss/master/nav.vim) nav.vim, open [Vim](http://www.vim.org), <samp>:source nav.vim</samp>, and press <kbd>f10</kbd>. Check out the **[youtube video](https://www.youtube.com/watch?v=9YNiPUTGO28)**!
 
 ####Commands
 Use the mouse to pan or evoke commands with <kbd>f10</kbd>:

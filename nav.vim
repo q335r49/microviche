@@ -46,7 +46,7 @@ fun! TxbInit(seed)
 	en
 	let defaults={}
 	let prompt=''
-    for i in filter(keys(s:option),'get(s:option[v:val],"required")')
+	for i in filter(keys(s:option),'get(s:option[v:val],"required")')
 		unlet! arg
 		exe get(s:option[i],'getDef','let arg=""')
 		let defaults[i]=arg
@@ -259,44 +259,15 @@ fun! txbMouse.sgr()
 		if &wrap && (v:mouse_col%winwidth(0)==1 || v:mouse_lnum>line('w$')) || !&wrap && (v:mouse_col>=winwidth(0)+winsaveview().leftcol || v:mouse_lnum>line('w$'))
 			exe "norm! \<leftmouse>"
 		else
-			let s:prevCoord=[0,0,0]
-			let s:dragHandler=function("s:panWin")
+			let [s:pX,s:pY]=[0,0]
 			nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 		en
 	else
-		let s:prevCoord=[0,0,0]
-		let s:dragHandler=function("s:navPlane")
+		let [s:pX,s:pY]=[0,0]
 		nno <silent> <esc>[< :call <SID>doDragSGR()<cr>
 	en
 	return ''
 endfun
-fun! <SID>doDragSGR()
-	let code=[getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)]
-	let k=map(split(join(map(code,'type(v:val)? v:val : nr2char(v:val)'),''),';'),'str2nr(v:val)')
-	if len(k)<3
-		let k=[32,0,0]
-	elseif k[0]==0
-		nunmap <esc>[<
-		if exists('t:txb')
-			if k[1:]==[1,1]
-				call TxbKey('o')
-			elseif exists('w:txbi')
-				echon w:txbi '-' line('.')
-			en
-		en
-		return
-	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
-		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
-	en
-	let s:prevCoord=k
-	while getchar(0) isnot 0
-	endwhile
-endfun
-
-fun! txbMouse.xterm()
-	return "norm! \<leftmouse>"
-endfun
-
 fun! txbMouse.xterm2()
 	if getchar()=="\<leftrelease>"
 		exe "norm! \<leftmouse>\<leftrelease>"
@@ -308,43 +279,62 @@ fun! txbMouse.xterm2()
 		if &wrap && (v:mouse_col%winwidth(0)==1 || v:mouse_lnum>line('w$')) || !&wrap && (v:mouse_col>=winwidth(0)+winsaveview().leftcol || v:mouse_lnum>line('w$'))
 			exe "norm! \<leftmouse>"
 		else
-			let s:prevCoord=[0,0,0]
-			let s:dragHandler=function("s:panWin")
+			let [s:pX,s:pY]=[0,0]
 			nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 		en
 	else
-		let s:prevCoord=[0,0,0]
-		let s:dragHandler=function("s:navPlane")
+		let [s:pX,s:pY]=[0,0]
+		nno <silent> <esc>[M :call <SID>doDragXterm2()<cr>
 	en
 	return ''
+endfun
+fun! txbMouse.xterm()
+	return "norm! \<leftmouse>"
+endfun
+
+fun! <SID>doDragSGR()
+	let k=map(split(join(map([getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0),getchar(0)],'type(v:val)? v:val : nr2char(v:val)'),''),';'),'str2nr(v:val)')
+	if len(k)<3
+		let k=[32,0,0]
+	elseif k[0]==0
+		nunmap <esc>[<
+		if !exists('w:txbi')
+		elseif k[1:]==[1,1]
+			call TxbKey('o')
+		else
+			echon w:txbi '-' line('.')
+		en
+	elseif !(k[1] && k[2] && s:pX && s:pY)
+	elseif exists('w:txbi')
+		call s:nav(k[1]>s:pX? -get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1]),k[2]<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1]))
+		echon w:txbi '-' line('.')
+	else
+		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? (k[1]-s:pX."zh") : k[1]<s:pX? (s:pX-k[1])."zl" : "g")
+	en
+	let [s:pX,s:pY]=k[1:2]
+	while getchar(0) isnot 0
+	endwhile
 endfun
 fun! <SID>doDragXterm2()
 	let k=[getchar(0),getchar(0),getchar(0)]
 	if k[0]==35
 		nunmap <esc>[M
-		if exists('t:txb')
-			if k[1:]==[33,33]
-				call TxbKey('o')
-			elseif exists('w:txbi')
-				echon w:txbi '-' line('.')
-			en
+		if !exists('w:txbi')
+		elseif k[1:]==[33,33]
+			call TxbKey('o')
+		else
+			echon w:txbi '-' line('.')
 		en
-		return
-		TEST write to file
-	elseif k[1] && k[2] && s:prevCoord[1] && s:prevCoord[2]
-		call s:dragHandler(k[1]-s:prevCoord[1],k[2]-s:prevCoord[2])
+	elseif !(k[1] && k[2] && s:pX && s:pY)
+	elseif exists('w:txbi')
+		call s:nav(k[1]>s:pX? -get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1]),k[2]<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1]))
+		echon w:txbi '-' line('.')
+	else
+		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? (k[1]-s:pX."zh") : k[1]<s:pX? (s:pX-k[1])."zl" : "g")
 	en
-	let s:prevCoord=k
+	let [s:pX,s:pY]=k[1:2]
 	while getchar(0) isnot 0
 	endwhile
-endfun
-
-fun! s:panWin(dx,dy)
-	exe "norm! ".(a:dy>0? get(g:TXB_MSSP,a:dy,g:TXB_MSSP[-1])."\<c-y>" : a:dy<0? get(g:TXB_MSSP,-a:dy,g:TXB_MSSP[-1])."\<c-e>" : '').(a:dx>0? (a:dx."zh") : a:dx<0? (-a:dx)."zl" : "g")
-endfun
-fun! s:navPlane(dx,dy)
-	call s:nav(a:dx>0? -get(g:TXB_MSSP,a:dx,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,-a:dx,g:TXB_MSSP[-1]),a:dy<0? line('w0')+get(g:TXB_MSSP,-a:dy,g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,a:dy,g:TXB_MSSP[-1]))
-	echon w:txbi '-' line('.')
 endfun
 
 fun! s:formatPar(str,w,pad)
@@ -512,13 +502,44 @@ let s:option={
 				\en\n
 			\en"}}
 
-let [s:spCursor,s:spOff]=[0,0]
 fun! s:settingsPager(dict,entry,attr)
+	let applyCmd="if empty(arg)\n
+				\let msg='Input cannot be empty'\n
+			\else\n
+				\exe get(a:attr[key],'check','let msg=0')\n
+			\en\n
+			\if (msg is 0) && (arg!=#disp[key])\n
+				\let undo[key]=get(undo,key,disp[key])\n
+				\exe a:attr[key].applyCmd\n
+				\let disp[key]=arg\n
+			\en\n
+		\en"
+	let case={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
+				\let msg='No default defined for this value'\n
+			\else\n
+				\unlet! arg\n
+				\exe a:attr[key].getDef\n".applyCmd,
+		\85: "if !has_key(disp,key) || !has_key(undo,key)\n
+				\let msg='No undo defined for this value'\n
+			\else\n
+				\unlet! arg\n
+				\let arg=undo[key]\n".applyCmd,
+		\99: "if has_key(disp,key)\n
+				\unlet! arg\n
+				\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".applyCmd,
+		\113: "let continue=0",
+		\27:  "let continue=0",
+		\106: 'let s:spCursor+=1',
+		\107: 'let s:spCursor-=1',
+		\103: 'let s:spCursor=0',
+		\71:  'let s:spCursor=entries-1'}
+	let case.13=case.99
+	let case.10=case.99
 	let dict=a:dict
 	let entries=len(a:entry)
 	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
-	let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
-	let s:spOff=s:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
+	let s:spCursor=!exists('s:spCursor')? 0 : s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
+	let s:spOff=!exists('s:spOff')? 0 : 's:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
 	let s:spOff=s:spOff<s:spCursor-&ch? s:spCursor-&ch : s:spOff>s:spCursor? s:spCursor : s:spOff
 	let undo={}
 	let disp={}
@@ -567,7 +588,7 @@ fun! s:settingsPager(dict,entry,attr)
 		endfor
 		let key=a:entry[s:spCursor]
 		let validkey=1
-		exe get(s:spExe,getchar(),'let validkey=0')
+		exe get(case,getchar(),'let validkey=0')
 		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
 		let s:spOff=s:spOff<s:spCursor-&ch+1? s:spCursor-&ch+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
 		let errlines=msg is 0? [] : s:formatPar(msg,helpw,'')
@@ -577,45 +598,7 @@ fun! s:settingsPager(dict,entry,attr)
 	redr
 	echo
 endfun
-let s:ApplySettingsCmd="if empty(arg)\n
-			\let msg='Input cannot be empty'\n
-		\else\n
-			\exe get(a:attr[key],'check','let msg=0')\n
-		\en\n
-		\if (msg is 0) && (arg!=#disp[key])\n
-			\let undo[key]=get(undo,key,disp[key])\n
-			\exe a:attr[key].apply\n
-			\let disp[key]=arg\n
-		\en\n
-	\en"
-let s:spExe={68: "if !has_key(disp,key) || !has_key(a:attr[key],'getDef')\n
-			\let msg='No default defined for this value'\n
-		\else\n
-			\unlet! arg\n
-			\exe a:attr[key].getDef\n".s:ApplySettingsCmd,
-	\85: "if !has_key(disp,key) || !has_key(undo,key)\n
-			\let msg='No undo defined for this value'\n
-		\else\n
-			\unlet! arg\n
-			\let arg=undo[key]\n".s:ApplySettingsCmd,
-	\99: "if has_key(disp,key)\n
-			\unlet! arg\n
-			\exe get(a:attr[key],'getInput','let arg=input(''Enter new value: '',type(disp[key])==1? disp[key] : string(disp[key]))')\n".s:ApplySettingsCmd,
-	\113: "let continue=0",
-	\27:  "let continue=0",
-	\106: 'let s:spCursor+=1',
-	\107: 'let s:spCursor-=1',
-	\103: 'let s:spCursor=0',
-	\71:  'let s:spCursor=entries-1'}
-let s:spExe.13=s:spExe.99
-let s:spExe.10=s:spExe.99
-unlet s:ApplySettingsCmd
-let txbCmd={'S':"let mes=''\n
-	\if exists('w:txbi')\n
-		\call s:settingsPager(t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:option)\n
-	\else\n
-		\call s:settingsPager({},['Global','hotkey','mouse pan speed'],s:option)\n
-	\en"}
+let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:txb.settings,['Global','hotkey','mouse pan speed','Plane','split width','autoexe','lines per map grid','map cell width','working dir','label marker','Split '.w:txbi,'current width','current autoexe','current file'],s:option] : [{},['Global','hotkey','mouse pan speed'],s:option])"}
 
 nno <silent> <plug>TxbY<esc>[ :call <SID>getmouse()<cr>
 nno <silent> <plug>TxbY :call <SID>getchar()<cr>
@@ -675,7 +658,6 @@ let txbCmd.q="let mes='  '"
 let txbCmd[-1]="let mes=''"
 let txbCmd["\e"]=txbCmd.q
 let txbCmd.null='let mes=" "'
-
 let txbCmd.h="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0'))|redrawstatus!"
 let txbCmd.j="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')+s:count)|redrawstatus!"
 let txbCmd.k="let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')-s:count)|redrawstatus!"
@@ -1476,7 +1458,7 @@ fun! s:getMapDis(...)
 	endfor
 endfun
 
-fun! s:disMap()
+fun! s:ecMap()
 	let xe=s:mCoff+&columns-2
 	let b=s:mC*t:mapw
 	if b<xe
@@ -1574,7 +1556,7 @@ fun! s:mapKeyHandler(c)
 				let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
 				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 				let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-				call s:disMap()
+				call s:ecMap()
 			en
 			let s:mPrevCoor=copy(s:msStat)
 		elseif s:msStat[0]==3
@@ -1588,7 +1570,7 @@ fun! s:mapKeyHandler(c)
 						let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
 						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 						let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-						call s:disMap()
+						call s:ecMap()
 					en
 					let s:mPrevCoor=copy(s:msStat)
 				else
@@ -1603,23 +1585,23 @@ fun! s:mapKeyHandler(c)
 					en
 					let s:mPrevClk=[s:mR,s:mC]
 					let s:mPrevCoor=[0,0,0]
-					call s:disMap()
+					call s:ecMap()
 				en
 			en
 		elseif s:msStat[0]==4
 			let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
-			call s:disMap()
+			call s:ecMap()
 			let s:mPrevCoor=[0,0,0]
 		elseif s:msStat[0]==5
 			let s:mRoff=s:mRoff+1
-			call s:disMap()
+			call s:ecMap()
 			let s:mPrevCoor=[0,0,0]
 		en
 		call feedkeys("\<plug>TxbY")
 	else
 		exe get(s:mCase,a:c,'let invalidkey=1')
 		if s:mExit==1
-			call s:disMap()
+			call s:ecMap()
 			echon exists('invalidkey')? ' (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom' : s:mCount is '01'? '' : ' '.s:mCount
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
@@ -1655,7 +1637,7 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
 		\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
-	\'z':"call s:disMap()\n
+	\'z':"call s:ecMap()\n
 		\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
 		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
 		\if input<10 || width<1\n
@@ -1712,7 +1694,7 @@ let txbCmd.o="let mes=''\n
 	\let s:mExit=1\n
 	\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
-	\call s:disMap()\n
+	\call s:ecMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
