@@ -142,10 +142,7 @@ fun! TxbInit(seed)
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
 		let t:paths=abs_paths
-		if empty(a:seed)
-			echon "\n# Optional preliminary scan"
-			exe g:txbCmd.M
-		en
+		exe empty(a:seed)? g:txbCmd.M | 'redr'
 		call s:getMapDis()
 		call s:redraw()
 		return 0
