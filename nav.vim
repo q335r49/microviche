@@ -514,7 +514,7 @@ fun! s:settingsPager(dict,entry,attr)
 			\en\n
 			\if (msg is 0) && (arg!=#disp[key])\n
 				\let undo[key]=get(undo,key,disp[key])\n
-				\exe a:attr[key].applyCmd\n
+				\exe a:attr[key].apply\n
 				\let disp[key]=arg\n
 			\en\n
 		\en"
@@ -543,7 +543,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let entries=len(a:entry)
 	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
 	let s:spCursor=!exists('s:spCursor')? 0 : s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
-	let s:spOff=!exists('s:spOff')? 0 : 's:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
+	let s:spOff=!exists('s:spOff')? 0 : s:spOff<0? 0 : s:spOff>entries-&ch? (entries-&ch>=0? entries-&ch : 0) : s:spOff
 	let s:spOff=s:spOff<s:spCursor-&ch? s:spCursor-&ch : s:spOff>s:spCursor? s:spCursor : s:spOff
 	let undo={}
 	let disp={}
