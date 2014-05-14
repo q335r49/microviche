@@ -28,7 +28,8 @@ fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
 		let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
-		if empty(plane.settings['working dir'])
+		if !isdirectory(plane.settings['working dir'])
+			echoerr 'Invalid directory'
 			return 1
 		en
 		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
