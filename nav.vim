@@ -339,29 +339,26 @@ fun! <SID>doDragXterm2()
 	endwhile
 endfun
 
-fun! s:formatPar(str,w)
-	let spaces=repeat(" ",a:w+10)
+fun! s:formatPar(str,w,...)
 	let trspace=repeat(' ',len(&brk))
+	let spaces=repeat(' ',a:w+2)
 	let ret=[]
-	let format=''
 	for par in split(a:str,"\n")
-		if par=~'^\\\u'
-			let format=par
-		else
-			let seg=[0]
-			while seg[-1]<len(par)-a:w
-				let ix=(a:w+strridx(tr(strpart(par,seg[-1],a:w),&brk,trspace),' '))%a:w
-				call add(seg,seg[-1]+ix-(par[seg[-1]+ix]=~'\s'))
-				let ix=seg[-2]+ix+1
-				while par[ix]==" "
-					let ix+=1
+		let tick=0
+		while tick<len(par)-a:w
+			let ix=strridx(tr(par,&brk,trspace),' ',tick+a:w-1)
+			if ix>tick
+				call add(ret,a:0? par[tick :ix].spaces[1:a:w-ix+tick-1] : par[tick :ix])
+				let tick=ix
+				while par[tick] is ' '
+					let tick+=1
 				endwhile
-				call add(seg,ix)
-			endw
-			call add(seg,len(par)-1)
-			let ret+=map(range(len(seg)/2),format==#'\C'? 'spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].par[seg[2*v:val]:seg[2*v:val+1]]' : format==#'\R'? 'spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].par[seg[2*v:val]:seg[2*v:val+1]]' : 'par[seg[2*v:val]:seg[2*v:val+1]]')
-			let format=''
-		en
+			else
+				call add(ret,strpart(par,tick,a:w))
+				let tick+=a:w
+			en
+		endw
+		call add(ret,a:0? par[tick :].spaces[1:a:w-len(par)+tick] : par[tick :])
 	endfor
 	return ret
 endfun
@@ -1773,9 +1770,8 @@ let txbCmd["\<f1>"]="redir => laggyAu\nexe 'silent au BufEnter'\nexe 'silent au 
 	\if &columns>116\n
 		\let blanks=repeat(' ',71)\n
 		\let warncol=s:formatPar(warnings,&columns-71-3)\n
-		\let comcol=s:formatPar(commands,71)\n
-		\let padding=map(range(len(comcol)),'repeat(\" \",71-len(comcol[v:val]))')\n
-		\let mes='\n'.join(map(range(len(comcol)>len(warncol)? len(comcol) : len(warncol)),\"get(comcol,v:val,blanks).get(padding,v:val,'').get(warncol,v:val,'')\"),'\n')\n
+		\let comcol=s:formatPar(commands,71,'pad')\n
+		\let mes='\n'.join(map(range(len(comcol)>len(warncol)? len(comcol) : len(warncol)),\"get(comcol,v:val,blanks).get(warncol,v:val,'')\"),'\n')\n
 	\else\n
 		\let mes=commands.'\n\n'.warnings\n
 	\en"
