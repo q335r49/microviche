@@ -155,6 +155,7 @@ fun! TxbInit(seed)
 		return TxbInit('')
 	elseif c is "\<f1>"
 		exe g:txbCmd[c]
+		ec mes
 	en
 	return 1
 endfun
@@ -1612,7 +1613,7 @@ fun! s:mapKeyHandler(c)
 	en
 endfun
 let s:mCase={"\e":"let s:mExit=0|redr",
-	\"\<f1>":'exe g:txbCmd["\<f1>"]|redr!',
+	\"\<f1>":'exe g:txbCmd["\<f1>"]|ec mes|cal getchar()|redr!',
 	\'q':"let s:mExit=0",
 	\'h':"let s:mC=s:mC>s:mCount? s:mC-s:mCount : 0",
 	\'l':"let s:mC=s:mC+s:mCount<t:txbL? s:mC+s:mCount : t:txbL-1",
