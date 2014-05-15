@@ -339,7 +339,7 @@ fun! <SID>doDragXterm2()
 	endwhile
 endfun
 
-fun! s:formatPar(str,w,pad)
+fun! s:formatPar(str,w)
 	let spaces=repeat(" ",a:w+10)
 	let trspace=repeat(' ',len(&brk))
 	let ret=[]
@@ -359,7 +359,7 @@ fun! s:formatPar(str,w,pad)
 				call add(seg,ix)
 			endw
 			call add(seg,len(par)-1)
-			let ret+=map(range(len(seg)/2),format==#'\C'? 'a:pad.spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].par[seg[2*v:val]:seg[2*v:val+1]]' : format==#'\R'? 'a:pad.spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].par[seg[2*v:val]:seg[2*v:val+1]]' : 'a:pad.par[seg[2*v:val]:seg[2*v:val+1]]')
+			let ret+=map(range(len(seg)/2),format==#'\C'? 'spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)/2].par[seg[2*v:val]:seg[2*v:val+1]]' : format==#'\R'? 'spaces[1:(a:w-seg[2*v:val+1]+seg[2*v:val]-1)].par[seg[2*v:val]:seg[2*v:val+1]]' : 'par[seg[2*v:val]:seg[2*v:val+1]]')
 			let format=''
 		en
 	endfor
@@ -556,7 +556,7 @@ fun! s:settingsPager(dict,entry,attr)
 	let continue=1
 	let settingshelp='jkgG:dn,up,top,bot (c)hange (U)ndo (D)efault (q)uit'
 	let errlines=[]
-	let doclines=s:formatPar(settingshelp,helpw,'')
+	let doclines=s:formatPar(settingshelp,helpw)
 	while continue
 		redr!
 		for [scrPos,i,key] in map(range(&ch),'[v:val,v:val+s:spOff,get(a:entry,v:val+s:spOff,"")]')
@@ -593,8 +593,8 @@ fun! s:settingsPager(dict,entry,attr)
 		exe get(case,getchar(),'let validkey=0')
 		let s:spCursor=s:spCursor<0? 0 : s:spCursor>=entries? entries-1 : s:spCursor
 		let s:spOff=s:spOff<s:spCursor-&ch+1? s:spCursor-&ch+1 : s:spOff>s:spCursor? s:spCursor : s:spOff
-		let errlines=msg is 0? [] : s:formatPar(msg,helpw,'')
-		let doclines=errlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw,'')
+		let errlines=msg is 0? [] : s:formatPar(msg,helpw)
+		let doclines=errlines+s:formatPar(validkey? get(get(a:attr,a:entry[s:spCursor],{}),'doc',settingshelp) : settingshelp,helpw)
 	endwhile
 	let &ch=chsav
 	redr
@@ -1742,9 +1742,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 		\let mes='Plane remap cancelled'\n
 	\en"
 
-let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
-		\exe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\n
-	\redir END\n
+let txbCmd["\<f1>"]="redir => laggyAu\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
 	\let warnings='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
 	\: empty(&vi) || stridx(&vi,'!')==-1? '# '':set viminfo+=!'' to remember plane between sessions (or write to file with hotkey W and restore via :source file)' : '')
@@ -1774,12 +1772,10 @@ let txbCmd["\<f1>"]="let mes=' '\nredir => laggyAu\n
 	\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
 	\if &columns>116\n
 		\let blanks=repeat(' ',71)\n
-		\let warncol=s:formatPar(warnings,&columns-71-3,'')\n
-		\let comcol=s:formatPar(commands,71,'')\n
-		\for i in range(len(comcol)>len(warncol)? len(comcol) : len(warncol))\n
-			\ec get(comcol,i,blanks) strpart(blanks,0,71-len(get(comcol,i,blanks))) get(warncol,i,'')\n
-		\endfor\n
+		\let warncol=s:formatPar(warnings,&columns-71-3)\n
+		\let comcol=s:formatPar(commands,71)\n
+		\let padding=map(range(len(comcol)),'repeat(\" \",71-len(comcol[v:val]))')\n
+		\let mes='\n'.join(map(range(len(comcol)>len(warncol)? len(comcol) : len(warncol)),\"get(comcol,v:val,blanks).get(padding,v:val,'').get(warncol,v:val,'')\"),'\n')\n
 	\else\n
-		\echon commands '\n\n' warnings\n
-	\en\n
-	\call getchar()"
+		\let mes=commands.'\n\n'.warnings\n
+	\en"
