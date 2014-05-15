@@ -10,13 +10,13 @@ se virtualedit=all                           "Makes leftmost split align correct
 se hidden                                    "Suppresses error messages when a modified buffer pans offscreen
 se scrolloff=0                               "Ensures correct vertical panning
 
+augroup TXB | au!
+
 let TXB_HOTKEY=exists('TXB_HOTKEY')? TXB_HOTKEY : '<f10>'
 let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|if !TxbInit(exists("TXB")? TXB : "")\|let TXB=t:txb\|en\|en<cr>'
 exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
 
-augroup TXB | au!
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
-let TXB_MSSP=exists('TXB_MSSP') && type(TXB_MSSP)==3 && TXB_MSSP[0]==0? TXB_MSSP : [0,1,2,4,7,10,15,21,24,27]
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 else
@@ -305,17 +305,20 @@ fun! <SID>doDragSGR()
 		en
 	elseif !(k[1] && k[2] && s:pX && s:pY)
 	elseif exists('w:txbi')
-		call s:nav(k[1]>s:pX? -get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1]),k[2]<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1]))
+		call s:nav(s:mps[s:pX-k[1]],line('w0')+s:mps[s:pY-k[2]])
 		echon w:txbi '-' line('.')
 	else
-		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1])."zh" : k[1]<s:pX? get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1])."zl" : "g")
+		exe 'norm!'.s:panYCmd[s:pY-k[2]].s:panXCmd[s:pX-k[1]]
 	en
 	let [s:pX,s:pY]=k[1:2]
 	while getchar(0) isnot 0
 	endwhile
 endfun
 fun! <SID>doDragXterm2()
-	if getchar(0)==35
+	let M=getchar(0)
+	let X=getchar(0)
+	let Y=getchar(0)
+	if M==35
 		nunmap <esc>[M
 		if !exists('w:txbi')
 		elseif [getchar(0),getchar(0)]==[33,33]
@@ -323,19 +326,15 @@ fun! <SID>doDragXterm2()
 		else
 			echon w:txbi '-' line('.')
 		en
+	elseif !(X && Y && s:pX && s:pY)
+	elseif exists('w:txbi')
+		call s:nav(s:mps[s:pX-X],line('w0')+s:mps[s:pY-Y])
+		echon w:txbi '-' line('.')
 	else
-		let cX=getchar(0)
-		let cY=getchar(0)
-		if !(cX && cY && s:pX && s:pY)
-		elseif exists('w:txbi')
-			call s:nav(cX>s:pX? -get(g:TXB_MSSP,cX-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-cX,g:TXB_MSSP[-1]),cY<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1]))
-			echon w:txbi '-' line('.')
-		else
-			exe 'norm!' (cY>s:pY? get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1])."\<c-y>" : cY<s:pY? get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1])."\<c-e>" : '').(cX>s:pX? get(g:TXB_MSSP,cX-s:pX,g:TXB_MSSP[-1])."zh" : cX<s:pX? get(g:TXB_MSSP,s:pX-cX,TXB_MSSP[-1])."zl" : "g")
-		en
-		let s:pX=cX
-		let s:pY=cY
+		exe 'norm!'.s:panYCmd[s:pY-Y].s:panXCmd[s:pX-X]
 	en
+	let s:pX=X
+	let s:pY=Y
 	while getchar(0) isnot 0
 	endwhile
 endfun
@@ -419,7 +418,7 @@ let s:option={
 			\let g:TXB_HOTKEY=arg\n
 			\exe 'nn <silent>' g:TXB_HOTKEY s:hotkeyArg"},
 	\'mouse pan speed': {'doc': 'Pan speed[N] steps for every N mouse steps (only applies in terminal and ttymouse=xterm2 or sgr)',
-		\'loadk': 'let ret=g:TXB_MSSP',
+		\'loadk': 'let ret=g:TXBMPS',
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
 		\'check': "try\n
 				\if type(arg)==1\n
@@ -431,7 +430,10 @@ let s:option={
 			\catch\n
 				\let msg='String evaluation error'\n
 			\endtry",
-		\'apply': 'let g:TXB_MSSP=arg'},
+		\'apply': "let g:TXBMPS=arg\n
+		\let s:mps=TXBMPS+repeat([TXBMPS[-1]],40)+repeat([-TXBMPS[-1]],40)+map(reverse(copy(TXBMPS[1:])),'-v:val')\n
+		\let s:panYCmd=['']+map(copy(TXBMPS[1:]),'v:val.''\<c-e>''')+repeat([TXBMPS[-1].'\<c-e>'],40)+repeat([TXBMPS[-1].'\<c-y>'],40)+map(reverse(copy(TXBMPS[1:])),'v:val.''\<c-y>''')\n
+		\let s:panXCmd=['g']+map(copy(TXBMPS[1:]),'v:val.''zl''')+repeat([TXBMPS[-1].'zl'],40)+repeat([TXBMPS[-1].'zh'],40)+map(reverse(copy(TXBMPS[1:])),'v:val.''zh''')"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
@@ -501,6 +503,9 @@ let s:option={
 					\en\n
 				\en\n
 			\en"}}
+
+let arg=exists('TXBMPS') && type(TXBMPS)==3 && TXBMPS[0]==0? TXBMPS : [0,1,2,4,7,10,15,21,24,27,30]
+exe s:option['mouse pan speed'].apply
 
 fun! s:settingsPager(dict,entry,attr)
 	let applyCmd="if empty(arg)\n
