@@ -143,7 +143,7 @@ fun! TxbInit(seed)
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
 		let t:paths=abs_paths
-		exe empty(a:seed)? g:txbCmd.M | 'redr'
+		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
 		return 0
