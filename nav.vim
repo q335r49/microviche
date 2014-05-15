@@ -308,7 +308,7 @@ fun! <SID>doDragSGR()
 		call s:nav(k[1]>s:pX? -get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1]),k[2]<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1]))
 		echon w:txbi '-' line('.')
 	else
-		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? (k[1]-s:pX)."zh" : k[1]<s:pX? (s:pX-k[1])."zl" : "g")
+		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1])."zh" : k[1]<s:pX? get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1])."zl" : "g")
 	en
 	let [s:pX,s:pY]=k[1:2]
 	while getchar(0) isnot 0
@@ -331,7 +331,7 @@ fun! <SID>doDragXterm2()
 			call s:nav(cX>s:pX? -get(g:TXB_MSSP,cX-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-cX,g:TXB_MSSP[-1]),cY<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1]))
 			echon w:txbi '-' line('.')
 		else
-			exe 'norm!' (cY>s:pY? get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1])."\<c-y>" : cY<s:pY? get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1])."\<c-e>" : '').(cX>s:pX? (cX-s:pX)."zh" : cX<s:pX? (s:pX-cX)."zl" : "g")
+			exe 'norm!' (cY>s:pY? get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1])."\<c-y>" : cY<s:pY? get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1])."\<c-e>" : '').(cX>s:pX? get(g:TXB_MSSP,cX-s:pX,g:TXB_MSSP[-1])."zh" : cX<s:pX? get(g:TXB_MSSP,s:pX-cX,TXB_MSSP[-1])."zl" : "g")
 		en
 		let s:pX=cX
 		let s:pY=cY
