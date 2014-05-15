@@ -308,7 +308,7 @@ fun! <SID>doDragSGR()
 		call s:nav(k[1]>s:pX? -get(g:TXB_MSSP,k[1]-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-k[1],g:TXB_MSSP[-1]),k[2]<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1]))
 		echon w:txbi '-' line('.')
 	else
-		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? (k[1]-s:pX."zh") : k[1]<s:pX? (s:pX-k[1])."zl" : "g")
+		exe 'norm!' (k[2]>s:pY? get(g:TXB_MSSP,k[2]-s:pY,g:TXB_MSSP[-1])."\<c-y>" : k[2]<s:pY? get(g:TXB_MSSP,s:pY-k[2],g:TXB_MSSP[-1])."\<c-e>" : '').(k[1]>s:pX? (k[1]-s:pX)."zh" : k[1]<s:pX? (s:pX-k[1])."zl" : "g")
 	en
 	let [s:pX,s:pY]=k[1:2]
 	while getchar(0) isnot 0
@@ -331,7 +331,7 @@ fun! <SID>doDragXterm2()
 			call s:nav(cX>s:pX? -get(g:TXB_MSSP,cX-s:pX,g:TXB_MSSP[-1]) : get(g:TXB_MSSP,s:pX-cX,g:TXB_MSSP[-1]),cY<s:pY? line('w0')+get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1]) : line('w0')-get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1]))
 			echon w:txbi '-' line('.')
 		else
-			exe 'norm!' (cY>s:pY? get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1])."\<c-y>" : cY<s:pY? get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1])."\<c-e>" : '').(cX>s:pX? (cX-s:pX."zh") : cX<s:pX? (s:pX-cX)."zl" : "g")
+			exe 'norm!' (cY>s:pY? get(g:TXB_MSSP,cY-s:pY,g:TXB_MSSP[-1])."\<c-y>" : cY<s:pY? get(g:TXB_MSSP,s:pY-cY,g:TXB_MSSP[-1])."\<c-e>" : '').(cX>s:pX? (cX-s:pX)."zh" : cX<s:pX? (s:pX-cX)."zl" : "g")
 		en
 		let s:pX=cX
 		let s:pY=cY
@@ -1740,11 +1740,11 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 		\let mes='Plane remap cancelled'\n
 	\en"
 
-let txbCmd["\<f1>"]="redir => laggyAu\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
+let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
 	\let warnings='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
 	\: empty(&vi) || stridx(&vi,'!')==-1? '# '':set viminfo+=!'' to remember plane between sessions (or write to file with hotkey W and restore via :source file)' : '')
-	\.(len(split(laggyAu,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
+	\.(len(split(aus,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
 	\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 	\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
 	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')
@@ -1768,11 +1768,11 @@ let txbCmd["\<f1>"]="redir => laggyAu\nexe 'silent au BufEnter'\nexe 'silent au 
 	\LABEL marker(anchor)(:)( title)(#highlght)(#comment)\n
 	\txb:345 bla bla            Anchor only\ntxb:345: Title#Visual      Anchor, title, color\n
 	\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
-	\if &columns>116\n
+	\if &columns>71+45\n
 		\let blanks=repeat(' ',71)\n
-		\let warncol=s:formatPar(warnings,&columns-71-3)\n
-		\let comcol=s:formatPar(commands,71,'pad')\n
-		\let mes='\n'.join(map(range(len(comcol)>len(warncol)? len(comcol) : len(warncol)),\"get(comcol,v:val,blanks).get(warncol,v:val,'')\"),'\n')\n
+		\let col1=s:formatPar(commands,71,1)\n
+		\let col2=s:formatPar(warnings,&columns-71-3>71? 71 : &columns-71-3)\n
+		\let mes='\n'.join(map(range(len(col1)>len(col2)? len(col1) : len(col2)),\"get(col1,v:val,blanks).get(col2,v:val,'')\"),'\n')\n
 	\else\n
-		\let mes=commands.'\n\n'.warnings\n
+		\let mes='\n'.commands.'\n\n'.warnings\n
 	\en"
