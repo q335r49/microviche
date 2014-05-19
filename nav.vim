@@ -15,8 +15,8 @@ augroup TXB | au!
 let TXB_HOTKEY=exists('TXB_HOTKEY')? TXB_HOTKEY : '<f10>'
 let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|if !TxbInit(exists("TXB")? TXB : "")\|let TXB=t:txb\|en\|en<cr>'
 exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
-
 au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
+
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 else
@@ -321,7 +321,7 @@ fun! <SID>doDragXterm2()
 	if M==35
 		nunmap <esc>[M
 		if !exists('w:txbi')
-		elseif [getchar(0),getchar(0)]==[33,33]
+		elseif [X,Y]==[33,33]
 			call TxbKey('o')
 		else
 			echon w:txbi '-' line('.')
@@ -363,15 +363,25 @@ fun! s:formatPar(str,w,...)
 	return ret
 endfun
 
-"loadk()    ret REQUIRED Get setting and load into ret
-"apply(arg) msg REQUIRED When setting is changed, apply; optionally return str msg
+"loadk()    ret Get setting and load into ret (required for settings ui)
+"apply(arg) msg When setting is changed, apply; optionally return str msg (required for settings ui)
 "doc            (str) What the setting does
 "getDef()   arg Load default value into arg
 "check(arg) msg Normalize arg (eg convert from str to num) return msg (str if error, else num 0)
 "getInput() arg Overwrite default (let arg=input('New value:')) [c]hange behavior
-"required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined)
+"required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined) -- keys without this value in settings will be removed
 "onInit()       Exe when loading plane
 let s:option={
+ 	\'hist': {'doc': 'Jump history',
+		\'getDef': 'let arg=[1,[0,0]]',
+		\'check': 'let msg=type(arg)!=3 || len(arg)<2 || type(arg[0]) || arg[0]>=len(arg)? "Badly formed history" : 0',
+		\'onInit': "if len(dict.hist)<98\n
+			\elseif dict.hist[0]>0 && dict.hist[0]<len(dict.hist)\n
+				\let dict.hist=(dict.hist[0]>48? [48]+dict.hist[dict.hist[0]-48+1 : dict.hist[0]] : dict.hist[:dict.hist[0]])+dict.hist[dict.hist[0]+1 : (dict.hist[0]+48<len(dict.hist)-1? dict.hist[0]+48 : -1)]\n
+			\else\n
+				\let dict.hist=[48]+dict.hist[len(dict.hist)-48 :]\n
+			\en",
+		\'required': 1},
 	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, (c)hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
 		\'getDef': "let arg='se nowrap scb cole=2'",
@@ -797,7 +807,7 @@ fun! s:goto(sp,ln,...)
 	exe t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'only|e '.t:paths[dsp] : 'only'
 	let w:txbi=dsp
 	if a:0
-		exe 'norm! '.(dln? dln : 1).(doff>0? 'zt0'.doff.'zl' : 'zt0')
+		exe 'norm! '.dln.(doff>0? 'zt0'.doff.'zl' : 'zt0')
 		call s:redraw()
 	else
 		exe 'norm! 0'.(doff>0? doff.'zl' : '')
@@ -806,6 +816,13 @@ fun! s:goto(sp,ln,...)
 		let l0=dln-winheight(0)/2
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
+	en
+	if t:txb.settings.hist[t:txb.settings.hist[0]]==[a:sp,a:ln]
+	elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[a:sp,a:ln]
+		let t:txb.settings.hist[0]+=1
+	else 
+		call insert(t:txb.settings.hist,[a:sp,a:ln],t:txb.settings.hist[0]+1)
+		let t:txb.settings.hist[0]+=1
 	en
 endfun
 
@@ -1604,10 +1621,10 @@ fun! s:mapKeyHandler(c)
 		en
 		call feedkeys("\<plug>TxbY")
 	else
-		exe get(s:mCase,a:c,'let invalidkey=1')
+		exe get(s:mCase,a:c,'let mapmes=" (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom"')
 		if s:mExit==1
 			call s:ecMap()
-			echon exists('invalidkey')? ' (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom' : s:mCount is '01'? '' : ' '.s:mCount
+			echon (s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : '')
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
@@ -1661,12 +1678,22 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 			\let s:mPrevClk=[0,0]\n
 			\redr!\n
 		\en\n",
-	\'g':'let s:mExit=2'}
+	\'g':'let s:mExit=2',
+	\'p':"let t:txb.settings.hist[0]-=t:txb.settings.hist[0]>1\n
+		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
+		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
+		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
+		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR",
+	\'P':"let t:txb.settings.hist[0]+=t:txb.settings.hist[0]<len(t:txb.settings.hist)-1\n
+		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
+		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
+		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
+		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR"}
 let s:mCase.y=s:mCase.h.'|'.s:mCase.k
 let s:mCase.u=s:mCase.l.'|'.s:mCase.k
 let s:mCase.b=s:mCase.h.'|'.s:mCase.j
 let s:mCase.n=s:mCase.l.'|'.s:mCase.j
-for i in split('h j k l y u b n')
+for i in split('h j k l y u b n p P')
 	let s:mCase[i].="\nlet s:mCount='01'\n
 		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&columns+t:mapw? s:mC*t:mapw-&columns+t:mapw : s:mCoff\n
 		\let s:mRoff=s:mRoff<s:mR-&ch+2? s:mR-&ch+2 : s:mRoff>s:mR? s:mR : s:mRoff"
@@ -1701,6 +1728,13 @@ let txbCmd.o="let mes=''\n
 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:ecMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
+	\if t:txb.settings.hist[t:txb.settings.hist[0]]==[s:mC,s:mR]\n
+	\elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[s:mC,s:mR]\n
+		\let t:txb.settings.hist[0]+=1\n
+	\else\n
+		\call insert(t:txb.settings.hist,[s:mC,s:mR],t:txb.settings.hist[0]+1)\n
+		\let t:txb.settings.hist[0]+=1\n
+	\en\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
 let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map always partially updates on (o)pening and (r)edrawing) (y/n): ')\n
@@ -1764,12 +1798,13 @@ let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufL
 	\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n
 	\hjklyubn Pan (takes count)         hjklyubn      Move (takes count)\n
 	\r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)\n
-	\A D      Append / Delete split     g <cr> 2click Go\n
+	\A / D    Append / Delete split     g <cr> 2click Go\n
 	\S / W    Settings / Write to file  click / drag  Select / pan\n
 	\o        Open map                  z             Zoom\n
 	\L        Label                     c             Center cursor\n
 	\<f1>     Help                      <f1>          Help\n
-	\q <esc>  Quit                      q <esc>       Quit\n\n
+	\q <esc>  Quit                      q <esc>       Quit\n
+	\                                   p / P         Prev / next jump\n\n
 	\LABEL marker(anchor)(:)( title)(#highlght)(#comment)\n
 	\txb:345 bla bla            Anchor only\ntxb:345: Title#Visual      Anchor, title, color\n
 	\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
