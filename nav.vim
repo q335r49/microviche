@@ -49,7 +49,7 @@ fun! TxbInit(seed)
 	en
 	let defaults={}
 	let prompt=''
-	for i in filter(keys(s:option),'get(s:option[v:val],"required")')
+	for i in filter(keys(s:option),'get(s:option[v:val],"save")')
 		unlet! arg
 		exe get(s:option[i],'getDef','let arg=""')
 		let defaults[i]=arg
@@ -371,7 +371,7 @@ endfun
 "getDef()   arg Load default value into arg
 "check(arg) msg Normalize arg (eg convert from str to num) return msg (str if error, else num 0)
 "getInput() arg Overwrite default (let arg=input('New value:')) [c]hange behavior
-"required       (bool) t:txb.setting[key] will always be initialized (via getDef, '' if undefined) -- keys without this value in settings will be removed
+"save           (bool) t:txb.setting[key] will always exist (via getDef(), or '' if getDef() is undefined); unsaved keys will be filtered out from t:txb.settings
 "onInit()       Exe when loading plane
 let s:option={
  	\'hist': {'doc': 'Jump history',
@@ -384,11 +384,11 @@ let s:option={
 				\let dict.hist=[48]+dict.hist[len(dict.hist)-48 :]\n
 			\en\n
 			\let t:jhist=dict.hist",
-		\'required': 1},
+		\'save': 1},
 	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, (c)hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
 		\'getDef': "let arg='se nowrap scb cole=2'",
-		\'required': 1,
+		\'save': 1,
 		\'apply': "if 'y'==?input('Apply new default autoexe to current splits? (y/n)')\n
 				\let t:txb.exe=repeat([arg],t:txbL)\n
 				\let msg='(Autoexe applied to current splits)'\n
@@ -422,7 +422,7 @@ let s:option={
 	\'hotkey': {'doc': "Global hotkey. Examples: '<f10>', '<c-v>' (ctrl-v), 'vx' (v then x). WARNING: If the hotkey becomes inaccessible, :call TxbKey('S')",
 		\'loadk': 'let ret=g:TXB_HOTKEY',
 		\'getDef': 'let arg=''<f10>''',
-		\'required': 1,
+		\'save': 1,
 		\'apply': "if escape(maparg(g:TXB_HOTKEY),'|')==?s:hotkeyArg\n
 				\exe 'silent! nunmap' g:TXB_HOTKEY\n
 			\elseif escape(maparg('<f10>'),'|')==?s:hotkeyArg\n
@@ -450,14 +450,14 @@ let s:option={
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
-		\'required': 1,
+		\'save': 1,
 		\'onInit': 'let t:lblmrk=dict["label marker"]',
 		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
 	\'lines per map grid': {'doc': 'Lines mapped by each map line',
 		\'loadk': 'let ret=dict[''lines per map grid'']',
 		\'getDef': 'let arg=45',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>0? 0 : ''Lines per map grid must be > 0''',
-		\'required': 1,
+		\'save': 1,
 		\'cc': 't:gran',
 		\'onInit': 'let t:gran=dict["lines per map grid"]',
 		\'apply': 'let dict[''lines per map grid'']=arg|let t:gra=arg|call s:getMapDis()'},
@@ -465,7 +465,7 @@ let s:option={
 		\'loadk': 'let ret=dict[''map cell width'']',
 		\'getDef': 'let arg=5',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>2? 0 : ''Map cell width must be > 2''',
-		\'required': 1,
+		\'save': 1,
 		\'cc': 't:mapw',
 		\'onInit': 'let t:mapw=dict["map cell width"]',
 		\'apply': 'let dict[''map cell width'']=arg|let t:mapw=arg|call s:getMapDis()'},
@@ -473,7 +473,7 @@ let s:option={
 		\'loadk': 'let ret=dict[''split width'']',
 		\'getDef': 'let arg=60',
 		\'check': "let arg=str2nr(arg)|let msg=arg>2? 0 : 'Default split width must be > 2'",
-		\'required': 1,
+		\'save': 1,
 		\'apply': "if 'y'==?input('Apply new default width to current splits? (y/n)')\n
 				\let t:txb.size=repeat([arg],t:txbL)\n
 				\let msg='(All splits resized)'\n
@@ -484,14 +484,14 @@ let s:option={
 	\'writefile': {'doc': 'Default settings save file',
 		\'loadk': 'let ret=dict[''writefile'']',
 		\'check': 'let msg=type(arg)==1? 0 : "Writefile must be string"',
-		\'required': 1,
+		\'save': 1,
 		\'apply':'let dict[''writefile'']=arg'},
 	\'working dir': {'doc': 'Directory assumed when loading splits with relative paths',
 		\'loadk': 'let ret=dict["working dir"]',
 		\'getDef': 'let arg=fnamemodify(getcwd(),":p")',
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
 		\'onInit': 'let t:wdir=dict["working dir"]',
-		\'required': 1,
+		\'save': 1,
 		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')",
 		\'apply': "let msg='(Working dir not changed)'\n
 			\if 'y'==?input('Are you sure you want to change the working directory? (Step 1/3) (y/n)')\n
