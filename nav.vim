@@ -382,7 +382,8 @@ let s:option={
 				\let dict.hist=(dict.hist[0]>48? [48]+dict.hist[dict.hist[0]-48+1 : dict.hist[0]] : dict.hist[:dict.hist[0]])+dict.hist[dict.hist[0]+1 : (dict.hist[0]+48<len(dict.hist)-1? dict.hist[0]+48 : -1)]\n
 			\else\n
 				\let dict.hist=[48]+dict.hist[len(dict.hist)-48 :]\n
-			\en",
+			\en\n
+			\let t:jhist=dict.hist",
 		\'required': 1},
 	\'autoexe': {'doc': 'Command when splits are revealed (for new splits, (c)hange for prompt to apply to current splits)',
 		\'loadk': 'let ret=dict.autoexe',
@@ -819,12 +820,12 @@ fun! s:goto(sp,ln,...)
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
 	en
-	if t:txb.settings.hist[t:txb.settings.hist[0]]==[a:sp,a:ln]
-	elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[a:sp,a:ln]
-		let t:txb.settings.hist[0]+=1
+	if t:jhist[t:jhist[0]][0]==a:sp && abs(t:jhist[t:jhist[0]][1]-a:ln)<15
+	elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==a:sp && abs(t:jhist[t:jhist[0]+1][1]-a:ln)<15
+		let t:jhist[0]+=1
 	else 
-		call insert(t:txb.settings.hist,[a:sp,a:ln],t:txb.settings.hist[0]+1)
-		let t:txb.settings.hist[0]+=1
+		call insert(t:jhist,[a:sp,a:ln],t:jhist[0]+1)
+		let t:jhist[0]+=1
 	en
 endfun
 
@@ -1681,15 +1682,15 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 			\redr!\n
 		\en\n",
 	\'g':'let s:mExit=2',
-	\'p':"let t:txb.settings.hist[0]=max([t:txb.settings.hist[0]-s:mCount,1])\n
-		\let [s:mC,s:mR]=[t:txb.settings.hist[t:txb.settings.hist[0]][0],t:txb.settings.hist[t:txb.settings.hist[0]][1]/t:gran]\n
-		\let mapmes=' '.t:txb.settings.hist[0].'/'.(len(t:txb.settings.hist)-1)\n
+	\'p':"let t:jhist[0]=max([t:jhist[0]-s:mCount,1])\n
+		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:gran]\n
+		\let mapmes=' '.t:jhist[0].'/'.(len(t:jhist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'",
-	\'P':"let t:txb.settings.hist[0]=min([t:txb.settings.hist[0]+s:mCount,len(t:txb.settings.hist)-1])\n
-		\let [s:mC,s:mR]=[t:txb.settings.hist[t:txb.settings.hist[0]][0],t:txb.settings.hist[t:txb.settings.hist[0]][1]/t:gran]\n
-		\let mapmes=' '.t:txb.settings.hist[0].'/'.(len(t:txb.settings.hist)-1)\n
+	\'P':"let t:jhist[0]=min([t:jhist[0]+s:mCount,len(t:jhist)-1])\n
+		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:gran]\n
+		\let mapmes=' '.t:jhist[0].'/'.(len(t:jhist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'"}
@@ -1732,12 +1733,12 @@ let txbCmd.o="let mes=''\n
 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:ecMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
-	\if t:txb.settings.hist[t:txb.settings.hist[0]]==[s:mC,line('.')]\n
-	\elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[s:mC,line('.')]\n
-		\let t:txb.settings.hist[0]+=1\n
+	\if t:jhist[t:jhist[0]][0]==s:mC && abs(t:jhist[t:jhist[0]][1]-line('.'))<15\n
+	\elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==s:mC && abs(t:jhist[t:jhist[0]+1][1]-line('.'))<15\n
+		\let t:jhist[0]+=1\n
 	\else\n
-		\call insert(t:txb.settings.hist,[s:mC,line('.')],t:txb.settings.hist[0]+1)\n
-		\let t:txb.settings.hist[0]+=1\n
+		\call insert(t:jhist,[s:mC,line('.')],t:jhist[0]+1)\n
+		\let t:jhist[0]+=1\n
 	\en\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
 
