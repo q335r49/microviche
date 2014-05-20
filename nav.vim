@@ -1,4 +1,4 @@
-"https://github.com/q335r49/microviche
+"github.com/q335r49/microviche
 
 if &cp|se nocompatible|en                    "(Vital) Enable vim features
 se noequalalways winwidth=1 winminwidth=0    "(Vital) Needed for correct panning
@@ -28,7 +28,9 @@ fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
 		let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
-		if !isdirectory(plane.settings['working dir'])
+		if empty(plane.settings['working dir'])
+			return 1
+		elseif !isdirectory(plane.settings['working dir'])
 			echoerr 'Invalid directory'
 			return 1
 		en
@@ -1784,7 +1786,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
 	\let warnings='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
-	\: empty(&vi) || stridx(&vi,'!')==-1? '# '':set viminfo+=!'' to remember plane between sessions (or write to file with hotkey W and restore via :source file)' : '')
+	\: empty(&vi) || stridx(&vi,'!')==-1? '# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
 	\.(len(split(aus,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
 	\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 	\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
