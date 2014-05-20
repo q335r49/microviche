@@ -1679,16 +1679,18 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 			\redr!\n
 		\en\n",
 	\'g':'let s:mExit=2',
-	\'p':"let t:txb.settings.hist[0]-=t:txb.settings.hist[0]>1\n
+	\'p':"let t:txb.settings.hist[0]=max([t:txb.settings.hist[0]-s:mCount,1])\n
 		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
 		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
-		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR",
-	\'P':"let t:txb.settings.hist[0]+=t:txb.settings.hist[0]<len(t:txb.settings.hist)-1\n
+		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
+		\let s:mCount='01'",
+	\'P':"let t:txb.settings.hist[0]=min([t:txb.settings.hist[0]+s:mCount,len(t:txb.settings.hist)-1])\n
 		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
 		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
-		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR"}
+		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
+		\let s:mCount='01'"}
 let s:mCase.y=s:mCase.h.'|'.s:mCase.k
 let s:mCase.u=s:mCase.l.'|'.s:mCase.k
 let s:mCase.b=s:mCase.h.'|'.s:mCase.j
