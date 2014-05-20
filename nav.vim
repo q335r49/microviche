@@ -84,9 +84,8 @@ fun! TxbInit(seed)
 		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']'))
 	en
 	for i in range(len(plane.map))
-		if type(plane.map[i])!=4
-			let plane.map[i]={}
-		en
+	for i in filter(range(len(plane.map)),'type(plane.map[v:val])!=4')
+		let plane.map[i]={}
 	endfor
 	if !exists('plane.exe')
 		let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
@@ -118,15 +117,14 @@ fun! TxbInit(seed)
 	if empty(plane.name)
 		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
+	elseif !empty(unreadable)
+		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		let confirmKeys=[82,114]
 	else
 		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
-		if !empty(unreadable)
-			let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
-			let confirmKeys=[82,114]
-		else
-			let prompt.="\n? (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
-			let confirmKeys=[10,13]
-		en
+		let prompt.="\n? (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		let confirmKeys=[10,13]
 	en
 	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable\n# ".join(plane.name,', ')
 	echon empty(unreadable)? '' : "\n# ".len(unreadable)." unreadable\n# ".join(unreadable,', ')
@@ -1357,13 +1355,12 @@ fun! s:getMapDis(...)
 		for j in keys(t:txb.map[sp])
 			let r=j/t:gran
 			if has_key(splitLbl,r)
-				if !has_key(conflicts,r)
-					if splitLbl[r][0][0]=='!'
-						let conflicts[r]=[splitLbl[r][0],splitPos[r][0]]
-						let splitPos[r]=[]
-					else
-						let conflicts[r]=['$',0]
-					en
+				if has_key(conflicts,r)
+				elseif splitLbl[r][0][0]=='!'
+					let conflicts[r]=[splitLbl[r][0],splitPos[r][0]]
+					let splitPos[r]=[]
+				else
+					let conflicts[r]=['$',0]
 				en
 				if t:txb.map[sp][j][0][0]=='!' && t:txb.map[sp][j][0]<?conflicts[r][0]
 					if conflicts[r][1]
@@ -1662,6 +1659,8 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
 		\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
+	\'C':"let s:mRoff=s:mR-(&ch-2)/2\n
+		\let s:mCoff=s:mC*t:mapw-&columns/2",
 	\'z':"call s:ecMap()\n
 		\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
 		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
@@ -1698,7 +1697,7 @@ let s:mCase.y=s:mCase.h.'|'.s:mCase.k
 let s:mCase.u=s:mCase.l.'|'.s:mCase.k
 let s:mCase.b=s:mCase.h.'|'.s:mCase.j
 let s:mCase.n=s:mCase.l.'|'.s:mCase.j
-for i in split('h j k l y u b n p P')
+for i in split('h j k l y u b n p P C')
 	let s:mCase[i].="\nlet s:mCount='01'\n
 		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&columns+t:mapw? s:mC*t:mapw-&columns+t:mapw : s:mCoff\n
 		\let s:mRoff=s:mRoff<s:mR-&ch+2? s:mR-&ch+2 : s:mRoff>s:mR? s:mR : s:mRoff"
@@ -1806,7 +1805,7 @@ let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufL
 	\A / D    Append / Delete split     g <cr> 2click Go\n
 	\S / W    Settings / Write to file  click / drag  Select / pan\n
 	\o        Open map                  z             Zoom\n
-	\L        Label                     c             Center cursor\n
+	\L        Label                     c / C         Center cursor / view\n
 	\<f1>     Help                      <f1>          Help\n
 	\q <esc>  Quit                      q <esc>       Quit\n
 	\                                   p / P         Prev / next jump\n\n
