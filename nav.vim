@@ -1680,14 +1680,14 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\en\n",
 	\'g':'let s:mExit=2',
 	\'p':"let t:txb.settings.hist[0]=max([t:txb.settings.hist[0]-s:mCount,1])\n
-		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
-		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
+		\let [s:mC,s:mR]=[t:txb.settings.hist[t:txb.settings.hist[0]][0],t:txb.settings.hist[t:txb.settings.hist[0]][1]/t:gran]\n
+		\let mapmes=' '.t:txb.settings.hist[0].'/'.(len(t:txb.settings.hist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'",
 	\'P':"let t:txb.settings.hist[0]=min([t:txb.settings.hist[0]+s:mCount,len(t:txb.settings.hist)-1])\n
-		\let [s:mC,s:mR]=t:txb.settings.hist[t:txb.settings.hist[0]]\n
-		\let mapmes=' '.t:txb.settings.hist[0].'/'.len(t:txb.settings.hist)\n
+		\let [s:mC,s:mR]=[t:txb.settings.hist[t:txb.settings.hist[0]][0],t:txb.settings.hist[t:txb.settings.hist[0]][1]/t:gran]\n
+		\let mapmes=' '.t:txb.settings.hist[0].'/'.(len(t:txb.settings.hist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'"}
@@ -1730,11 +1730,11 @@ let txbCmd.o="let mes=''\n
 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:ecMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
-	\if t:txb.settings.hist[t:txb.settings.hist[0]]==[s:mC,s:mR]\n
-	\elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[s:mC,s:mR]\n
+	\if t:txb.settings.hist[t:txb.settings.hist[0]]==[s:mC,line('.')]\n
+	\elseif get(t:txb.settings.hist,t:txb.settings.hist[0]+1,[])==[s:mC,line('.')]\n
 		\let t:txb.settings.hist[0]+=1\n
 	\else\n
-		\call insert(t:txb.settings.hist,[s:mC,s:mR],t:txb.settings.hist[0]+1)\n
+		\call insert(t:txb.settings.hist,[s:mC,line('.')],t:txb.settings.hist[0]+1)\n
 		\let t:txb.settings.hist[0]+=1\n
 	\en\n
 	\call feedkeys(\"\\<plug>TxbY\")\n"
