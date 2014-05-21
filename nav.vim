@@ -823,8 +823,8 @@ fun! s:goto(sp,ln,...)
 		let dif=line('w0')-(l0>1? l0 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
 	en
-	if t:jhist[t:jhist[0]][0]==a:sp && abs(t:jhist[t:jhist[0]][1]-a:ln)<15
-	elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==a:sp && abs(t:jhist[t:jhist[0]+1][1]-a:ln)<15
+	if t:jhist[t:jhist[0]][0]==a:sp && abs(t:jhist[t:jhist[0]][1]-a:ln)<23
+	elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==a:sp && abs(t:jhist[t:jhist[0]+1][1]-a:ln)<23
 		let t:jhist[0]+=1
 	else 
 		call insert(t:jhist,[a:sp,a:ln],t:jhist[0]+1)
@@ -1739,8 +1739,8 @@ let txbCmd.o="let mes=''\n
 	\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 	\call s:ecMap()\n
 	\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
-	\if t:jhist[t:jhist[0]][0]==s:mC && abs(t:jhist[t:jhist[0]][1]-line('.'))<15\n
-	\elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==s:mC && abs(t:jhist[t:jhist[0]+1][1]-line('.'))<15\n
+	\if t:jhist[t:jhist[0]][0]==s:mC && abs(t:jhist[t:jhist[0]][1]-line('.'))<23\n
+	\elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==s:mC && abs(t:jhist[t:jhist[0]+1][1]-line('.'))<23\n
 		\let t:jhist[0]+=1\n
 	\else\n
 		\call insert(t:jhist,[s:mC,line('.')],t:jhist[0]+1)\n
@@ -1799,9 +1799,8 @@ let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufL
 	\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 	\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
 	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
-	\let warnings=(empty(warnings)? 'WARNINGS (none)' : 'WARNINGS '.warnings).'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
-	\\n# The map is updated on hotkey o, r, or M
-	\\n# On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
+	\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
+	\\n# The map is updated on hotkey o, r, or M. On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
 	\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
 	\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown in the map instead of other labels.
 	\\n# Keyboard-free navigation: in the plane, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
