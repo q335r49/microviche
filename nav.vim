@@ -464,8 +464,7 @@ let s:option={
 		\'getDef': 'let arg=45',
 		\'check': 'let arg=str2nr(arg)|let msg=arg>0? 0 : ''Lines per map grid must be > 0''',
 		\'save': 1,
-		\'onInit': 'let t:gran=dict["lines per map grid"]',
-		\'apply': 'let dict[''lines per map grid'']=arg|let t:gra=arg|call s:getMapDis()'},
+		\'apply': 'let dict[''lines per map grid'']=arg|call s:getMapDis()'},
 	\'map cell width': {'doc': 'Display width of map column',
 		\'loadk': 'let ret=dict[''map cell width'']',
 		\'getDef': 'let arg=5',
@@ -1321,8 +1320,9 @@ endfun
 fun! s:getMapDis(...)
 	let poscell=repeat(' ',t:mapw)
 	let negcell=repeat('.',t:mapw)
+	let gran=t:txb.settings["lines per map grid"]
 	if !a:0
-		let t:bgd=map(range(0,max(t:txb.depth)+t:gran,t:gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.poscell.'"''),'''')')
+		let t:bgd=map(range(0,max(t:txb.depth)+gran,gran),'join(map(range(t:txbL),v:val.''>t:txb.depth[v:val]? "'.negcell.'" : "'.poscell.'"''),'''')')
 		let t:deepR=len(t:bgd)-1
 		let t:disTxt=copy(t:bgd)
 		let t:disClr=eval('['.join(repeat(['[""]'],t:deepR+1),',').']')
@@ -1334,7 +1334,7 @@ fun! s:getMapDis(...)
 	en
 	let newR={}
 	for sp in a:0? a:1 : range(t:txbL)
-		let newD=t:txb.depth[sp]/t:gran
+		let newD=t:txb.depth[sp]/gran
 		while newD>len(t:bgd)-1
 			call add(t:bgd,repeat('.',t:txbL*t:mapw))
 			call add(t:disIx,[98989])
@@ -1342,7 +1342,7 @@ fun! s:getMapDis(...)
 			call add(t:disTxt,'')
 			let newR[len(t:bgd)-1]=1
 		endwhile
-		let i=t:oldDepth[sp]/t:gran
+		let i=t:oldDepth[sp]/gran
 		let colIx=sp*t:mapw
 		while i>newD
 			let t:bgd[i]=colIx? t:bgd[i][:colIx-1].negcell.t:bgd[i][colIx+t:mapw :] : negcell.t:bgd[i][colIx+t:mapw :]
@@ -1360,7 +1360,7 @@ fun! s:getMapDis(...)
 		let splitClr={}
 		let splitPos={}
 		for j in keys(t:txb.map[sp])
-			let r=j/t:gran
+			let r=j/gran
 			if has_key(splitLbl,r)
 				if has_key(conflicts,r)
 				elseif splitLbl[r][0][0]=='!'
@@ -1572,7 +1572,7 @@ fun! s:ecMap()
 		let i+=1
 	endwhile
 	echohl
-	echon s:mC '-' s:mR*t:gran
+	echon s:mC '-' s:mR*t:txb.settings['lines per map grid']
 endfun
 
 fun! s:mapKeyHandler(c)
@@ -1609,7 +1609,7 @@ fun! s:mapKeyHandler(c)
 					let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
 					if [s:mR,s:mC]==s:mPrevClk
 						let [&ch,&more,&ls,&stal]=s:mSavSettings
-						call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
+						call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
 						return
 					en
 					let s:mPrevClk=[s:mR,s:mC]
@@ -1635,7 +1635,7 @@ fun! s:mapKeyHandler(c)
 			call feedkeys("\<plug>TxbY")
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
-			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:gran])[0])
+			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 		en
@@ -1669,18 +1669,18 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 	\'C':"let s:mRoff=s:mR-(&ch-2)/2\n
 		\let s:mCoff=s:mC*t:mapw-&columns/2",
 	\'z':"call s:ecMap()\n
-		\let input=str2nr(input('File lines per map line (>=10): ',t:gran))\n
+		\let input=str2nr(input('File lines per map line (>=10): ',t:txb.settings['lines per map grid']))\n
 		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
 		\if input<10 || width<1\n
 			\echohl ErrorMsg\n
 			\echo 'Error: Invalid values'\n
 			\sleep 500m\n
 			\redr!\n
-		\elseif input!=t:gran || width!=t:mapw\n
-			\let s:mR=s:mR*t:gran/input\n
+		\elseif input!=t:txb.settings['lines per map grid'] || width!=t:mapw\n
+			\let s:mR=s:mR*t:txb.settings['lines per map grid']/input\n
 			\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
 			\let t:txb.settings['lines per map grid']=input\n
-			\let t:gran=input\n
+			\let t:txb.settings['lines per map grid']=input\n
 			\let t:mapw=width\n
 			\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
 			\call s:getMapDis()\n
@@ -1689,13 +1689,13 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\en\n",
 	\'g':'let s:mExit=2',
 	\'p':"let t:jhist[0]=max([t:jhist[0]-s:mCount,1])\n
-		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:gran]\n
+		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:txb.settings['lines per map grid']]\n
 		\let mapmes=' '.t:jhist[0].'/'.(len(t:jhist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'",
 	\'P':"let t:jhist[0]=min([t:jhist[0]+s:mCount,len(t:jhist)-1])\n
-		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:gran]\n
+		\let [s:mC,s:mR]=[t:jhist[t:jhist[0]][0],t:jhist[t:jhist[0]][1]/t:txb.settings['lines per map grid']]\n
 		\let mapmes=' '.t:jhist[0].'/'.(len(t:jhist)-1)\n
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
@@ -1728,7 +1728,7 @@ let txbCmd.o="let mes=''\n
 		\let &ch=&lines\n
 	\let s:mPrevClk=[0,0]\n
 	\let s:mPrevCoor=[0,0,0]\n
-	\let s:mR=line('.')/t:gran\n
+	\let s:mR=line('.')/t:txb.settings['lines per map grid']\n
 	\call s:redraw(1)\n
 	\redr!\n
 	\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
@@ -1792,14 +1792,14 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 	\en"
 
 let txbCmd["\<f1>"]="redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
-	\let warnings='WARNINGS '.(v:version<=703? '# Vim 7.4 is recommended.': '')
+	\let warnings=(v:version<=703? '# Vim 7.4 is recommended.': '')
 	\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
 	\: empty(&vi) || stridx(&vi,'!')==-1? '# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
 	\.(len(split(aus,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
 	\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 	\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
-	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')
-	\.'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
+	\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
+	\let warnings=(empty(warnings)? 'WARNINGS (none)' : 'WARNINGS '.warnings).'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
 	\\n# The map is updated on hotkey o, r, or M
 	\\n# On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
 	\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
