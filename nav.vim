@@ -1572,75 +1572,73 @@ fun! s:ecMap()
 		let i+=1
 	endwhile
 	echohl
-	echon s:mC '-' s:mR*t:txb.settings['lines per map grid']
 endfun
 
 fun! s:mapKeyHandler(c)
-	if a:c is -1
-		if s:msStat[0]==1
-			let s:mPrevCoor=copy(s:msStat)
-		elseif s:msStat[0]==2
-			if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
-				let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
-				let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
-				let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
-				let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-				call s:ecMap()
-			en
-			let s:mPrevCoor=copy(s:msStat)
-		elseif s:msStat[0]==3
-			if s:msStat==[3,1,1]
-				let [&ch,&more,&ls,&stal]=s:mSavSettings
-				return
-			elseif s:mPrevCoor[0]==1
-				if &ttymouse=='xterm' && (s:mPrevCoor[1]!=s:msStat[1] || s:mPrevCoor[2]!=s:msStat[2])
-					if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
-						let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
-						let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
-						let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
-						let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-						call s:ecMap()
-					en
-					let s:mPrevCoor=copy(s:msStat)
-				else
-					let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
-					let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR
-					let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
-					let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
-					if [s:mR,s:mC]==s:mPrevClk
-						let [&ch,&more,&ls,&stal]=s:mSavSettings
-						call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
-						return
-					en
-					let s:mPrevClk=[s:mR,s:mC]
-					let s:mPrevCoor=[0,0,0]
-					call s:ecMap()
-				en
-			en
-		elseif s:msStat[0]==4
-			let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
-			call s:ecMap()
-			let s:mPrevCoor=[0,0,0]
-		elseif s:msStat[0]==5
-			let s:mRoff=s:mRoff+1
-			call s:ecMap()
-			let s:mPrevCoor=[0,0,0]
-		en
-		call feedkeys("\<plug>TxbY")
-	else
-		exe get(s:mCase,a:c,'let mapmes=" (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom"')
+	if a:c != -1
+		exe get(s:mCase,a:c,'let mapmes=" (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom (p)revious (P)Next"')
 		if s:mExit==1
 			call s:ecMap()
-			echon (s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : '')
-			call feedkeys("\<plug>TxbY")
+			ec (s:mC.'-'.s:mR*t:txb.settings['lines per map grid'].(s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : ''))[:&columns-2]
 		elseif s:mExit==2
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
+			return
 		else
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
+			return
 		en
+	elseif s:msStat[0]==1
+		let s:mPrevCoor=copy(s:msStat)
+	elseif s:msStat[0]==2
+		if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
+			let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+			let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
+			let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
+			let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+			call s:ecMap()
+		en
+		let s:mPrevCoor=copy(s:msStat)
+	elseif s:msStat[0]==4
+		let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
+		call s:ecMap()
+		let s:mPrevCoor=[0,0,0]
+	elseif s:msStat[0]==5
+		let s:mRoff=s:mRoff+1
+		call s:ecMap()
+		let s:mPrevCoor=[0,0,0]
+	elseif s:msStat[0]!=3
+	elseif s:msStat==[3,1,1]
+		let [&ch,&more,&ls,&stal]=s:mSavSettings
+		return
+	elseif s:mPrevCoor[0]!=1
+	elseif &ttymouse=='xterm' && (s:mPrevCoor[1]!=s:msStat[1] || s:mPrevCoor[2]!=s:msStat[2])
+		if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
+			let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+			let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
+			let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
+			let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+			call s:ecMap()
+		en
+		let s:mPrevCoor=copy(s:msStat)
+	else
+		let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
+		let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR
+		let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
+		let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
+		if [s:mR,s:mC]==s:mPrevClk
+			let [&ch,&more,&ls,&stal]=s:mSavSettings
+			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
+			return
+		en
+		let s:mPrevClk=[s:mR,s:mC]
+		call s:ecMap()
+		let s:mPrevCoor=[0,0,0]
+		echon s:mC '-' s:mR*t:txb.settings['lines per map grid']
 	en
+	call feedkeys("\<plug>TxbY")
 endfun
+
 let s:mCase={"\e":"let s:mExit=0|redr",
 	\"\<f1>":'exe g:txbCmd["\<f1>"]|ec mes|cal getchar()|redr!',
 	\'q':"let s:mExit=0",
