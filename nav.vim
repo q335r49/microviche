@@ -450,14 +450,13 @@ let s:option={
 		\'getDef': 'let arg=''txb:''',
 		\'save': 1,
 		\'getInput': "let newMarker=input('New label marker: ',disp[key])\n
-			\let newAutotext=input('Insert label (hotkey L) string; (should be the same as marker unless regex is being used): ',newMarker)\n
+			\let newAutotext=input('Label autotext (hotkey L; should be same as marker if marker doesn't contain regex): ',newMarker)\n
 			\if !empty(newMarker) && !empty(newAutotext)\n
 				\let arg=newMarker\n
-				\let dict[''label autotext'']=newAutotext\n
+				\let dict['label autotext']=newAutotext\n
 			\en",
-		\'onInit': 'let t:lblmrk=dict["label marker"]',
-		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
-	\'label autotext': {'doc': 'Text for insert label command (hotkey L); should be the same as label marker unless you''re using regex symbols',
+		\'apply': 'let dict[''label marker'']=arg'},
+	\'label autotext': {'doc': 'Text for insert label command (hotkey L)',
 		\'getDef': 'let arg=''txb:''',
 		\'save': 1},
 	\'lines per map grid': {'doc': 'Lines mapped by each map line',
@@ -708,10 +707,10 @@ let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
 	\let mes='Labeled'\n
-	\if -1!=match(L,'^'.t:lblmrk)\n
-		\call setline(line('.'),substitute(L,'^'.t:lblmrk.'\\zs\\d*\\ze',line('.'),''))\n
+	\if -1!=match(L,'^'.t:txb.settings['label autotext'])\n
+		\call setline(line('.'),substitute(L,'^'.t:txb.settings['label autotext'].'\\zs\\d*\\ze',line('.'),''))\n
 	\else\n
-		\let prefix=t:lblmrk.line('.').' '\n
+		\let prefix=t:txb.settings['label autotext'].line('.').' '\n
 		\call setline(line('.'),prefix.L)\n
 		\call cursor(line('.'),len(prefix))\n
 		\startinsert\n
@@ -941,7 +940,8 @@ fun! s:redraw(...)
 			let t:txb.depth[ccol]=line('$')
 			let t:txb.map[ccol]={}
 			norm! 1G0
-			let line=search('^'.t:lblmrk.'\zs','Wc')
+			let searchPat='^'.t:txb.settings['label marker'].'\zs'
+			let line=search(searchPat,'Wc')
 			while line
 				let L=getline('.')
 				let lnum=strpart(L,col('.')-1,6)
@@ -963,7 +963,7 @@ fun! s:redraw(...)
 				if !empty(lbl) && !empty(lbl[0])
 					let t:txb.map[ccol][line]=[lbl[0],get(lbl,1,'')]
 				en
-				let line=search('^'.t:lblmrk.'\zs','W')
+				let line=search(searchPat,'W')
 			endwhile
 		en
 		if i==numcols
@@ -1758,7 +1758,8 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 			\let t:txb.depth[i]=line('$')\n
 			\let t:txb.map[i]={}\n
 			\exe 'norm! 1G0'\n
-			\let line=search('^'.t:lblmrk.'\\zs','Wc')\n
+			\let searchPat='^'.t:txb.settings['label marker'].'\\zs'\n
+			\let line=search(searchPat,'Wc')\n
 			\while line\n
 				\let L=getline('.')\n
 				\let lnum=strpart(L,col('.')-1,6)\n
@@ -1780,7 +1781,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 				\if !empty(lbl) && !empty(lbl[0])\n
 					\let t:txb.map[i][line]=[lbl[0],get(lbl,1,'')]\n
 				\en\n
-				\let line=search('^'.t:lblmrk.'\\zs','W')\n
+				\let line=search(searchPat,'W')\n
 			\endwhile\n
 		\endfor\n
 		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e '.t:paths[curwin] : ''\n

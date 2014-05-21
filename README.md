@@ -17,6 +17,7 @@ In the map (<kbd>f10</kbd> <kbd>o</kbd>):
 <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan (takes count) || <kbd>z</kbd> | zoom
 <kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
  <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
+ <kbd>p</kbd> <kbd>P</kbd> | prev / next in history || 
  
 ####Labels
 Labels are lines that start with a label marker (default <q>txb:</q>) and specify an anchor, title, or both. When the map is updated (<kbd>f10</kbd> <kbd>r</kbd>, <kbd>o</kbd>, and <kbd>M</kbd>), displaced labels are reanchored by inserting or removing immediately preceding blank lines. Anchoring failures are shown in the map.
