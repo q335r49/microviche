@@ -632,11 +632,11 @@ fun! <SID>getchar()
 		call s:dochar()
 	en
 endfun
-"mouse    leftdown leftdrag leftup  swup    swdown
-"xterm    32                35      96      97
-"xterm2   32       64       35      96      97
-"sgr      0M       32M      0m      64      65
-"msStat   1        2        3       4       5      else 0
+"mouse    leftdown leftdrag leftup  scrollup scrolldn
+"xterm    32                35      96       97
+"xterm2   32       64       35      96       97
+"sgr      0M       32M      0m      64       65
+"msStat   1        2        3       4        5         else 0
 fun! <SID>getmouse()
 	if &ttymouse=~?'xterm'
 		let s:msStat=[getchar(0)*0+getchar(0),getchar(0)-32,getchar(0)-32]
@@ -1601,11 +1601,11 @@ fun! s:mapKeyHandler(c)
 		let s:mPrevCoor=copy(s:msStat)
 	elseif s:msStat[0]==4
 		let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
-		call s:ecMap()
+		cal s:ecMap()
 		let s:mPrevCoor=[0,0,0]
 	elseif s:msStat[0]==5
-		let s:mRoff=s:mRoff+1
-		call s:ecMap()
+		let s:mRoff=s:mRoff>=t:deepR? t:deepR : s:mRoff+1
+		cal s:ecMap()
 		let s:mPrevCoor=[0,0,0]
 	elseif s:msStat[0]!=3
 	elseif s:msStat==[3,1,1]
