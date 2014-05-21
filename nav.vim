@@ -449,8 +449,17 @@ let s:option={
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
 		\'save': 1,
+		\'getInput': "let newMarker=input('New label marker: ',disp[key])\n
+			\let newAutotext=input('Insert label (hotkey L) string; (should be the same as marker unless regex is being used): ',newMarker)\n
+			\if !empty(newMarker) && !empty(newAutotext)\n
+				\let arg=newMarker\n
+				\let dict[''label autotext'']=newAutotext\n
+			\en",
 		\'onInit': 'let t:lblmrk=dict["label marker"]',
 		\'apply': 'let dict[''label marker'']=arg|let t:lblmrk=arg'},
+	\'label autotext': {'doc': 'Text for insert label command (hotkey L); should be the same as label marker unless you''re using regex symbols',
+		\'getDef': 'let arg=''txb:''',
+		\'save': 1},
 	\'lines per map grid': {'doc': 'Lines mapped by each map line',
 		\'loadk': 'let ret=dict[''lines per map grid'']',
 		\'getDef': 'let arg=45',
