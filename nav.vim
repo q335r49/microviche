@@ -1588,43 +1588,31 @@ fun! s:mapKeyHandler(c)
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
 			return
 		en
-	elseif s:msStat[0]==1
-		let s:mPrevCoor=copy(s:msStat)
-	elseif s:msStat[0]==2
-		if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
-			let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
-			let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
-			let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
-			let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-			call s:ecMap()
-		en
-		let s:mPrevCoor=copy(s:msStat)
-	elseif s:msStat[0]==4
-		let s:mRoff=s:mRoff>1? s:mRoff-1 : 0
+	elseif s:msStat[0]==2 && s:mPrevCoor[0] && s:mPrevCoor[0]<3
+		let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+		let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
+		let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
+		let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+		call s:ecMap()
+	elseif s:msStat[0]>3
+		let s:mRoff+=4*(s:msStat[0]==5)-2
+		let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
 		cal s:ecMap()
-		let s:mPrevCoor=[0,0,0]
-	elseif s:msStat[0]==5
-		let s:mRoff=s:mRoff>=t:deepR? t:deepR : s:mRoff+1
-		cal s:ecMap()
-		let s:mPrevCoor=[0,0,0]
 	elseif s:msStat[0]!=3
 	elseif s:msStat==[3,1,1]
 		let [&ch,&more,&ls,&stal]=s:mSavSettings
 		return
 	elseif s:mPrevCoor[0]!=1
-	elseif &ttymouse=='xterm' && (s:mPrevCoor[1]!=s:msStat[1] || s:mPrevCoor[2]!=s:msStat[2])
-		if s:mPrevCoor[1] && s:mPrevCoor[2] && s:msStat[1] && s:msStat[2]
-			let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
-			let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
-			let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
-			let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
-			call s:ecMap()
-		en
-		let s:mPrevCoor=copy(s:msStat)
+	elseif &ttymouse=='xterm' && s:mPrevCoor[1:]!=s:msStat[1:]
+		let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
+		let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
+		let s:mRoff=s:mRoff<0? 0 : s:mRoff>t:deepR? t:deepR : s:mRoff
+		let s:mCoff=s:mCoff<0? 0 : s:mCoff>=t:txbL*t:mapw? t:txbL*t:mapw-1 : s:mCoff
+		call s:ecMap()
 	else
 		let s:mR=s:msStat[2]-&lines+&ch-1+s:mRoff
-		let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR
 		let s:mC=(s:msStat[1]-1+s:mCoff)/t:mapw
+		let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR
 		let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC
 		if [s:mR,s:mC]==s:mPrevClk
 			let [&ch,&more,&ls,&stal]=s:mSavSettings
@@ -1633,9 +1621,9 @@ fun! s:mapKeyHandler(c)
 		en
 		let s:mPrevClk=[s:mR,s:mC]
 		call s:ecMap()
-		let s:mPrevCoor=[0,0,0]
 		echon s:mC '-' s:mR*t:txb.settings['lines per map grid']
 	en
+	let s:mPrevCoor=copy(s:msStat)
 	call feedkeys("\<plug>TxbY")
 endfun
 
