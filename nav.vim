@@ -740,9 +740,7 @@ let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-	\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:bufs[(w:txbi+1)%t:txbL]==bufnr(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
-		\let mes='File not appended'\n
-	\elseif empty(file)\n
+	\if empty(file)\n
 		\let mes='File name is empty'\n
 	\else\n
 		\let mes='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
