@@ -1022,7 +1022,7 @@ fun! s:nav(N,L)
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
 				let nextcol=w:txbi? w:txbi-1 : t:txbL-1
-				exe 'to vert' (winwidth(0)-t:txb.size[w:txbi]-1) 'sb' t:bufs[nextcol]
+				exe 'to' winwidth(0)-t:txb.size[w:txbi]-1 'vsp|b' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1077,7 +1077,7 @@ fun! s:nav(N,L)
 					let nextcol=(tcol+1)%t:txbL
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bo vert' (spaceremaining-1) 'sb' t:bufs[nextcol]
+						exe 'bo' spaceremaining-1 'vsp|b' t:bufs[nextcol]
 						let w:txbi=nextcol
 						exe t:txb.exe[nextcol]
 						if &scb
@@ -1208,7 +1208,7 @@ fun! s:nav(N,L)
 				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'bo vert' (winwidth(0)-t:txb.size[w:txbi]-1) 'sb' t:bufs[nextcol]
+				exe 'bo' winwidth(0)-t:txb.size[w:txbi]-1 'vsp|b' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1241,7 +1241,7 @@ fun! s:nav(N,L)
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'bo vert' (spaceremaining-1) 'sb' t:bufs[nextcol]
+				exe 'bo' spaceremaining-1 'vsp|b' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
