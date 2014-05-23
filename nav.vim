@@ -741,7 +741,7 @@ let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 	\if empty(file)\n
-		\let mes='File name is empty'\n
+		\let mes='Cancelled'\n
 	\else\n
 		\let mes='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
 		\call insert(t:txb.name,file,w:txbi+1)\n
@@ -896,7 +896,7 @@ fun! s:redraw(...)
 		let nextcol=((colb-dif)%t:txbL+t:txbL)%t:txbL
 		for i in range(dif)
 			let nextcol=(nextcol+1)%t:txbL
-			exe (t:txbL==1? 'bot vert sb' : 'bot vert sb'.t:bufs[nextcol])
+			exe 'bo vert sb'.t:bufs[nextcol]
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
@@ -1022,7 +1022,7 @@ fun! s:nav(N,L)
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
 				let nextcol=w:txbi? w:txbi-1 : t:txbL-1
-				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vert sb'.t:bufs[nextcol]
+				exe 'to vert' (winwidth(0)-t:txb.size[w:txbi]-1) 'sb' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1077,7 +1077,7 @@ fun! s:nav(N,L)
 					let nextcol=(tcol+1)%t:txbL
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bot '.(spaceremaining-1).'vert sb'.t:bufs[nextcol]
+						exe 'bo vert' (spaceremaining-1) 'sb' t:bufs[nextcol]
 						let w:txbi=nextcol
 						exe t:txb.exe[nextcol]
 						if &scb
@@ -1208,7 +1208,7 @@ fun! s:nav(N,L)
 				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'rightb '.(winwidth(0)-t:txb.size[w:txbi]-1).'vert sb'.t:bufs[nextcol]
+				exe 'bo vert' (winwidth(0)-t:txb.size[w:txbi]-1) 'sb' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1241,7 +1241,7 @@ fun! s:nav(N,L)
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'bot '.(spaceremaining-1).'vert sb'.t:bufs[nextcol]
+				exe 'bo vert' (spaceremaining-1) 'sb' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
