@@ -112,17 +112,17 @@ fun! TxbInit(seed)
 			call remove(plane.map,i)
 		en
 	endfor
-	let abs_paths=map(copy(plane.name),'fnameescape(fnamemodify(v:val,":p"))')
+	let abs_paths=map(copy(plane.name),'fnamemodify(v:val,":p")')
 	exe 'cd' fnameescape(prevwd)
 	if empty(plane.name)
 		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
 	elseif !empty(unreadable)
-		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		let bufix=index(abs_paths,fnamemodify(expand('%'),':p'))
 		let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[82,114]
 	else
-		let bufix=index(abs_paths,fnameescape(fnamemodify(expand('%'),':p')))
+		let bufix=index(abs_paths,fnamemodify(expand('%'),':p'))
 		let prompt.="\n? (enter) ".(bufix!=-1? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[10,13]
 	en
@@ -142,7 +142,7 @@ fun! TxbInit(seed)
 		endfor
 		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 		call filter(t:txb.settings,'has_key(defaults,v:key)')
-		let t:paths=abs_paths
+		let t:bufs=map(abs_paths,'bufnr(v:val,1)')
 		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
@@ -406,7 +406,7 @@ let s:option={
 		\'apply': "if !empty(arg)\n
 				\let prevwd=getcwd()\n
 				\exe 'cd' fnameescape(t:wdir)\n
-				\let t:paths[w:txbi]=fnameescape(fnamemodify(arg,':p'))\n
+				\let t:bufs[w:txbi]=bufnr(fnamemodify(arg,':p'),1)\n
 				\let t:txb.name[w:txbi]=arg\n
 				\exe 'cd' fnameescape(prevwd)\n
 				\let curview=winsaveview()\n
@@ -513,7 +513,7 @@ let s:option={
 						\let dict['working dir']=arg\n
 						\let t:wdir=arg\n
 						\exe 'cd' fnameescape(t:wdir)\n
-						\let t:paths=map(copy(t:txb.name),'fnameescape(fnamemodify(v:val,'':p''))')\n
+						\let t:bufs=map(copy(t:txb.name),'bufnr(fnamemodify(v:val,'':p''),1)')\n
 						\exe 'cd' fnameescape(curwd)\n
 						\let msg='(Working dir changed)'\n
 					\en\n
@@ -717,21 +717,18 @@ let txbCmd.D="redr\n
 	\if t:txbL==1\n
 		\let mes='Cannot delete last split!'\n
 	\elseif input('Really delete current column (y/n)? ')==?'y'\n
-		\let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
-		\if t_index!=-1\n
-			\call remove(t:txb.name,t_index)\n
-			\call remove(t:paths,t_index)\n
-			\call remove(t:txb.size,t_index)\n
-			\call remove(t:txb.exe,t_index)\n
-			\call remove(t:txb.map,t_index)\n
-			\call remove(t:gridLbl,t_index)\n
-			\call remove(t:txb.depth,t_index)\n
-			\call remove(t:oldDepth,t_index)\n
-			\call remove(t:gridClr,t_index)\n
-			\call remove(t:gridPos,t_index)\n
-			\let t:txbL=len(t:txb.name)\n
-			\call s:getMapDis()\n
-		\en\n
+		\call remove(t:txb.name,w:txbi)\n
+		\call remove(t:bufs,w:txbi)\n
+		\call remove(t:txb.size,w:txbi)\n
+		\call remove(t:txb.exe,w:txbi)\n
+		\call remove(t:txb.map,w:txbi)\n
+		\call remove(t:gridLbl,w:txbi)\n
+		\call remove(t:txb.depth,w:txbi)\n
+		\call remove(t:oldDepth,w:txbi)\n
+		\call remove(t:gridClr,w:txbi)\n
+		\call remove(t:gridPos,w:txbi)\n
+		\let t:txbL=len(t:txb.name)\n
+		\call s:getMapDis()\n
 		\winc W\n
 		\let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw()\n
@@ -739,36 +736,31 @@ let txbCmd.D="redr\n
 	\en\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let txbCmd.A="let t_index=index(t:paths,fnameescape(fnamemodify(expand('%'),':p')))\n
-	\let cpos=[line('.'),virtcol('.'),w:txbi]\n
-	\if t_index!=-1\n
-		\let prevwd=getcwd()\n
-		\exe 'cd' fnameescape(t:wdir)\n
-		\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
-		\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:paths[(w:txbi+1)%t:txbL]==#fnameescape(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
-			\let mes='File not appended'\n
-		\elseif empty(file)\n
-			\let mes='File name is empty'\n
-		\else\n
-			\let mes='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
-			\call insert(t:txb.name,file,w:txbi+1)\n
-			\call insert(t:paths,fnameescape(fnamemodify(file,':p')),w:txbi+1)\n
-			\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
-			\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
-			\call insert(t:txb.map,{},w:txbi+1)\n
-			\call insert(t:txb.depth,100,w:txbi+1)\n
-			\call insert(t:oldDepth,100,w:txbi+1)\n
-			\call insert(t:gridLbl,{},w:txbi+1)\n
-			\call insert(t:gridClr,{},w:txbi+1)\n
-			\call insert(t:gridPos,{},w:txbi+1)\n
-			\let t:txbL=len(t:txb.name)\n
-			\call s:redraw(1)\n
-			\call s:getMapDis()\n
-		\en\n
-		\exe 'cd' fnameescape(prevwd)\n
+let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
+	\let prevwd=getcwd()\n
+	\exe 'cd' fnameescape(t:wdir)\n
+	\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
+	\if (fnamemodify(expand('%'),':p')==#fnamemodify(file,':p') || t:bufs[(w:txbi+1)%t:txbL]==bufnr(fnamemodify(file,':p'))) && 'y'!=?input('\nWARNING\n    An unpatched bug in Vim causes errors when panning modified ADJACENT DUPLICATE SPLITS. Continue with append? (y/n)')\n
+		\let mes='File not appended'\n
+	\elseif empty(file)\n
+		\let mes='File name is empty'\n
 	\else\n
-		\let mes='Current file not in plane! (hotkey) (r)edraw before appending.'\n
+		\let mes='[' . file . (index(t:txb.name,file)==-1? '] appended.' : '] (duplicate) appended.')\n
+		\call insert(t:txb.name,file,w:txbi+1)\n
+		\call insert(t:bufs,bufnr(fnamemodify(file,':p'),1),w:txbi+1)\n
+		\call insert(t:txb.size,t:txb.settings['split width'],w:txbi+1)\n
+		\call insert(t:txb.exe,t:txb.settings.autoexe,w:txbi+1)\n
+		\call insert(t:txb.map,{},w:txbi+1)\n
+		\call insert(t:txb.depth,100,w:txbi+1)\n
+		\call insert(t:oldDepth,100,w:txbi+1)\n
+		\call insert(t:gridLbl,{},w:txbi+1)\n
+		\call insert(t:gridClr,{},w:txbi+1)\n
+		\call insert(t:gridPos,{},w:txbi+1)\n
+		\let t:txbL=len(t:txb.name)\n
+		\call s:redraw(1)\n
+		\call s:getMapDis()\n
 	\en\n
+	\exe 'cd' fnameescape(prevwd)\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let txbCmd.W="let prevwd=getcwd()\n
@@ -810,7 +802,7 @@ fun! s:goto(sp,ln,...)
 		let doff-=t:txb.size[dsp]+1
 		let dsp=dsp>=t:txbL-1? 0 : dsp+1
 	endwhile
-	exe t:paths[dsp]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'only|e '.t:paths[dsp] : 'only'
+	exe 'only|b'.t:bufs[dsp]
 	let w:txbi=dsp
 	if a:0
 		exe 'norm! '.dln.(doff>0? 'zt0'.doff.'zl' : 'zt0')
@@ -834,18 +826,14 @@ endfun
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 fun! s:redraw(...)
-	let name0=fnameescape(fnamemodify(expand('%'),':p'))
-	if !exists('w:txbi')
-		let ix=index(t:paths,name0)
-		if ix==-1
-			only
-			exe 'e' t:paths[0]
-			let w:txbi=0
-		else
-			let w:txbi=ix
-		en
-	elseif t:paths[w:txbi]!=#name0
-		exe 'e' t:paths[w:txbi]
+	if exists('w:txbi') && t:bufs[w:txbi]==bufnr('%')
+	elseif exists('w:txbi')
+		exe 'b' t:bufs[w:txbi]
+	elseif index(t:bufs,bufnr('%'))==-1
+		exe 'only|b' t:bufs[0]
+		let w:txbi=0
+	else
+		let w:txbi=index(t:bufs,bufnr('%'))
 	en
 	let win0=winnr()
 	let pos=[bufnr('%'),line('w0'),line('.'), virtcol('.')]
@@ -894,7 +882,7 @@ fun! s:redraw(...)
 		let colt=(w:txbi-win0+t:txbL)%t:txbL
 		for i in range(dif)
 			let colt=colt? colt-1 : t:txbL-1
-			exe 'top vsp' t:paths[colt]
+			exe 'to vert sb' t:bufs[colt]
 			let w:txbi=colt
 			exe t:txb.exe[colt]
 		endfor
@@ -910,7 +898,7 @@ fun! s:redraw(...)
 		let nextcol=((colb-dif)%t:txbL+t:txbL)%t:txbL
 		for i in range(dif)
 			let nextcol=(nextcol+1)%t:txbL
-			exe (t:txbL==1? 'bot vsp' : 'bot vsp '.t:paths[nextcol])
+			exe (t:txbL==1? 'bot vert sb' : 'bot vert sb'.t:bufs[nextcol])
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
@@ -927,9 +915,7 @@ fun! s:redraw(...)
 	let changedsplits={}
 	for i in range(1,numcols)
 		se wfw
-		if fnameescape(fnamemodify(bufname(''),':p'))!=#t:paths[ccol]
-			exe 'e' t:paths[ccol]
-		en
+		exe 'b' t:bufs[ccol]
 		let w:txbi=ccol
 		exe t:txb.exe[ccol]
 		if a:0
@@ -1038,7 +1024,7 @@ fun! s:nav(N,L)
 			while winwidth(0)>=t:txb.size[w:txbi]+2
 				se nowfw scrollopt=jump
 				let nextcol=w:txbi? w:txbi-1 : t:txbL-1
-				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:paths[nextcol]
+				exe 'top '.(winwidth(0)-t:txb.size[w:txbi]-1).'vert sb'.t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1076,7 +1062,7 @@ fun! s:nav(N,L)
 					let loff+=t:txb.size[tcol]+1
 				endwhile
 				se scrollopt=jump
-				exe 'e' t:paths[tcol]
+				exe 'b' t:bufs[tcol]
 				let w:txbi=tcol
 				exe t:txb.exe[tcol]
 				if &scb
@@ -1093,7 +1079,7 @@ fun! s:nav(N,L)
 					let nextcol=(tcol+1)%t:txbL
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
-						exe 'bot '.(spaceremaining-1).'vsp '.t:paths[nextcol]
+						exe 'bot '.(spaceremaining-1).'vert sb'.t:bufs[nextcol]
 						let w:txbi=nextcol
 						exe t:txb.exe[nextcol]
 						if &scb
@@ -1156,7 +1142,7 @@ fun! s:nav(N,L)
 				let loff+=toshift
 			en
 			se scrollopt=jump
-			exe 'e' t:paths[tcol]
+			exe 'b' t:bufs[tcol]
 			let w:txbi=tcol
 			exe t:txb.exe[tcol]
 			if &scb
@@ -1224,7 +1210,7 @@ fun! s:nav(N,L)
 				winc b
 				se nowfw scrollopt=jump
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'rightb '.(winwidth(0)-t:txb.size[w:txbi]-1).'vsp '.t:paths[nextcol]
+				exe 'rightb '.(winwidth(0)-t:txb.size[w:txbi]-1).'vert sb'.t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1257,7 +1243,7 @@ fun! s:nav(N,L)
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
 				let nextcol=(w:txbi+1)%t:txbL
-				exe 'bot '.(spaceremaining-1).'vsp '.t:paths[nextcol]
+				exe 'bot '.(spaceremaining-1).'vert sb'.t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
 				if &scb
@@ -1738,7 +1724,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe t:paths[i]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e '.t:paths[i] : ''\n
+			\exe 'b'.t:bufs[i]\n
 			\let t:txb.depth[i]=line('$')\n
 			\let t:txb.map[i]={}\n
 			\exe 'norm! 1G0'\n
@@ -1768,7 +1754,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 				\let line=search(searchPat,'W')\n
 			\endwhile\n
 		\endfor\n
-		\exe t:paths[curwin]!=#fnameescape(fnamemodify(expand('%'),':p'))? 'e '.t:paths[curwin] : ''\n
+		\exe 'b'.t:bufs[curwin]\n
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
