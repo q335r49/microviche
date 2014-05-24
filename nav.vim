@@ -35,15 +35,13 @@ fun! TxbInit(seed)
 			return 1
 		en
 		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
-		let prevwd=getcwd()
 		exe 'cd' fnameescape(plane.settings['working dir'])
 		let input=input("\n? Starting files (enter a single file or a filepattern such as '*.txt'; press tab for completion): ",'','file')
+		let plane.name=split(glob(input),"\n")
+		cd -
 		if empty(input)
-			exe 'cd' fnameescape(prevwd)
 			return 1
 		en
-		let plane.name=split(glob(input),"\n")
-		exe 'cd' fnameescape(prevwd)
 	else
 		let plane=type(a:seed)==4? deepcopy(a:seed) : type(a:seed)==3? {'name':copy(a:seed)} : {'name':split(glob(a:seed),"\n")}
 	en
@@ -96,7 +94,6 @@ fun! TxbInit(seed)
 	elseif len(plane.depth)<len(plane.name)
 		call extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth)))
 	en
-	let prevwd=getcwd()
 	exe 'cd' fnameescape(plane.settings['working dir'])
 	let unreadable=[]
 	for i in range(len(plane.name)-1,0,-1)
@@ -112,7 +109,7 @@ fun! TxbInit(seed)
 		en
 	endfor
 	let abs_paths=map(copy(plane.name),'fnamemodify(v:val,":p")')
-	exe 'cd' fnameescape(prevwd)
+	cd -
 	if empty(plane.name)
 		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
@@ -396,16 +393,14 @@ let s:option={
 		\'apply': 'let t:txb.exe[w:txbi]=arg|call s:redraw()'},
 	\'current file': {'doc': 'File associated with this split',
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
-		\'getInput':"let prevwd=getcwd()\n
-			\exe 'cd' fnameescape(t:wdir)\n
+		\'getInput':"exe 'cd' fnameescape(t:wdir)\n
 			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')\n
-			\exe 'cd' fnameescape(prevwd)",
+			\cd -",
 		\'apply': "if !empty(arg)\n
-				\let prevwd=getcwd()\n
 				\exe 'cd' fnameescape(t:wdir)\n
 				\let t:bufs[w:txbi]=bufnr(fnamemodify(arg,':p'),1)\n
 				\let t:txb.name[w:txbi]=arg\n
-				\exe 'cd' fnameescape(prevwd)\n
+				\cd -\n
 				\let curview=winsaveview()\n
 				\call s:redraw()\n
 				\call winrestview(curview)\n
@@ -732,7 +727,6 @@ let txbCmd.D="redr\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
-	\let prevwd=getcwd()\n
 	\exe 'cd' fnameescape(t:wdir)\n
 	\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 	\if empty(file)\n
@@ -753,14 +747,13 @@ let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
 		\call s:redraw(1)\n
 		\call s:getMapDis()\n
 	\en\n
-	\exe 'cd' fnameescape(prevwd)\n
+	\cd -\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let txbCmd.W="let prevwd=getcwd()\n
-	\exe 'cd' fnameescape(t:wdir)\n
+let txbCmd.W="exe 'cd' fnameescape(t:wdir)\n
 	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
 	\let [t:txb.settings.writefile,mes]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
-	\exe 'cd' fnameescape(prevwd)"
+	\cd -"
 
 fun! s:setCursor(l,vc,ix)
 	let wt=getwinvar(1,'txbi')
