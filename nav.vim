@@ -27,7 +27,7 @@ en
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
-		let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
+	   let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
 		if empty(plane.settings['working dir'])
 			return 1
 		elseif !isdirectory(plane.settings['working dir'])
@@ -169,81 +169,79 @@ fun! txbMouse.default()
 			call s:setCursor(cpos[0],cpos[1],cpos[2])
 			echon getwinvar(v:mouse_win,'txbi') '-' v:mouse_lnum
 			return "keepj norm! \<leftmouse>"
-		else
-			let ecstr=w:txbi.' '.line('.')
-			while c!="\<leftrelease>"
-				if v:mouse_win!=w0
-					let w0=v:mouse_win
-					exe "norm! \<leftmouse>"
-					if !exists('w:txbi')
-						return ''
-					en
-					let [b0,wrap]=[winbufnr(0),&wrap]
-					let [x,y,offset]=wrap? [wincol(),line('w0')+winline(),0] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol()]
-				else
-					if wrap
-						exe "norm! \<leftmouse>"
-						let [nx,l0]=[wincol(),y-winline()]
-					else
-						let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
-					en
-					exe 'norm! '.bufwinnr(b0)."\<c-w>w"
-					let [x,xs]=x && nx? [x,s:nav(x-nx,l0)] : [x? x : nx,0]
-					let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
-					redr
-					ec ecstr
-				en
-				let c=getchar()
-				while c!="\<leftdrag>" && c!="\<leftrelease>"
-					let c=getchar()
-				endwhile
-			endwhile
 		en
+		let ecstr=w:txbi.' '.line('.')
+		while c!="\<leftrelease>"
+			if v:mouse_win!=w0
+				let w0=v:mouse_win
+				exe "norm! \<leftmouse>"
+				if !exists('w:txbi')
+					return ''
+				en
+				let [b0,wrap]=[winbufnr(0),&wrap]
+				let [x,y,offset]=wrap? [wincol(),line('w0')+winline(),0] : [v:mouse_col-(virtcol('.')-wincol()),v:mouse_lnum,virtcol('.')-wincol()]
+			else
+				if wrap
+					exe "norm! \<leftmouse>"
+					let [nx,l0]=[wincol(),y-winline()]
+				else
+					let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
+				en
+				exe 'norm! '.bufwinnr(b0)."\<c-w>w"
+				let [x,xs]=x && nx? [x,s:nav(x-nx,l0)] : [x? x : nx,0]
+				let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
+				redr
+				ec ecstr
+			en
+			let c=getchar()
+			while c!="\<leftdrag>" && c!="\<leftrelease>"
+				let c=getchar()
+			endwhile
+		endwhile
 		call s:setCursor(cpos[0],cpos[1],cpos[2])
 		echon w:txbi '-' line('.')
-	else
-		let possav=[bufnr('%')]+getpos('.')[1:]
-		call feedkeys("\<leftmouse>")
-		call getchar()
-		exe v:mouse_win."winc w"
-		if v:mouse_lnum>line('w$') || (&wrap && v:mouse_col%winwidth(0)==1) || (!&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol) || v:mouse_lnum==line('$')
-			if line('$')==line('w0') | exe "keepj norm! \<c-y>" |en
-			return "keepj norm! \<leftmouse>" | en
-		exe "norm! \<leftmouse>"
-		redr!
-		let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
-		let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+		return ''
+	en
+	let possav=[bufnr('%')]+getpos('.')[1:]
+	call feedkeys("\<leftmouse>")
+	call getchar()
+	exe v:mouse_win."winc w"
+	if v:mouse_lnum>line('w$') || &wrap && v:mouse_col%winwidth(0)==1 || !&wrap && v:mouse_col>=winwidth(0)+winsaveview().leftcol || v:mouse_lnum==line('$')
+		return line('$')==line('w0')? "keepj norm! \<c-y>\<leftmouse>" : "keepj norm! \<leftmouse>"
+	en
+	exe "norm! \<leftmouse>"
+	redr!
+	let [veon,fr,tl,v]=[&ve==?'all',-1,repeat([[reltime(),0,0]],4),winsaveview()]
+	let [v.col,v.coladd,redrexpr]=[0,v:mouse_col-1,(exists('g:opt_device') && g:opt_device==?'droid4' && veon)? 'redr!':'redr']
+	let c=getchar()
+	if c!="\<leftdrag>"
+		return "keepj norm! \<leftmouse>"
+	en
+	while c=="\<leftdrag>"
+		let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
+		let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+		call winrestview(v)
+		exe redrexpr
 		let c=getchar()
-		if c=="\<leftdrag>"
-			while c=="\<leftdrag>"
-				let [dV,dH,fr]=[min([v:mouse_lnum-v.lnum,v.topline-1]), veon? min([v:mouse_col-v.coladd-1,v.leftcol]):0,(fr+1)%4]
-				let [v.topline,v.leftcol,v.lnum,v.coladd,tl[fr]]=[v.topline-dV,v.leftcol-dH,v:mouse_lnum-dV,v:mouse_col-1-dH,[reltime(),dV,dH]]
+	endwhile
+	let glide=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
+	if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
+		let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
+		let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
+		while !getchar(1) && glv+glh
+			let [y,x,vc,hc]=[vc>get(glide,glv,1),hc>get(glide,glh,1),vc+1,hc+1]
+			if y||x
+				let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
 				call winrestview(v)
 				exe redrexpr
-				let c=getchar()
-			endwhile
-		else
-			return "keepj norm! \<leftmouse>"
-		en
-		let glide=[99999999]+map(range(11),'11*(11-v:val)*(11-v:val)')
-		if str2float(reltimestr(reltime(tl[(fr+1)%4][0])))<0.2
-			let [glv,glh,vc,hc]=[tl[0][1]+tl[1][1]+tl[2][1]+tl[3][1],tl[0][2]+tl[1][2]+tl[2][2]+tl[3][2],0,0]
-			let [tlx,lnx,glv,lcx,cax,glh]=(glv>3? ['y*v.topline>1','y*v.lnum>1',glv*glv] : glv<-3? ['-(y*v.topline<'.line('$').')','-(y*v.lnum<'.line('$').')',glv*glv] : [0,0,0])+(glh>3? ['x*v.leftcol>0','x*v.coladd>0',glh*glh] : glh<-3? ['-x','-x',glh*glh] : [0,0,0])
-			while !getchar(1) && glv+glh
-				let [y,x,vc,hc]=[vc>get(glide,glv,1),hc>get(glide,glh,1),vc+1,hc+1]
-				if y||x
-					let [v.topline,v.lnum,v.leftcol,v.coladd,glv,vc,glh,hc]-=[eval(tlx),eval(lnx),eval(lcx),eval(cax),y,y*vc,x,x*hc]
-					call winrestview(v)
-					exe redrexpr
-				en
-			endw
-		en
-		exe min([max([line('w0'),possav[1]]),line('w$')])
-		let firstcol=virtcol('.')-wincol()+1
-		let lastcol=firstcol+winwidth(0)-1
-		let possav[3]=min([max([firstcol,possav[2]+possav[3]]),lastcol])
-		exe "norm! ".possav[3]."|"
+			en
+		endw
 	en
+	exe min([max([line('w0'),possav[1]]),line('w$')])
+	let firstcol=virtcol('.')-wincol()+1
+	let lastcol=firstcol+winwidth(0)-1
+	let possav[3]=min([max([firstcol,possav[2]+possav[3]]),lastcol])
+	exe "norm! ".possav[3]."|"
 	return ''
 endfun
 
