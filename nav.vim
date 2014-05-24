@@ -141,7 +141,6 @@ fun! TxbInit(seed)
 		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
-		return 0
 	elseif index([83,115],c)!=-1
 		let plane=plane_save
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:option)
@@ -1547,19 +1546,14 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mR=s:mR<0? 0 : s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mCount='01'"}
-let s:mCase.y=s:mCase.h.'|'.s:mCase.k
-let s:mCase.u=s:mCase.l.'|'.s:mCase.k
-let s:mCase.b=s:mCase.h.'|'.s:mCase.j
-let s:mCase.n=s:mCase.l.'|'.s:mCase.j
+call extend(s:mCase,
+	\{'y':s:mCase.h.'|'.s:mCase.k, 'u':s:mCase.l.'|'.s:mCase.k, 'b':s:mCase.h.'|'.s:mCase.j, 'n':s:mCase.l.'|'.s:mCase.j,
+	\ 'Y':s:mCase.H.'|'.s:mCase.K, 'U':s:mCase.L.'|'.s:mCase.K, 'B':s:mCase.H.'|'.s:mCase.J, 'N':s:mCase.L.'|'.s:mCase.J})
 for i in split('h j k l y u b n p P C')
 	let s:mCase[i].="\nlet s:mCount='01'\n
 		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&columns+t:mapw? s:mC*t:mapw-&columns+t:mapw : s:mCoff\n
 		\let s:mRoff=s:mRoff<s:mR-&ch+2? s:mR-&ch+2 : s:mRoff>s:mR? s:mR : s:mRoff"
 endfor
-let s:mCase.Y=s:mCase.H.'|'.s:mCase.K
-let s:mCase.U=s:mCase.L.'|'.s:mCase.K
-let s:mCase.B=s:mCase.H.'|'.s:mCase.J
-let s:mCase.N=s:mCase.L.'|'.s:mCase.J
 call extend(s:mCase,{"\<c-m>":s:mCase.g,"\<right>":s:mCase.l,"\<left>":s:mCase.h,"\<down>":s:mCase.j,"\<up>":s:mCase.k," ":s:mCase.J,"\<bs>":s:mCase.K})
 
 let s:count='03'
