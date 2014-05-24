@@ -393,11 +393,11 @@ let s:option={
 		\'apply': 'let t:txb.exe[w:txbi]=arg|call s:redraw()'},
 	\'current file': {'doc': 'File associated with this split',
 		\'loadk': 'let ret=t:txb.name[w:txbi]',
-		\'getInput':"exe 'cd' fnameescape(t:wdir)\n
-			\let arg=input('(Use full path if not in working dir '.t:wdir.')\nEnter file (do not escape spaces): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')\n
+		\'getInput':"exe t:cwd\n
+			\let arg=input('(Use full path if not in working dir '.dict['working dir'].')\nEnter file (do not escape spaces): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')\n
 			\cd -",
 		\'apply': "if !empty(arg)\n
-				\exe 'cd' fnameescape(t:wdir)\n
+				\exe t:cwd\n
 				\let t:bufs[w:txbi]=bufnr(fnamemodify(arg,':p'),1)\n
 				\let t:txb.name[w:txbi]=arg\n
 				\cd -\n
@@ -485,7 +485,7 @@ let s:option={
 		\'loadk': 'let ret=dict["working dir"]',
 		\'getDef': 'let arg=fnamemodify(getcwd(),":p")',
 		\'check': "let [msg, arg]=isdirectory(arg)? [0,fnamemodify(arg,':p')] : ['Not a valid directory',arg]",
-		\'onInit': 'let t:wdir=dict["working dir"]',
+		\'onInit': 'let t:cwd="cd ".fnameescape(dict["working dir"])',
 		\'save': 1,
 		\'getInput': "let arg=input('Working dir (do not escape spaces; must be absolute path; press tab for completion): ',type(disp[key])==1? disp[key] : string(disp[key]),'file')",
 		\'apply': "let msg='(Working dir not changed)'\n
@@ -499,12 +499,12 @@ let s:option={
 							\exe g:txbCmd.W\n
 						\en\n
 						\if confirm=='y'\n
-							\exe 'cd' fnameescape(t:wdir)\n
+							\exe t:cwd\n
 							\call map(t:txb.name,'fnamemodify(v:val,'':p'')')\n
 						\en\n
 						\let dict['working dir']=arg\n
-						\let t:wdir=arg\n
-						\exe 'cd' fnameescape(t:wdir)\n
+						\let t:cwd='cd '.fnameescape(arg)\n
+						\exe t:cwd\n
 						\let t:bufs=map(copy(t:txb.name),'bufnr(fnamemodify(v:val,'':p''),1)')\n
 						\exe 'cd' fnameescape(curwd)\n
 						\let msg='(Working dir changed)'\n
@@ -727,8 +727,8 @@ let txbCmd.D="redr\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
 let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
-	\exe 'cd' fnameescape(t:wdir)\n
-	\let file=input('(Use full path if not in working directory '.t:wdir.')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
+	\exe t:cwd\n
+	\let file=input('(Use full path if not in working directory '.t:txb.settings['working dir'].')\nAppend file (do not escape spaces) : ',t:txb.name[w:txbi],'file')\n
 	\if empty(file)\n
 		\let mes='Cancelled'\n
 	\else\n
@@ -750,8 +750,8 @@ let txbCmd.A="let cpos=[line('.'),virtcol('.'),w:txbi]\n
 	\cd -\n
 	\call s:setCursor(cpos[0],cpos[1],cpos[2])"
 
-let txbCmd.W="exe 'cd' fnameescape(t:wdir)\n
-	\let input=input('? Write plane to file (relative to '.t:wdir.'): ',t:txb.settings.writefile,'file')\n
+let txbCmd.W="exe t:cwd\n
+	\let input=input('? Write plane to file (relative to '.t:txb.settings['working dir'].'): ',t:txb.settings.writefile,'file')\n
 	\let [t:txb.settings.writefile,mes]=empty(input)? [t:txb.settings.writefile,'File write aborted'] : [input,writefile(['let TXB='.substitute(string(t:txb),'\n','''.\"\\\\n\".''','g'),'call TxbInit(TXB)'],input)? 'Error: File not writable' : 'File written, '':source '.input.''' to restore']\n
 	\cd -"
 
