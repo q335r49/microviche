@@ -109,16 +109,16 @@ fun! TxbInit(seed)
 		en
 	endfor
 	let bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
-	let curBufInPlane=index(bufs,bufnr(''))!=-1
+	let initCmd=index(bufs,bufnr(''))==-1? 'tabe' : ''
 	cd -
 	if empty(plane.name)
 		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
 	elseif !empty(unreadable)
-		let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(curBufInPlane? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[82,114]
 	else
-		let prompt.="\n? (enter) ".(curBufInPlane? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		let prompt.="\n? (enter) ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[10,13]
 	en
 	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable\n# ".join(plane.name,', ')
@@ -128,9 +128,7 @@ fun! TxbInit(seed)
 	let c=getchar()
 	echon strtrans(type(c)? c : nr2char(c))
 	if index(confirmKeys,c)!=-1
-		if curBufInPlane
-			tabe
-		en
+		exe initCmd
 		let t:txb=plane
 		let t:txbL=len(t:txb.name)
 		let dict=t:txb.settings
