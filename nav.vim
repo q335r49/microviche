@@ -83,7 +83,6 @@ fun! TxbInit(seed)
 	elseif len(plane.map)<len(plane.name)
 		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']'))
 	en
-	for i in range(len(plane.map))
 	for i in filter(range(len(plane.map)),'type(plane.map[v:val])!=4')
 		let plane.map[i]={}
 	endfor
@@ -202,7 +201,7 @@ fun! txbMouse.default()
 		echon w:txbi '-' line('.')
 		return ''
 	en
-	let possav=[bufnr('%')]+getpos('.')[1:]
+	let possav=[bufnr('')]+getpos('.')[1:]
 	call feedkeys("\<leftmouse>")
 	call getchar()
 	exe v:mouse_win."winc w"
@@ -702,14 +701,12 @@ let txbCmd["\<right>"]=txbCmd.l
 
 let txbCmd.L="let L=getline('.')\n
 	\let mes='Labeled'\n
-	\if -1!=match(L,'^'.t:txb.settings['label autotext'])\n
-		\call setline(line('.'),substitute(L,'^'.t:txb.settings['label autotext'].'\\zs\\d*\\ze',line('.'),''))\n
-	\else\n
+	\if -1==match(L,'^'.t:txb.settings['label autotext'])\n
 		\let prefix=t:txb.settings['label autotext'].line('.').' '\n
 		\call setline(line('.'),prefix.L)\n
 		\call cursor(line('.'),len(prefix))\n
 		\startinsert\n
-	\en"
+	\elseif setline(line('.'),substitute(L,'^'.t:txb.settings['label autotext'].'\\zs\\d*\\ze',line('.'),''))\nen"
 
 let txbCmd.D="redr\n
 	\if t:txbL==1\n
@@ -822,17 +819,17 @@ endfun
 
 let s:badSync=v:version<704 || v:version==704 && !has('patch131')
 fun! s:redraw(...)
-	if exists('w:txbi') && t:bufs[w:txbi]==bufnr('%')
+	if exists('w:txbi') && t:bufs[w:txbi]==bufnr('')
 	elseif exists('w:txbi')
 		exe 'b' t:bufs[w:txbi]
-	elseif index(t:bufs,bufnr('%'))==-1
+	elseif index(t:bufs,bufnr(''))==-1
 		exe 'only|b' t:bufs[0]
 		let w:txbi=0
 	else
-		let w:txbi=index(t:bufs,bufnr('%'))
+		let w:txbi=index(t:bufs,bufnr(''))
 	en
 	let win0=winnr()
-	let pos=[bufnr('%'),line('w0'),line('.'), virtcol('.')]
+	let pos=[bufnr(''),line('w0'),line('.'), virtcol('.')]
 	if winnr('$')>1
 		if win0==1 && !&wrap
 			let offset=virtcol('.')-wincol()
@@ -894,7 +891,7 @@ fun! s:redraw(...)
 		let nextcol=((colb-dif)%t:txbL+t:txbL)%t:txbL
 		for i in range(dif)
 			let nextcol=(nextcol+1)%t:txbL
-			exe 'bo vert sb'.t:bufs[nextcol]
+			exe 'bo vert sb' t:bufs[nextcol]
 			let w:txbi=nextcol
 			exe t:txb.exe[nextcol]
 		endfor
@@ -1562,14 +1559,11 @@ fun! s:mapKeyHandler(c)
 		if s:mExit==1
 			call s:ecMap()
 			ec (s:mC.'-'.s:mR*t:txb.settings['lines per map grid'].(s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : ''))[:&columns-2]
-		elseif s:mExit==2
-			let [&ch,&more,&ls,&stal]=s:mSavSettings
-			call s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
-			return
-		else
-			let [&ch,&more,&ls,&stal]=s:mSavSettings
+			call feedkeys("\<plug>TxbY")
 			return
 		en
+		let [&ch,&more,&ls,&stal]=s:mSavSettings
+		return s:mExit==2 && s:goto(s:mC,get(t:gridPos[s:mC],s:mR,[s:mR*t:txb.settings['lines per map grid']])[0])
 	elseif s:msStat[0]==2 && s:mPrevCoor[0] && s:mPrevCoor[0]<3
 		let s:mRoff=s:mRoff-s:msStat[2]+s:mPrevCoor[2]
 		let s:mCoff=s:mCoff-s:msStat[1]+s:mPrevCoor[1]
@@ -1720,7 +1714,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 		\let curwin=exists('w:txbi')? w:txbi : 0\n
 		\let view=winsaveview()\n
 		\for i in map(range(t:txbL),'(curwin+v:val)%t:txbL')\n
-			\exe 'b'.t:bufs[i]\n
+			\exe 'b' t:bufs[i]\n
 			\let t:txb.depth[i]=line('$')\n
 			\let t:txb.map[i]={}\n
 			\exe 'norm! 1G0'\n
@@ -1750,7 +1744,7 @@ let txbCmd.M="if 'y'==?input('? Entirely build map by scanning all files? (Map a
 				\let line=search(searchPat,'W')\n
 			\endwhile\n
 		\endfor\n
-		\exe 'b'.t:bufs[curwin]\n
+		\exe 'b' t:bufs[curwin]\n
 		\call winrestview(view)\n
 		\call s:getMapDis()\n
 		\call s:redraw()\n
