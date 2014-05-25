@@ -27,104 +27,78 @@ en
 fun! TxbInit(seed)
 	se noequalalways winwidth=1 winminwidth=0
 	if empty(a:seed)
-		let plane={'settings':{'working dir':input("# Creating a new plane...\n? Working dir: ",getcwd())}}
-		if empty(plane.settings['working dir'])
-			return 1
-		elseif !isdirectory(plane.settings['working dir'])
-			echoerr 'Invalid directory'
-			return 1
-		en
-		let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
+		let wdir=input("# Creating a new plane...\n? Working dir: ",getcwd(),'file')
+		while !isdirectory(wdir)
+			if empty(wdir)
+				return 1
+			en
+			let wdir=input("\n# (Invalid directory)\n? Working dir: ",getcwd(),'file')
+		endwhile
+		let plane={'settings':fnamemodify(wdir,':p')}
 		exe 'cd' fnameescape(plane.settings['working dir'])
-		let input=input("\n? Starting files (enter a single file or a filepattern such as '*.txt'; press tab for completion): ",'','file')
-		let plane.name=split(glob(input),"\n")
-		cd -
+			let input=input("\n? Starting files (single file or filepattern, eg, '*.txt'): ",'','file')
+			let plane.name=split(glob(input),"\n")
+		silent cd -
 		if empty(input)
 			return 1
 		en
 	else
 		let plane=type(a:seed)==4? deepcopy(a:seed) : type(a:seed)==3? {'name':copy(a:seed)} : {'name':split(glob(a:seed),"\n")}
+		call filter(plane,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
 	en
-	let defaults={}
 	let prompt=''
-	for i in filter(keys(s:option),'get(s:option[v:val],"save")')
-		unlet! arg
-		exe get(s:option[i],'getDef','let arg=""')
-		let defaults[i]=arg
+	for i in keys(plane.settings)
+		if !exists("s:option[i]['save']")
+			unlet plane.settings[i]
+			continue
+		en
+		unlet! arg | let arg=plane.settings[i]
+		exe get(s:option[i],'check','let msg=0')
+		if msg is 0
+			continue
+		en
+		unlet! arg | exe get(s:option[i],'getDef','let arg=""')
+		let plane.settings[i]=arg
+		let prompt.="\n# Invalid setting (reverting to default): ".i.": ".msg
 	endfor
-	if !has_key(plane,'settings')
-		let plane.settings=defaults
-	else
-		for i in keys(defaults)
-			if !has_key(plane.settings,i)
-				let plane.settings[i]=defaults[i]
-			else
-				unlet! arg
-				let arg=plane.settings[i]
-				exe get(s:option[i],'check','let msg=0')
-				if msg isnot 0
-					let plane.settings[i]=defaults[i]
-					let prompt.="\n# WARNING: invalid setting (default will be used): ".i.": ".msg
-				en
-			en
-		endfor
-	en
+	for i in filter(keys(s:option),'get(s:option[v:val],"save") && !has_key(plane.settings,v:val)')
+		unlet! arg | exe get(s:option[i],'getDef','let arg=""')
+		let plane.settings[i]=arg
+	endfor
 	let plane.settings['working dir']=fnamemodify(plane.settings['working dir'],':p')
 	let plane_save=deepcopy(plane)
-	if !exists('plane.size')
-		let plane.size=repeat([60],len(plane.name))
-	elseif len(plane.size)<len(plane.name)
-		call extend(plane.size,repeat([exists("plane.settings['split width']")? plane.settings['split width'] : 60],len(plane.name)-len(plane.size)))
-	en
-	if !exists('plane.map')
-		let plane.map=eval('['.join(repeat(['{}'],len(plane.name)),',').']')
-	elseif len(plane.map)<len(plane.name)
-		call extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']'))
-	en
-	for i in filter(range(len(plane.map)),'type(plane.map[v:val])!=4')
-		let plane.map[i]={}
-	endfor
-	if !exists('plane.exe')
-		let plane.exe=repeat([plane.settings.autoexe],len(plane.name))
-	elseif len(plane.exe)<len(plane.name)
-		call extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe)))
-	en
-	if !exists('plane.depth')
-		let plane.depth=repeat([0],len(plane.name))
-	elseif len(plane.depth)<len(plane.name)
-		call extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth)))
-	en
+	let plane.size=has_key(plane,'size')? extend(plane.size,repeat([plane.settings['split width']],len(plane.name)-len(plane.size))) : repeat([60],len(plane.name))
+	let plane.map=has_key(plane,'map') && empty(filter(range(len(plane.map)),'type(plane.map[v:val])!=4'))? extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']')) : eval('['.join(repeat(['{}'],len(plane.name)),',').']')
+    let plane.exe=has_key(plane,'exe')? extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe))) : repeat([plane.settings.autoexe],len(plane.name))
+	let plane.depth=has_key(plane,'depth')? extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth))) : repeat([0],len(plane.name))
 	exe 'cd' fnameescape(plane.settings['working dir'])
-	let unreadable=[]
-	for i in range(len(plane.name)-1,0,-1)
-		if !filereadable(plane.name[i])
-			if !isdirectory(plane.name[i])
-				call add(unreadable,remove(plane.name,i))
-			else
-				call remove(plane.name,i)
+		let unreadable=[]
+		for i in range(len(plane.name)-1,0,-1)
+			if !filereadable(plane.name[i])
+				if !isdirectory(plane.name[i])
+					call add(unreadable,remove(plane.name,i))
+				else
+					call remove(plane.name,i)
+				en
+				call remove(plane.size,i)
+				call remove(plane.exe,i)
+				call remove(plane.map,i)
 			en
-			call remove(plane.size,i)
-			call remove(plane.exe,i)
-			call remove(plane.map,i)
-		en
-	endfor
-	let bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
-	let initCmd=index(bufs,bufnr(''))==-1? 'tabe' : ''
+		endfor
+		let bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
+		let initCmd=index(bufs,bufnr(''))==-1? 'tabe' : ''
 	cd -
+	ec "\n#" len(plane.name) "readable:" join(plane.name,', ') "\n#" len(unreadable) "unreadable:" join(unreadable,', ') "\n# Working dir:" plane.settings['working dir'] prompt
 	if empty(plane.name)
-		let prompt.="\n# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		ec "# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
 	elseif !empty(unreadable)
-		let prompt.="\n# Unreadable files will be removed!\n? (R)emove unreadable files and ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		ec "# Unreadable files will be removed!\n? (R)emove unreadable files and ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[82,114]
 	else
-		let prompt.="\n? (enter) ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		ec "? (enter) ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[10,13]
 	en
-	echon empty(plane.name)? '' : "\n# ".len(plane.name)." readable\n# ".join(plane.name,', ')
-	echon empty(unreadable)? '' : "\n# ".len(unreadable)." unreadable\n# ".join(unreadable,', ')
-	echon empty(plane.name)? '' : "\n# Working dir: ".plane.settings['working dir']
-	echon prompt
 	let c=getchar()
 	echon strtrans(type(c)? c : nr2char(c))
 	if index(confirmKeys,c)!=-1
@@ -135,12 +109,11 @@ fun! TxbInit(seed)
 		for i in keys(dict)
 			exe get(s:option[i],'onInit','')
 		endfor
-		call filter(t:txb,'index(["depth","exe","map","name","settings","size"],v:key)!=-1')
-		call filter(t:txb.settings,'has_key(defaults,v:key)')
 		let t:bufs=bufs
 		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
+		return 0
 	elseif index([83,115],c)!=-1
 		let plane=plane_save
 		call s:settingsPager(plane.settings,['Global','hotkey','mouse pan speed','Plane','working dir'],s:option)
@@ -150,8 +123,8 @@ fun! TxbInit(seed)
 	elseif c is "\<f1>"
 		exe g:txbCmd[c]
 		ec mes
-		return 1
 	en
+	return 1
 endfun
 
 let txbMouse={}
@@ -542,7 +515,7 @@ fun! s:settingsPager(dict,entry,attr)
 		\107: 'let s:spCursor-=1',
 		\103: 'let s:spCursor=0',
 		\71:  'let s:spCursor=entries-1'}
-	call extend(case,{13:case.99,10:case.99}
+	call extend(case,{13:case.99,10:case.99})
 	let dict=a:dict
 	let entries=len(a:entry)
 	let [chsav,&ch]=[&ch,entries+3>11? 11 : entries+3]
