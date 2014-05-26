@@ -20,7 +20,7 @@ au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 else
-	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&columns/4,line('w0')-winheight(0)/4+winline()/2) | en
+	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&co/4,line('w0')-winheight(0)/4+winline()/2) | en
 	nn <silent> <leftmouse> :exe txbMouse[has_key(txbMouse,&ttymouse)? &ttymouse : 'default']()<cr>
 en
 
@@ -529,7 +529,7 @@ fun! s:settingsPager(dict,entry,attr)
 		exe a:attr[key].loadk
 		let disp[key]=ret
 	endfor
-	let [helpw,contentw]=&columns>120? [60,60] : [&columns/2,&columns/2-1]
+	let [helpw,contentw]=&co>120? [60,60] : [&co/2,&co/2-1]
 	let pad=repeat(' ',contentw)
 	let msg=0
 	let continue=1
@@ -563,7 +563,7 @@ fun! s:settingsPager(dict,entry,attr)
 				en
 				echon get(doclines,scrPos,'')
 			else
-				echon line[:&columns-2]
+				echon line[:&co-2]
 			en
 			echohl
 		endfor
@@ -644,7 +644,7 @@ fun! s:goto(sp,ln,...)
 	let sp=(a:sp%t:txbL+t:txbL)%t:txbL
 	let dln=a:ln>0? a:ln : 1
 	let dsp=sp
-	let doff=a:0? a:1 : t:txb.size[sp]>&columns? 0 : -(&columns-t:txb.size[sp])/2
+	let doff=a:0? a:1 : t:txb.size[sp]>&co? 0 : -(&co-t:txb.size[sp])/2
 	while doff<0
 		let dsp=dsp>0? dsp-1 : t:txbL-1
 		let doff+=t:txb.size[dsp-1]+1
@@ -706,7 +706,7 @@ fun! s:redraw(...)
 			let colsLeft+=1
 		endwhile
 		let colb=w:txbi
-		let remain=&columns-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]) )
+		let remain=&co-(split0>0? split0+1+t:txb.size[w:txbi] : min([winwidth(1),t:txb.size[w:txbi]]) )
 		let colsRight=1
 		while remain>=2
 			let colb=(colb+1)%t:txbL
@@ -719,7 +719,7 @@ fun! s:redraw(...)
 		let colsLeft=0
 		let colb=w:txbi
 		let offset=&wrap? 0 : virtcol('.')-wincol()
-		let remain=&columns-max([2,t:txb.size[w:txbi]-offset])
+		let remain=&co-max([2,t:txb.size[w:txbi]-offset])
 		let colsRight=1
 		while remain>=2
 			let colb=(colb+1)%t:txbL
@@ -829,16 +829,18 @@ fun! s:redraw(...)
 endfun
 
 fun! s:nav(N,L)
+	let ei=&ei
+	se ei=WinEnter,WinLeave,BufEnter,BufLeave
 	let cBf=bufnr('')
 	let cVc=virtcol('.')
 	let cL0=line('w0')
 	let cL=line('.')
-	let alignmentcmd='norm! '.cL0.'zt'
-	let dosyncbind=0
+	let align='norm! '.cL0.'zt'
+	let resync=0
 	let extrashift=0
 	if a:N<0
 		let N=-a:N
-		if N<&columns
+		if N<&co
 			while winwidth(winnr('$'))<=N
 				winc b
 				let extrashift=(winwidth(0)==N)
@@ -848,7 +850,7 @@ fun! s:nav(N,L)
 			winc t
 			only
 		en
-		if winwidth(0)!=&columns
+		if winwidth(0)!=&co
 			winc t
 			let topw=winwidth(0)
 			if winwidth(winnr('$'))<=N+3+extrashift || winnr('$')>=9
@@ -871,25 +873,24 @@ fun! s:nav(N,L)
 			else
 				exe 'vert res+'.(N+extrashift)
 			en
+			se nowfw scrollopt=jump
 			while winwidth(0)>=t:txb.size[w:txbi]+2
-				se nowfw scrollopt=jump
 				let nextcol=w:txbi? w:txbi-1 : t:txbL-1
 				exe 'to' winwidth(0)-t:txb.size[w:txbi]-1 'vsp|b' t:bufs[nextcol]
 				let w:txbi=nextcol
 				exe t:txb.exe[nextcol]
-				if &scb
-					if line('$')<cL0
-						let dosyncbind=1
-					else
-						exe alignmentcmd
-					en
+				if !&scb
+				elseif line('$')<cL0
+					let resync=1
+				else
+					exe align
 				en
 				winc l
 				se wfw
 				norm! 0
 				winc t
-				se wfw scrollopt=ver,jump
 			endwhile
+			se wfw scrollopt=ver,jump
 			let offset=t:txb.size[w:txbi]-winwidth(0)-virtcol('.')+wincol()
 			exe !offset || &wrap? '' : offset>0? 'norm! '.offset.'zl' : 'norm! '.-offset.'zh'
 			let cWn=bufwinnr(cBf)
@@ -917,15 +918,15 @@ fun! s:nav(N,L)
 				exe t:txb.exe[tcol]
 				if &scb
 					if line('$')<cL0
-						let dosyncbind=1
+						let resync=1
 					else
-						exe alignmentcmd
+						exe align
 					en
 				en
 				se scrollopt=ver,jump
 				exe 'norm! 0'.(loff>0? loff.'zl' : '')
-				if t:txb.size[tcol]-loff<&columns-1
-					let spaceremaining=&columns-t:txb.size[tcol]+loff
+				if t:txb.size[tcol]-loff<&co-1
+					let spaceremaining=&co-t:txb.size[tcol]+loff
 					let nextcol=(tcol+1)%t:txbL
 					se nowfw scrollopt=jump
 					while spaceremaining>=2
@@ -934,9 +935,9 @@ fun! s:nav(N,L)
 						exe t:txb.exe[nextcol]
 						if &scb
 							if line('$')<cL0
-								let dosyncbind=1
-							elseif !dosyncbind
-								exe alignmentcmd
+								let resync=1
+							elseif !resync
+								exe align
 							en
 						en
 						norm! 0
@@ -958,16 +959,16 @@ fun! s:nav(N,L)
 		let extrashift=-extrashift
 	elseif a:N>0
 		let tcol=getwinvar(1,'txbi')
-		let loff=winwidth(1)==&columns? (&wrap? (t:txb.size[tcol]>&columns? t:txb.size[tcol]-&columns+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
+		let loff=winwidth(1)==&co? (&wrap? (t:txb.size[tcol]>&co? t:txb.size[tcol]-&co+1 : 0) : virtcol('.')-wincol()) : (t:txb.size[tcol]>winwidth(1)? t:txb.size[tcol]-winwidth(1) : 0)
 		let N=a:N
 		let botalreadysized=0
-		if N>=&columns
-			let loff=winwidth(1)==&columns? loff+&columns : winwidth(winnr('$'))
+		if N>=&co
+			let loff=winwidth(1)==&co? loff+&co : winwidth(winnr('$'))
 			if loff>=t:txb.size[tcol]
 				let loff=0
 				let tcol=(tcol+1)%t:txbL
 			en
-			let toshift=N-&columns
+			let toshift=N-&co
 			if toshift>=t:txb.size[tcol]-loff+1
 				let toshift-=t:txb.size[tcol]-loff+1
 				let tcol=(tcol+1)%t:txbL
@@ -997,9 +998,9 @@ fun! s:nav(N,L)
 			exe t:txb.exe[tcol]
 			if &scb
 				if line('$')<cL0
-					let dosyncbind=1
+					let resync=1
 				else
-					exe alignmentcmd
+					exe align
 				en
 			en
 			se scrollopt=ver,jump
@@ -1021,6 +1022,7 @@ fun! s:nav(N,L)
 					exe cL
 					let dif=line('w0')-a:L
 					exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
+					let &ei=ei
 					return
 				en
 			en
@@ -1043,7 +1045,7 @@ fun! s:nav(N,L)
 			let loff+=N-shifted
 		en
 		let ww1=winwidth(1)
-		if ww1!=&columns
+		if ww1!=&co
 			let N=N-botalreadysized
 			if N
 				winc b
@@ -1065,9 +1067,9 @@ fun! s:nav(N,L)
 				exe t:txb.exe[nextcol]
 				if &scb
 					if line('$')<cL0
-						let dosyncbind=1
-					elseif !dosyncbind
-						exe alignmentcmd
+						let resync=1
+					elseif !resync
+						exe align
 					en
 				en
 				winc h
@@ -1088,8 +1090,8 @@ fun! s:nav(N,L)
 			else
 				exe (cVc<t:txb.size[tcol]-winwidth(1)? 'norm! g0' : 'norm! '.cVc.'|')
 			en
-		elseif &columns-t:txb.size[tcol]+loff>=2
-			let spaceremaining=&columns-t:txb.size[tcol]+loff
+		elseif &co-t:txb.size[tcol]+loff>=2
+			let spaceremaining=&co-t:txb.size[tcol]+loff
 			se nowfw scrollopt=jump
 			while spaceremaining>=2
 				let nextcol=(w:txbi+1)%t:txbL
@@ -1098,9 +1100,9 @@ fun! s:nav(N,L)
 				exe t:txb.exe[nextcol]
 				if &scb
 					if line('$')<cL0
-						let dosyncbind=1
-					elseif !dosyncbind
-						exe alignmentcmd
+						let resync=1
+					elseif !resync
+						exe align
 					en
 				en
 				norm! 0
@@ -1141,7 +1143,7 @@ fun! s:nav(N,L)
 			en
 		en
 	en
-	if dosyncbind
+	if resync
 		if s:badSync
 			windo 1
 		en
@@ -1150,6 +1152,7 @@ fun! s:nav(N,L)
 	exe cL
 	let dif=line('w0')-a:L
 	exe dif>0? 'norm! '.dif."\<c-y>" : dif<0? 'norm! '.-dif."\<c-e>" : ''
+	let &ei=ei
 	return extrashift
 endfun
 
@@ -1324,7 +1327,7 @@ fun! s:getMapDis(...)
 endfun
 
 fun! s:ecMap()
-	let xe=s:mCoff+&columns-2
+	let xe=s:mCoff+&co-2
 	let b=s:mC*t:mapw
 	if b<xe
 		let selection=get(t:gridLbl[s:mC],s:mR,[t:bgd[s:mR][b : b+t:mapw-1]])
@@ -1415,7 +1418,7 @@ fun! s:mapKeyHandler(c)
 		exe get(s:mCase,a:c,'let mapmes=" (0..9) count (f1) help (hjklyubn) move (HJKLYUBN) pan (c)enter (g)o (q)uit (z)oom (p)revious (P)Next"')
 		if s:mExit==1
 			call s:ecMap()
-			ec (s:mC.'-'.s:mR*t:txb.settings['lines per map grid'].(s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : ''))[:&columns-2]
+			ec (s:mC.'-'.s:mR*t:txb.settings['lines per map grid'].(s:mCount is '01'? '' : ' '.s:mCount).(exists('mapmes')? mapmes : ''))[:&co-2]
 			call feedkeys("\<plug>TxbY")
 			return
 		en
@@ -1482,11 +1485,11 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 	\'9':"let s:mCount=s:mCount is '01'? 9 : s:mCount.'9'",
 	\'0':"let s:mCount=s:mCount is '01'? '01' : s:mCount.'0'",
 	\'c':"let s:mR=s:mRoff+(&ch-2)/2\n
-		\let s:mC=(s:mCoff+&columns/2)/t:mapw\n
+		\let s:mC=(s:mCoff+&co/2)/t:mapw\n
 		\let s:mR=s:mR>t:deepR? t:deepR : s:mR\n
 		\let s:mC=s:mC>=t:txbL? t:txbL-1 : s:mC",
 	\'C':"let s:mRoff=s:mR-(&ch-2)/2\n
-		\let s:mCoff=s:mC*t:mapw-&columns/2",
+		\let s:mCoff=s:mC*t:mapw-&co/2",
 	\'z':"call s:ecMap()\n
 		\let input=str2nr(input('File lines per map line (>=10): ',t:txb.settings['lines per map grid']))\n
 		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
@@ -1501,7 +1504,7 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 			\let t:txb.settings['lines per map grid']=input\n
 			\let t:txb.settings['lines per map grid']=input\n
 			\let t:mapw=width\n
-			\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+			\let s:mCoff=s:mC*t:mapw>&co/2? s:mC*t:mapw-&co/2 : 0\n
 			\call s:getMapDis()\n
 			\let s:mPrevClk=[0,0]\n
 			\redr!\n
@@ -1524,7 +1527,7 @@ call extend(s:mCase,
 	\ 'Y':s:mCase.H.'|'.s:mCase.K, 'U':s:mCase.L.'|'.s:mCase.K, 'B':s:mCase.H.'|'.s:mCase.J, 'N':s:mCase.L.'|'.s:mCase.J})
 for i in split('h j k l y u b n p P C')
 	let s:mCase[i].="\nlet s:mCount='01'\n
-		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&columns+t:mapw? s:mC*t:mapw-&columns+t:mapw : s:mCoff\n
+		\let s:mCoff=s:mCoff>=s:mC*t:mapw? s:mC*t:mapw : s:mCoff<s:mC*t:mapw-&co+t:mapw? s:mC*t:mapw-&co+t:mapw : s:mCoff\n
 		\let s:mRoff=s:mRoff<s:mR-&ch+2? s:mR-&ch+2 : s:mRoff>s:mR? s:mR : s:mRoff"
 endfor
 call extend(s:mCase,{"\<c-m>":s:mCase.g,"\<right>":s:mCase.l,"\<left>":s:mCase.h,"\<down>":s:mCase.j,"\<up>":s:mCase.k," ":s:mCase.J,"\<bs>":s:mCase.K})
@@ -1560,7 +1563,7 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\let s:mC=s:mC<0? 0 : s:mC>=t:txbL? t:txbL-1 : s:mC\n
 		\let s:mExit=1\n
 		\let s:mRoff=s:mR>(&ch-2)/2? s:mR-(&ch-2)/2 : 0\n
-		\let s:mCoff=s:mC*t:mapw>&columns/2? s:mC*t:mapw-&columns/2 : 0\n
+		\let s:mCoff=s:mC*t:mapw>&co/2? s:mC*t:mapw-&co/2 : 0\n
 		\call s:ecMap()\n
 		\let g:TxbKeyHandler=function('s:mapKeyHandler')\n
 		\if t:jhist[t:jhist[0]][0]==s:mC && abs(t:jhist[t:jhist[0]][1]-line('.'))<23\n
@@ -1613,11 +1616,9 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\else\n
 			\let mes='Plane remap cancelled'\n
 		\en",
-	\"\<f1>":"redir => aus\nexe 'silent au BufEnter'\nexe 'silent au BufLeave'\nexe 'silent au WinEnter'\nexe 'silent au WinLeave'\nredir END\n
-		\let warnings=(v:version<=703? '# Vim 7.4 is recommended.': '')
+	\"\<f1>":"let warnings=(v:version<=703? '# Vim 7.4 is recommended.': '')
 		\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
 		\: empty(&vi) || stridx(&vi,'!')==-1? '# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
-		\.(len(split(aus,'\n'))>4? '# If you experience excessive mouse panning lag, consider slimming down BufEnter, BufLeave, WinEnter, WinLeave ('':au Bufenter'' to list) or using ''BufRead'' or ''BufHidden'' instead' : '')
 		\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 		\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
 		\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
@@ -1641,10 +1642,10 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\LABEL marker(anchor)(:)( title)(#highlght)(#comment)\n
 		\txb:345 bla bla            Anchor only\ntxb:345: Title#Visual      Anchor, title, color\n
 		\txb: Title                 Title only\ntxb: Title##bla bla        Title only'\n
-		\if &columns>71+45\n
+		\if &co>71+45\n
 			\let blanks=repeat(' ',71)\n
 			\let col1=s:formatPar(commands,71,1)\n
-			\let col2=s:formatPar(warnings,&columns-71-3>71? 71 : &columns-71-3)\n
+			\let col2=s:formatPar(warnings,&co-71-3>71? 71 : &co-71-3)\n
 			\let mes='\n'.join(map(range(len(col1)>len(col2)? len(col1) : len(col2)),\"get(col1,v:val,blanks).get(col2,v:val,'')\"),'\n')\n
 		\else\n
 			\let mes='\n'.commands.'\n\n'.warnings\n
