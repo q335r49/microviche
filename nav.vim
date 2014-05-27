@@ -1616,11 +1616,11 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 			\let mes='Plane remap cancelled'\n
 		\en",
 	\"\<f1>":"let warnings=(v:version<=703? '\n# Vim 7.4 is recommended.': '')
-		\.(v:version<703 || v:version==703 && !has('patch30')?  '\n# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
-		\: empty(&vi) || stridx(&vi,'!')==-1? '\n# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
+		\.(v:version<703 || v:version==703 && !has('patch30')?  '\n# Vim < 7.3.30: Plane can''t be automatically backed up in viminfo; use hotkey W instead.'
+		\: empty(&vi) || stridx(&vi,'!')==-1? '\n# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W)' : '')
 		\.(has('gui_running')? '\n# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
-		\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# gVim and non-unix terminals do not support mouse in map mode' : '')
-		\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
+		\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# gVim and non-unix terminals do not support mouse in map mode'
+		\: &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
 		\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS\n# Note the '': '' when both label anchor and title are supplied.
 		\\n# The map is updated on hotkey o, r, or M. On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
 		\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
