@@ -34,7 +34,7 @@ fun! TxbInit(seed)
 			en
 			let wdir=input("\n# (Invalid directory)\n? Working dir: ",getcwd(),'file')
 		endwhile
-		let plane={'settings':fnamemodify(wdir,':p')}
+		let plane={'settings':{'working dir':fnamemodify(wdir,':p')}}
 		exe 'cd' fnameescape(plane.settings['working dir'])
 			let input=input("\n? Starting files (single file or filepattern, eg, '*.txt'): ",'','file')
 			let plane.name=split(glob(input),"\n")
@@ -393,26 +393,26 @@ let s:option = {'hist': {'doc': 'Jump history',
 	\'mouse pan speed': {'doc': 'Pan speed[N] steps for every N mouse steps (only applies in terminal and ttymouse=xterm2 or sgr)',
 		\'loadk': 'let ret=g:TXBMPS',
 		\'getDef': 'let arg=[0,1,2,4,7,10,15,21,24,27]',
-		\'check': "try\n
-				\if type(arg)==1\n
+		\'check': "if type(arg)==1\n
+				\try\n
 					\let temp=eval(arg)\n
-					\unlet! arg\n
-					\let arg=temp\n
-				\en\n
-				\let msg=type(arg)!=3? 'Must evaluate to list' : arg[0]? 'First element must be 0' : 0\n
-			\catch\n
-				\let msg='String evaluation error'\n
-			\endtry",
+				\catch\n
+					\let temp=''\n
+				\endtry\n
+				\unlet! arg\n
+				\let arg=temp\n
+			\en\n
+			\let msg=type(arg)!=3? 'Must evaluate to list, eg, [0,1,2,3]' : arg[0]? 'First element must be 0' : 0",
 		\'apply': "let g:TXBMPS=arg\n
-		\let s:mps=TXBMPS+repeat([TXBMPS[-1]],40)+repeat([-TXBMPS[-1]],40)+map(reverse(copy(TXBMPS[1:])),'-v:val')\n
-		\let s:panYCmd=['']+map(copy(TXBMPS[1:]),'v:val.''\<c-e>''')+repeat([TXBMPS[-1].'\<c-e>'],40)+repeat([TXBMPS[-1].'\<c-y>'],40)+map(reverse(copy(TXBMPS[1:])),'v:val.''\<c-y>''')\n
-		\let s:panXCmd=['g']+map(copy(TXBMPS[1:]),'v:val.''zl''')+repeat([TXBMPS[-1].'zl'],40)+repeat([TXBMPS[-1].'zh'],40)+map(reverse(copy(TXBMPS[1:])),'v:val.''zh''')"},
+		\let s:mps=g:TXBMPS+repeat([g:TXBMPS[-1]],40)+repeat([-g:TXBMPS[-1]],40)+map(reverse(copy(g:TXBMPS[1:])),'-v:val')\n
+		\let s:panYCmd=['']+map(copy(g:TXBMPS[1:]),'v:val.''\<c-e>''')+repeat([g:TXBMPS[-1].'\<c-e>'],40)+repeat([g:TXBMPS[-1].'\<c-y>'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''\<c-y>''')\n
+		\let s:panXCmd=['g']+map(copy(g:TXBMPS[1:]),'v:val.''zl''')+repeat([g:TXBMPS[-1].'zl'],40)+repeat([g:TXBMPS[-1].'zh'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''zh''')"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
 		\'save': 1,
 		\'getInput': "let newMarker=input('New label marker: ',disp[key])\n
-			\let newAutotext=input('Label autotext (hotkey L; should be same as marker if marker doesn't contain regex): ',newMarker)\n
+			\let newAutotext=input('Label autotext (hotkey L; should be same as marker if marker doesn''t contain regex): ',newMarker)\n
 			\if !empty(newMarker) && !empty(newAutotext)\n
 				\let arg=newMarker\n
 				\let dict['label autotext']=newAutotext\n
@@ -1493,9 +1493,8 @@ let s:mCase={"\e":"let s:mExit=0|redr",
 	\'z':"call s:ecMap()\n
 		\let input=str2nr(input('File lines per map line (>=10): ',t:txb.settings['lines per map grid']))\n
 		\let width=str2nr(input('Width of map column (>=1): ',t:mapw))\n
-		\if input<10 || width<1\n
-			\echohl ErrorMsg\n
-			\echo 'Error: Invalid values'\n
+		\if input<1 || width<1\n
+			\echoerr 'Granularity, width must be > 0'\n
 			\sleep 500m\n
 			\redr!\n
 		\elseif input!=t:txb.settings['lines per map grid'] || width!=t:mapw\n
@@ -1616,17 +1615,17 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\else\n
 			\let mes='Plane remap cancelled'\n
 		\en",
-	\"\<f1>":"let warnings=(v:version<=703? '# Vim 7.4 is recommended.': '')
-		\.(v:version<703 || v:version==703 && !has('patch30')?  '# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
-		\: empty(&vi) || stridx(&vi,'!')==-1? '# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
-		\.(has('gui_running')? '# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
-		\.(has('gui_running') || !(has('unix') || has('vms'))? '# gVim and non-unix terminals do not support mouse in map mode' : '')
-		\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
-		\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS # Note the '': '' separator when both anchor and title are given.
+	\"\<f1>":"let warnings=(v:version<=703? '\n# Vim 7.4 is recommended.': '')
+		\.(v:version<703 || v:version==703 && !has('patch30')?  '\n# Vim < 7.3.30: Dictionaries cannot be written to viminfo; save plane with hotkey W instead.'
+		\: empty(&vi) || stridx(&vi,'!')==-1? '\n# Put '':set viminfo+=!'' in your .vimrc file to remember plane between sessions (or write to file with hotkey W and restore via :source [file])' : '')
+		\.(has('gui_running')? '\n# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
+		\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# gVim and non-unix terminals do not support mouse in map mode' : '')
+		\.(!has('gui_running') && (has('unix') || has('vms')) && &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
+		\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS\n# Note the '': '' when both label anchor and title are supplied.
 		\\n# The map is updated on hotkey o, r, or M. On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
 		\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
-		\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown in the map instead of other labels.
-		\\n# Keyboard-free navigation: in the plane, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
+		\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown instead of other labels occupying the same cell.
+		\\n# Keyboard-free navigation: in normal mode, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
 		\\n# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
 		\let commands='microViche 1.8.4.1 5/2014          HOTKEY        '.g:TXB_HOTKEY.'\n\n
 		\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n

@@ -15,7 +15,7 @@ In the map (<kbd>f10</kbd> <kbd>o</kbd>):
 <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> <kbd>y</kbd> <kbd>u</kbd> <kbd>b</kbd> <kbd>n</kbd> | move (takes count) || <kbd>f1</kbd> | help and warnings
 :---: | :---: | :---: | :---: | :---:
 <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>B</kbd> <kbd>N</kbd> | pan (takes count) || <kbd>z</kbd> | zoom
-<kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> | center cursor
+<kbd>g</kbd> <kbd>enter</kbd> <kbd>doubleclick</kbd> | goto label || <kbd>c</kbd> <kbd>C</kbd> | center cursor / view
 <kbd>click</kbd> <kbd>drag</kbd> | select / pan || <kbd>q</kbd> <kbd>esc</kbd> | quit
 <kbd>p</kbd> <kbd>P</kbd> | prev / next in history || 
  
@@ -30,7 +30,7 @@ The syntax is <q>marker(anchor)(:)( title#highlght#comment)</q>, but let's just 
 
 ####Tips
 - To resolve **labeling conflicts**, the case-insensitive alphabetically first title starting with <q>!</q> will be shown, eg, <q>txb:321: !aaaImportant</q>. On cursor-over, the rest will be shown in line number order.
-- **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize. [Cygwin](http://www.cygwin.com/) running [mintty](https://code.google.com/p/mintty/) is a great Windows setup.
+- **Terminal emulators** work better than gVim since the latter doesn't support mousing in map mode or automatic redrawing on window / font resize. [Cygwin](http://www.cygwin.com/) (and the bundled  [mintty](https://code.google.com/p/mintty/) terminal emulator) is a great Windows setup.
 - To **disable scrollbinding**: <kbd>f10</kbd> <kbd>S</kbd>ettings→ <kbd>c</kbd>hange <q>autoexe</q> to <samp>se </samp>**<samp>no</samp>**<samp>scb nowrap</samp>→apply all
 - **Keyboard-free navigation** is possible: dragging to the topleft corner opens the map and clicking the topleft corner closes it. (Terminal emulator only; <samp>ttymouse</samp> must be set to <samp>sgr</samp> or <samp>xterm2</samp>.)
 - If you have an **inaccessible hotkey**, <samp>:call TxbKey('S')</samp> for <kbd>S</kbd>ettings.
