@@ -15,7 +15,7 @@ augroup TXB | au!
 let TXB_HOTKEY=exists('TXB_HOTKEY')? TXB_HOTKEY : '<f10>'
 let s:hotkeyArg=':if exists("w:txbi")\|call TxbKey("null")\|else\|if !TxbInit(exists("TXB")? TXB : "")\|let TXB=t:txb\|en\|en<cr>'
 exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
-au VimEnter * if maparg('<f10>')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
+au VimEnter * if escape(maparg('<f10>'),'|')==?s:hotkeyArg | exe 'silent! nunmap <f10>' | en | exe 'nn <silent>' TXB_HOTKEY s:hotkeyArg
 
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
@@ -85,18 +85,17 @@ fun! TxbInit(seed)
 				call remove(plane.map,i)
 			en
 		endfor
-		let bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
-		let initCmd=index(bufs,bufnr(''))==-1? 'tabe' : ''
+		let initCmd=index(map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"))'),bufnr(''))==-1? 'tabe' : ''
 	cd -
 	ec "\n#" len(plane.name) "readable:" join(plane.name,', ') "\n#" len(unreadable) "unreadable:" join(unreadable,', ') "\n# Working dir:" plane.settings['working dir'] prompt
 	if empty(plane.name)
 		ec "# No matches\n? (N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[-1]
 	elseif !empty(unreadable)
-		ec "# Unreadable files will be removed!\n? (R)emove unreadable files and ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		ec "# Unreadable files will be removed!\n? (R)emove unreadable files and ".(empty(initCmd)? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[82,114]
 	else
-		ec "? (enter) ".(!initCmd? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
+		ec "? (enter) ".(empty(initCmd)? "restore " : "load in new tab ")."(N)ew plane (S)et working dir & global options (f1) help (esc) cancel: "
 		let confirmKeys=[10,13]
 	en
 	let c=getchar()
@@ -109,7 +108,7 @@ fun! TxbInit(seed)
 		for i in keys(dict)
 			exe get(s:option[i],'onInit','')
 		endfor
-		let t:bufs=bufs
+		let t:bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
 		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
@@ -341,7 +340,7 @@ let s:option = {'hist': {'doc': 'Jump history',
 		\'check': 'let msg=type(arg)!=3 || len(arg)<2 || type(arg[0]) || arg[0]>=len(arg)? "Badly formed history" : 0',
 		\'onInit': "if len(dict.hist)<98\n
 			\elseif dict.hist[0]>0 && dict.hist[0]<len(dict.hist)\n
-				\let dict.hist=(dict.hist[0]>48? [48]+dict.hist[dict.hist[0]-48+1 : dict.hist[0]] : dict.hist[:dict.hist[0]])+dict.hist[dict.hist[0]+1 : (dict.hist[0]+48<len(dict.hist)-1? dict.hist[0]+48 : -1)]\n
+				\let dict.hist=(dict.hist[0]>32? [32]+dict.hist[dict.hist[0]-32+1 : dict.hist[0]] : dict.hist[:dict.hist[0]])+dict.hist[dict.hist[0]+1 : (dict.hist[0]+32<len(dict.hist)-1? dict.hist[0]+32 : -1)]\n
 			\else\n
 				\let dict.hist=[48]+dict.hist[len(dict.hist)-48 :]\n
 			\en\n
@@ -643,8 +642,8 @@ endfun
 fun! s:goto(sp,ln,...)
 	let sp=(a:sp%t:txbL+t:txbL)%t:txbL
 	let dln=a:ln>0? a:ln : 1
-	let dsp=sp
 	let doff=a:0? a:1 : t:txb.size[sp]>&co? 0 : -(&co-t:txb.size[sp])/2
+	let dsp=sp
 	while doff<0
 		let dsp=dsp>0? dsp-1 : t:txbL-1
 		let doff+=t:txb.size[dsp-1]+1
@@ -662,15 +661,14 @@ fun! s:goto(sp,ln,...)
 		exe 'norm! 0'.(doff>0? doff.'zl' : '')
 		call s:redraw()
 		exe ((sp-getwinvar(1,'txbi')+1+t:txbL)%t:txbL).'wincmd w'
-		let l0=dln-winheight(0)/2
-		let dif=line('w0')-(l0>1? l0 : 1)
+		let dif=line('w0')-(dln>winheight(0)/2? dln-winheight(0)/2 : 1)
 		exe dif>0? 'norm! '.dif."\<c-y>".dln.'G' : dif<0? 'norm! '.-dif."\<c-e>".dln.'G' : dln
 	en
-	if t:jhist[t:jhist[0]][0]==a:sp && abs(t:jhist[t:jhist[0]][1]-a:ln)<23
-	elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==a:sp && abs(t:jhist[t:jhist[0]+1][1]-a:ln)<23
+	if t:jhist[t:jhist[0]][0]==sp && abs(t:jhist[t:jhist[0]][1]-dln)<23
+	elseif t:jhist[0]<len(t:jhist)-1 && t:jhist[t:jhist[0]+1][0]==sp && abs(t:jhist[t:jhist[0]+1][1]-dln)<23
 		let t:jhist[0]+=1
 	else 
-		call insert(t:jhist,[a:sp,a:ln],t:jhist[0]+1)
+		call insert(t:jhist,[sp,dln],t:jhist[0]+1)
 		let t:jhist[0]+=1
 	en
 endfun
@@ -1621,13 +1619,14 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\.(has('gui_running')? '\n# In gVim, auto-redrawing on resize is disabled because resizing occurs too frequently in gVim. Use hotkey r or '':call TxbKey(''r'')'' instead' : '')
 		\.(has('gui_running') || !(has('unix') || has('vms'))? '\n# gVim and non-unix terminals do not support mouse in map mode'
 		\: &ttymouse!=?'xterm2' && &ttymouse!=?'sgr'? '\n# '':set ttymouse=xterm2'' or ''sgr'' allows mouse panning in map mode.' : '')\n
-		\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS\n# Note the '': '' when both label anchor and title are supplied.
-		\\n# The map is updated on hotkey o, r, or M. On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.
-		\\n# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.
-		\\n# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown instead of other labels occupying the same cell.
-		\\n# Keyboard-free navigation: in normal mode, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)
-		\\n# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
-		\let commands='microViche 1.8.4.1 5/2014          HOTKEY        '.g:TXB_HOTKEY.'\n\n
+		\let warnings=(empty(warnings)? 'WARNINGS       (none)' : 'WARNINGS '.warnings).'\n\nTIPS\n# Note the '': '' when both label anchor and title are supplied.\n
+		\# The map is updated on hotkey o, r, or M. On update, displaced labels are reanchored by inserting or removing preceding blank lines. Anchoring failures are highlighted in the map.\n
+		\# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.\n
+		\# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown instead of other labels occupying the same cell.\n
+		\# Keyboard-free navigation: in normal mode, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)\n
+		\# Pressing hotkey to initialize a plane while editing a file in the plane will restore plane to that location.\n
+		\# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
+		\let commands='microViche 1.8.4.2 6/2014          HOTKEY        '.g:TXB_HOTKEY.'\n\n
 		\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n
 		\hjklyubn Pan (takes count)         hjklyubn      Move (takes count)\n
 		\r / M    Redraw visible / all      HJKLYUBN      Pan (takes count)\n
