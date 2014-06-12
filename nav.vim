@@ -20,7 +20,7 @@ au VimEnter * if escape(maparg('<f10>'),'|')==?s:hotkeyArg | exe 'silent! nunmap
 if has('gui_running')
 	nn <silent> <leftmouse> :exe txbMouse.default()<cr>
 else
-	au VimResized * if exists('w:txbi') | call s:redraw() | call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&co/4,line('w0')-winheight(0)/4+winline()/2) | en
+	au VimResized * if exists('w:txbi') | call s:redraw() |sil call s:nav(eval(join(map(range(1,winnr()-1),'winwidth(v:val)'),'+').'+winnr()-1+wincol()')/2-&co/4,line('w0')-winheight(0)/4+winline()/2) | en
 	nn <silent> <leftmouse> :exe txbMouse[has_key(txbMouse,&ttymouse)? &ttymouse : 'default']()<cr>
 en
 
@@ -69,7 +69,7 @@ fun! TxbInit(seed)
 	let plane_save=deepcopy(plane)
 	let plane.size=has_key(plane,'size')? extend(plane.size,repeat([plane.settings['split width']],len(plane.name)-len(plane.size))) : repeat([60],len(plane.name))
 	let plane.map=has_key(plane,'map') && empty(filter(range(len(plane.map)),'type(plane.map[v:val])!=4'))? extend(plane.map,eval('['.join(repeat(['{}'],len(plane.name)-len(plane.map)),',').']')) : eval('['.join(repeat(['{}'],len(plane.name)),',').']')
-    let plane.exe=has_key(plane,'exe')? extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe))) : repeat([plane.settings.autoexe],len(plane.name))
+	let plane.exe=has_key(plane,'exe')? extend(plane.exe,repeat([plane.settings.autoexe],len(plane.name)-len(plane.exe))) : repeat([plane.settings.autoexe],len(plane.name))
 	let plane.depth=has_key(plane,'depth')? extend(plane.depth,repeat([0],len(plane.name)-len(plane.depth))) : repeat([0],len(plane.name))
 	exe 'cd' fnameescape(plane.settings['working dir'])
 		let unreadable=[]
@@ -154,7 +154,7 @@ fun! txbMouse.default()
 					let [nx,l0]=[v:mouse_col-offset,line('w0')+y-v:mouse_lnum]
 				en
 				exe 'norm! '.bufwinnr(b0)."\<c-w>w"
-				let [x,xs]=x && nx? [x,s:nav(x-nx,l0)] : [x? x : nx,0]
+				sil let [x,xs]=x && nx? [x,s:nav(x-nx,l0)] : [x? x : nx,0]
 				let [x,y]=[wrap? v:mouse_win>1? x : nx+xs : x, l0>0? y : y-l0+1]
 				redr
 				ec ecstr
@@ -269,7 +269,7 @@ fun! <SID>doDragSGR()
 		en
 	elseif !(k[1] && k[2] && s:pX && s:pY)
 	elseif exists('w:txbi')
-		call s:nav(s:mps[s:pX-k[1]],line('w0')+s:mps[s:pY-k[2]])
+		sil call s:nav(s:mps[s:pX-k[1]],line('w0')+s:mps[s:pY-k[2]])
 		echon w:txbi '-' line('.')
 	else
 		exe 'norm!'.s:panYCmd[s:pY-k[2]].s:panXCmd[s:pX-k[1]]
@@ -292,7 +292,7 @@ fun! <SID>doDragXterm2()
 		en
 	elseif !(X && Y && s:pX && s:pY)
 	elseif exists('w:txbi')
-		call s:nav(s:mps[s:pX-X],line('w0')+s:mps[s:pY-Y])
+		sil call s:nav(s:mps[s:pX-X],line('w0')+s:mps[s:pY-Y])
 		echon w:txbi '-' line('.')
 	else
 		exe 'norm!'.s:panYCmd[s:pY-Y].s:panXCmd[s:pX-X]
@@ -403,9 +403,9 @@ let s:option = {'hist': {'doc': 'Jump history',
 			\en\n
 			\let msg=type(arg)!=3? 'Must evaluate to list, eg, [0,1,2,3]' : arg[0]? 'First element must be 0' : 0",
 		\'apply': "let g:TXBMPS=arg\n
-		\let s:mps=g:TXBMPS+repeat([g:TXBMPS[-1]],40)+repeat([-g:TXBMPS[-1]],40)+map(reverse(copy(g:TXBMPS[1:])),'-v:val')\n
-		\let s:panYCmd=['']+map(copy(g:TXBMPS[1:]),'v:val.''\<c-e>''')+repeat([g:TXBMPS[-1].'\<c-e>'],40)+repeat([g:TXBMPS[-1].'\<c-y>'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''\<c-y>''')\n
-		\let s:panXCmd=['g']+map(copy(g:TXBMPS[1:]),'v:val.''zl''')+repeat([g:TXBMPS[-1].'zl'],40)+repeat([g:TXBMPS[-1].'zh'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''zh''')"},
+			\let s:mps=g:TXBMPS+repeat([g:TXBMPS[-1]],40)+repeat([-g:TXBMPS[-1]],40)+map(reverse(copy(g:TXBMPS[1:])),'-v:val')\n
+			\let s:panYCmd=['']+map(copy(g:TXBMPS[1:]),'v:val.''\<c-e>''')+repeat([g:TXBMPS[-1].'\<c-e>'],40)+repeat([g:TXBMPS[-1].'\<c-y>'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''\<c-y>''')\n
+			\let s:panXCmd=['g']+map(copy(g:TXBMPS[1:]),'v:val.''zl''')+repeat([g:TXBMPS[-1].'zl'],40)+repeat([g:TXBMPS[-1].'zh'],40)+map(reverse(copy(g:TXBMPS[1:])),'v:val.''zh''')"},
 	\'label marker': {'doc': 'Regex for map marker, default ''txb:''. Labels are found via search(''^''.labelmark)',
 		\'loadk': 'let ret=dict[''label marker'']',
 		\'getDef': 'let arg=''txb:''',
@@ -1624,8 +1624,8 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 		\# :call TxbKey(''S'') to access settings if the hotkey becomes inaccessible.\n
 		\# When a title starts with ''!'' (eg, ''txb:321: !Title'') it will be shown instead of other labels occupying the same cell.\n
 		\# Keyboard-free navigation: in normal mode, dragging to the top left corner opens the map and clicking the top left corner of the map closes it. (ttymouse=sgr or xterm2 only)\n
-		\# Pressing hotkey to initialize a plane while editing a file in the plane will restore plane to that location.\n
-		\# Label syntax highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
+		\# Initializing a plane while the cursor is in a file in the plane will restore plane to that location.\n
+		\# Label highlighting:\n:syntax match Title +^txb\\S*: \\zs.[^#\\n]*+ oneline display'\n
 		\let commands='microViche 1.8.4.2 6/2014          HOTKEY        '.g:TXB_HOTKEY.'\n\n
 		\HOTKEY COMMANDS                    MAP COMMANDS (hotkey o)\n
 		\hjklyubn Pan (takes count)         hjklyubn      Move (takes count)\n
@@ -1651,14 +1651,14 @@ let txbCmd={'S':"let mes=''\ncall call('s:settingsPager',exists('w:txbi')? [t:tx
 	\'q':"let mes='  '",
 	\-1:"let mes=''",
 	\'null':'let mes=" "',
-	\'h':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0'))|redrawstatus!",
-	\'j':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')+s:count)|redrawstatus!",
-	\'k':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(0,line('w0')-s:count)|redrawstatus!",
-	\'l':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0'))|redrawstatus!",
-	\'y':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0')-s:count)|redrawstatus!",
-	\'u':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0')-s:count)|redrawstatus!",
-	\'b':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(-s:count,line('w0')+s:count)|redrawstatus!",
-	\'n':"let mes=' '|let s:count='0'.str2nr(s:count)|call s:nav(s:count,line('w0')+s:count)|redrawstatus!",
+	\'h':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(-s:count,line('w0'))|redrawstatus!",
+	\'j':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(0,line('w0')+s:count)|redrawstatus!",
+	\'k':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(0,line('w0')-s:count)|redrawstatus!",
+	\'l':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(s:count,line('w0'))|redrawstatus!",
+	\'y':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(-s:count,line('w0')-s:count)|redrawstatus!",
+	\'u':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(s:count,line('w0')-s:count)|redrawstatus!",
+	\'b':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(-s:count,line('w0')+s:count)|redrawstatus!",
+	\'n':"let mes=' '|let s:count='0'.str2nr(s:count)|sil call s:nav(s:count,line('w0')+s:count)|redrawstatus!",
 	\1:"let mes=' '|let s:count=s:count[0] is '0'? 1   : s:count.'1'",
 	\2:"let mes=' '|let s:count=s:count[0] is '0'? 2   : s:count.'2'",
 	\3:"let mes=' '|let s:count=s:count[0] is '0'? 3   : s:count.'3'",
