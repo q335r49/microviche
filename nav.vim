@@ -108,7 +108,9 @@ fun! TxbInit(seed)
 		for i in keys(dict)
 			exe get(s:option[i],'onInit','')
 		endfor
-		let t:bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
+		exe 'cd' fnameescape(plane.settings['working dir'])
+			let t:bufs=map(copy(plane.name),'bufnr(fnamemodify(v:val,":p"),1)')
+		cd -
 		exe empty(a:seed)? g:txbCmd.M : 'redr'
 		call s:getMapDis()
 		call s:redraw()
